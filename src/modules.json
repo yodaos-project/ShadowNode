@@ -1,7 +1,8 @@
 {
   "modules": {
     "iotjs_basic_modules": {
-      "require": ["assert", "dns", "http", "net", "stream", "testdriver"]
+      "require": ["assert", "crypto", "dns", "http", "net", "path", "stream", 
+                  "tty", "querystring", "punycode", "url", "testdriver"]
     },
     "iotjs_core_modules": {
       "require": ["buffer", "console", "events", "fs", "module", "process",
@@ -123,6 +124,9 @@
       "native_files": ["modules/iotjs_module_constants.c"],
       "init": "InitConstants"
     },
+    "crypto": {
+      "js_file": "js/crypto.js"
+    },
     "dgram": {
       "js_file": "js/dgram.js",
       "require": ["events", "udp", "util"]
@@ -236,9 +240,16 @@
       "js_file": "js/net.js",
       "require": ["assert", "events", "stream", "tcp", "util"]
     },
+    "path": {
+      "js_file": "js/path.js",
+      "require": ["util"]
+    },
     "process": {
       "native_files": ["modules/iotjs_module_process.c"],
       "init": "InitProcess"
+    },
+    "punycode": {
+      "js_file": "js/punycode.js"
     },
     "pwm": {
       "platforms": {
@@ -256,6 +267,10 @@
       "init": "InitPwm",
       "js_file": "js/pwm.js",
       "require": ["util"]
+    },
+    "querystring": {
+      "js_file": "js/querystring.js",
+      "require": ["buffer"]
     },
     "spi": {
       "platforms": {
@@ -315,6 +330,9 @@
       "js_file": "js/timers.js",
       "require": ["util"]
     },
+    "tty": {
+      "js_file": "js/tty.js"
+    },
     "uart": {
       "platforms": {
         "linux": {
@@ -335,6 +353,10 @@
     "udp": {
       "native_files": ["modules/iotjs_module_udp.c"],
       "init": "InitUdp"
+    },
+    "url": {
+      "js_file": "js/url.js",
+      "require": ["punycode", "querystring"]
     },
     "util": {
       "js_file": "js/util.js"
