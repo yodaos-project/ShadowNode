@@ -17,8 +17,12 @@ var Server = require('http_server').Server;
 var ClientRequest = require('http_client').ClientRequest;
 var HTTPParser = require('httpparser');
 
-exports.ClientRequest = ClientRequest;
+var IncomingMessage = require('http_incoming').IncomingMessage;
+var OutgoingMessage = require('http_outgoing').OutgoingMessage;
+var ServerResponse = require('http_server').ServerResponse;
 
+exports.ClientRequest = ClientRequest;
+exports.Server = Server;
 
 exports.request = function(options, cb) {
   return new ClientRequest(options, cb);
@@ -31,7 +35,9 @@ exports.createServer = function(requestListener) {
 
 
 exports.METHODS = HTTPParser.methods;
-
+exports.IncomingMessage = IncomingMessage;
+exports.OutgoingMessage = OutgoingMessage;
+exports.ServerResponse = ServerResponse;
 
 exports.get = function(options, cb) {
   var req = exports.request(options, cb);

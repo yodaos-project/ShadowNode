@@ -166,6 +166,7 @@ function Server(requestListener) {
 
 util.inherits(Server, net.Server);
 exports.Server = Server;
+exports.ServerResponse = ServerResponse;
 
 
 // TODO: Implement Server.prototype.setTimeout function

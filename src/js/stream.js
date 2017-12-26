@@ -25,9 +25,9 @@ function Stream() {
 
 util.inherits(Stream, eventEmitter);
 
+module.exports = Stream;
 
-exports.Stream = Stream;
-
-exports.Readable = require('stream_readable');
-exports.Writable = require('stream_writable');
-exports.Duplex = require('stream_duplex');
+Stream.Stream = Stream;
+Stream.Readable = require('stream_readable');
+Stream.Writable = require('stream_writable');
+Stream.Duplex = require('stream_duplex');
