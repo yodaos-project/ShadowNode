@@ -1,7 +1,7 @@
 {
   "modules": {
     "iotjs_basic_modules": {
-      "require": ["assert", "crypto", "dns", "http", "net", "path", "stream", 
+      "require": ["assert", "crypto", "child_process", "dns", "http", "net", "path", "stream", 
                   "tty", "querystring", "punycode", "url", "testdriver"]
     },
     "iotjs_core_modules": {
@@ -113,6 +113,13 @@
       "init": "InitBuffer",
       "js_file": "js/buffer.js",
       "require": ["util"]
+    },
+    "child_process": {
+      "native_files": [
+        "modules/iotjs_module_child_process.c"
+      ],
+      "init": "InitChildProcess",
+      "js_file": "js/child_process.js"
     },
     "console": {
       "native_files": ["modules/iotjs_module_console.c"],
