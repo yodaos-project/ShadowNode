@@ -1,8 +1,23 @@
 {
   "modules": {
     "iotjs_basic_modules": {
-      "require": ["assert", "crypto", "child_process", "dns", "http", "net", "path", "stream", 
-                  "tty", "querystring", "punycode", "url", "testdriver"]
+      "require": [
+        "assert", 
+        "crypto", 
+        "child_process", 
+        "dns", 
+        "dgram",
+        "http", 
+        "https", 
+        "net", 
+        "path", 
+        "stream", 
+        "tty", 
+        "querystring", 
+        "punycode", 
+        "url", 
+        "testdriver"
+      ]
     },
     "iotjs_core_modules": {
       "require": ["buffer", "console", "events", "fs", "module", "process",
