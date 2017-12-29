@@ -394,6 +394,7 @@ set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
 target_include_directories(${TARGET_LIB_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
+target_link_directories(${CMAKE_LINK_DIR})
 target_link_libraries(${TARGET_LIB_IOTJS}
   ${JERRY_LIBS}
   ${TUV_LIBS}
