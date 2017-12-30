@@ -422,6 +422,7 @@ if(NOT BUILD_LIB_ONLY)
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   )
   target_include_directories(${TARGET_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
+  link_directories(${CMAKE_LINK_DIR})
   target_link_libraries(${TARGET_IOTJS} ${TARGET_LIB_IOTJS})
   install(TARGETS ${TARGET_IOTJS} DESTINATION ${BIN_INSTALL_DIR})
 endif()
