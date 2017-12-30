@@ -395,7 +395,6 @@ set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
 )
 target_include_directories(${TARGET_LIB_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
 link_directories(${CMAKE_LINK_DIR})
-link_directories(${CMAKE_LINK_DIR}/aarch64-linux-gnu)
 target_link_libraries(${TARGET_LIB_IOTJS}
   ${JERRY_LIBS}
   ${TUV_LIBS}
