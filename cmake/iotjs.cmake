@@ -395,6 +395,7 @@ set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
 )
 target_include_directories(${TARGET_LIB_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
 target_link_libraries(${TARGET_LIB_IOTJS}
+  ${CMAKE_DL_LIBS}
   ${JERRY_LIBS}
   ${TUV_LIBS}
   libhttp-parser
