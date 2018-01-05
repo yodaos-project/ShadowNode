@@ -22,6 +22,7 @@ import os
 import re
 import subprocess
 import struct
+import string
 
 from common_py.system.filesystem import FileSystem as fs
 from common_py import path
@@ -353,6 +354,7 @@ def js2c(buildtype, js_modules, snapshot_tool=None, verbose=False):
         sorted_strings = sorted(magic_string_set, key=lambda x: (len(x), x))
         for idx, magic_string in enumerate(sorted_strings):
             magic_text = repr(magic_string)[1:-1]
+            magic_text = string.replace(magic_text, "\"", "\\\"")
 
             fout_magic_str.write('  MAGICSTR_EX_DEF(MAGIC_STR_%d, "%s") \\\n'
                                  % (idx, magic_text))
