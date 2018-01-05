@@ -386,6 +386,10 @@ message(STATUS "TARGET_SYSTEMROOT        ${TARGET_SYSTEMROOT}")
 
 iotjs_add_compile_flags(${IOTJS_MODULE_DEFINES})
 
+# find dbus-1
+find_package(PkgConfig)
+pkg_check_modules(DBUS dbus-1)
+
 # Configure the libiotjs.a
 set(TARGET_LIB_IOTJS libiotjs)
 add_library(${TARGET_LIB_IOTJS} STATIC ${LIB_IOTJS_SRC})
@@ -393,13 +397,15 @@ set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
   OUTPUT_NAME iotjs
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
-target_include_directories(${TARGET_LIB_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
+target_include_directories(${TARGET_LIB_IOTJS} 
+  PRIVATE ${IOTJS_INCLUDE_DIRS} ${DBUS_INCLUDE_DIRS})
 target_link_libraries(${TARGET_LIB_IOTJS}
   ${CMAKE_DL_LIBS}
   ${JERRY_LIBS}
   ${TUV_LIBS}
   libhttp-parser
   ${MBEDTLS_LIBS}
+  ${DBUS_LIBRARY_DIRS}
   ${EXTERNAL_LIBS}
 )
 

@@ -5,6 +5,7 @@
         "assert", 
         "crypto", 
         "child_process", 
+        "dbus",
         "dns", 
         "dgram",
         "http", 
@@ -148,6 +149,11 @@
     },
     "crypto": {
       "js_file": "js/crypto.js"
+    },
+    "dbus": {
+      "js_file": "js/dbus.js",
+      "native_files": ["modules/iotjs_module_dbus.c"],
+      "init": "InitDBus"
     },
     "dgram": {
       "js_file": "js/dgram.js",
