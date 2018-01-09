@@ -1,5 +1,6 @@
 'use strict';
 
+var sax = require('sax');
 var DBus = native.DBus;
 var DBUS_TYPES = {
   'system': 0,
@@ -13,21 +14,112 @@ var DBUS_TYPES = {
 function Bus(name) {
   this.dbus = new DBus();
   this.dbus.getBus(DBUS_TYPES[name]);
+  this._object = null;
 }
 
 /**
  * @method getInterface
  */
-Bus.prototype.getInterface = function(serviceName, objectPath) {
-  this.introspect(serviceName, objectPath);
+Bus.prototype.getInterface = function(serviceName, objectPath, interfaceName, callback) {
+  var self = this;
+  self.introspect(serviceName, objectPath, function(err) {
+    callback(null, self._object.interfaces[interfaceName]);
+  });
 };
+
+/**
+ * parse xml to json
+ */
+function xml2js(buf) {
+  var json = {};
+  var curr = json;
+  var history = [];
+  var parent = null;
+  var parser = sax.parser(true);
+  parser.onopentag = function(node) {
+    if (!Array.isArray(curr)) {
+      curr[node.name] = {
+        attributes: node.attributes,
+        children: [],
+      };
+      history.push(curr);
+      curr = json[node.name].children;
+    } else {
+      curr.push({
+        name: node.name,
+        attributes: node.attributes,
+        children: [],
+      });
+      history.push(curr);
+      curr = curr[curr.length - 1].children;
+    }
+  };
+  parser.onclosetag = function() {
+    curr = history.pop();
+  };
+  parser.write(buf);
+  return json;
+}
 
 /**
  * @method introspect
  */
 Bus.prototype.introspect = function(serviceName, objectPath, callback) {
-  function ondata(err, data) {
-    console.log(err, data);
+  var self = this;
+  function ondata(data) {
+    var object = self._object = {
+      path: null,
+      interfaces: {}
+    };
+    if (!data || !data['0'])
+      throw new Error('no introspectable found');
+
+    var json = xml2js(data['0']).node;
+    object.path = json.attributes.name;
+
+    function readInterfaces(data) {
+      var iface = object.interfaces[data.attributes.name] = {
+        name: data.attributes.name,
+      };
+      for (var i = 0; i < data.children.length; i++) {
+        readMethod(data.children[i], iface);
+      }
+    }
+
+    function readMethod(data, iface) {
+      var name = data.attributes.name;
+      var argsIn = [];
+      var argOut = null;
+      for (var i = 0; i < data.children.length; i++) {
+        var arg = data.children[i];
+        if (arg.attributes.direction === 'in') {
+          argsIn.push(arg.attributes.type || 's');
+        } else if (arg.attributes.direction === 'out') {
+          argOut = arg.attributes.type || 's';
+        }
+      }
+      iface[name] = function() {
+        var max = argsIn.length - 1;
+        var args = Array.prototype.slice.call(arguments, 0, max);
+        var cb = arguments[argsIn.length];
+        self.dbus.callMethod(
+          serviceName,
+          objectPath,
+          iface.name,
+          name,
+          argsIn.join(''),
+          [],
+          function(res) {
+            cb(null, res['0'], res['1']);
+          }
+        );
+      };
+    }
+
+    for (var i = 0; i < json.children.length; i++) {
+      readInterfaces(json.children[i]);
+    }
+    callback(null);
   }
   this.dbus.callMethod(
     serviceName, 

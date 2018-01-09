@@ -10,8 +10,9 @@
         "dgram",
         "http", 
         "https", 
-        "net", 
-        "path", 
+        "net",
+        "path",
+        "sax",
         "stream", 
         "tty", 
         "querystring", 
@@ -300,6 +301,9 @@
       "js_file": "js/querystring.js",
       "require": ["buffer"]
     },
+    "sax": {
+      "js_file": "js/sax.js"
+    },
     "spi": {
       "platforms": {
         "linux": {
@@ -316,6 +320,9 @@
       "init": "InitSpi",
       "js_file": "js/spi.js",
       "require": ["util"]
+    },
+    "string_decoder": {
+      "js_file": "js/string_decoder.js"
     },
     "stm32f4dis": {
       "platforms": {
