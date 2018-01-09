@@ -11,6 +11,7 @@
         "http", 
         "https", 
         "net",
+        "os",
         "path",
         "sax",
         "stream", 
@@ -269,6 +270,11 @@
     "net": {
       "js_file": "js/net.js",
       "require": ["assert", "events", "stream", "tcp", "util"]
+    },
+    "os": {
+      "js_file": "js/os.js",
+      "native_files": ["modules/iotjs_module_os.c"],
+      "init": "InitOs"
     },
     "path": {
       "js_file": "js/path.js",
