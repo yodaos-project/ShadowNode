@@ -67,7 +67,6 @@ static uv__allocator_t uv__allocator = {
   free,
 };
 
-#if defined(__APPLE__)
 char* uv__strdup(const char* s) {
   size_t len = strlen(s) + 1;
   char* m = uv__malloc(len);
@@ -75,7 +74,6 @@ char* uv__strdup(const char* s) {
     return NULL;
   return memcpy(m, s, len);
 }
-#endif
 
 void* uv__malloc(size_t size) {
   return uv__allocator.local_malloc(size);

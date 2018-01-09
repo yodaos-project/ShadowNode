@@ -239,9 +239,7 @@ void uv__fs_scandir_cleanup(uv_fs_t* req);
 
 /* Allocator prototypes */
 void *uv__calloc(size_t count, size_t size);
-#if defined(__APPLE__)
 char *uv__strdup(const char* s);
-#endif
 void* uv__malloc(size_t size);
 void uv__free(void* ptr);
 void* uv__realloc(void* ptr, size_t size);
