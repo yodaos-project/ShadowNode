@@ -1,5 +1,7 @@
 # IoT.js modules
+
 ## Basic API
+
 * [Assert](IoT.js-API-Assert.md)
 * [Buffer](IoT.js-API-Buffer.md)
 * [DNS](IoT.js-API-DNS.md)
@@ -12,8 +14,10 @@
 * [Timers](IoT.js-API-Timers.md)
 
 ## Extended API
+
 * [(ADC)](IoT.js-API-ADC.md)
 * [(BLE)](IoT.js-API-BLE.md)
+* [(DBUS)](Iot.js-API-DBUS.md)
 * [(GPIO)](IoT.js-API-GPIO.md)
 * [(I2C)](IoT.js-API-I2C.md)
 * [(PWM)](IoT.js-API-PWM.md)
@@ -22,6 +26,7 @@
 * [UDP/Datagram](IoT.js-API-DGRAM.md)
 
 ## Abstract interfaces
+
 * [Stream](IoT.js-API-Stream.md)
 
 *() not supported by node.js
