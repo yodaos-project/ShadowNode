@@ -459,3 +459,482 @@ uint64_t uv__hrtime(uv_clocktype_t type) {
 
   return t.tv_sec * (uint64_t) 1e9 + t.tv_nsec;
 }
+
+
+int uv_resident_set_memory(size_t* rss) {
+  char buf[1024];
+  const char* s;
+  ssize_t n;
+  long val;
+  int fd;
+  int i;
+
+  do
+    fd = open("/proc/self/stat", O_RDONLY);
+  while (fd == -1 && errno == EINTR);
+
+  if (fd == -1)
+    return -errno;
+
+  do
+    n = read(fd, buf, sizeof(buf) - 1);
+  while (n == -1 && errno == EINTR);
+
+  uv__close(fd);
+  if (n == -1)
+    return -errno;
+  buf[n] = '\0';
+
+  s = strchr(buf, ' ');
+  if (s == NULL)
+    goto err;
+
+  s += 1;
+  if (*s != '(')
+    goto err;
+
+  s = strchr(s, ')');
+  if (s == NULL)
+    goto err;
+
+  for (i = 1; i <= 22; i++) {
+    s = strchr(s + 1, ' ');
+    if (s == NULL)
+      goto err;
+  }
+
+  errno = 0;
+  val = strtol(s, NULL, 10);
+  if (errno != 0)
+    goto err;
+  if (val < 0)
+    goto err;
+
+  *rss = val * getpagesize();
+  return 0;
+
+err:
+  return -EINVAL;
+}
+
+
+int uv_uptime(double* uptime) {
+  static volatile int no_clock_boottime;
+  struct timespec now;
+  int r;
+
+  /* Try CLOCK_BOOTTIME first, fall back to CLOCK_MONOTONIC if not available
+   * (pre-2.6.39 kernels). CLOCK_MONOTONIC doesn't increase when the system
+   * is suspended.
+   */
+  if (no_clock_boottime) {
+    retry: r = clock_gettime(CLOCK_MONOTONIC, &now);
+  }
+  else if ((r = clock_gettime(CLOCK_BOOTTIME, &now)) && errno == EINVAL) {
+    no_clock_boottime = 1;
+    goto retry;
+  }
+
+  if (r)
+    return -errno;
+
+  *uptime = now.tv_sec;
+  return 0;
+}
+
+
+static int uv__cpu_num(FILE* statfile_fp, unsigned int* numcpus) {
+  unsigned int num;
+  char buf[1024];
+
+  if (!fgets(buf, sizeof(buf), statfile_fp))
+    return -EIO;
+
+  num = 0;
+  while (fgets(buf, sizeof(buf), statfile_fp)) {
+    if (strncmp(buf, "cpu", 3))
+      break;
+    num++;
+  }
+
+  if (num == 0)
+    return -EIO;
+
+  *numcpus = num;
+  return 0;
+}
+
+
+int uv_cpu_info(uv_cpu_info_t** cpu_infos, int* count) {
+  unsigned int numcpus;
+  uv_cpu_info_t* ci;
+  int err;
+  FILE* statfile_fp;
+
+  *cpu_infos = NULL;
+  *count = 0;
+
+  statfile_fp = uv__open_file("/proc/stat");
+  if (statfile_fp == NULL)
+    return -errno;
+
+  err = uv__cpu_num(statfile_fp, &numcpus);
+  if (err < 0)
+    goto out;
+
+  err = -ENOMEM;
+  ci = uv__calloc(numcpus, sizeof(*ci));
+  if (ci == NULL)
+    goto out;
+
+  err = read_models(numcpus, ci);
+  if (err == 0)
+    err = read_times(statfile_fp, numcpus, ci);
+
+  if (err) {
+    uv_free_cpu_info(ci, numcpus);
+    goto out;
+  }
+
+  /* read_models() on x86 also reads the CPU speed from /proc/cpuinfo.
+   * We don't check for errors here. Worst case, the field is left zero.
+   */
+  if (ci[0].speed == 0)
+    read_speeds(numcpus, ci);
+
+  *cpu_infos = ci;
+  *count = numcpus;
+  err = 0;
+
+out:
+
+  if (fclose(statfile_fp))
+    if (errno != EINTR && errno != EINPROGRESS)
+      abort();
+
+  return err;
+}
+
+
+static void read_speeds(unsigned int numcpus, uv_cpu_info_t* ci) {
+  unsigned int num;
+
+  for (num = 0; num < numcpus; num++)
+    ci[num].speed = read_cpufreq(num) / 1000;
+}
+
+
+/* Also reads the CPU frequency on x86. The other architectures only have
+ * a BogoMIPS field, which may not be very accurate.
+ *
+ * Note: Simply returns on error, uv_cpu_info() takes care of the cleanup.
+ */
+static int read_models(unsigned int numcpus, uv_cpu_info_t* ci) {
+  static const char model_marker[] = "model name\t: ";
+  static const char speed_marker[] = "cpu MHz\t\t: ";
+  const char* inferred_model;
+  unsigned int model_idx;
+  unsigned int speed_idx;
+  char buf[1024];
+  char* model;
+  FILE* fp;
+
+  /* Most are unused on non-ARM, non-MIPS and non-x86 architectures. */
+  (void) &model_marker;
+  (void) &speed_marker;
+  (void) &speed_idx;
+  (void) &model;
+  (void) &buf;
+  (void) &fp;
+
+  model_idx = 0;
+  speed_idx = 0;
+
+#if defined(__arm__) || \
+    defined(__i386__) || \
+    defined(__mips__) || \
+    defined(__x86_64__)
+  fp = uv__open_file("/proc/cpuinfo");
+  if (fp == NULL)
+    return -errno;
+
+  while (fgets(buf, sizeof(buf), fp)) {
+    if (model_idx < numcpus) {
+      if (strncmp(buf, model_marker, sizeof(model_marker) - 1) == 0) {
+        model = buf + sizeof(model_marker) - 1;
+        model = uv__strndup(model, strlen(model) - 1);  /* Strip newline. */
+        if (model == NULL) {
+          fclose(fp);
+          return -ENOMEM;
+        }
+        ci[model_idx++].model = model;
+        continue;
+      }
+    }
+#if defined(__arm__) || defined(__mips__)
+    if (model_idx < numcpus) {
+#if defined(__arm__)
+      /* Fallback for pre-3.8 kernels. */
+      static const char model_marker[] = "Processor\t: ";
+#else /* defined(__mips__) */
+      static const char model_marker[] = "cpu model\t\t: ";
+#endif
+      if (strncmp(buf, model_marker, sizeof(model_marker) - 1) == 0) {
+        model = buf + sizeof(model_marker) - 1;
+        model = uv__strndup(model, strlen(model) - 1);  /* Strip newline. */
+        if (model == NULL) {
+          fclose(fp);
+          return -ENOMEM;
+        }
+        ci[model_idx++].model = model;
+        continue;
+      }
+    }
+#else  /* !__arm__ && !__mips__ */
+    if (speed_idx < numcpus) {
+      if (strncmp(buf, speed_marker, sizeof(speed_marker) - 1) == 0) {
+        ci[speed_idx++].speed = atoi(buf + sizeof(speed_marker) - 1);
+        continue;
+      }
+    }
+#endif  /* __arm__ || __mips__ */
+  }
+
+  fclose(fp);
+#endif  /* __arm__ || __i386__ || __mips__ || __x86_64__ */
+
+  /* Now we want to make sure that all the models contain *something* because
+   * it's not safe to leave them as null. Copy the last entry unless there
+   * isn't one, in that case we simply put "unknown" into everything.
+   */
+  inferred_model = "unknown";
+  if (model_idx > 0)
+    inferred_model = ci[model_idx - 1].model;
+
+  while (model_idx < numcpus) {
+    model = uv__strndup(inferred_model, strlen(inferred_model));
+    if (model == NULL)
+      return -ENOMEM;
+    ci[model_idx++].model = model;
+  }
+
+  return 0;
+}
+
+
+static int read_times(FILE* statfile_fp,
+                      unsigned int numcpus,
+                      uv_cpu_info_t* ci) {
+  unsigned long clock_ticks;
+  struct uv_cpu_times_s ts;
+  unsigned long user;
+  unsigned long nice;
+  unsigned long sys;
+  unsigned long idle;
+  unsigned long dummy;
+  unsigned long irq;
+  unsigned int num;
+  unsigned int len;
+  char buf[1024];
+
+  clock_ticks = sysconf(_SC_CLK_TCK);
+  assert(clock_ticks != (unsigned long) -1);
+  assert(clock_ticks != 0);
+
+  rewind(statfile_fp);
+
+  if (!fgets(buf, sizeof(buf), statfile_fp))
+    abort();
+
+  num = 0;
+
+  while (fgets(buf, sizeof(buf), statfile_fp)) {
+    if (num >= numcpus)
+      break;
+
+    if (strncmp(buf, "cpu", 3))
+      break;
+
+    /* skip "cpu<num> " marker */
+    {
+      unsigned int n;
+      int r = sscanf(buf, "cpu%u ", &n);
+      assert(r == 1);
+      (void) r;  /* silence build warning */
+      for (len = sizeof("cpu0"); n /= 10; len++);
+    }
+
+    /* Line contains user, nice, system, idle, iowait, irq, softirq, steal,
+     * guest, guest_nice but we're only interested in the first four + irq.
+     *
+     * Don't use %*s to skip fields or %ll to read straight into the uint64_t
+     * fields, they're not allowed in C89 mode.
+     */
+    if (6 != sscanf(buf + len,
+                    "%lu %lu %lu %lu %lu %lu",
+                    &user,
+                    &nice,
+                    &sys,
+                    &idle,
+                    &dummy,
+                    &irq))
+      abort();
+
+    ts.user = clock_ticks * user;
+    ts.nice = clock_ticks * nice;
+    ts.sys  = clock_ticks * sys;
+    ts.idle = clock_ticks * idle;
+    ts.irq  = clock_ticks * irq;
+    ci[num++].cpu_times = ts;
+  }
+  assert(num == numcpus);
+
+  return 0;
+}
+
+
+static unsigned long read_cpufreq(unsigned int cpunum) {
+  unsigned long val;
+  char buf[1024];
+  FILE* fp;
+
+  snprintf(buf,
+           sizeof(buf),
+           "/sys/devices/system/cpu/cpu%u/cpufreq/scaling_cur_freq",
+           cpunum);
+
+  fp = uv__open_file(buf);
+  if (fp == NULL)
+    return 0;
+
+  if (fscanf(fp, "%lu", &val) != 1)
+    val = 0;
+
+  fclose(fp);
+
+  return val;
+}
+
+
+void uv_free_cpu_info(uv_cpu_info_t* cpu_infos, int count) {
+  int i;
+
+  for (i = 0; i < count; i++) {
+    uv__free(cpu_infos[i].model);
+  }
+
+  uv__free(cpu_infos);
+}
+
+static int uv__ifaddr_exclude(struct ifaddrs *ent, int exclude_type) {
+  if (!((ent->ifa_flags & IFF_UP) && (ent->ifa_flags & IFF_RUNNING)))
+    return 1;
+  if (ent->ifa_addr == NULL)
+    return 1;
+  /*
+   * On Linux getifaddrs returns information related to the raw underlying
+   * devices. We're not interested in this information yet.
+   */
+  if (ent->ifa_addr->sa_family == PF_PACKET)
+    return exclude_type;
+  return !exclude_type;
+}
+
+int uv_interface_addresses(uv_interface_address_t** addresses,
+  int* count) {
+#ifndef HAVE_IFADDRS_H
+  return -ENOSYS;
+#else
+  struct ifaddrs *addrs, *ent;
+  uv_interface_address_t* address;
+  int i;
+  struct sockaddr_ll *sll;
+
+  if (getifaddrs(&addrs))
+    return -errno;
+
+  *count = 0;
+  *addresses = NULL;
+
+  /* Count the number of interfaces */
+  for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
+    if (uv__ifaddr_exclude(ent, UV__EXCLUDE_IFADDR))
+      continue;
+
+    (*count)++;
+  }
+
+  if (*count == 0)
+    return 0;
+
+  *addresses = uv__malloc(*count * sizeof(**addresses));
+  if (!(*addresses)) {
+    freeifaddrs(addrs);
+    return -ENOMEM;
+  }
+
+  address = *addresses;
+
+  for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
+    if (uv__ifaddr_exclude(ent, UV__EXCLUDE_IFADDR))
+      continue;
+
+    address->name = uv__strdup(ent->ifa_name);
+
+    if (ent->ifa_addr->sa_family == AF_INET6) {
+      address->address.address6 = *((struct sockaddr_in6*) ent->ifa_addr);
+    } else {
+      address->address.address4 = *((struct sockaddr_in*) ent->ifa_addr);
+    }
+
+    if (ent->ifa_netmask->sa_family == AF_INET6) {
+      address->netmask.netmask6 = *((struct sockaddr_in6*) ent->ifa_netmask);
+    } else {
+      address->netmask.netmask4 = *((struct sockaddr_in*) ent->ifa_netmask);
+    }
+
+    address->is_internal = !!(ent->ifa_flags & IFF_LOOPBACK);
+
+    address++;
+  }
+
+  /* Fill in physical addresses for each interface */
+  for (ent = addrs; ent != NULL; ent = ent->ifa_next) {
+    if (uv__ifaddr_exclude(ent, UV__EXCLUDE_IFPHYS))
+      continue;
+
+    address = *addresses;
+
+    for (i = 0; i < (*count); i++) {
+      if (strcmp(address->name, ent->ifa_name) == 0) {
+        sll = (struct sockaddr_ll*)ent->ifa_addr;
+        memcpy(address->phys_addr, sll->sll_addr, sizeof(address->phys_addr));
+      }
+      address++;
+    }
+  }
+
+  freeifaddrs(addrs);
+
+  return 0;
+#endif
+}
+
+
+void uv_free_interface_addresses(uv_interface_address_t* addresses,
+  int count) {
+  int i;
+
+  for (i = 0; i < count; i++) {
+    uv__free(addresses[i].name);
+  }
+
+  uv__free(addresses);
+}
+
+
+void uv__set_process_title(const char* title) {
+#if defined(PR_SET_NAME)
+  prctl(PR_SET_NAME, title);  /* Only copies first 16 characters. */
+#endif
+}
