@@ -75,6 +75,18 @@ char* uv__strdup(const char* s) {
   return memcpy(m, s, len);
 }
 
+char* uv__strndup(const char* s, size_t n) {
+  char* m;
+  size_t len = strlen(s);
+  if (n < len)
+    len = n;
+  m = uv__malloc(len + 1);
+  if (m == NULL)
+    return NULL;
+  m[len] = '\0';
+  return memcpy(m, s, len);
+}
+
 void* uv__malloc(size_t size) {
   return uv__allocator.local_malloc(size);
 }
