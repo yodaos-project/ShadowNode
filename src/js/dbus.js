@@ -1,11 +1,26 @@
 'use strict';
 
+var fs = require('fs');
 var sax = require('sax');
 var DBus = native.DBus;
 var DBUS_TYPES = {
   'system': 0,
   'session': 1,
 };
+
+function initEnv() {
+  try {
+    var lines = fs.readFileSync('/var/run/dbus/session', 'utf8').split('\n');
+    lines.forEach(function(line) {
+      var rBusAddress = /^DBUS_SESSION_BUS_ADDRESS=/;
+      if (rBusAddress.test(line)) {
+        process.env.DBUS_SESSION_BUS_ADDRESS = line.replace(rBusAddress, '');
+      }
+    });
+  } catch (err) {
+    console.log('skip dbus session setup');
+  }
+}
 
 /**
  * @class Bus
@@ -328,5 +343,6 @@ function registerService(name, service) {
   return bus.getService(service);
 }
 
+initEnv();
 exports.getBus = getBus;
 exports.registerService = registerService;
