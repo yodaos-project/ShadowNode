@@ -17,7 +17,7 @@
 
 * [(ADC)](IoT.js-API-ADC.md)
 * [(BLE)](IoT.js-API-BLE.md)
-* [(DBUS)](Iot.js-API-DBUS.md)
+* [(DBUS)](IoT.js-API-DBUS.md)
 * [(GPIO)](IoT.js-API-GPIO.md)
 * [(I2C)](IoT.js-API-I2C.md)
 * [(PWM)](IoT.js-API-PWM.md)
