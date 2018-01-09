@@ -14,7 +14,9 @@ function initEnv() {
     lines.forEach(function(line) {
       var rBusAddress = /^DBUS_SESSION_BUS_ADDRESS=/;
       if (rBusAddress.test(line)) {
-        process.env.DBUS_SESSION_BUS_ADDRESS = line.replace(rBusAddress, '');
+        process.set('env', {
+          'DBUS_SESSION_BUS_ADDRESS': line.replace(rBusAddress, ''),
+        });
       }
     });
   } catch (err) {
