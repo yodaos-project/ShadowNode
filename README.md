@@ -1,7 +1,6 @@
 # shadow-node
 
-Platform for Internet of Things with JavaScript, which is compatible with Node.js ecosystem
-partially.
+The Node.js Runtime in shadow, which supports NPM packages partially for embeddable platform.
 
 [![License](https://img.shields.io/badge/licence-Apache%202.0-brightgreen.svg?style=flat)](LICENSE)
 [![Build Status](https://travis-ci.org/Samsung/iotjs.svg?branch=master)](https://travis-ci.org/Samsung/iotjs)
