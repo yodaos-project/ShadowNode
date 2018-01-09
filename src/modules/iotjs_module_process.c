@@ -16,8 +16,14 @@
 #include "iotjs_def.h"
 #include "iotjs_js.h"
 #include "jerryscript-debugger.h"
-
 #include <stdlib.h>
+
+#ifdef __APPLE__
+#include <crt_externs.h>
+#define environ (*_NSGetEnviron())
+#else
+extern char **environ;
+#endif
 
 
 static jerry_value_t WrapEval(const char* name, size_t name_len,
@@ -207,6 +213,34 @@ JS_FUNCTION(DoExit) {
 }
 
 
+JS_FUNCTION(GetEnvironArray) {
+  uint32_t size = 0;
+  while (environ[size])
+    size++;
+
+  jerry_value_t envarr = jerry_create_array(size);
+  for (uint32_t i = 0; i < size; i++) {
+    jerry_value_t val = jerry_create_string((jerry_char_t*)environ[i]);
+    jerry_set_property_by_index(envarr, i, val);
+    jerry_release_value(val);
+  }
+  return envarr;
+}
+
+JS_FUNCTION(SetEnviron) {
+  iotjs_string_t key = JS_GET_ARG(0, string);
+  iotjs_string_t val = JS_GET_ARG(1, string);
+
+  setenv(
+    iotjs_string_data(&key), 
+    iotjs_string_data(&val), 
+    1);
+
+  iotjs_string_destroy(&key);
+  iotjs_string_destroy(&val);
+  return jerry_create_undefined();
+}
+
 void SetNativeSources(jerry_value_t native_sources) {
   for (int i = 0; js_modules[i].name; i++) {
     iotjs_jval_set_property_jval(native_sources, js_modules[i].name,
@@ -214,10 +248,8 @@ void SetNativeSources(jerry_value_t native_sources) {
   }
 }
 
-
 static void SetProcessEnv(jerry_value_t process) {
   const char *homedir, *iotjspath, *iotjsenv;
-
   homedir = getenv("HOME");
   if (homedir == NULL) {
     homedir = "";
@@ -304,6 +336,10 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DEBUGGERSOURCECOMPILE,
                         DebuggerSourceCompile);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
+
+  // env
+  iotjs_jval_set_method(process, "_getEnvironArray", GetEnvironArray);
+  iotjs_jval_set_method(process, "_setEnviron", SetEnviron);
   SetProcessEnv(process);
 
   // process.builtin_modules

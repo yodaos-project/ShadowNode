@@ -47,7 +47,6 @@
     process.compileModule(this, Module.require);
   };
 
-
   global.console = Module.require('console');
   global.Buffer = Module.require('buffer');
 
@@ -147,6 +146,29 @@
     }
   };
 
+  
+  function updateEnviron() {
+    var envs = process._getEnvironArray();
+    envs.forEach(function(env, idx) {
+      var item = env.split('=');
+      var key = item[0];
+      var val = item[1];
+      process.env[key] = val;
+    });
+  }
+  updateEnviron();
+
+  // FIXME(Yorkie): the NamedPropertyHandlerConfiguration is not implemented at IoT.js
+  process.set = function(key, val) {
+    if (key === 'env' || key === 'environ') {
+      for (var key in val) {
+        process._setEnviron(key, val[key]);
+      }
+      updateEnviron();
+    } else {
+      throw new Error('Not supported property');
+    }
+  };
 
   process.exit = function(code) {
     try {
