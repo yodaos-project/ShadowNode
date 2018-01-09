@@ -1,4 +1,4 @@
-# IoT.js modules
+# shadow-node modules
 
 ## Basic API
 
