@@ -237,7 +237,6 @@ fs.readFileSync = function(path) {
     }
   }
   fs.closeSync(fd);
-
   return Buffer.concat(buffers);
 };
 

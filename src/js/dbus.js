@@ -10,7 +10,7 @@ var DBUS_TYPES = {
 
 function initEnv() {
   try {
-    var lines = fs.readFileSync('/var/run/dbus/session', 'utf8').split('\n');
+    var lines = fs.readFileSync('/var/run/dbus/session').toString('utf8').split('\n');
     lines.forEach(function(line) {
       var rBusAddress = /^DBUS_SESSION_BUS_ADDRESS=/;
       if (rBusAddress.test(line)) {
