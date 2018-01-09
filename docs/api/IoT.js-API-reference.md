@@ -10,6 +10,7 @@
 * [HTTP](IoT.js-API-HTTP.md)
 * [Module](IoT.js-API-Module.md)
 * [Net](IoT.js-API-Net.md)
+* [OS](IoT.js-API-OS.md)
 * [Process](IoT.js-API-Process.md)
 * [Timers](IoT.js-API-Timers.md)
 
