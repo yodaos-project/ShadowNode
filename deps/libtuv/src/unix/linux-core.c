@@ -88,6 +88,13 @@
 # define CLOCK_BOOTTIME 7
 #endif
 
+static int read_models(unsigned int numcpus, uv_cpu_info_t* ci);
+static int read_times(FILE* statfile_fp,
+                      unsigned int numcpus,
+                      uv_cpu_info_t* ci);
+static void read_speeds(unsigned int numcpus, uv_cpu_info_t* ci);
+static unsigned long read_cpufreq(unsigned int cpunum);
+
 int uv__platform_loop_init(uv_loop_t* loop) {
   int fd;
 
