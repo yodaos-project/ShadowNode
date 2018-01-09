@@ -29,6 +29,7 @@ set(PLATFORM_SRCFILES
       ${UNIX_PATH}/linux-syscalls.c
       ${UNIX_PATH}/linux-syscalls.h
       ${UNIX_PATH}/signal.c
+      ${UNIX_PATH}/sysinfo-memory.c
       )
 
 set(PLATFORM_TESTFILES "${TEST_ROOT}/runner_linux.c")
