@@ -16,6 +16,7 @@
 
 var Native = require('native');
 var fs = Native.require('fs');
+var path = Native.require('path');
 
 function iotjs_module_t(id, parent) {
   this.id = id;
@@ -213,9 +214,18 @@ iotjs_module_t.load = function(id, parent) {
 
 
 iotjs_module_t.prototype.compile = function() {
-  var source = process.readSource(this.filename);
-  var fn = process.compile(this.filename, source);
-  fn.call(this.exports, this.exports, this.require.bind(this), this);
+  var __filename = this.filename;
+  var __dirname = path.dirname(__filename);
+  var source = process.readSource(__filename);
+  var fn = process.compile(__filename, source);
+  fn.apply(this.exports, [
+    this.exports,             // exports
+    this.require.bind(this),  // require
+    this,                     // module
+    undefined,                // native
+    __filename,               // __filename
+    __dirname                 // __dirname
+  ]);
 };
 
 
