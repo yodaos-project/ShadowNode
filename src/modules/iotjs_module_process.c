@@ -171,6 +171,21 @@ JS_FUNCTION(ReadSource) {
   return ret_val;
 }
 
+JS_FUNCTION(Umask) {
+  uint32_t old;
+
+  if (jargc < 1 || jerry_value_is_undefined(jargv[0])) {
+    old = umask(0);
+    umask((mode_t)old);
+  } else if (!jerry_value_is_number(jargv[0])) {
+    return JS_CREATE_ERROR(COMMON, "argument must be an integer.");
+  } else {
+    int oct;
+    oct = (int)jerry_get_number_value(jargv[0]);
+    old = umask((mode_t)oct);
+  }
+  return jerry_create_number(old);
+}
 
 JS_FUNCTION(Cwd) {
   char path[IOTJS_MAX_PATH_SIZE];
@@ -333,6 +348,7 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_READSOURCE, ReadSource);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CWD, Cwd);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_CHDIR, Chdir);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_UMASK, Umask);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DEBUGGERSOURCECOMPILE,
                         DebuggerSourceCompile);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);

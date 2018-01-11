@@ -167,6 +167,11 @@
     }
   }
 
+  var os = Module.require('os');
+
+  process.uptime = function() {
+    return os.uptime();
+  };
 
   process.exitCode = 0;
   process._exiting = false;
