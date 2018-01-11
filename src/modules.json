@@ -13,6 +13,7 @@
         "net",
         "os",
         "path",
+        "promise",
         "sax",
         "stream", 
         "tty", 
@@ -283,6 +284,9 @@
     "process": {
       "native_files": ["modules/iotjs_module_process.c"],
       "init": "InitProcess"
+    },
+    "promise": {
+      "js_file": "js/promise.js"
     },
     "punycode": {
       "js_file": "js/punycode.js"

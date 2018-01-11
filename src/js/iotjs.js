@@ -82,6 +82,7 @@
   };
 
   global.console = Module.require('console');
+  global.Promise = Module.require('promise');
   global.Buffer = Module.require('buffer');
 
   var timers = undefined;
@@ -115,7 +116,6 @@
 
   process.nextTick = nextTick;
   process._onNextTick = _onNextTick;
-
 
   function _onNextTick() {
     // clone nextTickQueue to new array object, and calls function
