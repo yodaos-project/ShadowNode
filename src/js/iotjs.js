@@ -59,7 +59,6 @@
 
   Module.cache = {};
 
-
   Module.require = function(id) {
     if (id == 'native') {
       return Module;
