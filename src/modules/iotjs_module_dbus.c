@@ -6,6 +6,7 @@
 typedef struct {
   iotjs_jobjectwrap_t jobjectwrap;
   jerry_value_t jcallback;
+  jerry_value_t signal_handler;
   DBusConnection* connection;
   bool initialized;
   uv_async_t connection_handle;
@@ -90,7 +91,14 @@ static void iotjs_dbus_watch_remove(DBusWatch* watch, void* data) {
 }
 
 static void iotjs_dbus_watch_handle(DBusWatch* watch, void* data) {
-  // TODO
+  if (dbus_watch_get_data(watch) == NULL) {
+    return;
+  }
+  if (dbus_watch_get_enabled(watch)) {
+    iotjs_dbus_watch_add(watch, data);
+  } else {
+    iotjs_dbus_watch_remove(watch, data);
+  }
 }
 
 /**
@@ -266,7 +274,7 @@ static jerry_value_t iotjs_dbus_decode_message(DBusMessage *message) {
 
     dbus_free(signature);
     index += 1;
-  } while(dbus_message_iter_next(&iter));
+  } while (dbus_message_iter_next(&iter));
   return results;
 }
 
@@ -292,6 +300,33 @@ static DBusHandlerResult iotjs_dbus_handle_message(DBusConnection* conn,
   iotjs_jargs_append_jval(&jargs, jmsg);
   iotjs_make_callback(_this->jcallback, jerry_create_undefined(), &jargs);
 
+  return DBUS_HANDLER_RESULT_HANDLED;
+}
+
+static DBusHandlerResult iotjs_dbus_signal_filter(DBusConnection* connection, 
+                                                  DBusMessage* msg, 
+                                                  void* data) {
+  if (dbus_message_get_type(msg) != DBUS_MESSAGE_TYPE_SIGNAL) {
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+  }
+  iotjs_dbus_t* dbus = (iotjs_dbus_t*)data;
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_dbus_t, dbus);
+
+  const jerry_char_t* sender = (jerry_char_t*)dbus_message_get_sender(msg);
+  const jerry_char_t* object_path = (jerry_char_t*)dbus_message_get_path(msg);
+  const jerry_char_t* interface = (jerry_char_t*)dbus_message_get_interface(msg);
+  const jerry_char_t* signal = (jerry_char_t*)dbus_message_get_member(msg);
+  
+  jerry_value_t jmsg = iotjs_dbus_decode_message(msg);
+  jerry_set_object_native_pointer(jmsg, msg, &this_module_native_info);
+
+  iotjs_jargs_t jargs = iotjs_jargs_create(5);
+  iotjs_jargs_append_jval(&jargs, jerry_create_string(sender));
+  iotjs_jargs_append_jval(&jargs, jerry_create_string(object_path));
+  iotjs_jargs_append_jval(&jargs, jerry_create_string(interface));
+  iotjs_jargs_append_jval(&jargs, jerry_create_string(signal));
+  iotjs_jargs_append_jval(&jargs, jmsg);
+  iotjs_make_callback(_this->signal_handler, jerry_create_undefined(), &jargs);
   return DBUS_HANDLER_RESULT_HANDLED;
 }
 
@@ -372,7 +407,7 @@ JS_FUNCTION(GetBus) {
                                            iotjs_dbus_connection_wakeup, 
                                            &_this->connection_handle, 
                                            iotjs_dbus_connection_close_cb);
-  // dbus_connection_add_filter(conn,);
+  dbus_connection_add_filter(_this->connection, iotjs_dbus_signal_filter, (void*)dbus, NULL);
   return jerry_create_null();
 }
 
@@ -526,6 +561,61 @@ JS_FUNCTION(SetMessageHandler) {
   return jerry_create_null();
 }
 
+JS_FUNCTION(SetSignalHandler) {
+  JS_DECLARE_THIS_PTR(dbus, dbus);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_dbus_t, dbus);
+
+  jerry_value_t handler = JS_GET_ARG_IF_EXIST(0, function);
+  _this->signal_handler = jerry_acquire_value(handler);
+  return jerry_create_null();
+}
+
+JS_FUNCTION(AddSignalFilter) {
+  DBusError err;
+  JS_DECLARE_THIS_PTR(dbus, dbus);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_dbus_t, dbus);
+
+  iotjs_string_t rule = JS_GET_ARG(0, string);
+  const char* rule_str = iotjs_string_data(&rule);
+
+  dbus_error_init(&err);
+  dbus_bus_add_match(_this->connection, rule_str, &err);
+  dbus_connection_flush(_this->connection);
+  dbus_free((void*)rule_str);
+
+  if (dbus_error_is_set(&err)) {
+    return JS_CREATE_ERROR(COMMON, "failed to add rule");
+  }
+  return jerry_create_null();
+}
+
+JS_FUNCTION(EmitSignal) {
+  JS_DECLARE_THIS_PTR(dbus, dbus);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_dbus_t, dbus);
+
+  DBusMessageIter iter;
+  DBusMessage* msg;
+  dbus_uint32_t serial = 0;
+
+  iotjs_string_t object_path = JS_GET_ARG(0, string);
+  iotjs_string_t iface = JS_GET_ARG(1, string);
+  iotjs_string_t signal = JS_GET_ARG(2, string);
+  iotjs_string_t signature = JS_GET_ARG(3, string);
+
+  msg = dbus_message_new_signal(
+    iotjs_string_data(&object_path), 
+    iotjs_string_data(&iface), 
+    iotjs_string_data(&signal));
+
+  dbus_message_iter_init_append(msg, &iter);
+  iotjs_dbus_encode_jobject(jargv[4], &iter, iotjs_string_data(&signature));
+
+  dbus_connection_send(_this->connection, msg, &serial);
+  dbus_connection_flush(_this->connection);
+  dbus_message_unref(msg);
+  return jerry_create_null();
+}
+
 jerry_value_t InitDBus() {
   jerry_value_t jdbus = jerry_create_object();
   jerry_value_t jdbusConstructor =
@@ -541,7 +631,9 @@ jerry_value_t InitDBus() {
   iotjs_jval_set_method(proto, "unregisterObjectPath", UnregisterObjectPath);
   iotjs_jval_set_method(proto, "sendMessageReply", SendMessageReply);
   iotjs_jval_set_method(proto, "setMessageHandler", SetMessageHandler);
-
+  iotjs_jval_set_method(proto, "setSignalHandler", SetSignalHandler);
+  iotjs_jval_set_method(proto, "addSignalFilter", AddSignalFilter);
+  iotjs_jval_set_method(proto, "emitSignal", EmitSignal);
   iotjs_jval_set_property_jval(jdbusConstructor, "prototype", proto);
 
   jerry_release_value(proto);

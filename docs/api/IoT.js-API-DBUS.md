@@ -88,3 +88,16 @@ dbus.getInterface(
   }
 );
 ```
+
+### addSignal(name, opts)
+
+* `name` {String} the signal name.
+* `opts` {Object} the signal options.
+  * `opts.types` {Array} the arguments of this signal.
+
+Add the named signal.
+
+### emit(name, data)
+
+Emits the added signal.
+
