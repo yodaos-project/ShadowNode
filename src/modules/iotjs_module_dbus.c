@@ -91,7 +91,14 @@ static void iotjs_dbus_watch_remove(DBusWatch* watch, void* data) {
 }
 
 static void iotjs_dbus_watch_handle(DBusWatch* watch, void* data) {
-  // TODO
+  if (dbus_watch_get_data(watch) == NULL) {
+    return;
+  }
+  if (dbus_watch_get_enabled(watch)) {
+    iotjs_dbus_watch_add(watch, data);
+  } else {
+    iotjs_dbus_watch_remove(watch, data);
+  }
 }
 
 /**
@@ -563,18 +570,37 @@ JS_FUNCTION(SetSignalHandler) {
   return jerry_create_null();
 }
 
+JS_FUNCTION(AddSignalFilter) {
+  DBusError err;
+  JS_DECLARE_THIS_PTR(dbus, dbus);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_dbus_t, dbus);
+
+  iotjs_string_t rule = JS_GET_ARG(0, string);
+  const char* rule_str = iotjs_string_data(&rule);
+
+  dbus_error_init(&err);
+  dbus_bus_add_match(_this->connection, rule_str, &err);
+  dbus_connection_flush(_this->connection);
+  dbus_free((void*)rule_str);
+
+  if (dbus_error_is_set(&err)) {
+    return JS_CREATE_ERROR(COMMON, "failed to add rule");
+  }
+  return jerry_create_null();
+}
+
 JS_FUNCTION(EmitSignal) {
   JS_DECLARE_THIS_PTR(dbus, dbus);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_dbus_t, dbus);
 
-  DBusMessage* msg;
   DBusMessageIter iter;
+  DBusMessage* msg;
+  dbus_uint32_t serial = 0;
 
   iotjs_string_t object_path = JS_GET_ARG(0, string);
   iotjs_string_t iface = JS_GET_ARG(1, string);
   iotjs_string_t signal = JS_GET_ARG(2, string);
   iotjs_string_t signature = JS_GET_ARG(3, string);
-  jerry_value_t args = JS_GET_ARG(4, object);
 
   msg = dbus_message_new_signal(
     iotjs_string_data(&object_path), 
@@ -582,9 +608,9 @@ JS_FUNCTION(EmitSignal) {
     iotjs_string_data(&signal));
 
   dbus_message_iter_init_append(msg, &iter);
-  iotjs_dbus_encode_jobject(args, &iter, iotjs_string_data(&signature));
+  iotjs_dbus_encode_jobject(jargv[4], &iter, iotjs_string_data(&signature));
 
-  dbus_connection_send(_this->connection, msg, NULL);
+  dbus_connection_send(_this->connection, msg, &serial);
   dbus_connection_flush(_this->connection);
   dbus_message_unref(msg);
   return jerry_create_null();
@@ -606,8 +632,8 @@ jerry_value_t InitDBus() {
   iotjs_jval_set_method(proto, "sendMessageReply", SendMessageReply);
   iotjs_jval_set_method(proto, "setMessageHandler", SetMessageHandler);
   iotjs_jval_set_method(proto, "setSignalHandler", SetSignalHandler);
+  iotjs_jval_set_method(proto, "addSignalFilter", AddSignalFilter);
   iotjs_jval_set_method(proto, "emitSignal", EmitSignal);
-
   iotjs_jval_set_property_jval(jdbusConstructor, "prototype", proto);
 
   jerry_release_value(proto);
