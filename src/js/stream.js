@@ -31,3 +31,4 @@ Stream.Stream = Stream;
 Stream.Readable = require('stream_readable');
 Stream.Writable = require('stream_writable');
 Stream.Duplex = require('stream_duplex');
+Stream.Transform = require('stream_transform');
