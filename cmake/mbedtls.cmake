@@ -14,10 +14,6 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-if(NOT EXPERIMENTAL_BUILD_MBEDTLS)
-  return()
-endif()
-
 if(NOT "${TARGET_BOARD}" STREQUAL "None")
   return()
 endif()

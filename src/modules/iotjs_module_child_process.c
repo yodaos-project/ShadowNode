@@ -24,7 +24,6 @@ static void OnExit(uv_process_t* handle,
 
 JS_FUNCTION(Spawn) {
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-
   uv_process_t* process = (uv_process_t*)malloc(sizeof(uv_process_t));
   uv_process_options_t options;
   memset(&options, 0, sizeof(uv_process_options_t));
