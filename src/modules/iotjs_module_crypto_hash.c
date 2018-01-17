@@ -6,6 +6,7 @@
 typedef struct {
   iotjs_jobjectwrap_t jobjectwrap;
   mbedtls_md_context_t ctx;
+  const mbedtls_md_info_t* info;
 } IOTJS_VALIDATED_STRUCT(iotjs_crypto_hash_t);
 
 static JNativeInfoType this_module_native_info = { .free_cb = NULL };
@@ -28,9 +29,9 @@ JS_FUNCTION(HashConstructor) {
   
   mbedtls_md_init(&_this->ctx);
   size_t type = jerry_get_number_value(jargv[0]);
-  const mbedtls_md_info_t* info = mbedtls_md_info_from_type(type);
+  _this->info = mbedtls_md_info_from_type(type);
 
-  int r = mbedtls_md_init_ctx(&_this->ctx, info);
+  int r = mbedtls_md_init_ctx(&_this->ctx, _this->info);
   if (r != 0) {
     return JS_CREATE_ERROR(COMMON, "md_init_ctx() failed");
   }
@@ -54,14 +55,16 @@ JS_FUNCTION(HashDigest) {
   JS_DECLARE_THIS_PTR(crypto_hash, hash);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_crypto_hash_t, hash);
 
-  unsigned char out[MBEDTLS_MD_MAX_SIZE];
-  mbedtls_md_finish(&_this->ctx, out);
+  size_t size = MBEDTLS_MD_MAX_SIZE;
+  unsigned char contents[size];
+  mbedtls_md_finish(&_this->ctx, contents);
 
+  size = mbedtls_md_get_size(_this->info);
+  mbedtls_md_free(&_this->ctx);
 
-  jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)MBEDTLS_MD_MAX_SIZE);
+  jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer(size);
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
-  iotjs_bufferwrap_copy(buffer_wrap, (char*)out, (size_t)MBEDTLS_MD_MAX_SIZE);
-
+  iotjs_bufferwrap_copy(buffer_wrap, (char*)contents, size);
   return jbuffer;
 }
 
