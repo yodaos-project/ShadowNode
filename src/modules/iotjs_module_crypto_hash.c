@@ -1,0 +1,82 @@
+#include "iotjs_def.h"
+#include "iotjs_objectwrap.h"
+#include "iotjs_module_buffer.h"
+#include <mbedtls/md.h>
+
+typedef struct {
+  iotjs_jobjectwrap_t jobjectwrap;
+  mbedtls_md_context_t ctx;
+} IOTJS_VALIDATED_STRUCT(iotjs_crypto_hash_t);
+
+static JNativeInfoType this_module_native_info = { .free_cb = NULL };
+
+static iotjs_crypto_hash_t* iotjs_crypto_hash_create(const jerry_value_t jval) {
+  iotjs_crypto_hash_t* hash = IOTJS_ALLOC(iotjs_crypto_hash_t);
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_crypto_hash_t, hash);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jval,
+                               &this_module_native_info);
+  return hash;
+}
+
+JS_FUNCTION(HashConstructor) {
+  DJS_CHECK_THIS();
+
+  // Create Hash object
+  const jerry_value_t val = JS_GET_THIS();
+  iotjs_crypto_hash_t* hash = iotjs_crypto_hash_create(val);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_crypto_hash_t, hash);
+  
+  mbedtls_md_init(&_this->ctx);
+  size_t type = jerry_get_number_value(jargv[0]);
+  const mbedtls_md_info_t* info = mbedtls_md_info_from_type(type);
+
+  int r = mbedtls_md_init_ctx(&_this->ctx, info);
+  if (r != 0) {
+    return JS_CREATE_ERROR(COMMON, "md_init_ctx() failed");
+  }
+  mbedtls_md_starts(&_this->ctx);
+  return jerry_create_undefined();
+}
+
+JS_FUNCTION(HashUpdate) {
+  JS_DECLARE_THIS_PTR(crypto_hash, hash);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_crypto_hash_t, hash);
+
+  jerry_value_t value = jargv[0];
+  jerry_size_t size = jerry_get_string_size(value);
+  jerry_char_t buf[size];
+  jerry_string_to_char_buffer(value, buf, size);
+  mbedtls_md_update(&_this->ctx, (const unsigned char *)buf, size);
+  return jerry_create_null();
+}
+
+JS_FUNCTION(HashDigest) {
+  JS_DECLARE_THIS_PTR(crypto_hash, hash);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_crypto_hash_t, hash);
+
+  unsigned char out[MBEDTLS_MD_MAX_SIZE];
+  mbedtls_md_finish(&_this->ctx, out);
+
+
+  jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)MBEDTLS_MD_MAX_SIZE);
+  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
+  iotjs_bufferwrap_copy(buffer_wrap, (char*)out, (size_t)MBEDTLS_MD_MAX_SIZE);
+
+  return jbuffer;
+}
+
+jerry_value_t InitCryptoHash() {
+  jerry_value_t exports = jerry_create_object();
+  jerry_value_t hashConstructor =
+      jerry_create_external_function(HashConstructor);
+  iotjs_jval_set_property_jval(exports, "Hash", hashConstructor);
+
+  jerry_value_t proto = jerry_create_object();
+  iotjs_jval_set_method(proto, "update", HashUpdate);
+  iotjs_jval_set_method(proto, "digest", HashDigest);
+  iotjs_jval_set_property_jval(hashConstructor, "prototype", proto);
+
+  jerry_release_value(proto);
+  jerry_release_value(hashConstructor);
+  return exports;
+}

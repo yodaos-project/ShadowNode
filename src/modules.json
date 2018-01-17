@@ -153,7 +153,12 @@
     "crypto": {
       "js_file": "js/crypto.js",
       "native_files": ["modules/iotjs_module_crypto.c"],
-      "init": "InitCrypto"
+      "init": "InitCrypto",
+      "require": ["crypto_hash"]
+    },
+    "crypto_hash": {
+      "native_files": ["modules/iotjs_module_crypto_hash.c"],
+      "init": "InitCryptoHash"
     },
     "dbus": {
       "native_files": ["modules/iotjs_module_dbus.c"],
