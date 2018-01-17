@@ -1,4 +1,5 @@
 #include "iotjs_def.h"
+#include "iotjs_objectwrap.h"
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
 
@@ -8,6 +9,7 @@ mbedtls_entropy_context entropy;
 mbedtls_ctr_drbg_context drgb_ctx;
 
 JS_FUNCTION(RandomBytes) {
+  // TODO
   return jerry_create_null();
 }
 
@@ -24,7 +26,6 @@ JS_FUNCTION(RandomBytesSync) {
   }
   return res;
 }
-
 jerry_value_t InitCrypto() {
   mbedtls_entropy_init(&entropy);
   mbedtls_ctr_drbg_init(&drgb_ctx);
@@ -37,6 +38,5 @@ jerry_value_t InitCrypto() {
   jerry_value_t crypto = jerry_create_object();
   iotjs_jval_set_method(crypto, "randomBytes", RandomBytes);
   iotjs_jval_set_method(crypto, "randomBytesSync", RandomBytesSync);
-
   return crypto;
 }
