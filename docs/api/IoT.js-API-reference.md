@@ -4,6 +4,7 @@
 
 * [Assert](IoT.js-API-Assert.md)
 * [Buffer](IoT.js-API-Buffer.md)
+* [Crypto](IoT.js-API-Crypto.md)
 * [DNS](IoT.js-API-DNS.md)
 * [Events](IoT.js-API-Events.md)
 * [File System](IoT.js-API-File-System.md)
