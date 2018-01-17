@@ -151,7 +151,9 @@
       "init": "InitConstants"
     },
     "crypto": {
-      "js_file": "js/crypto.js"
+      "js_file": "js/crypto.js",
+      "native_files": ["modules/iotjs_module_crypto.c"],
+      "init": "InitCrypto"
     },
     "dbus": {
       "native_files": ["modules/iotjs_module_dbus.c"],
