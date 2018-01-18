@@ -20,7 +20,8 @@
         "querystring", 
         "punycode", 
         "url", 
-        "testdriver"
+        "testdriver",
+        "zlib"
       ]
     },
     "iotjs_core_modules": {
@@ -417,6 +418,11 @@
     },
     "util": {
       "js_file": "js/util.js"
+    },
+    "zlib": {
+      "js_file": "js/zlib.js",
+      "native_files": ["modules/iotjs_module_zlib.c"],
+      "init": "InitZlib"
     }
   }
 }
