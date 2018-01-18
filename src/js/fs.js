@@ -17,7 +17,80 @@
 var fs = exports;
 var constants = require('constants');
 var util = require('util');
+var stream = require('stream');
+
 var fsBuiltin = native;
+var Readable = stream.Readable;
+var Writable = stream.Writable;
+
+// constants
+var kMinPoolSpace = 128;
+
+function getOptions(options, defaultOptions) {
+  if (options === null || options === undefined ||
+      typeof options === 'function') {
+    return defaultOptions;
+  }
+
+  if (typeof options === 'string') {
+    defaultOptions = Object.assign({}, defaultOptions);
+    defaultOptions.encoding = options;
+    options = defaultOptions;
+  } else if (typeof options !== 'object') {
+    throw new TypeError('ERR_INVALID_ARG_TYPE');
+  }
+
+  if (options.encoding !== 'buffer')
+    assertEncoding(options.encoding);
+  return options;
+}
+
+function copyObject(source) {
+  var target = {};
+  for (var key in source)
+    target[key] = source[key];
+  return target;
+}
+
+function handleError(val, callback) {
+  if (val instanceof Error) {
+    if (typeof callback === 'function') {
+      process.nextTick(callback, val);
+      return true;
+    } else throw val;
+  }
+  return false;
+}
+
+var pool;
+function allocNewPool(poolSize) {
+  // TODO(Yorkie): implement Buffer.allocUnsafe to replace
+  pool = new Buffer(poolSize);
+  pool.used = 0;
+}
+
+function getPathFromURL(path) {
+  if (path == null || !path.query) {
+    return path;
+  }
+  if (path.protocol !== 'file:') {
+    return new TypeError('ERR_INVALID_URL_SCHEME');
+  }
+  
+  if (url.hostname !== '') {
+    return new TypeError('ERR_INVALID_FILE_URL_HOST');
+  }
+  var pathname = url.pathname;
+  for (var n = 0; n < pathname.length; n++) {
+    if (pathname[n] === '%') {
+      var third = pathname.codePointAt(n + 2) | 0x20;
+      if (pathname[n + 1] === '2' && third === 102) {
+        return new TypeError('ERR_INVALID_FILE_URL_PATH');
+      }
+    }
+  }
+  return decodeURIComponent(pathname);
+}
 
 fs.exists = function(path, callback) {
   if (!path || !path.length) {
@@ -467,3 +540,274 @@ function checkArgString(value, name) {
 function checkArgFunction(value, name) {
   return checkArgType(value, name, util.isFunction);
 }
+
+// ReadStream
+fs.createReadStream = function(path, options) {
+  return new ReadStream(path, options);
+};
+
+function ReadStream(path, options) {
+  if (!(this instanceof ReadStream))
+    return new ReadStream(path, options);
+
+  // a little bit bigger buffer and water marks by default
+  options = copyObject(getOptions(options, {}));
+  if (options.highWaterMark === undefined)
+    options.highWaterMark = 64 * 1024;
+
+  Readable.call(this, options);
+
+  handleError((this.path = getPathFromURL(path)));
+  this.fd = options.fd === undefined ? null : options.fd;
+  this.flags = options.flags === undefined ? 'r' : options.flags;
+  this.mode = options.mode === undefined ? 438 /* 0o666 */ : options.mode;
+
+  this.start = typeof this.fd !== 'number' && options.start === undefined ?
+    0 : options.start;
+  this.end = options.end;
+  this.autoClose = options.autoClose === undefined ? true : options.autoClose;
+  this.pos = undefined;
+  this.bytesRead = 0;
+  this.closed = false;
+
+  if (this.start !== undefined) {
+    if (typeof this.start !== 'number') {
+      throw new TypeError('ERR_INVALID_ARG_TYPE');
+    }
+    if (this.end === undefined) {
+      this.end = Infinity;
+    } else if (typeof this.end !== 'number') {
+      throw new TypeError('ERR_INVALID_ARG_TYPE');
+    }
+    if (this.start > this.end) {
+      throw new RangeError('ERR_OUT_OF_RANGE');
+    }
+    this.pos = this.start;
+  }
+
+  if (typeof this.fd !== 'number')
+    this.open();
+
+  this.on('end', function() {
+    if (this.autoClose) {
+      this._destroy();
+    }
+  }.bind(this));
+}
+util.inherits(ReadStream, Readable);
+
+ReadStream.prototype.open = function() {
+  var self = this;
+  fs.open(this.path, this.flags, this.mode, function(er, fd) {
+    if (er) {
+      if (self.autoClose) {
+        self._destroy();
+      }
+      self.emit('error', er);
+      return;
+    }
+
+    self.fd = fd;
+    self.emit('open', fd);
+    // start the flow of data.
+    self._read();
+  });
+};
+
+ReadStream.prototype._read = function(n) {
+  if (this.destroyed)
+    return;
+
+  if (!pool || pool.length - pool.used < kMinPoolSpace) {
+    // discard the old pool.
+    allocNewPool(this.readableHighWaterMark);
+  }
+
+  // Grab another reference to the pool in the case that while we're
+  // in the thread pool another read() finishes up the pool, and
+  // allocates a new one.
+  var thisPool = pool;
+  var toRead = Math.min(pool.length - pool.used, n || 512);
+  var start = pool.used;
+
+  if (this.pos !== undefined)
+    toRead = Math.min(this.end - this.pos + 1, toRead);
+
+  // already read everything we were supposed to read!
+  // treat as EOF.
+  if (toRead <= 0)
+    return this.push(null);
+
+  // the actual read.
+  fs.read(this.fd, pool, pool.used, toRead, this.pos, function(er, bytesRead) {
+    if (er) {
+      if (this.autoClose) {
+        this.destroy();
+      }
+      this.emit('error', er);
+    } else {
+      var b = null;
+      if (bytesRead > 0) {
+        this.bytesRead += bytesRead;
+        b = thisPool.slice(start, start + bytesRead);
+      }
+      this.push(b);
+
+      // check if read is less than 0, try read again.
+      if (bytesRead > 0) {
+        this._read();
+      }
+    }
+  }.bind(this));
+
+  // move the pool positions, and internal position for reading.
+  if (this.pos !== undefined)
+    this.pos += toRead;
+  pool.used += toRead;
+};
+
+ReadStream.prototype._destroy = function(err, cb) {
+  var isOpen = typeof this.fd !== 'number';
+  if (isOpen) {
+    this.once('open', closeFsStream.bind(null, this, cb, err));
+    return;
+  }
+
+  closeFsStream(this, cb);
+  this.fd = null;
+};
+
+function closeFsStream(stream, cb, err) {
+  fs.close(stream.fd, function(er) {
+    er = er || err;
+    if (typeof cb === 'function')
+      cb(er);
+    stream.closed = true;
+    if (!er)
+      stream.emit('close');
+  });
+}
+
+ReadStream.prototype.close = function(cb) {
+  this._destroy(null, cb);
+};
+
+// Write Stream
+fs.createWriteStream = function(path, options) {
+  return new WriteStream(path, options);
+};
+
+util.inherits(WriteStream, Writable);
+fs.WriteStream = WriteStream;
+
+function WriteStream(path, options) {
+  if (!(this instanceof WriteStream))
+    return new WriteStream(path, options);
+
+  options = copyObject(getOptions(options, {}));
+
+  Writable.call(this, options);
+
+  handleError((this.path = getPathFromURL(path)));
+  this.fd = options.fd === undefined ? null : options.fd;
+  this.flags = options.flags === undefined ? 'w' : options.flags;
+  this.mode = options.mode === undefined ? 438 /* 0o666 */ : options.mode;
+
+  this.start = options.start;
+  this.autoClose = options.autoClose === undefined ? true : !!options.autoClose;
+  this.pos = undefined;
+  this.bytesWritten = 0;
+  this.closed = false;
+
+  if (this.start !== undefined) {
+    if (typeof this.start !== 'number') {
+      throw new TypeError('ERR_INVALID_ARG_TYPE');
+    }
+    if (this.start < 0) {
+      throw new errors.RangeError('ERR_OUT_OF_RANGE');
+    }
+    this.pos = this.start;
+  }
+
+  if (options.encoding)
+    this.setDefaultEncoding(options.encoding);
+
+  if (typeof this.fd !== 'number')
+    this.open();
+
+  // dispose on finish.
+  this.once('finish', function() {
+    if (this.autoClose) {
+      this._destroy();
+    }
+  });
+}
+
+WriteStream.prototype.open = function() {
+  fs.open(this.path, this.flags, this.mode, function(er, fd) {
+    if (er) {
+      if (this.autoClose) {
+        this._destroy();
+      }
+      this.emit('error', er);
+      return;
+    }
+
+    this.fd = fd;
+    this.emit('open', fd);
+    this._readyToWrite();
+  }.bind(this));
+};
+
+
+WriteStream.prototype._write = function(data, encoding, cb) {
+  if (!(data instanceof Buffer)) {
+    var err = new TypeError('ERR_INVALID_ARG_TYPE');
+    return this.emit('error', err);
+  }
+
+  if (typeof this.fd !== 'number') {
+    return this.once('open', function() {
+      this._write(data, encoding, cb);
+    });
+  }
+
+  fs.write(this.fd, data, 0, data.length, this.pos, function(er, bytes) {
+    if (er) {
+      if (this.autoClose) {
+        this._destroy();
+      }
+      return cb(er);
+    }
+    this.bytesWritten += bytes;
+    cb();
+  }.bind(this));
+
+  if (this.pos !== undefined)
+    this.pos += data.length;
+};
+
+WriteStream.prototype._destroy = ReadStream.prototype._destroy;
+WriteStream.prototype.close = function(cb) {
+  if (cb) {
+    if (this.closed) {
+      process.nextTick(cb);
+      return;
+    } else {
+      this.on('close', cb);
+    }
+  }
+
+  // If we are not autoClosing, we should call
+  // destroy on 'finish'.
+  if (!this.autoClose) {
+    this.on('finish', this.destroy.bind(this));
+  }
+
+  // we use end() instead of destroy() because of
+  // https://github.com/nodejs/node/issues/2006
+  this.end();
+};
+
+// There is no shutdown() for files.
+WriteStream.prototype.destroySoon = WriteStream.prototype.end;

@@ -29,6 +29,7 @@ function ReadableState(options) {
   this.length = 0;
 
   this.defaultEncoding = options.defaultEncoding || 'utf8';
+  this.highWaterMark = 16 * 1024;
 
   // true if in flowing mode.
   this.flowing = false;
@@ -47,6 +48,7 @@ function Readable(options) {
   }
 
   this._readableState = new ReadableState(options);
+  this.readableHighWaterMark = this._readableState.highWaterMark;
 
   Stream.call(this);
 }
@@ -142,6 +144,17 @@ Readable.prototype.push = function(chunk, encoding) {
       this.emit('readable');
     }
   }
+};
+
+
+Readable.prototype.pipe = function(dest) {
+  var src = this;
+  src.on('data', function(chunk) {
+    dest.write(chunk);
+  });
+  src.on('end', function() {
+    dest.end();
+  });
 };
 
 
