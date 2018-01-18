@@ -155,6 +155,8 @@ Readable.prototype.pipe = function(dest) {
   src.on('end', function() {
     dest.end();
   });
+  dest.emit('pipe', src);
+  return dest;
 };
 
 
