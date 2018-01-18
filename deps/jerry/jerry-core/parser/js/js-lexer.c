@@ -880,7 +880,8 @@ lexer_parse_number (parser_context_t *context_p) /**< context */
         source_p++;
       }
 
-      do {
+      do 
+      {
         source_p++;
       }
       while (source_p < source_end_p
