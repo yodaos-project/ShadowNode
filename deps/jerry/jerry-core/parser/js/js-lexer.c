@@ -869,15 +869,16 @@ lexer_parse_number (parser_context_t *context_p) /**< context */
     {
       context_p->token.extra_value = LEXER_NUMBER_OCTAL;
 
-      if (context_p->status_flags & PARSER_IS_STRICT)
-      {
-        parser_raise_error (context_p, PARSER_ERR_OCTAL_NUMBER_NOT_ALLOWED);
-      }
-
       if (source_p[1] == LIT_CHAR_UPPERCASE_O || 
           source_p[1] == LIT_CHAR_LOWERCASE_O)
       {
         source_p++;
+      }
+      else if (context_p->status_flags & PARSER_IS_STRICT)
+      {
+        // FIXME(Yorkie): In strict mode, only legacyOctalIntegerLiteral 
+        // is disallowed, but OctalIntegerLiteral is allowed.
+        parser_raise_error (context_p, PARSER_ERR_OCTAL_NUMBER_NOT_ALLOWED);
       }
 
       do 
