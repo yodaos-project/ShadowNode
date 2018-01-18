@@ -863,8 +863,9 @@ lexer_parse_number (parser_context_t *context_p) /**< context */
       while (source_p < source_end_p
              && lit_char_is_hex_digit (source_p[0]));
     }
-    else if (source_p[1] >= LIT_CHAR_0
-             && source_p[1] <= LIT_CHAR_7)
+    else if (source_p[1] == LIT_CHAR_UPPERCASE_O || 
+             source_p[1] == LIT_CHAR_LOWERCASE_O ||
+             (source_p[1] >= LIT_CHAR_0 && source_p[1] <= LIT_CHAR_7))
     {
       context_p->token.extra_value = LEXER_NUMBER_OCTAL;
 
@@ -873,8 +874,13 @@ lexer_parse_number (parser_context_t *context_p) /**< context */
         parser_raise_error (context_p, PARSER_ERR_OCTAL_NUMBER_NOT_ALLOWED);
       }
 
-      do
+      if (source_p[1] == LIT_CHAR_UPPERCASE_O || 
+          source_p[1] == LIT_CHAR_LOWERCASE_O)
       {
+        source_p++;
+      }
+
+      do {
         source_p++;
       }
       while (source_p < source_end_p
@@ -1730,8 +1736,14 @@ lexer_construct_number_object (parser_context_t *context_p, /**< context */
     const uint8_t *src_p = context_p->token.lit_location.char_p;
     const uint8_t *src_end_p = src_p + length - 1;
 
+    if (src_p[1] == LIT_CHAR_UPPERCASE_O ||
+        src_p[1] == LIT_CHAR_LOWERCASE_O)
+    {
+      src_p++;
+    }
+
     num = 0;
-    do
+    do 
     {
       src_p++;
       num = num * 8 + (ecma_number_t) (*src_p - LIT_CHAR_0);
