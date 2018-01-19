@@ -57,7 +57,7 @@ function Zlib(opts, mode) {
 
   Transform.call(this, opts);
   this.bytesRead = 0;
-  this._handle = new native.Zlib(zlib_modes[mode]);
+  this._handle = new native.Zlib(mode);
   this._handle.jsref = this; // Used by processCallback() and zlibOnError()
   this._handle.onerror = zlibOnError;
   this._hadError = false;
@@ -87,11 +87,18 @@ function processCallback() {
   console.log('process');
 }
 
+Zlib.prototype.reset = function() {
+  if (!this._handle)
+    throw new Error('zlib binding closed');
+  return this._handle.reset();
+};
+
 Zlib.prototype._flush = function _flush(callback) {
   this._transform(Buffer.alloc(0), '', callback);
 };
 
 Zlib.prototype._transform = function _transform(chunk, encoding, cb) {
+  console.log('transform...');
   var flushFlag;
   var ws = this._writableState;
   if ((ws.ending || ws.ended) && ws.length === chunk.byteLength) {
@@ -118,6 +125,64 @@ function _close(engine, callback) {
   engine._handle = null;
 }
 
+// generic zlib
+// minimal 2-byte header
+function Deflate(opts) {
+  if (!(this instanceof Deflate))
+    return new Deflate(opts);
+  Zlib.call(this, opts, zlib_modes.deflate);
+}
+util.inherits(Deflate, Zlib);
+
+function Inflate(opts) {
+  if (!(this instanceof Inflate))
+    return new Inflate(opts);
+  Zlib.call(this, opts, zlib_modes.inflate);
+}
+util.inherits(Inflate, Zlib);
+
+function Gzip(opts) {
+  if (!(this instanceof Gzip))
+    return new Gzip(opts);
+  Zlib.call(this, opts, zlib_modes.gzip);
+}
+util.inherits(Gzip, Zlib);
+
+function Gunzip(opts) {
+  if (!(this instanceof Gunzip))
+    return new Gunzip(opts);
+  Zlib.call(this, opts, zlib_modes.gunzip);
+}
+util.inherits(Gunzip, Zlib);
+
+function DeflateRaw(opts) {
+  if (opts && opts.windowBits === 8) opts.windowBits = 9;
+  if (!(this instanceof DeflateRaw))
+    return new DeflateRaw(opts);
+  Zlib.call(this, opts, zlib_modes.deflateraw);
+}
+util.inherits(DeflateRaw, Zlib);
+
+function InflateRaw(opts) {
+  if (!(this instanceof InflateRaw))
+    return new InflateRaw(opts);
+  Zlib.call(this, opts, zlib_modes.inflateraw);
+}
+util.inherits(InflateRaw, Zlib);
+
+function Unzip(opts) {
+  if (!(this instanceof Unzip))
+    return new Unzip(opts);
+  Zlib.call(this, opts, zlib_modes.unzip);
+}
+util.inherits(Unzip, Zlib);
+
 module.exports = {
-  Zlib: Zlib,
+  Deflate: Deflate,
+  Inflate: Inflate,
+  Gzip: Gzip,
+  Gunzip: Gunzip,
+  DeflateRaw: DeflateRaw,
+  InflateRaw: InflateRaw,
+  Unzip: Unzip,
 };

@@ -45,6 +45,7 @@ typedef struct {
   int strategy_;
   z_stream strm_;
   int windowBits_;
+  bool write_in_progress_;
   bool pending_close_;
   unsigned int refs_;
   unsigned int gzip_id_bytes_read_;
@@ -69,6 +70,7 @@ static iotjs_zlib_t* iotjs_zlib_create(const jerry_value_t jval, jerry_value_t m
   _this->mode_ = jerry_get_number_value(mode);
   _this->strategy_ = 0;
   _this->windowBits_ = 0;
+  _this->write_in_progress_ = false;
   _this->pending_close_ = false;
   _this->refs_ = 0;
   _this->gzip_id_bytes_read_ = 0;
@@ -130,12 +132,37 @@ JS_FUNCTION(ZlibInit) {
   _this->flush_ = Z_NO_FLUSH;
   _this->err_ = Z_OK;
 
-  // ctx->err_ = deflateInit2(&_this->strm_,
-  //                          _this->level_,
-  //                          Z_DEFLATED,
-  //                          _this->windowBits_,
-  //                          _this->memLevel_,
-  //                          _this->strategy_);
+  switch (_this->mode_) {
+    case DEFLATE:
+    case GZIP:
+    case DEFLATERAW:
+      _this->err_ = deflateInit2(&_this->strm_,
+                                 _this->level_,
+                                 Z_DEFLATED,
+                                 _this->windowBits_,
+                                 _this->memLevel_,
+                                 _this->strategy_);
+      break;
+    case INFLATE:
+    case GUNZIP:
+    case INFLATERAW:
+    case UNZIP:
+      _this->err_ = inflateInit2(&_this->strm_, _this->windowBits_);
+      break;
+    default:
+      _this->mode_ = NONE;
+      return jerry_create_boolean(false);
+  }
+
+  _this->dictionary_ = NULL;
+  _this->dictionary_len_ = 0;
+  _this->write_in_progress_ = false;
+  _this->init_done_ = true;
+
+  if (_this->err_ != Z_OK) {
+    _this->mode_ = NONE;
+    return jerry_create_boolean(false);
+  }
   return jerry_create_boolean(true);
 }
 
@@ -144,6 +171,32 @@ JS_FUNCTION(ZlibWrite) {
   // IOTJS_VALIDATED_STRUCT_METHOD(iotjs_zlib_t, zlib);
 
   return jerry_create_null();
+}
+
+JS_FUNCTION(ZlibReset) {
+  JS_DECLARE_THIS_PTR(zlib, zlib);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_zlib_t, zlib);
+  
+  _this->err_ = Z_OK;
+  switch (_this->mode_) {
+    case DEFLATE:
+    case DEFLATERAW:
+    case GZIP:
+      _this->err_ = deflateReset(&_this->strm_);
+      break;
+    case INFLATE:
+    case INFLATERAW:
+    case GUNZIP:
+      _this->err_ = inflateReset(&_this->strm_);
+      break;
+    default:
+      break;
+  }
+  if (_this->err_ != Z_OK) {
+    return JS_CREATE_ERROR(COMMON, "Failed to reset stream");
+  } else {
+    return jerry_create_boolean(true);
+  }
 }
 
 jerry_value_t InitZlib() {
@@ -214,6 +267,7 @@ jerry_value_t InitZlib() {
   jerry_value_t proto = jerry_create_object();
   iotjs_jval_set_method(proto, "init", ZlibInit);
   iotjs_jval_set_method(proto, "write", ZlibWrite);
+  iotjs_jval_set_method(proto, "reset", ZlibReset);
   iotjs_jval_set_property_jval(zlibConstructor, "prototype", proto);
 
   jerry_release_value(proto);
