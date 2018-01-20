@@ -150,6 +150,7 @@ function processCallback() {
                self._outBuffer, // out
                self._outOffset, // out_off
                self._chunkSize); // out_len
+    this._doWrite();
     return;
   }
 
