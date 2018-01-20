@@ -14,6 +14,7 @@
 * [OS](IoT.js-API-OS.md)
 * [Process](IoT.js-API-Process.md)
 * [Timers](IoT.js-API-Timers.md)
+* [Zlib](IoT.js-API-Zlib.md)
 
 ## Extended API
 
