@@ -627,7 +627,7 @@ ReadStream.prototype._read = function(n) {
   // in the thread pool another read() finishes up the pool, and
   // allocates a new one.
   var thisPool = pool;
-  var toRead = Math.min(pool.length - pool.used, n || 512);
+  var toRead = Math.min(pool.length - pool.used, n || this.readableHighWaterMark);
   var start = pool.used;
 
   if (this.pos !== undefined)
