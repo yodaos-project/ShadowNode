@@ -230,7 +230,6 @@ function onEmptyBuffer(stream) {
   }
 }
 
-
 // Writable.prototype.end() was called. register callback for 'finish' event.
 // After finish writing out buffered data, 'finish' event will be fired.
 function endWritable(stream, callback) {

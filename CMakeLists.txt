@@ -102,7 +102,7 @@ endif()
 
 # Add os-dependant flags
 if("${TARGET_OS}" STREQUAL "darwin")
-  iotjs_add_compile_flags(-D__DARWIN__ -fno-builtin)
+  iotjs_add_compile_flags(-D__DARWIN__ -DMACOS -fno-builtin)
   iotjs_add_flags(EXTERNAL_LIBS curl dbus-1 z)
 elseif("${TARGET_OS}" STREQUAL "linux")
   iotjs_add_compile_flags(-D__LINUX__ -fno-builtin)

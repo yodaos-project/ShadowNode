@@ -64,17 +64,22 @@ function Transform(options) {
   }
 
   // When the writable side finishes, then flush out anything remaining.
-  this.on('prefinish', prefinish);
+  this.on('finish', onfinish);
+  this.on('pipe', onpipe);
 }
 
-function prefinish() {
+function onfinish() {
   if (typeof this._flush === 'function') {
     this._flush(function(er, data) {
       done(this, er, data);
-    });
+    }.bind(this));
   } else {
     done(this, null, null);
   }
+}
+
+function onpipe() {
+  this._readyToWrite();
 }
 
 Transform.prototype.push = function(chunk, encoding) {
@@ -150,5 +155,6 @@ function done(stream, er, data) {
 
   if (stream._transformState.transforming)
     throw new Error('ERR_TRANSFORM_ALREADY_TRANSFORMING');
+
   return stream.push(null);
 }

@@ -72,6 +72,18 @@ function Zlib(opts, mode) {
                          dictionary)) {
     throw new Error('ERR_ZLIB_INITIALIZATION_FAILED');
   }
+
+  this._outBuffer = new Buffer(chunkSize);
+  this._outOffset = 0;
+  this._level = level;
+  this._strategy = strategy;
+  this._chunkSize = chunkSize;
+  this._flushFlag = flush;
+  this._scheduledFlushFlag = constants.Z_NO_FLUSH;
+  this._origFlushFlag = flush;
+  this._finishFlushFlag = finishFlush;
+  this._info = opts && opts.info;
+  // this.once('end', this.close);
 }
 util.inherits(Zlib, Transform);
 
@@ -84,7 +96,66 @@ Object.defineProperty(Zlib.prototype, '_closed', {
 });
 
 function processCallback() {
-  console.log('process');
+  // This callback's context (`this`) is the `_handle` (ZCtx) object. It is
+  // important to null out the values once they are no longer needed since
+  // `_handle` can stay in memory long after the buffer is needed.
+  var handle = this;
+  var self = this.jsref;
+  var state = self._writeState;
+
+  if (self._hadError) {
+    this.buffer = null;
+    return;
+  }
+
+  if (self.destroyed) {
+    this.buffer = null;
+    return;
+  }
+
+  var availOutAfter = state[0];
+  var availInAfter = state[1];
+
+  var inDelta = (handle.availInBefore - availInAfter);
+  self.bytesRead += inDelta;
+
+  var have = handle.availOutBefore - availOutAfter;
+  if (have > 0) {
+    var out = self._outBuffer.slice(self._outOffset, self._outOffset + have);
+    self._outOffset += have;
+    self.push(out);
+  } else if (have < 0) {
+    throw new Error('have should not go down');
+  }
+
+  // exhausted the output buffer, or used all the input create a new one.
+  if (availOutAfter === 0 || self._outOffset >= self._chunkSize) {
+    handle.availOutBefore = self._chunkSize;
+    self._outOffset = 0;
+    self._outBuffer = new Buffer(self._chunkSize);
+  }
+
+  if (availOutAfter === 0) {
+    // Not actually done. Need to reprocess.
+    // Also, update the availInBefore to the availInAfter value,
+    // so that if we have to hit it a third (fourth, etc.) time,
+    // it'll have the correct byte counts.
+    handle.inOff += inDelta;
+    handle.availInBefore = availInAfter;
+
+    this.write(handle.flushFlag,
+               this.buffer, // in
+               handle.inOff, // in_off
+               handle.availInBefore, // in_len
+               self._outBuffer, // out
+               self._outOffset, // out_off
+               self._chunkSize); // out_len
+    return;
+  }
+
+  // finished with the chunk.
+  this.buffer = null;
+  this.cb();
 }
 
 Zlib.prototype.reset = function() {
@@ -94,11 +165,14 @@ Zlib.prototype.reset = function() {
 };
 
 Zlib.prototype._flush = function _flush(callback) {
-  this._transform(Buffer.alloc(0), '', callback);
+  this._transform(new Buffer(0), '', callback);
 };
 
 Zlib.prototype._transform = function _transform(chunk, encoding, cb) {
-  console.log('transform...');
+  // If it's the last chunk, or a final flush, we use the Z_FINISH flush flag
+  // (or whatever flag was provided using opts.finishFlush).
+  // If it's explicitly flushing at some other time, then we use
+  // Z_FULL_FLUSH. Otherwise, use the original opts.flush flag.
   var flushFlag;
   var ws = this._writableState;
   if ((ws.ending || ws.ended) && ws.length === chunk.byteLength) {
@@ -112,6 +186,31 @@ Zlib.prototype._transform = function _transform(chunk, encoding, cb) {
   }
   processChunk(this, chunk, flushFlag, cb);
 };
+
+var total = 0;
+function processChunk(self, chunk, flushFlag, cb) {
+  var handle = self._handle;
+  if (!handle)
+    return cb(new Error('ERR_ZLIB_BINDING_CLOSED'));
+
+  handle.buffer = chunk;
+  handle.cb = cb;
+  handle.availOutBefore = self._chunkSize - self._outOffset;
+  handle.availInBefore = chunk.byteLength;
+  handle.inOff = 0;
+  handle.flushFlag = flushFlag;
+
+  total += chunk.length;
+  console.log('do process ->', total);
+  handle.write(flushFlag,
+               chunk, // in
+               0, // in_off
+               handle.availInBefore, // in_len
+               self._outBuffer, // out
+               self._outOffset, // out_off
+               handle.availOutBefore); // out_len
+  handle._doWrite();
+}
 
 function _close(engine, callback) {
   if (callback)
@@ -177,6 +276,16 @@ function Unzip(opts) {
 }
 util.inherits(Unzip, Zlib);
 
+function createProperty(ctor) {
+  return {
+    configurable: true,
+    enumerable: true,
+    value: function(options) {
+      return new ctor(options);
+    }
+  };
+}
+
 module.exports = {
   Deflate: Deflate,
   Inflate: Inflate,
@@ -186,3 +295,18 @@ module.exports = {
   InflateRaw: InflateRaw,
   Unzip: Unzip,
 };
+
+Object.defineProperties(module.exports, {
+  createDeflate: createProperty(Deflate),
+  createInflate: createProperty(Inflate),
+  createDeflateRaw: createProperty(DeflateRaw),
+  createInflateRaw: createProperty(InflateRaw),
+  createGzip: createProperty(Gzip),
+  createGunzip: createProperty(Gunzip),
+  createUnzip: createProperty(Unzip),
+  codes: {
+    enumerable: true,
+    writable: false,
+    value: Object.freeze(codes)
+  }
+});

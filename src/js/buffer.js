@@ -312,5 +312,14 @@ Buffer.prototype.fill = function(value) {
 };
 
 
+Object.defineProperty(Buffer.prototype, 'byteLength', {
+  get: function() {
+    return this.length;
+  },
+  set: function() {
+    throw new Error('cannot set Buffer.prototype.byteLength');
+  }
+});
+
 module.exports = Buffer;
 module.exports.Buffer = Buffer;
