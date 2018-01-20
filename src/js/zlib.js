@@ -83,7 +83,7 @@ function Zlib(opts, mode) {
   this._origFlushFlag = flush;
   this._finishFlushFlag = finishFlush;
   this._info = opts && opts.info;
-  // this.once('end', this.close);
+  this.once('end', this.close);
 }
 util.inherits(Zlib, Transform);
 
@@ -158,6 +158,27 @@ function processCallback() {
   this.buffer = null;
   this.cb();
 }
+
+function _close(engine, callback) {
+  if (callback)
+    process.nextTick(callback);
+
+  // Caller may invoke .close after a zlib error (which will null _handle).
+  if (!engine._handle)
+    return;
+
+  engine._handle.close();
+  engine._handle = null;
+}
+
+function emitCloseNT(self) {
+  self.emit('close');
+}
+
+Zlib.prototype.close = function close(callback) {
+  _close(this, callback);
+  process.nextTick(emitCloseNT, this);
+};
 
 Zlib.prototype.reset = function() {
   if (!this._handle)

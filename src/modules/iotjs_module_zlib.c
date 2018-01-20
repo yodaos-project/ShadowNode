@@ -414,6 +414,36 @@ JS_FUNCTION(ZlibReset) {
   }
 }
 
+JS_FUNCTION(ZlibClose) {
+  JS_DECLARE_THIS_PTR(zlib, zlib);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_zlib_t, zlib);
+
+  if (_this->write_in_progress_) {
+    _this->pending_close_ = true;
+    return jerry_create_boolean(false);
+  }
+
+  _this->pending_close_ = false;
+  int status = Z_OK;
+  if (_this->mode_ == DEFLATE || 
+      _this->mode_ == GZIP || 
+      _this->mode_ == DEFLATERAW) {
+    status = deflateEnd(&_this->strm_);
+  } else if (_this->mode_ == INFLATE || 
+             _this->mode_ == GUNZIP || 
+             _this->mode_ == INFLATERAW ||
+             _this->mode_ == UNZIP) {
+    status = inflateEnd(&_this->strm_);
+  }
+  _this->mode_ = NONE;
+
+  if (_this->dictionary_ != NULL) {
+    free(_this->dictionary_);
+    _this->dictionary_ = NULL;
+  }
+  return jerry_create_boolean(true);
+}
+
 jerry_value_t InitZlib() {
   jerry_value_t exports = jerry_create_object();
 #define IOTJS_DEFINE_ZLIB_CONSTANTS(name) do {            \
@@ -483,6 +513,7 @@ jerry_value_t InitZlib() {
   iotjs_jval_set_method(proto, "init", ZlibInit);
   iotjs_jval_set_method(proto, "write", ZlibWrite);
   iotjs_jval_set_method(proto, "reset", ZlibReset);
+  iotjs_jval_set_method(proto, "close", ZlibClose);
   iotjs_jval_set_method(proto, "_doWrite", ZlibDoWrite);
   iotjs_jval_set_method(proto, "_doWriteSync", ZlibDoWriteSync);
   iotjs_jval_set_property_jval(zlibConstructor, "prototype", proto);
