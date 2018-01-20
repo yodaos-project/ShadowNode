@@ -187,7 +187,6 @@ Zlib.prototype._transform = function _transform(chunk, encoding, cb) {
   processChunk(this, chunk, flushFlag, cb);
 };
 
-var total = 0;
 function processChunk(self, chunk, flushFlag, cb) {
   var handle = self._handle;
   if (!handle)
@@ -201,7 +200,6 @@ function processChunk(self, chunk, flushFlag, cb) {
   handle.flushFlag = flushFlag;
 
   total += chunk.length;
-  console.log('do process ->', total);
   handle.write(flushFlag,
                chunk, // in
                0, // in_off
