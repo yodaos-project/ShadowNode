@@ -200,7 +200,6 @@ function processChunk(self, chunk, flushFlag, cb) {
   handle.inOff = 0;
   handle.flushFlag = flushFlag;
 
-  total += chunk.length;
   handle.write(flushFlag,
                chunk, // in
                0, // in_off
