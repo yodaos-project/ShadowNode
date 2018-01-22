@@ -16,41 +16,6 @@
 (function() {
   this.global = this;
 
-  /**
-   * Polyfills Start
-   */
-  if (typeof Object.assign != 'function') {
-    // Must be writable: true, enumerable: false, configurable: true
-    Object.defineProperty(Object, "assign", {
-      value: function assign(target, varArgs) { // .length of function is 2
-        'use strict';
-        if (target == null) { // TypeError if undefined or null
-          throw new TypeError('Cannot convert undefined or null to object');
-        }
-
-        var to = Object(target);
-
-        for (var index = 1; index < arguments.length; index++) {
-          var nextSource = arguments[index];
-          if (nextSource != null) { // Skip over if undefined or null
-            for (var nextKey in nextSource) {
-              // Avoid bugs when hasOwnProperty is shadowed
-              if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
-                to[nextKey] = nextSource[nextKey];
-              }
-            }
-          }
-        }
-        return to;
-      },
-      writable: true,
-      configurable: true
-    });
-  }
-  /**
-   * Polyfills End
-   */
-
   function Module(id) {
     this.id = id;
     this.exports = {};
@@ -197,6 +162,18 @@
   }
   updateEnviron();
 
+  // compatible with stdout
+  process.stdout = {
+    isTTY: false,
+    write: console._stdout,
+  };
+
+  // compatible with stdout
+  process.stderr = {
+    isTTY: false,
+    write: console._stderr,
+  };
+
   // FIXME(Yorkie): the NamedPropertyHandlerConfiguration is not implemented at IoT.js
   process.set = function(key, val) {
     if (key === 'env' || key === 'environ') {
@@ -219,6 +196,142 @@
       process.doExit(process.exitCode || 0);
     }
   };
+
+  /**
+   * Polyfills Start
+   */
+  if (typeof Object.assign != 'function') {
+    // Must be writable: true, enumerable: false, configurable: true
+    Object.defineProperty(Object, "assign", {
+      value: function assign(target, varArgs) { // .length of function is 2
+        'use strict';
+        if (target == null) { // TypeError if undefined or null
+          throw new TypeError('Cannot convert undefined or null to object');
+        }
+
+        var to = Object(target);
+
+        for (var index = 1; index < arguments.length; index++) {
+          var nextSource = arguments[index];
+          if (nextSource != null) { // Skip over if undefined or null
+            for (var nextKey in nextSource) {
+              // Avoid bugs when hasOwnProperty is shadowed
+              if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                to[nextKey] = nextSource[nextKey];
+              }
+            }
+          }
+        }
+        return to;
+      },
+      writable: true,
+      configurable: true
+    });
+  }
+
+  function CallSite(name, opts) {
+    this._name = name;
+    this._filename = opts[0];
+    this._line = opts[1];
+    this._column = opts[2];
+    this._origin = false;
+  }
+
+  CallSite.create = function(name, opts) {
+    return new CallSite(name, opts);
+  };
+
+  CallSite.prototype.getFileName = function() {
+    return this._filename || '<anonymous>';
+  };
+
+  CallSite.prototype.getLineNumber = function() {
+    return this._line || 1;
+  };
+
+  CallSite.prototype.getColumnNumber = function() {
+    return this._column || 7;
+  };
+
+  CallSite.prototype.getFunctionName = function() {
+    return this._name || 'undefined';
+  };
+
+  CallSite.prototype.isEval = function() {
+    if (this._origin) {
+      return true;
+    } else {
+      this._origin = 
+        this.getFunctionName() + ' ' +
+        '(' + 
+          this.getFileName() + ':' + 
+          this.getLineNumber() + ':' + 
+          this.getColumnNumber() + 
+        ')';
+      return true;
+    }
+  };
+
+  CallSite.prototype.getEvalOrigin = function() {
+    return this._origin;
+  };
+
+  function prepareStackTrace(throwable) {
+    return [
+      CallSite.create('main', ['<anonymous>', 1, 7]),
+      CallSite.create('main', ['<anonymous>', 2, 7]),
+      CallSite.create('main', ['<anonymous>', 3, 7]),
+      CallSite.create('main', ['<anonymous>', 4, 7]),
+    ];
+  }
+
+  Error.stackTraceLimit = 1;
+  Error.prepareStackTrace = prepareStackTrace;
+  Error.captureStackTrace = function(throwable, terminator) {
+    Object.defineProperties(throwable, {
+      stack: {
+        configurable: true,
+        get: function () {
+          return prepareStackTrace(throwable);
+        }
+      },
+      cachedStack: {
+        configurable: true,
+        writable: true,
+        enumerable: false,
+        value: true
+      }
+    });
+  };
+
+  Error.getStackTrace = function(throwable) {
+    if (throwable.cachedStack)
+      return throwable.stack;
+    var stack = prepareStackTrace(throwable);
+    try {
+      Object.defineProperties(throwable, {
+        stack: {
+          configurable: true,
+          writable: true,
+          enumerable: false,
+          value: stack
+        },
+        cachedStack: {
+          configurable: true,
+          writable: true,
+          enumerable: false,
+          value: true
+        }
+      });
+    } catch (nonConfigurableError) {
+      // SKIP
+    }
+    return stack;
+  };
+
+  /**
+   * Polyfills End
+   */
 
   var module = Module.require('module');
   module.runMain();
