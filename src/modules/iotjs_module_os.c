@@ -112,6 +112,23 @@ JS_FUNCTION(GetInterfaceAddresses) {
   return addrs;
 }
 
+JS_FUNCTION(GetOSRelease) {
+  const char* rval;
+  struct utsname info;
+  if (uname(&info) < 0) {
+    return JS_CREATE_ERROR(COMMON, "get os release failed");
+  }
+# ifdef _AIX
+  char release[256];
+  snprintf(release, sizeof(release),
+           "%s.%s", info.version, info.release);
+  rval = release;
+# else
+  rval = info.release;
+# endif
+  return jerry_create_string((const jerry_char_t *)rval);
+}
+
 jerry_value_t InitOs() {
   jerry_value_t os = jerry_create_object();
   iotjs_jval_set_method(os, "getHostname", GetHostname);
@@ -119,6 +136,7 @@ jerry_value_t InitOs() {
   iotjs_jval_set_method(os, "getTotalMem", GetTotalMemory);
   iotjs_jval_set_method(os, "getFreeMem", GetFreeMemory);
   iotjs_jval_set_method(os, "getInterfaceAddresses", GetInterfaceAddresses);
+  iotjs_jval_set_method(os, "_getOSRelease", GetOSRelease);
 
   return os;
 }

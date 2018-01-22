@@ -210,8 +210,12 @@
     },
     "http": {
       "js_file": "js/http.js",
-      "require": ["http_client", "http_common", "http_incoming",
+      "require": ["http_agent", "http_client", "http_common", "http_incoming",
                   "http_outgoing", "http_server", "httpparser"]
+    },
+    "http_agent": {
+      "js_file": "js/http_agent.js",
+      "require": ["events", "util"]
     },
     "http_client": {
       "js_file": "js/http_client.js",
@@ -239,7 +243,7 @@
     },
     "https": {
       "js_file": "js/https.js",
-      "require": ["https_client", "https_incoming", "https_native"]
+      "require": ["https_client", "https_incoming", "https_native", "http_agent", "util"]
     },
     "https_client": {
       "js_file": "js/https_client.js",

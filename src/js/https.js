@@ -14,7 +14,9 @@
  */
 
 var client = require('https_client');
+var util = require('util');
 
+var HttpAgent = require('http_agent').Agent;
 var ClientRequest = exports.ClientRequest = client.ClientRequest;
 
 exports.request = function(options, cb) {
@@ -28,3 +30,24 @@ exports.get = function(options, cb) {
   req.end();
   return req;
 };
+
+function Agent(options) {
+  if (!(this instanceof Agent))
+    return new Agent(options);
+
+  HttpAgent.call(this, options);
+  this.defaultPort = 443;
+  this.protocol = 'https:';
+  this.maxCachedSessions = this.options.maxCachedSessions;
+  if (this.maxCachedSessions === undefined)
+    this.maxCachedSessions = 100;
+
+  this._sessionCache = {
+    map: {},
+    list: []
+  };
+}
+util.inherits(Agent, HttpAgent);
+
+exports.Agent = Agent;
+exports.globalAgent = new Agent();

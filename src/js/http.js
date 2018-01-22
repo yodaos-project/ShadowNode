@@ -17,6 +17,7 @@ var Server = require('http_server').Server;
 var ClientRequest = require('http_client').ClientRequest;
 var HTTPParser = require('httpparser');
 
+var Agent = require('http_agent').Agent;
 var IncomingMessage = require('http_incoming').IncomingMessage;
 var OutgoingMessage = require('http_outgoing').OutgoingMessage;
 var ServerResponse = require('http_server').ServerResponse;
@@ -35,6 +36,7 @@ exports.createServer = function(requestListener) {
 
 
 exports.METHODS = HTTPParser.methods;
+exports.Agent = Agent;
 exports.IncomingMessage = IncomingMessage;
 exports.OutgoingMessage = OutgoingMessage;
 exports.ServerResponse = ServerResponse;
