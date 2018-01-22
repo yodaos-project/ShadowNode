@@ -1,14 +1,6 @@
 'use strict';
 
-const Buffer = require('buffer').Buffer;
-
-function assertEncoding(encoding) {
-  // Do not cache `Buffer.isEncoding`, some modules monkey-patch it to support
-  // additional encodings
-  if (encoding && !Buffer.isEncoding(encoding)) {
-    throw new Error('Unknown encoding: ' + encoding);
-  }
-}
+var Buffer = require('buffer').Buffer;
 
 // StringDecoder provides an interface for efficiently splitting a series of
 // buffers into a series of JS strings without breaking apart multi-byte
@@ -18,9 +10,8 @@ function assertEncoding(encoding) {
 // to reason about this code, so it should be split up in the future.
 // @TODO There should be a utf8-strict encoding that rejects invalid UTF-8 code
 // points as used by CESU-8.
-const StringDecoder = exports.StringDecoder = function(encoding) {
+var StringDecoder = exports.StringDecoder = function(encoding) {
   this.encoding = (encoding || 'utf8').toLowerCase().replace(/[-_]/, '');
-  assertEncoding(encoding);
   switch (this.encoding) {
     case 'utf8':
       // CESU-8 represents each of Surrogate Pair by 3-bytes
@@ -44,7 +35,7 @@ const StringDecoder = exports.StringDecoder = function(encoding) {
 
   // Enough space to store all bytes of a single character. UTF-8 needs 4
   // bytes, but CESU-8 may require up to 6 (3 bytes per surrogate).
-  this.charBuffer = Buffer.allocUnsafe(6);
+  this.charBuffer = new Buffer(6);
   // Number of bytes received for the current incomplete multi-byte character.
   this.charReceived = 0;
   // Number of bytes expected for the current incomplete multi-byte character.
@@ -70,6 +61,7 @@ StringDecoder.prototype.write = function(buffer) {
   var surrogateSize = this.surrogateSize;
   var encoding = this.encoding;
   var charCode;
+
   // if our last write ended with an incomplete multibyte character
   while (charLength) {
     // determine how many remaining bytes this buffer has to offer for this char

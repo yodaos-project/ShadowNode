@@ -15,6 +15,7 @@
         "path",
         "promise",
         "sax",
+        "string_decoder",
         "stream", 
         "tty", 
         "querystring", 
