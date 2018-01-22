@@ -251,7 +251,7 @@
     },
     "https_incoming": {
       "js_file": "js/https_incoming.js",
-      "require": ["buffer", "stream", "util"]
+      "require": ["buffer", "dns", "events", "stream", "util"]
     },
     "https_native": {
       "native_files": ["modules/iotjs_module_https.c"],
