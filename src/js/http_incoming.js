@@ -43,6 +43,127 @@ util.inherits(IncomingMessage, stream.Readable);
 
 exports.IncomingMessage = IncomingMessage;
 
+// 'array' header list is taken from:
+// https://mxr.mozilla.org/mozilla/source/netwerk/protocol/http/src/nsHttpHeaderArray.cpp
+function matchKnownFields(field) {
+  while (true) {
+    switch (field) {
+      case 'Content-Type':
+      case 'content-type':
+        return 'content-type';
+      case 'Content-Length':
+      case 'content-length':
+        return 'content-length';
+      case 'User-Agent':
+      case 'user-agent':
+        return 'user-agent';
+      case 'Referer':
+      case 'referer':
+        return 'referer';
+      case 'Host':
+      case 'host':
+        return 'host';
+      case 'Authorization':
+      case 'authorization':
+        return 'authorization';
+      case 'Proxy-Authorization':
+      case 'proxy-authorization':
+        return 'proxy-authorization';
+      case 'If-Modified-Since':
+      case 'if-modified-since':
+        return 'if-modified-since';
+      case 'If-Unmodified-Since':
+      case 'if-unmodified-since':
+        return 'if-unmodified-since';
+      case 'From':
+      case 'from':
+        return 'from';
+      case 'Location':
+      case 'location':
+        return 'location';
+      case 'Max-Forwards':
+      case 'max-forwards':
+        return 'max-forwards';
+      case 'Retry-After':
+      case 'retry-after':
+        return 'retry-after';
+      case 'ETag':
+      case 'etag':
+        return 'etag';
+      case 'Last-Modified':
+      case 'last-modified':
+        return 'last-modified';
+      case 'Server':
+      case 'server':
+        return 'server';
+      case 'Age':
+      case 'age':
+        return 'age';
+      case 'Expires':
+      case 'expires':
+        return 'expires';
+      case 'Set-Cookie':
+      case 'set-cookie':
+        return 'set-cookie';
+      case 'Cookie':
+      case 'cookie':
+        return 'cookie';
+      case 'Transfer-Encoding':
+      case 'transfer-encoding':
+        return 'transfer-encoding';
+      case 'Date':
+      case 'date':
+        return 'date';
+      case 'Connection':
+      case 'connection':
+        return 'connection';
+      case 'Cache-Control':
+      case 'cache-control':
+        return 'cache-control';
+      case 'Vary':
+      case 'vary':
+        return 'vary';
+      case 'Content-Encoding':
+      case 'content-encoding':
+        return 'content-encoding';
+      case 'Origin':
+      case 'origin':
+        return 'origin';
+      case 'Upgrade':
+      case 'upgrade':
+        return 'upgrade';
+      case 'Expect':
+      case 'expect':
+        return 'expect';
+      case 'If-Match':
+      case 'if-match':
+        return 'if-match';
+      case 'If-None-Match':
+      case 'if-none-match':
+        return 'if-none-match';
+      case 'Accept':
+      case 'accept':
+        return 'accept';
+      case 'Accept-Encoding':
+      case 'accept-encoding':
+        return 'accept-encoding';
+      case 'Accept-Language':
+      case 'accept-language':
+        return 'accept-language';
+      case 'X-Forwarded-For':
+      case 'x-forwarded-for':
+        return 'x-forwarded-for';
+      case 'X-Forwarded-Host':
+      case 'x-forwarded-host':
+        return 'x-forwarded-host';
+      case 'X-Forwarded-Proto':
+      case 'x-forwarded-proto':
+        return 'x-forwarded-proto';
+      default:
+        return field.toLowerCase();
+    }
+  }
+}
 
 IncomingMessage.prototype.read = function(n) {
   this.read = stream.Readable.prototype.read;
@@ -55,9 +176,11 @@ IncomingMessage.prototype.addHeaders = function(headers) {
     this.headers = {};
   }
 
+  var key;
   // FIXME: handle headers as array if array C API is done.
   for (var i=0; i<headers.length; i=i+2) {
-    this.headers[headers[i]] = headers[i+1];
+    key = matchKnownFields(headers[i])
+    this.headers[key] = headers[i+1];
   }
 };
 
