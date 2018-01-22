@@ -16,6 +16,14 @@ exports.freemem = function() {
   return native.getFreeMem();
 };
 
+exports.platform = function() {
+  return process.platform;
+};
+
+exports.release = function() {
+  return native._getOSRelease();
+};
+
 exports.networkInterfaces = function() {
   var list = native.getInterfaceAddresses();
   var interfaces = {};
