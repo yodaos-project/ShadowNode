@@ -29,14 +29,6 @@ function checkOffset(offset, ext, length) {
     throw new RangeError('index out of range');
 }
 
-function fromArrayLike(obj) {
-  var length = obj.length;
-  var b = new Buffer(length);
-  for (var i = 0; i < length; i++)
-    b[i] = obj[i];
-  return b;
-}
-
 // Buffer constructor
 // [1] new Buffer(size)
 // [2] new Buffer(buffer)
@@ -46,9 +38,6 @@ function fromArrayLike(obj) {
 function Buffer(subject, encoding) {
   if (!util.isBuffer(this)) {
     return new Buffer(subject, encoding);
-  }
-  if (util.isBuffer(subject)) {
-    return fromArrayLike(subject);
   }
 
   if (util.isNumber(subject)) {

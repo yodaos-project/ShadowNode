@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 
+var dns = require('dns');
 var util = require('util');
 var stream = require('stream');
 var Buffer = require('buffer');
 var httpsNative = require('https_native');
 var HTTPParser = require('httpparser').HTTPParser;
+var EventEmitter = require('events').EventEmitter;
 
 function IncomingMessage(clientRequest) {
   stream.Readable.call(this);
@@ -209,7 +211,6 @@ function cbOnData(chunk) {
 
   chunk = new Buffer(chunk);
   var ret = parser.execute(chunk);
-
   if (ret instanceof Error) {
     parser.finish();
     // Unref all links to parser, make parser GCed
@@ -242,7 +243,15 @@ function cbOnTimeout() {
 function cbOnSocket() {
   var incoming = this;
   var clientRequest = incoming.clientRequest;
-  clientRequest.emit('socket');
+  var mockSocket = new EventEmitter();
+  mockSocket.readyState = 'opening';
+  clientRequest.emit('socket', mockSocket);
+  dns.lookup(clientRequest.host, function(err, address, family) {
+    mockSocket.emit('lookup', err, address, family);
+    process.nextTick(function() {
+      mockSocket.emit('connect');
+    });
+  });
 }
 
 function cbOnWritable() {

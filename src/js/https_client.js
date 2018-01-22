@@ -32,7 +32,8 @@ function ClientRequest(options, cb) {
   var path = options.path || '/';
   var protocol = options.protocol || 'https:';
 
-  this.host = protocol + '//' + host + ':' + port + path;
+  this.host = host;
+  this.url = protocol + '//' + host + ':' + port + path;
   this.method = options.method || 'GET';
   this.ca = options.ca || '';
   this.cert = options.cert || '';
@@ -61,7 +62,7 @@ function ClientRequest(options, cb) {
   }
 
   this._incoming = new incoming.IncomingMessage(this);
-  this._incoming.url = this.host;
+  this._incoming.url = this.url;
   this._incoming.method = this.method;
   this.aborted = null;
 
