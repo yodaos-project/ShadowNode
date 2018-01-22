@@ -127,3 +127,26 @@ EventEmitter.prototype.removeAllListeners = function(type) {
 
   return this;
 };
+
+EventEmitter.prototype.listeners = function(type) {
+  var events = this._events;
+  if (events === undefined)
+    return [];
+
+  var evlistener = events[type];
+  if (evlistener === undefined)
+    return [];
+
+  if (typeof evlistener === 'function')
+    return [evlistener.listener || evlistener];
+  
+  return unwrapListeners(evlistener);
+};
+
+function unwrapListeners(arr) {
+  var ret = new Array(arr.length);
+  for (var i = 0; i < ret.length; ++i) {
+    ret[i] = arr[i].listener || arr[i];
+  }
+  return ret;
+}
