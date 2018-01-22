@@ -29,6 +29,13 @@ function checkOffset(offset, ext, length) {
     throw new RangeError('index out of range');
 }
 
+function fromArrayLike(obj) {
+  var length = obj.length;
+  var b = new Buffer(length);
+  for (var i = 0; i < length; i++)
+    b[i] = obj[i];
+  return b;
+}
 
 // Buffer constructor
 // [1] new Buffer(size)
@@ -39,6 +46,9 @@ function checkOffset(offset, ext, length) {
 function Buffer(subject, encoding) {
   if (!util.isBuffer(this)) {
     return new Buffer(subject, encoding);
+  }
+  if (util.isBuffer(subject)) {
+    return fromArrayLike(subject);
   }
 
   if (util.isNumber(subject)) {
@@ -211,13 +221,14 @@ Buffer.prototype.slice = function(start, end) {
 // [4] buff.toString('hex')
 // * start - default to 0
 // * end - default to buff.length
-Buffer.prototype.toString = function(start, end) {
-  if (util.isString(start) && start === 'hex' && end === undefined) {
-      return this._builtin.toHexString();
+Buffer.prototype.toString = function(encoding, start, end) {
+  if (encoding === 'hex') {
+    // `start` and `end` is unavailable for hex string.
+    return this._builtin.toHexString();
   }
+
   start = start === undefined ? 0 : ~~start;
   end = end === undefined ? this.length : ~~end;
-
   return this._builtin.toString(start, end);
 };
 
