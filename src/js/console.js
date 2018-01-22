@@ -20,16 +20,23 @@ var util = require('util');
 function Console() {
 }
 
+Console.prototype._stdout = function(text) {
+  native.stdout(text);
+};
+
+Console.prototype._stderr = function(text) {
+  native.stderr(text);
+};
 
 Console.prototype.log =
 Console.prototype.info = function() {
-  native.stdout(util.format.apply(this, arguments) + '\n');
+  this._stdout(util.format.apply(this, arguments) + '\n');
 };
 
 
 Console.prototype.warn =
 Console.prototype.error = function() {
-  native.stderr(util.format.apply(this, arguments) + '\n');
+  this._stderr(util.format.apply(this, arguments) + '\n');
 };
 
 
