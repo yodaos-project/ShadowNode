@@ -46,7 +46,10 @@ function ChildProcess() {
       this.emit('exit', this.exitCode, this.signalCode);
     }
     process.nextTick(flushStdio, this);
-    maybeClose(this);
+    
+    // FIXME(Yorkie): use maybeClose later
+    // maybeClose(this);
+    this.emit('close', this.exitCode, this.signalCode);
   }.bind(this);
 }
 util.inherits(ChildProcess, EventEmitter);
