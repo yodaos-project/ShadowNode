@@ -47,7 +47,7 @@ set(PLATFORM_SRCFILES
       ${UNIX_PATH}/internal.h
       ${UNIX_PATH}/loop.c
       ${UNIX_PATH}/loop-watcher.c
-#     ${UNIX_PATH}/pipe.c
+      ${UNIX_PATH}/pipe.c
       ${UNIX_PATH}/poll.c
       ${UNIX_PATH}/process.c
 #     ${UNIX_PATH}/proctitle.c
