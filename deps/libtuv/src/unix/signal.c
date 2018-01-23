@@ -216,7 +216,6 @@ static int uv__signal_loop_once_init(uv_loop_t* loop) {
     return 0;
 
   err = uv__make_pipe(loop->signal_pipefd, UV__F_NONBLOCK);
-  printf("make pipe\n");
   if (err)
     return err;
 

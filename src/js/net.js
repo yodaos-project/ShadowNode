@@ -25,6 +25,18 @@ function createTCP() {
   return _tcp;
 }
 
+function initSocketHandle(self) {
+  // Handle creation may be deferred to bind() or connect() time.
+  if (self._handle) {
+    self._handle.owner = self;
+    self._handle.onread = onread;
+    self._handle.readStart();
+
+    // If handle doesn't support writev - neither do we
+    if (!self._handle.writev)
+      self._writev = null;
+  }
+}
 
 function SocketState(options) {
   // 'true' during connection handshaking.
@@ -61,17 +73,12 @@ function Socket(options) {
 
   if (options.handle) {
     this._handle = options.handle;
-    this._handle.owner = this;
+    initSocketHandle(this);
   }
-
-  this.on('finish', onSocketFinish);
-  this.on('end', onSocketEnd);
 }
-
 
 // Socket inherits Duplex.
 util.inherits(Socket, stream.Duplex);
-
 
 Socket.prototype.connect = function() {
   var self = this;

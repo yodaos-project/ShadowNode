@@ -140,7 +140,8 @@
         "modules/iotjs_module_child_process.c"
       ],
       "init": "InitChildProcess",
-      "js_file": "js/child_process.js"
+      "js_file": "js/child_process.js",
+      "require": ["pipe_wrap", "events", "util"]
     },
     "console": {
       "native_files": ["modules/iotjs_module_console.c"],
@@ -293,6 +294,10 @@
     "path": {
       "js_file": "js/path.js",
       "require": ["util"]
+    },
+    "pipe_wrap": {
+      "native_files": ["modules/iotjs_module_pipe.c"],
+      "init": "InitPipe"
     },
     "process": {
       "native_files": ["modules/iotjs_module_process.c"],
