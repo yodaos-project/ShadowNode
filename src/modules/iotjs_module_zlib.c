@@ -435,6 +435,11 @@ JS_FUNCTION(ZlibClose) {
              _this->mode_ == UNZIP) {
     status = inflateEnd(&_this->strm_);
   }
+
+  if (status != Z_OK && status != Z_DATA_ERROR) {
+    return JS_CREATE_ERROR(COMMON,
+      "`status` should be Z_OK or Z_DATA_ERROR");
+  }
   _this->mode_ = NONE;
 
   if (_this->dictionary_ != NULL) {
