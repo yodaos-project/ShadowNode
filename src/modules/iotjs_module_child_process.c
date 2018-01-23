@@ -142,50 +142,48 @@ JS_FUNCTION(ProcessSpawn) {
   options.exit_cb = iotjs_process_onexit;
 
 #define IOTJS_PROCESS_SET_XID(name, type) do {                                \
-  jerry_value_t key = jerry_create_string((const jerry_char_t*)#name);        \
-  jerry_value_t val = jerry_get_property(js_options, key);                    \
+  jerry_value_t val = iotjs_jval_get_property(js_options, #name);             \
   if (!jerry_value_is_undefined(val) && !jerry_value_is_null(val)) {          \
     options.flags |= type;                                                    \
     options.name = (uv_##name##_t)jerry_get_number_value(val);                \
   }                                                                           \
-  jerry_release_value(key);                                                   \
   jerry_release_value(val);                                                   \
 } while (0)
 
 #define IOTJS_PROCESS_SET_STRING(name) do {                                   \
-  jerry_value_t key = jerry_create_string((const jerry_char_t*)#name);        \
-  jerry_value_t val = jerry_get_property(js_options, key);                    \
+  jerry_value_t val = iotjs_jval_get_property(js_options, #name);             \
   if (!jerry_value_is_undefined(val) && !jerry_value_is_null(val)) {          \
     iotjs_string_t str = iotjs_jval_as_string(val);                           \
     options.name = iotjs_string_data(&str);                                   \
   }                                                                           \
-  jerry_release_value(key);                                                   \
   jerry_release_value(val);                                                   \
+} while (0)
+
+#define IOTJS_PROCESS_SET_ARRAY(name, key) do {                               \
+  jerry_value_t jarr = iotjs_jval_get_property(js_options, #name);            \
+  uint32_t len = jerry_get_array_length(jarr);                                \
+  if (len > 0) {                                                              \
+    options.key = malloc(len + 1);                                            \
+    for (uint32_t i = 0; i < len; i++) {                                      \
+      jerry_value_t jval = iotjs_jval_get_property_by_index(jarr, i);         \
+      iotjs_string_t str = iotjs_jval_as_string(jval);                        \
+      options.key[i] = (char*)iotjs_string_data(&str);                        \
+      jerry_release_value(jval);                                              \
+    }                                                                         \
+    options.key[len] = NULL;                                                  \
+  }                                                                           \
+  jerry_release_value(jarr);                                                  \
 } while (0)
 
   IOTJS_PROCESS_SET_XID(uid, UV_PROCESS_SETUID);
   IOTJS_PROCESS_SET_XID(gid, UV_PROCESS_SETGID);
   IOTJS_PROCESS_SET_STRING(file);
   IOTJS_PROCESS_SET_STRING(cwd);
+  IOTJS_PROCESS_SET_ARRAY(args, args);
+  IOTJS_PROCESS_SET_ARRAY(envPairs, env);
 #undef IOTJS_PROCESS_SET_XID
 #undef IOTJS_PROCESS_SET_STRING
-
-  // options.args
-  {
-    jerry_value_t js_args = iotjs_jval_get_property(js_options, "args");
-    uint32_t argc = jerry_get_array_length(js_args);
-    if (argc > 0) {
-      options.args = malloc(argc + 1);
-      for (uint32_t i = 0; i < argc; i++) {
-        jerry_value_t jval = iotjs_jval_get_property_by_index(js_args, i);
-        iotjs_string_t str = iotjs_jval_as_string(jval);
-        options.args[i] = (char*)iotjs_string_data(&str);
-        jerry_release_value(jval);
-      }
-      options.args[argc] = NULL;
-    }
-    jerry_release_value(js_args);
-  }
+#undef IOTJS_PROCESS_SET_ARRAY
 
   iotjs_process_parse_stdio_opts(js_options, &options);
   jerry_release_value(js_options);
@@ -202,10 +200,10 @@ JS_FUNCTION(ProcessSpawn) {
     free(options.args);
   }
 
-  if (options.env) {
-    for (int i = 0; options.env[i]; i++) 
-      free(options.env[i]);
+  if (options.env != NULL) {
+    free(options.env);
   }
+
   return jerry_create_number(err);
 }
 
