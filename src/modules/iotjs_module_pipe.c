@@ -167,8 +167,9 @@ JS_FUNCTION(WriteUtf8String) {
   buf = uv_buf_init((char*)iotjs_string_data(&data), 
                     iotjs_string_size(&data));
   int r = uv_try_write((uv_stream_t*)&_this->handle, &buf, 1);
-  printf("write bytes: %d\n", r);
-
+  if (r < 0) {
+    return JS_CREATE_ERROR(COMMON, "failed to write to stream.");
+  }
   return jerry_create_undefined();
 }
 

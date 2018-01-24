@@ -155,7 +155,7 @@ static void iotjs_process_parse_stdio_opts(jerry_value_t js_options,
     } else {
       jerry_value_t fd = iotjs_jval_get_property(stdio, "fd");
       options->stdio[i].flags = UV_INHERIT_FD;
-      options->stdio[i].data.fd = 0;
+      options->stdio[i].data.fd = jerry_get_number_value(fd);
       jerry_release_value(fd);
     }
     jerry_release_value(jtype);
