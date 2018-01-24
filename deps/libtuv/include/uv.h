@@ -108,6 +108,7 @@ extern "C" {
   XX(ENAMETOOLONG, "name too long")                                           \
   XX(ENOBUFS, "no buffer space available")                                    \
   XX(ENOENT, "no such file or directory")                                     \
+  XX(ESRCH, "no such process")                                                \
   XX(ENOMEM, "not enough memory")                                             \
   XX(ENOSPC, "no space left on device")                                       \
   XX(ENOTDIR, "not a directory")                                              \

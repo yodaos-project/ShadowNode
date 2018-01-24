@@ -195,6 +195,22 @@ JS_FUNCTION(PipeClose) {
   return jerry_create_undefined();
 }
 
+JS_FUNCTION(PipeRef) {
+  JS_DECLARE_THIS_PTR(pipewrap, pipewrap);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pipewrap_t, pipewrap);
+
+  uv_ref((uv_handle_t*)&_this->handle);
+  return jerry_create_undefined();
+}
+
+JS_FUNCTION(PipeUnref) {
+  JS_DECLARE_THIS_PTR(pipewrap, pipewrap);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pipewrap_t, pipewrap);
+
+  uv_unref((uv_handle_t*)&_this->handle);
+  return jerry_create_undefined();
+}
+
 jerry_value_t InitPipe() {
   jerry_value_t pipewrap = jerry_create_object();
   jerry_value_t pipeConstructor =
@@ -209,6 +225,8 @@ jerry_value_t InitPipe() {
   iotjs_jval_set_method(proto, "readStart", PipeReadStart);
   iotjs_jval_set_method(proto, "writeUtf8String", WriteUtf8String);
   iotjs_jval_set_method(proto, "close", PipeClose);
+  iotjs_jval_set_method(proto, "ref", PipeRef);
+  iotjs_jval_set_method(proto, "unref", PipeUnref);
   iotjs_jval_set_property_jval(pipeConstructor, "prototype", proto);
 
   jerry_release_value(proto);
