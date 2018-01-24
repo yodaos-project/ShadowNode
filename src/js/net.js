@@ -278,6 +278,11 @@ Socket.prototype.setTimeout = function(msecs, callback) {
 };
 
 
+Socket.prototype.setEncoding = function(enc) {
+  // TODO
+};
+
+
 function connect(socket, ip, port) {
   var afterConnect = function(status) {
     var state = socket._socketState;
