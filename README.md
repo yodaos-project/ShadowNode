@@ -6,8 +6,6 @@ The Node.js Runtime in shadow, which supports NPM packages partially for embedda
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FRokid%2Fshadow-node.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FRokid%2Fshadow-node?ref=badge_shield)
 [![IRC Channel](https://img.shields.io/badge/chat-on%20freenode-brightgreen.svg)](https://kiwiirc.com/client/irc.freenode.net/#shadow-node)
 
-Memory usage and Binary footprint are measured at [here](https://samsung.github.io/js-remote-test) with real target daily.
-
 ## Quick Start
 
 This project is another runtime for your [Node.js][] app, which is to be used in low memory devices. It's inspired and forked
@@ -15,6 +13,8 @@ from the original awesome project [Samsung/iotjs][].
 
 To get started with shadow-node, you should follow the [build](#build) step on a Linux or OSX machine. And this project 
 will not be supported on Windows unfortunately.
+
+> Memory usage and Binary footprint are measured at [here](https://samsung.github.io/js-remote-test) with real target daily.
 
 ### Getting Source Code
 
@@ -69,8 +69,9 @@ as possible, and the following are the status:
 In desktop and embedable ecosystem, the service via `DBus` is quite normal, in shadow-node, the `DBus`
 will be the built-in module. For detailed API, see [IoT.js-API-DBUS](docs/api/IoT.js-API-DBUS.md).
 
-This project benefits from the upstream [IoT.js][], which has supported the following hardware
-interfaces:
+For hardware geek, this project benefits from the upstream [IoT.js][], which has supported the 
+following hardware interfaces, you are able to port [shadow-node][] to your platform(s) and 
+start hacking with JavaScript:
 
 - [ADC](IoT.js-API-ADC.md)
 - [BLE](IoT.js-API-BLE.md)
