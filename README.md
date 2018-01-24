@@ -69,7 +69,7 @@ as possible, and the following are the status:
 In desktop and embedable ecosystem, the service via `DBus` is quite normal, in shadow-node, the `DBus`
 will be the built-in module. For detailed API, see [IoT.js-API-DBUS](docs/api/IoT.js-API-DBUS.md).
 
-[shadow-node][] benefits from the upstream [IoT.js][], which has supported the following hardware
+This project benefits from the upstream [IoT.js][], which has supported the following hardware
 interfaces:
 
 - [ADC](IoT.js-API-ADC.md)
