@@ -14,6 +14,7 @@
  */
 
 var util = require('util');
+var INSPECT_MAX_BYTES = 50;
 
 
 function checkInt(buffer, value, offset, ext, max, min) {
@@ -202,6 +203,15 @@ Buffer.prototype.slice = function(start, end) {
   return this._builtin.slice(start, end);
 };
 
+// buff.inspect()
+Buffer.prototype.inspect = function() {
+  var str = '';
+  str = this.toString(
+    'hex', 0, INSPECT_MAX_BYTES).replace(/(.{2})/g, '$1 ').trim();
+  if (this.length > INSPECT_MAX_BYTES)
+    str += ' ... ';
+  return util.format('<Buffer %s>', str);
+};
 
 // buff.toString([encoding,[,start[, end]]])
 // [1] buff.toString()
@@ -211,14 +221,14 @@ Buffer.prototype.slice = function(start, end) {
 // * start - default to 0
 // * end - default to buff.length
 Buffer.prototype.toString = function(encoding, start, end) {
-  if (encoding === 'hex') {
-    // `start` and `end` is unavailable for hex string.
-    return this._builtin.toHexString();
-  }
-
   start = start === undefined ? 0 : ~~start;
   end = end === undefined ? this.length : ~~end;
-  return this._builtin.toString(start, end);
+
+  if (encoding === 'hex') {
+    return this._builtin.toHexString().slice(start, end);
+  } else {
+    return this._builtin.toString(start, end);
+  }
 };
 
 
