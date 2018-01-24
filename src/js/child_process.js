@@ -79,6 +79,29 @@ function createSocket(pipe, readable) {
   return s;
 }
 
+ChildProcess.prototype.kill = function(sig) {
+  var signal = sig === 0 ? sig : 'SIGTERM';
+  if (this._handle) {
+    var err = this._handle.kill(signal);
+    if (err === 0) {
+      /* Success. */
+      this.killed = true;
+      return true;
+    }
+    this.emit('error', new Error('kill process failed'));
+  }
+  /* Kill didn't succeed. */
+  return false;
+};
+
+ChildProcess.prototype.ref = function() {
+  if (this._handle) this._handle.ref();
+};
+
+ChildProcess.prototype.unref = function() {
+  if (this._handle) this._handle.unref();
+};
+
 ChildProcess.prototype.spawn = function(options) {
   var ipc;
   var ipcFd;
@@ -499,6 +522,7 @@ function setupChannel(target, channel) {
   // handlers will go through this
   target.on('internalMessage', function(message, handle) {
     // TODO
+    console.log('need handle internal message!');
   });
 
   target.send = function(message, handle, options, callback) {
@@ -547,7 +571,6 @@ function setupChannel(target, channel) {
         type: 'net.Native',
         msg: message
       };
-
       // Queue-up message and handle if we haven't received ACK yet.
       if (this._handleQueue) {
         this._handleQueue.push({
@@ -571,11 +594,6 @@ function setupChannel(target, channel) {
       // out of it - just send a text without the handle.
       if (!handle)
         message = message.msg;
-
-      // Update simultaneous accepts on Windows
-      // if (obj.simultaneousAccepts) {
-      //   net._setSimultaneousAccepts(handle);
-      // }
     } else if (this._handleQueue &&
                !(message && (message.cmd === 'NODE_HANDLE_ACK' ||
                              message.cmd === 'NODE_HANDLE_NACK'))) {
@@ -589,45 +607,13 @@ function setupChannel(target, channel) {
       return this._handleQueue.length === 1;
     }
 
-    // var req = new WriteWrap();
-    // req.async = false;
-
     var string = JSON.stringify(message) + '\n';
     var err = channel.writeUtf8String(string);
 
-    if (err === 0) {
-      if (handle) {
-        if (!this._handleQueue)
-          this._handleQueue = [];
-    //     if (obj && obj.postSend)
-    //       obj.postSend(message, handle, options, callback, target);
-      }
-
-    //   if (req.async) {
-    //     req.oncomplete = function() {
-    //       control.unref();
-    //       if (typeof callback === 'function')
-    //         callback(null);
-    //     };
-    //     control.ref();
-    //   } else if (typeof callback === 'function') {
-    //     process.nextTick(callback, null);
-    //   }
-    // } else {
-    //   // Cleanup handle on error
-    //   if (obj && obj.postSend)
-    //     obj.postSend(message, handle, options, callback);
-
-    //   if (!options.swallowErrors) {
-    //     const ex = errnoException(err, 'write');
-    //     if (typeof callback === 'function') {
-    //       process.nextTick(callback, ex);
-    //     } else {
-    //       process.nextTick(() => this.emit('error', ex));
-    //     }
-    //   }
+    if (err === 0 && handle) {
+      if (!this._handleQueue)
+        this._handleQueue = [];
     }
-
     /* If the master is > 2 read() calls behind, please stop sending. */
     return channel.writeQueueSize < (65536 * 2);
   };
@@ -693,7 +679,6 @@ function setupChannel(target, channel) {
   function handleMessage(message, handle, internal) {
     if (!target.channel)
       return;
-
     var eventName = (internal ? 'internalMessage' : 'message');
     process.nextTick(emit, eventName, message, handle);
   }
@@ -718,7 +703,6 @@ var spawn = exports.spawn = function(/*file, args, options*/) {
     uid: options.uid,
     gid: options.gid
   });
-
   return child;
 };
 
@@ -999,14 +983,8 @@ exports.execFile = function(file /*, args, options, callback*/) {
 exports._forkChild = function(fd) {
   var p = new Pipe(true);
   p.open(fd);
-  // p.unref();
-  var control = setupChannel(process, p);
-  // process.on('newListener', function onNewListener(name) {
-  //   if (name === 'message' || name === 'disconnect') control.ref();
-  // });
-  // process.on('removeListener', function onRemoveListener(name) {
-  //   if (name === 'message' || name === 'disconnect') control.unref();
-  // });
+  p.unref();
+  setupChannel(process, p);
 };
 
 exports.ChildProcess = ChildProcess;

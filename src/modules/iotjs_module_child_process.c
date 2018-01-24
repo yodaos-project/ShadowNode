@@ -226,7 +226,16 @@ JS_FUNCTION(ProcessSpawn) {
 }
 
 JS_FUNCTION(ProcessKill) {
-  return jerry_create_undefined();
+  JS_DECLARE_THIS_PTR(process, process);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_process_t, process);
+
+  int sig = (int)jerry_get_number_value(jargv[0]);
+  int err = uv_process_kill(&_this->handle, sig);
+  if (err == UV_ESRCH) {
+    /* Already dead. */
+    err = 0;
+  }
+  return jerry_create_number(err);
 }
 
 // Socket close result handler.
@@ -253,6 +262,22 @@ JS_FUNCTION(ProcessClose) {
   return jerry_create_undefined();
 }
 
+JS_FUNCTION(ProcessRef) {
+  JS_DECLARE_THIS_PTR(process, process);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_process_t, process);
+
+  uv_ref((uv_handle_t*)&_this->handle);
+  return jerry_create_undefined();
+}
+
+JS_FUNCTION(ProcessUnref) {
+  JS_DECLARE_THIS_PTR(process, process);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_process_t, process);
+
+  uv_unref((uv_handle_t*)&_this->handle);
+  return jerry_create_undefined();
+}
+
 jerry_value_t InitChildProcess() {
   jerry_value_t process = jerry_create_object();
   jerry_value_t processConstructor =
@@ -263,6 +288,8 @@ jerry_value_t InitChildProcess() {
   iotjs_jval_set_method(proto, "spawn", ProcessSpawn);
   iotjs_jval_set_method(proto, "kill", ProcessKill);
   iotjs_jval_set_method(proto, "close", ProcessClose);
+  iotjs_jval_set_method(proto, "ref", ProcessRef);
+  iotjs_jval_set_method(proto, "unref", ProcessUnref);
   iotjs_jval_set_property_jval(processConstructor, "prototype", proto);
 
   jerry_release_value(proto);
