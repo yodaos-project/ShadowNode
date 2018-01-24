@@ -3,42 +3,82 @@
 The Node.js Runtime in shadow, which supports NPM packages partially for embeddable platform.
 
 [![License](https://img.shields.io/badge/licence-Apache%202.0-brightgreen.svg?style=flat)](LICENSE)
-[![Build Status](https://travis-ci.org/Samsung/iotjs.svg?branch=master)](https://travis-ci.org/Samsung/iotjs)
-[![Coverity Scan Build Status](https://img.shields.io/coverity/scan/12140.svg)](https://scan.coverity.com/projects/samsung-iotjs)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSamsung%2Fiotjs.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSamsung%2Fiotjs?ref=badge_shield)
-[![IRC Channel](https://img.shields.io/badge/chat-on%20freenode-brightgreen.svg)](https://kiwiirc.com/client/irc.freenode.net/#iotjs)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FRokid%2Fshadow-node.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FRokid%2Fshadow-node?ref=badge_shield)
+[![IRC Channel](https://img.shields.io/badge/chat-on%20freenode-brightgreen.svg)](https://kiwiirc.com/client/irc.freenode.net/#shadow-node)
 
 Memory usage and Binary footprint are measured at [here](https://samsung.github.io/js-remote-test) with real target daily.
 
-The following table shows the latest results on the devices:
-
-|      Artik053         | [![Remote Testrunner](https://samsung.github.io/js-remote-test/status/artik053.svg)](https://samsung.github.io/js-remote-test/?view=artik053)  |
-|        :---:          |                                             :---:                                                                                                |
-| **Raspberry Pi 2**    | [![Remote Testrunner](https://samsung.github.io/js-remote-test/status/rpi2.svg)](https://samsung.github.io/js-remote-test/?view=rpi2)          |
-| **STM32F4-Discovery** | [![Remote Testrunner](https://samsung.github.io/js-remote-test/status/stm32f4dis.svg)](https://samsung.github.io/js-remote-test/?view=stm32)   |
-
 ## Quick Start
-### Getting the sources
 
-```bash
-git clone https://github.com/Rokid/shadow-node.git
-cd shadow-node
+This project is another runtime for your Node.js app, which is to be used in low memory devices. It's inspired and forked
+from the original awesome project [Samsung/iotjs][].
+
+To get started with shadow-node, you should follow the [build](#Build) step on a Linux or OSX machine. And this project 
+will not be supported on Windows unfortunately.
+
+### Getting Source Code
+
+```sh
+$ git clone https://github.com/Rokid/shadow-node.git
+$ cd shadow-node
 ```
 
-### How to Build
+### Build
 
-```bash
-tools/build.py
+```sh
+$ tools/build.py
 ```
 
-### How to Test
+To get supported options, run:
 
-```bash
-build/x86_64-linux/debug/bin/iotjs tools/check_test.js
+```sh
+$ tools/build.py --help
 ```
 
+### Test
+
+```sh
+$ build/x86_64-linux/debug/bin/iotjs tools/check_test.js
+```
 
 For Additional information see [Getting Started](docs/Getting-Started.md).
+
+## What's different with Node.js
+
+The shadow-node's purpose is not going to run the absolute same code both on the Node.js and shadow-node,
+within embeddable devices might be severe and less memory requirement, you should write your apps in an light
+thinking. However we are hoping to share the same community for developers as possible, and the following
+are the status:
+
+- [x] [Assert](docs/api/IoT.js-API-Assert.md)
+- [x] [Buffer](docs/api/IoT.js-API-Buffer.md)
+- [x] [Child Process](docs/api/IoT.js-API-Child-Process.md)
+- [x] [Crypto](docs/api/IoT.js-API-Crypto.md)
+- [x] [DNS](docs/api/IoT.js-API-DNS.md)
+- [x] [Events](docs/api/IoT.js-API-Events.md)
+- [x] [File System](docs/api/IoT.js-API-File-System.md)
+- [x] [HTTP](docs/api/IoT.js-API-HTTP.md)
+- [x] [Module](docs/api/IoT.js-API-Module.md)
+- [x] [Net](docs/api/IoT.js-API-Net.md)
+- [x] [OS](docs/api/IoT.js-API-OS.md)
+- [x] [Process](docs/api/IoT.js-API-Process.md)
+- [x] [Stream](docs/api/IoT.js-API-Stream.md)
+- [x] [Timers](docs/api/IoT.js-API-Timers.md)
+- [x] [Zlib](docs/api/IoT.js-API-Zlib.md)
+
+In desktop and embedable ecosystem, the service via DBUS is quite normal, in shadow-node, the `DBUS`
+will be the built-in module. For detailed API, see [IoT.js-API-DBUS](docs/api/IoT.js-API-DBUS.md).
+
+[shadow-node][] benefits from the upstream [IoT.js][], which has supported the following hardware
+interfaces:
+
+- [ADC](IoT.js-API-ADC.md)
+- [BLE](IoT.js-API-BLE.md)
+- [GPIO](IoT.js-API-GPIO.md)
+- [I2C](IoT.js-API-I2C.md)
+- [PWM](IoT.js-API-PWM.md)
+- [SPI](IoT.js-API-SPI.md)
+- [UART](IoT.js-API-UART.md)
 
 ## Documentation
 
@@ -47,5 +87,10 @@ For Additional information see [Getting Started](docs/Getting-Started.md).
 
 ## License
 
-shadow-node is Open Source software under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0). 
+shadow-node is Open Source software under the [Apache 2.0 license][].
 Complete license and copyright information can be found within the code.
+
+[shadow-node]: https://github.com/Rokid/shadow-node
+[Iot.js]: https://github.com/Samsung/iotjs
+[Samsung/iotjs]: https://github.com/Samsung/iotjs
+[Apache 2.0 license]: https://www.apache.org/licenses/LICENSE-2.0
