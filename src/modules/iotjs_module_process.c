@@ -327,6 +327,31 @@ static void SetProcessArgv(jerry_value_t process) {
 }
 
 
+static void SetProcessExecArgv(jerry_value_t process) {
+  jerry_value_t execArgv = jerry_create_array(0);
+  iotjs_jval_set_property_jval(process, "execArgv", execArgv);
+  jerry_release_value(execArgv);
+}
+
+
+static void SetProcessExecPath(jerry_value_t process) {
+  size_t size = 2 * PATH_MAX;
+  char* exec_path = malloc(size);
+  if (exec_path == NULL) {
+    // FIXME(Yorkie): OOM to be fixed
+    fprintf(stderr, "Out of Memory\n");
+    return;
+  }
+  if (uv_exepath(exec_path, &size) == 0) {
+    iotjs_jval_set_property_string_raw(process, "execPath", exec_path);
+  } else {
+    // FIXME(Yorkie): set from argv[0]
+    iotjs_jval_set_property_string_raw(process, "execPath", "");
+  }
+  free(exec_path);
+}
+
+
 static void SetBuiltinModules(jerry_value_t builtin_modules) {
   for (unsigned i = 0; js_modules[i].name; i++) {
     iotjs_jval_set_property_jval(builtin_modules, js_modules[i].name,
@@ -389,6 +414,8 @@ jerry_value_t InitProcess() {
 
   if (!wait_source) {
     SetProcessArgv(process);
+    SetProcessExecArgv(process);
+    SetProcessExecPath(process);
   }
 
   jerry_value_t wait_source_val = jerry_create_boolean(wait_source);

@@ -150,7 +150,6 @@
     }
   };
 
-  
   function updateEnviron() {
     var envs = process._getEnvironArray();
     envs.forEach(function(env, idx) {
@@ -196,6 +195,20 @@
       process.doExit(process.exitCode || 0);
     }
   };
+
+  function setupChannel() {
+    // If we were spawned with env NODE_CHANNEL_FD then load that up and
+    // start parsing data from that stream.
+    if (process.env.NODE_CHANNEL_FD) {
+      var fd = parseInt(process.env.NODE_CHANNEL_FD, 10);
+
+      // Make sure it's not accidentally inherited by child processes.
+      delete process.env.NODE_CHANNEL_FD;
+      var cp = Module.require('child_process');
+      cp._forkChild(fd);
+    }
+  }
+  setupChannel();
 
   /**
    * Polyfills Start

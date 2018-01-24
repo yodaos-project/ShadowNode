@@ -154,6 +154,24 @@ JS_FUNCTION(PipeReadStart) {
 //   return jerry_create_undefined();
 // }
 
+// void iotjs_pipewrap_write_cb(uv_write_t* req, int status) {
+//   printf("write done with status: %d\n", status);
+// }
+
+JS_FUNCTION(WriteUtf8String) {
+  JS_DECLARE_THIS_PTR(pipewrap, pipewrap);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pipewrap_t, pipewrap);
+
+  iotjs_string_t data = JS_GET_ARG(0, string);
+  uv_buf_t buf;
+  buf = uv_buf_init((char*)iotjs_string_data(&data), 
+                    iotjs_string_size(&data));
+  int r = uv_try_write((uv_stream_t*)&_this->handle, &buf, 1);
+  printf("write bytes: %d\n", r);
+
+  return jerry_create_undefined();
+}
+
 // Socket close result handler.
 void iotjs_pipewrap_after_close(uv_handle_t* handle) {
   iotjs_handlewrap_t* wrap = iotjs_handlewrap_from_handle(handle);
@@ -186,8 +204,9 @@ jerry_value_t InitPipe() {
   iotjs_jval_set_method(proto, "bind", PipeBind);
   iotjs_jval_set_method(proto, "open", PipeOpen);
   iotjs_jval_set_method(proto, "listen", PipeListen);
-  iotjs_jval_set_method(proto, "readStart", PipeReadStart);
   // iotjs_jval_set_method(proto, "connect", PipeConnect);
+  iotjs_jval_set_method(proto, "readStart", PipeReadStart);
+  iotjs_jval_set_method(proto, "writeUtf8String", WriteUtf8String);
   iotjs_jval_set_method(proto, "close", PipeClose);
   iotjs_jval_set_property_jval(pipeConstructor, "prototype", proto);
 

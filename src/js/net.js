@@ -15,6 +15,7 @@
 
 
 var EventEmitter = require('events').EventEmitter;
+var Pipe = require('pipe_wrap').Pipe;
 var stream = require('stream');
 var util = require('util');
 var assert = require('assert');
@@ -73,6 +74,12 @@ function Socket(options) {
 
   if (options.handle) {
     this._handle = options.handle;
+    initSocketHandle(this);
+  } else if (options.fd) {
+    this._handle = new Pipe();
+    this._handle.open(options.fd);
+    this.readable = options.readable !== false;
+    this.writable = options.writable !== false;
     initSocketHandle(this);
   }
 }
