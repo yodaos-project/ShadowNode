@@ -404,6 +404,31 @@ Control.prototype.unref = function() {
   }
 };
 
+var handleConversion = {
+  'net.Native': {
+    simultaneousAccepts: true,
+
+    send: function(message, handle, options) {
+      return handle;
+    },
+
+    got: function(message, handle, emit) {
+      emit(handle);
+    }
+  },
+};
+
+var INTERNAL_PREFIX = 'NODE_';
+function isInternal(message) {
+  return (message !== null &&
+          typeof message === 'object' &&
+          typeof message.cmd === 'string' &&
+          message.cmd.length > INTERNAL_PREFIX.length &&
+          message.cmd.slice(0, INTERNAL_PREFIX.length) === INTERNAL_PREFIX);
+}
+
+function nop() { }
+
 function setupChannel(target, channel) {
   target.channel = channel;
 
@@ -426,8 +451,46 @@ function setupChannel(target, channel) {
   var jsonBuffer = '';
   var pendingHandle = null;
   channel.buffering = false;
-  channel.onread = function(nread, pool, recvHandle) {
-    // TODO
+  channel.onread = function(socket, nread, isEOF, buffer) {
+    if (nread > 0) {
+      var chunks = decoder.write(buffer).split('\n');
+      var numCompleteChunks = chunks.length - 1;
+      var incompleteChunk = chunks[numCompleteChunks];
+      if (numCompleteChunks === 0) {
+        jsonBuffer += incompleteChunk;
+        this.buffering = jsonBuffer.length !== 0;
+        return;
+      }
+      chunks[0] = jsonBuffer + chunks[0];
+
+      for (var i = 0; i < numCompleteChunks; i++) {
+        var message = JSON.parse(chunks[i]);
+
+        // There will be at most one NODE_HANDLE message in every chunk we
+        // read because SCM_RIGHTS messages don't get coalesced. Make sure
+        // that we deliver the handle with the right message however.
+        if (isInternal(message)) {
+          if (message.cmd === 'NODE_HANDLE') {
+            handleMessage(message, pendingHandle, true);
+            pendingHandle = null;
+          } else {
+            handleMessage(message, undefined, true);
+          }
+        } else {
+          handleMessage(message, undefined, false);
+        }
+      }
+      jsonBuffer = incompleteChunk;
+      this.buffering = jsonBuffer.length !== 0;
+    } else {
+      this.buffering = false;
+      target.disconnect();
+      channel.onread = function() {};
+      channel.close();
+      target.channel = null;
+      maybeClose(target);
+    }
+
   };
 
   // object where socket lists will live
@@ -439,11 +502,134 @@ function setupChannel(target, channel) {
   });
 
   target.send = function(message, handle, options, callback) {
-    // TODO
+    if (typeof handle === 'function') {
+      callback = handle;
+      handle = undefined;
+      options = undefined;
+    } else if (typeof options === 'function') {
+      callback = options;
+      options = undefined;
+    } else if (options !== undefined &&
+               (options === null || typeof options !== 'object')) {
+      throw new TypeError('ERR_INVALID_ARG_TYPE');
+    }
+
+    options = Object.assign({ swallowErrors: false }, options);
+
+    if (this.connected) {
+      return this._send(message, handle, options, callback);
+    }
+    var ex = new Error('ERR_IPC_CHANNEL_CLOSED');
+    if (typeof callback === 'function') {
+      process.nextTick(callback, ex);
+    } else {
+      process.nextTick(function() {
+        this.emit('error', ex);
+      }.bind(this));
+    }
+    return false;
   };
 
   target._send = function(message, handle, options, callback) {
-    // TODO
+    if (message === undefined)
+      throw new TypeError('ERR_MISSING_ARGS');
+
+    // Support legacy function signature
+    if (typeof options === 'boolean') {
+      options = { swallowErrors: options };
+    }
+
+    // package messages with a handle object
+    if (handle) {
+      // this message will be handled by an internalMessage event handler
+      message = {
+        cmd: 'NODE_HANDLE',
+        type: 'net.Native',
+        msg: message
+      };
+
+      // Queue-up message and handle if we haven't received ACK yet.
+      if (this._handleQueue) {
+        this._handleQueue.push({
+          callback: callback,
+          handle: handle,
+          options: options,
+          message: message.msg,
+        });
+        return this._handleQueue.length === 1;
+      }
+
+      var obj = handleConversion[message.type];
+
+      // convert TCP object to native handle object
+      handle = handleConversion[message.type].send.call(target,
+                                                        message,
+                                                        handle,
+                                                        options);
+
+      // If handle was sent twice, or it is impossible to get native handle
+      // out of it - just send a text without the handle.
+      if (!handle)
+        message = message.msg;
+
+      // Update simultaneous accepts on Windows
+      // if (obj.simultaneousAccepts) {
+      //   net._setSimultaneousAccepts(handle);
+      // }
+    } else if (this._handleQueue &&
+               !(message && (message.cmd === 'NODE_HANDLE_ACK' ||
+                             message.cmd === 'NODE_HANDLE_NACK'))) {
+      // Queue request anyway to avoid out-of-order messages.
+      this._handleQueue.push({
+        callback: callback,
+        handle: null,
+        options: options,
+        message: message,
+      });
+      return this._handleQueue.length === 1;
+    }
+
+    // var req = new WriteWrap();
+    // req.async = false;
+
+    var string = JSON.stringify(message) + '\n';
+    var err = channel.writeUtf8String(string);
+
+    if (err === 0) {
+      if (handle) {
+        if (!this._handleQueue)
+          this._handleQueue = [];
+    //     if (obj && obj.postSend)
+    //       obj.postSend(message, handle, options, callback, target);
+      }
+
+    //   if (req.async) {
+    //     req.oncomplete = function() {
+    //       control.unref();
+    //       if (typeof callback === 'function')
+    //         callback(null);
+    //     };
+    //     control.ref();
+    //   } else if (typeof callback === 'function') {
+    //     process.nextTick(callback, null);
+    //   }
+    // } else {
+    //   // Cleanup handle on error
+    //   if (obj && obj.postSend)
+    //     obj.postSend(message, handle, options, callback);
+
+    //   if (!options.swallowErrors) {
+    //     const ex = errnoException(err, 'write');
+    //     if (typeof callback === 'function') {
+    //       process.nextTick(callback, ex);
+    //     } else {
+    //       process.nextTick(() => this.emit('error', ex));
+    //     }
+    //   }
+    }
+
+    /* If the master is > 2 read() calls behind, please stop sending. */
+    return channel.writeQueueSize < (65536 * 2);
   };
 
   // connected will be set to false immediately when a disconnect() is
@@ -536,8 +722,63 @@ var spawn = exports.spawn = function(/*file, args, options*/) {
   return child;
 };
 
+function stdioStringToArray(option) {
+  switch (option) {
+    case 'ignore':
+    case 'pipe':
+    case 'inherit':
+      return [option, option, option, 'ipc'];
+    default:
+      throw new TypeError('Incorrect value of stdio option: ' + option);
+  }
+}
+
 exports.fork = function(modulePath /*, args, options*/) {
-  // TODO
+  // Get options and args arguments.
+  var execArgv;
+  var options = {};
+  var args = [];
+  var pos = 1;
+  if (pos < arguments.length && Array.isArray(arguments[pos])) {
+    args = arguments[pos++];
+  }
+
+  if (pos < arguments.length && arguments[pos] != null) {
+    if (typeof arguments[pos] !== 'object') {
+      throw new TypeError('Incorrect value of args option');
+    }
+
+    options = Object.assign({}, arguments[pos++]);
+  }
+
+  // Prepare arguments for fork:
+  execArgv = options.execArgv || process.execArgv;
+
+  if (execArgv === process.execArgv && process._eval != null) {
+    var index = execArgv.lastIndexOf(process._eval);
+    if (index > 0) {
+      // Remove the -e switch to avoid fork bombing ourselves.
+      execArgv = execArgv.slice();
+      execArgv.splice(index - 1, 2);
+    }
+  }
+
+  args = execArgv.concat([modulePath], args);
+
+  if (typeof options.stdio === 'string') {
+    options.stdio = stdioStringToArray(options.stdio);
+  } else if (!Array.isArray(options.stdio)) {
+    // Use a separate fd=3 for the IPC channel. Inherit stdin, stdout,
+    // and stderr from the parent if silent isn't set.
+    options.stdio = options.silent ? stdioStringToArray('pipe') :
+      stdioStringToArray('inherit');
+  } else if (options.stdio.indexOf('ipc') === -1) {
+    throw new TypeError('Forked processes must have an IPC channel');
+  }
+
+  options.execPath = options.execPath || process.execPath;
+
+  return spawn(options.execPath, args, options);
 };
 
 function normalizeExecArgs(command, options, callback) {
@@ -753,6 +994,19 @@ exports.execFile = function(file /*, args, options, callback*/) {
   child.addListener('close', exithandler);
   child.addListener('error', errorhandler);
   return child;
+};
+
+exports._forkChild = function(fd) {
+  var p = new Pipe(true);
+  p.open(fd);
+  // p.unref();
+  var control = setupChannel(process, p);
+  // process.on('newListener', function onNewListener(name) {
+  //   if (name === 'message' || name === 'disconnect') control.ref();
+  // });
+  // process.on('removeListener', function onRemoveListener(name) {
+  //   if (name === 'message' || name === 'disconnect') control.unref();
+  // });
 };
 
 exports.ChildProcess = ChildProcess;

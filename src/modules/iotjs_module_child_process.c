@@ -94,6 +94,38 @@ JS_FUNCTION(ProcessConstructor) {
   return jerry_create_undefined();
 }
 
+static void iotjs_process_parse_args_opts(jerry_value_t js_options,
+                                   uv_process_options_t* options) {
+  jerry_value_t jarr = iotjs_jval_get_property(js_options, "args");
+  uint32_t len = jerry_get_array_length(jarr);
+  if (len > 0) {
+    options->args = (char**)malloc(sizeof(char*) * len + 1);
+    for (uint32_t i = 0; i < len; i++) {
+      jerry_value_t jval = iotjs_jval_get_property_by_index(jarr, i);
+      iotjs_string_t str = iotjs_jval_as_string(jval);
+      options->args[i] = (char*)iotjs_string_data(&str);
+    }
+    options->args[len] = NULL;
+  }
+  jerry_release_value(jarr);
+}
+
+static void iotjs_process_parse_envs_opts(jerry_value_t js_options,
+                                   uv_process_options_t* options) {
+  jerry_value_t jarr = iotjs_jval_get_property(js_options, "envPairs");
+  uint32_t len = jerry_get_array_length(jarr);
+  if (len > 0) {
+    options->env = (char**)malloc(sizeof(char*) * len + 1);
+    for (uint32_t i = 0; i < len; i++) {
+      jerry_value_t jval = iotjs_jval_get_property_by_index(jarr, i);
+      iotjs_string_t str = iotjs_jval_as_string(jval);
+      options->env[i] = (char*)iotjs_string_data(&str);
+    }
+    options->env[len] = NULL;
+  }
+  jerry_release_value(jarr);
+}
+
 static void iotjs_process_parse_stdio_opts(jerry_value_t js_options,
                                            uv_process_options_t* options) {
   jerry_value_t stdios = iotjs_jval_get_property(js_options, "stdio");
@@ -118,7 +150,7 @@ static void iotjs_process_parse_stdio_opts(jerry_value_t js_options,
         UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
       jerry_release_value(jhandle);
     } else if (!strcmp(type, "wrap")) {
-      // TODO
+      // TODO(Yorkie): to be done
       options->stdio[i].flags = UV_IGNORE;
     } else {
       jerry_value_t fd = iotjs_jval_get_property(stdio, "fd");
@@ -159,36 +191,22 @@ JS_FUNCTION(ProcessSpawn) {
   jerry_release_value(val);                                                   \
 } while (0)
 
-#define IOTJS_PROCESS_SET_ARRAY(name, key) do {                               \
-  jerry_value_t jarr = iotjs_jval_get_property(js_options, #name);            \
-  uint32_t len = jerry_get_array_length(jarr);                                \
-  if (len > 0) {                                                              \
-    options.key = malloc(len + 1);                                            \
-    for (uint32_t i = 0; i < len; i++) {                                      \
-      jerry_value_t jval = iotjs_jval_get_property_by_index(jarr, i);         \
-      iotjs_string_t str = iotjs_jval_as_string(jval);                        \
-      options.key[i] = (char*)iotjs_string_data(&str);                        \
-      jerry_release_value(jval);                                              \
-    }                                                                         \
-    options.key[len] = NULL;                                                  \
-  }                                                                           \
-  jerry_release_value(jarr);                                                  \
-} while (0)
-
   IOTJS_PROCESS_SET_XID(uid, UV_PROCESS_SETUID);
   IOTJS_PROCESS_SET_XID(gid, UV_PROCESS_SETGID);
   IOTJS_PROCESS_SET_STRING(file);
   IOTJS_PROCESS_SET_STRING(cwd);
-  IOTJS_PROCESS_SET_ARRAY(args, args);
-  IOTJS_PROCESS_SET_ARRAY(envPairs, env);
 #undef IOTJS_PROCESS_SET_XID
 #undef IOTJS_PROCESS_SET_STRING
-#undef IOTJS_PROCESS_SET_ARRAY
 
+  iotjs_process_parse_args_opts(js_options, &options);
+  iotjs_process_parse_envs_opts(js_options, &options);
   iotjs_process_parse_stdio_opts(js_options, &options);
   jerry_release_value(js_options);
 
+  _this->initialized = true;
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
+
+  printf("before: %s\n", options.env[0]);
   int err = uv_spawn(loop, &_this->handle, &options);
   if (err == 0) {
     jerry_value_t pid = jerry_create_number(_this->handle.pid);
@@ -204,7 +222,7 @@ JS_FUNCTION(ProcessSpawn) {
     free(options.env);
   }
 
-  return jerry_create_number(err);
+  return jerry_create_number(0);
 }
 
 JS_FUNCTION(ProcessKill) {
