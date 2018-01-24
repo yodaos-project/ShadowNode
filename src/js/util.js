@@ -142,19 +142,34 @@ function format(s) {
 }
 
 function formatValue(v) {
-  if (v === undefined) {
+  if (v === undefined)
     return 'undefined';
-  } else if (v === null) {
+  if (v === null)
     return 'null';
-  } else if (Array.isArray(v)) {
-    return '[' + v.toString() + ']';
-  } else if (v instanceof Error) {
-    return v.toString();
-  } else if (typeof v === 'object') {
-    return JSON.stringify(v, null, 2);
-  } else {
+
+  if (v instanceof Error || 
+    v instanceof Date) {
     return v.toString();
   }
+
+  if (Buffer.isBuffer(v)) {
+    return v.inspect();
+  }
+  if (Array.isArray(v)) {
+    return '[ ' + v.map(formatValue).join(', ') + ' ]';
+  }
+  if (typeof v === 'object') {
+    return JSON.stringify(v, jsonReplacer);
+  }
+  return v.toString();
+}
+
+
+function jsonReplacer(key, value) {
+  if (Buffer.isBuffer(value))
+    return value.toString('utf8');
+  else
+    return value;
 }
 
 
