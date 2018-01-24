@@ -119,7 +119,6 @@ ChildProcess.prototype.spawn = function(options) {
   else
     throw new TypeError('ERR_INVALID_ARG_TYPE');
 
-  console.log(options);
   var err = this._handle.spawn(options);
   // TODO: handle error
 
