@@ -10,10 +10,10 @@ Memory usage and Binary footprint are measured at [here](https://samsung.github.
 
 ## Quick Start
 
-This project is another runtime for your Node.js app, which is to be used in low memory devices. It's inspired and forked
+This project is another runtime for your [Node.js][] app, which is to be used in low memory devices. It's inspired and forked
 from the original awesome project [Samsung/iotjs][].
 
-To get started with shadow-node, you should follow the [build](#Build) step on a Linux or OSX machine. And this project 
+To get started with shadow-node, you should follow the [build](#build) step on a Linux or OSX machine. And this project 
 will not be supported on Windows unfortunately.
 
 ### Getting Source Code
@@ -45,10 +45,10 @@ For Additional information see [Getting Started](docs/Getting-Started.md).
 
 ## What's different with Node.js
 
-The shadow-node's purpose is not going to run the absolute same code both on the Node.js and shadow-node,
-within embeddable devices might be severe and less memory requirement, you should write your apps in an light
-thinking. However we are hoping to share the same community for developers as possible, and the following
-are the status:
+The [shadow-node][]'s purpose is not going to run the absolute same code both on the [Node.js][] 
+and [shadow-node][], within embeddable devices might be severe and less memory requirement, you should 
+write your apps in an light thinking. However we are hoping to share the same community for developers 
+as possible, and the following are the status:
 
 - [x] [Assert](docs/api/IoT.js-API-Assert.md)
 - [x] [Buffer](docs/api/IoT.js-API-Buffer.md)
@@ -87,10 +87,11 @@ interfaces:
 
 ## License
 
-shadow-node is Open Source software under the [Apache 2.0 license][].
+[shadow-node][] is Open Source software under the [Apache 2.0 license][].
 Complete license and copyright information can be found within the code.
 
 [shadow-node]: https://github.com/Rokid/shadow-node
+[Node.js]: https://github.com/nodejs/node
 [Iot.js]: https://github.com/Samsung/iotjs
 [Samsung/iotjs]: https://github.com/Samsung/iotjs
 [Apache 2.0 license]: https://www.apache.org/licenses/LICENSE-2.0
