@@ -66,7 +66,7 @@ as possible, and the following are the status:
 - [x] [Timers](docs/api/IoT.js-API-Timers.md)
 - [x] [Zlib](docs/api/IoT.js-API-Zlib.md)
 
-In desktop and embedable ecosystem, the service via DBUS is quite normal, in shadow-node, the `DBUS`
+In desktop and embedable ecosystem, the service via `DBus` is quite normal, in shadow-node, the `DBus`
 will be the built-in module. For detailed API, see [IoT.js-API-DBUS](docs/api/IoT.js-API-DBUS.md).
 
 [shadow-node][] benefits from the upstream [IoT.js][], which has supported the following hardware
