@@ -365,7 +365,8 @@
     "stream": {
       "js_file": "js/stream.js",
       "require": ["events", "stream_duplex", "stream_transform", 
-                  "stream_readable", "stream_writable", "util"]
+                  "stream_passthrough", "stream_readable", 
+                  "stream_writable", "util"]
     },
     "stream_duplex": {
       "js_file": "js/stream_duplex.js",
@@ -374,6 +375,10 @@
     "stream_transform": {
       "js_file": "js/stream_transform.js",
       "require": ["assert", "util"]
+    },
+    "stream_passthrough": {
+      "js_file": "js/stream_passthrough.js",
+      "require": ["util", "stream_transform"]
     },
     "stream_readable": {
       "js_file": "js/stream_readable.js",

@@ -200,7 +200,9 @@ static void iotjs_zlib_after_process(uv_work_t* work_req, int status) {
 
   iotjs_bufferwrap_t* out_buf = iotjs_bufferwrap_from_jbuffer(_this->out_buf_);
   iotjs_bufferwrap_copy(out_buf, (char*)_this->out_, _this->strm_.avail_out);
-  free(_this->out_);
+
+  if (_this->out_ != NULL) 
+    free(_this->out_);
 
   jerry_set_property_by_index(_this->write_result_, 0, 
     jerry_create_number(_this->strm_.avail_out));
