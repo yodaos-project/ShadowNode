@@ -54,6 +54,10 @@ if(NOT DEFINED ENABLE_LTO)
   set(ENABLE_LTO OFF)
 endif()
 
+if(NOT DEFINED DISABLE_ES2015)
+  set(FEATURE_PROFILE "es2015-subset")
+endif()
+
 macro(iotjs_add_flags VAR)
   foreach(_flag ${ARGN})
     set(${VAR} "${${VAR}} ${_flag}")

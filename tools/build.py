@@ -89,6 +89,10 @@ def init_options():
         help='Specify the config file (default: %(default)s)',
         dest='config_path')
 
+    parser.add_argument('--disable-es2015', default=False,
+        help='Specify if ES2015 enabled (default: %(default)s)',
+        dest='disable_es2015')
+
     parser.add_argument('--profile',
         help='Specify the module profile file for IoT.js')
 
@@ -353,6 +357,10 @@ def build_iotjs(options):
     # --profile
     if options.profile:
         cmake_opt.append("-DIOTJS_PROFILE='%s'" % options.profile)
+
+    # --disable-es2015
+    if options.disable_es2015:
+        cmake_opt.append("-DISABLE_ES2015")
 
     # Add common cmake options.
     cmake_opt.extend(build_cmake_args(options))
