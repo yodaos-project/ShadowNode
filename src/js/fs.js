@@ -240,7 +240,11 @@ fs.writeSync = function(fd, buffer, offset, length, position) {
 };
 
 
-fs.readFile = function(path, callback) {
+fs.readFile = function(path, options, callback) {
+  if (util.isFunction(options)) {
+    callback = options;
+    options = null;
+  }
   checkArgString(path);
   checkArgFunction(callback);
 
@@ -284,7 +288,18 @@ fs.readFile = function(path, callback) {
 
   var close = function() {
     fs.close(fd, function(err) {
-      return callback(err, Buffer.concat(buffers));
+      var buf = Buffer.concat(buffers);
+      if (options) {
+        var enc;
+        if (util.isString(options))
+          enc = options;
+        if (options.encoding && util.isString(options.encoding))
+          enc = options && options.encoding;
+        if (enc === 'utf8' || enc === 'utf-8' || enc === 'hex') {
+          buf = buf.toString(enc);
+        }
+      }
+      return callback(err, buf);
     });
   };
 };
@@ -314,7 +329,10 @@ fs.readFileSync = function(path) {
 };
 
 
-fs.writeFile = function(path, data, callback) {
+fs.writeFile = function(path, data, options, callback) {
+  if (util.isFunction(options))
+    callback = options;
+
   checkArgString(path);
   checkArgFunction(callback);
 
@@ -546,6 +564,10 @@ fs.createReadStream = function(path, options) {
   return new ReadStream(path, options);
 };
 
+util.inherits(ReadStream, Readable);
+fs.ReadStream = ReadStream;
+fs.FileReadStream = ReadStream;
+
 function ReadStream(path, options) {
   if (!(this instanceof ReadStream))
     return new ReadStream(path, options);
@@ -594,7 +616,6 @@ function ReadStream(path, options) {
     }
   }.bind(this));
 }
-util.inherits(ReadStream, Readable);
 
 ReadStream.prototype.open = function() {
   var self = this;
@@ -699,6 +720,7 @@ fs.createWriteStream = function(path, options) {
 
 util.inherits(WriteStream, Writable);
 fs.WriteStream = WriteStream;
+fs.FileWriteStream = WriteStream;
 
 function WriteStream(path, options) {
   if (!(this instanceof WriteStream))
