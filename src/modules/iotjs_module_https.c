@@ -724,10 +724,10 @@ JS_FUNCTION(createRequest) {
 
   const jerry_value_t joptions = JS_GET_ARG(0, object);
 
-  jerry_value_t jhost =
-      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_HOST);
-  iotjs_string_t host = iotjs_jval_as_string(jhost);
-  jerry_release_value(jhost);
+  jerry_value_t jurl =
+      iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_URL);
+  iotjs_string_t url = iotjs_jval_as_string(jurl);
+  jerry_release_value(jurl);
 
   jerry_value_t jmethod =
       iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_METHOD);
@@ -757,14 +757,14 @@ JS_FUNCTION(createRequest) {
   }
 
   iotjs_https_t* https_data =
-      iotjs_https_create(iotjs_string_data(&host), iotjs_string_data(&method),
+      iotjs_https_create(iotjs_string_data(&url), iotjs_string_data(&method),
                          iotjs_string_data(&ca), iotjs_string_data(&cert),
                          iotjs_string_data(&key), reject_unauthorized,
                          joptions);
 
   iotjs_https_initialize_curl_opts(https_data);
 
-  iotjs_string_destroy(&host);
+  iotjs_string_destroy(&url);
   iotjs_string_destroy(&method);
   iotjs_string_destroy(&ca);
   iotjs_string_destroy(&cert);
