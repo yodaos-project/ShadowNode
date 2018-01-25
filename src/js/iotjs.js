@@ -47,7 +47,6 @@
   };
 
   global.console = Module.require('console');
-  global.Promise = Module.require('promise');
   global.Buffer = Module.require('buffer');
 
   var timers = undefined;
