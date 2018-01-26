@@ -149,7 +149,7 @@ ChildProcess.prototype.spawn = function(options) {
   var err = this._handle.spawn(options);
   if (err) {
     process.nextTick(onErrorNT, this, err);
-    return err;
+    // return err;
   }
 
   this.pid = this._handle.pid;

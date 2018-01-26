@@ -42,3 +42,9 @@ exports.networkInterfaces = function() {
   }
   return interfaces;
 };
+
+Object.defineProperty(exports, 'EOL', {
+  get: function() {
+    return '\n';
+  }
+});
