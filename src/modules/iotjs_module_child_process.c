@@ -206,7 +206,6 @@ JS_FUNCTION(ProcessSpawn) {
   _this->initialized = true;
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
 
-  printf("before: %s\n", options.env[0]);
   int err = uv_spawn(loop, &_this->handle, &options);
   if (err == 0) {
     jerry_value_t pid = jerry_create_number(_this->handle.pid);
@@ -222,7 +221,7 @@ JS_FUNCTION(ProcessSpawn) {
     free(options.env);
   }
 
-  return jerry_create_number(0);
+  return jerry_create_number(err);
 }
 
 JS_FUNCTION(ProcessKill) {

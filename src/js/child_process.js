@@ -79,6 +79,10 @@ function createSocket(pipe, readable) {
   return s;
 }
 
+function onErrorNT(self, err) {
+  self._handle.onexit(err);
+}
+
 ChildProcess.prototype.kill = function(sig) {
   var signal = sig === 0 ? sig : 'SIGTERM';
   if (this._handle) {
@@ -143,6 +147,9 @@ ChildProcess.prototype.spawn = function(options) {
     throw new TypeError('ERR_INVALID_ARG_TYPE');
 
   var err = this._handle.spawn(options);
+  if (err) {
+    process.nextTick(onErrorNT, this, err);
+  }
   // TODO: handle error
 
   this.pid = this._handle.pid;

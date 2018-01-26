@@ -114,7 +114,7 @@ Socket.prototype.connect = function() {
 
   var dns = require('dns');
   var host = options.host ? options.host : 'localhost';
-  var port = options.port;
+  var port = Number(options.port);
   var dnsopts = {
     family: options.family >>> 0,
     hints: 0,

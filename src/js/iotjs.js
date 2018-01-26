@@ -212,6 +212,7 @@
   /**
    * Polyfills Start
    */
+
   if (typeof Object.assign != 'function') {
     // Must be writable: true, enumerable: false, configurable: true
     Object.defineProperty(Object, "assign", {

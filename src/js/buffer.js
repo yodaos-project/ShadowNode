@@ -322,6 +322,45 @@ Buffer.prototype.fill = function(value) {
 };
 
 
+Buffer.from = function (arg, encodingOrOffset, length) {
+  if (typeof arg === 'number') {
+    throw new TypeError('Argument must not be a number');
+  }
+  return new Buffer(arg, encodingOrOffset, length);
+}
+
+Buffer.alloc = function (size, fill, encoding) {
+  if (typeof size !== 'number') {
+    throw new TypeError('Argument must be a number');
+  }
+  var buf = new Buffer(size);
+  if (fill !== undefined) {
+    if (typeof encoding === 'string') {
+      buf.fill(fill, encoding);
+    } else {
+      buf.fill(fill);
+    }
+  } else {
+    buf.fill(0);
+  }
+  return buf;
+}
+
+Buffer.allocUnsafe = function (size) {
+  if (typeof size !== 'number') {
+    throw new TypeError('Argument must be a number')
+  }
+  return new Buffer(size);
+}
+
+Buffer.allocUnsafeSlow = function (size) {
+  if (typeof size !== 'number') {
+    throw new TypeError('Argument must be a number')
+  }
+  return new Buffer(size);
+}
+
+
 Object.defineProperty(Buffer.prototype, 'byteLength', {
   get: function() {
     return this.length;
