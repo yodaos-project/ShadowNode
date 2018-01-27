@@ -476,6 +476,21 @@ function registerService(name, service) {
   return bus.getService(service);
 }
 
+/**
+ * @module dbus
+ * @method Define
+ * @param {String} type
+ */
+exports.Define = function(type) {
+  if (type === String) {
+    return 's';
+  } else if (type === 'Number') {
+    return 'i';
+  } else {
+    return type;
+  }
+};
+
 initEnv();
 exports.getBus = getBus;
 exports.registerService = registerService;
