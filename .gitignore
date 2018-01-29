@@ -42,3 +42,6 @@ TAGS
 # config files
 *.config
 !build.config
+
+.DS_Store
+*/.DS_Store
