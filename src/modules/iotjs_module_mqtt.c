@@ -70,7 +70,7 @@ JS_FUNCTION(MqttConstructor) {
 
 int iotjs_mqtt_read_buf(unsigned char* buf, int len, void* ctx) {
   iotjs_mqtt_t_impl_t* _this = (iotjs_mqtt_t_impl_t*)ctx;
-  memcpy(buf, _this->src + _this->offset, len);
+  memcpy(buf, _this->src + _this->offset, (size_t)len);
   _this->offset += len;
   return len;
 }
