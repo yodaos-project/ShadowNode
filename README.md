@@ -64,10 +64,15 @@ as possible, and the following are the status:
 - [x] [Process](docs/api/IoT.js-API-Process.md)
 - [x] [Stream](docs/api/IoT.js-API-Stream.md)
 - [x] [Timers](docs/api/IoT.js-API-Timers.md)
+- [x] [UDP/Datagram](docs/api/IoT.js-API-DGRAM.md)
 - [x] [Zlib](docs/api/IoT.js-API-Zlib.md)
 
 In desktop and embedable ecosystem, the service via `DBus` is quite normal, in shadow-node, the `DBus`
 will be the built-in module. For detailed API, see [IoT.js-API-DBUS](docs/api/IoT.js-API-DBUS.md).
+
+The `MQTT` protocol is used for communication between IoT devices, then [shadow-node][] would support
+this protocol natively, and we keep the API consistent with the pop library [MQTT.js][]. See 
+[IoT.js-API-MQTT](docs/api/IoT.js-API-MQTT.md) for details.
 
 For hardware geek, this project benefits from the upstream [IoT.js][], which has supported the 
 following hardware interfaces, you are able to port [shadow-node][] to your platform(s) and 
@@ -95,4 +100,5 @@ Complete license and copyright information can be found within the code.
 [Node.js]: https://github.com/nodejs/node
 [Iot.js]: https://github.com/Samsung/iotjs
 [Samsung/iotjs]: https://github.com/Samsung/iotjs
+[MQTT.js]: https://github.com/mqttjs/MQTT.js
 [Apache 2.0 license]: https://www.apache.org/licenses/LICENSE-2.0

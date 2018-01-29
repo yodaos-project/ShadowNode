@@ -15,19 +15,23 @@
 * [OS](IoT.js-API-OS.md)
 * [Process](IoT.js-API-Process.md)
 * [Timers](IoT.js-API-Timers.md)
+* [UDP/Datagram](IoT.js-API-DGRAM.md)
 * [Zlib](IoT.js-API-Zlib.md)
 
 ## Extended API
 
+* [(DBUS)](IoT.js-API-DBUS.md)
+* [(MQTT)](IoT.js-API-MQTT.md)
+
+## Hardware API
+
 * [(ADC)](IoT.js-API-ADC.md)
 * [(BLE)](IoT.js-API-BLE.md)
-* [(DBUS)](IoT.js-API-DBUS.md)
 * [(GPIO)](IoT.js-API-GPIO.md)
 * [(I2C)](IoT.js-API-I2C.md)
 * [(PWM)](IoT.js-API-PWM.md)
 * [(SPI)](IoT.js-API-SPI.md)
 * [(UART)](IoT.js-API-UART.md)
-* [UDP/Datagram](IoT.js-API-DGRAM.md)
 
 ## Abstract interfaces
 
