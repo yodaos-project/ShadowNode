@@ -10,6 +10,7 @@
         "dgram",
         "http", 
         "https", 
+        "mqtt",
         "net",
         "os",
         "path",
@@ -280,6 +281,12 @@
     "module": {
       "js_file": "js/module.js",
       "require": ["fs"]
+    },
+    "mqtt": {
+      "js_file": "js/mqtt.js",
+      "require": ["events", "util", "url"],
+      "native_files": ["modules/iotjs_module_mqtt.c"],
+      "init": "InitMQTT"
     },
     "net": {
       "js_file": "js/net.js",
