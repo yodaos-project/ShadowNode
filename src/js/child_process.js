@@ -1,6 +1,5 @@
 'use strict';
 
-var Process = native.Process;
 var Pipe = require('pipe_wrap').Pipe;
 var EventEmitter = require('events').EventEmitter;
 var StringDecoder = require('string_decoder').StringDecoder;

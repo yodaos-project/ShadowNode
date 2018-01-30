@@ -21,6 +21,7 @@ function EventEmitter() {
   this._events = {};
 }
 
+module.exports = EventEmitter;
 module.exports.EventEmitter = EventEmitter;
 
 
@@ -128,6 +129,7 @@ EventEmitter.prototype.removeAllListeners = function(type) {
   return this;
 };
 
+
 EventEmitter.prototype.listeners = function(type) {
   var events = this._events;
   if (events === undefined)
@@ -142,6 +144,13 @@ EventEmitter.prototype.listeners = function(type) {
   
   return unwrapListeners(evlistener);
 };
+
+
+EventEmitter.prototype.setMaxListeners = function() {
+  // EMPTY
+  // This is for compatible with Node.js API, but no effects inside here.
+};
+
 
 function unwrapListeners(arr) {
   var ret = new Array(arr.length);

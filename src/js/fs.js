@@ -26,6 +26,10 @@ var Writable = stream.Writable;
 // constants
 var kMinPoolSpace = 128;
 
+function assertEncoding(encoding) {
+  // TODO
+}
+
 function getOptions(options, defaultOptions) {
   if (options === null || options === undefined ||
       typeof options === 'function') {
@@ -123,14 +127,26 @@ fs.existsSync = function(path) {
 };
 
 
+function addXTimeProerties(stat) {
+  stat.atime = new Date(stat.atimeMs);
+  stat.mtime = new Date(stat.mtimeMs);
+  stat.ctime = new Date(stat.ctimeMs);
+  stat.birthtime = new Date(stat.birthtimeMs);
+  return stat;
+}
+
 fs.stat = function(path, callback) {
-  fsBuiltin.stat(checkArgString(path, 'path'),
-                 checkArgFunction(callback, 'callback'));
+  var cb = checkArgFunction(callback, 'callback');
+  fsBuiltin.stat(checkArgString(path, 'path'), function(err, stat) {
+    if (err) return cb(err);
+    return cb(null, addXTimeProerties(stat));
+  });
 };
 
 
 fs.statSync = function(path) {
-  return fsBuiltin.stat(checkArgString(path, 'path'));
+  var val = fsBuiltin.stat(checkArgString(path, 'path'));
+  return addXTimeProerties(val);
 };
 
 
@@ -305,7 +321,7 @@ fs.readFile = function(path, options, callback) {
 };
 
 
-fs.readFileSync = function(path) {
+fs.readFileSync = function(path, encoding) {
   checkArgString(path);
 
   var fd = fs.openSync(path, 'r', 438);
@@ -325,7 +341,12 @@ fs.readFileSync = function(path) {
     }
   }
   fs.closeSync(fd);
-  return Buffer.concat(buffers);
+
+  var ret = Buffer.concat(buffers);
+  if (encoding) {
+    ret = ret.toString(encoding);
+  }
+  return ret;
 };
 
 

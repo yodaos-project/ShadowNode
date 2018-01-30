@@ -457,6 +457,13 @@ ServiceInterface.prototype.emit = function(name, val) {
 };
 
 /**
+ * @method update
+ */
+ServiceInterface.prototype.update = function() {
+  // Do nothing, just for comp.
+};
+
+/**
  * @module dbus
  * @method getBus
  * @param {String} name

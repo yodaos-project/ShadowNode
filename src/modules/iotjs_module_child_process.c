@@ -14,7 +14,6 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_objectwrap.h"
 #include "iotjs_handlewrap.h"
 #include "iotjs_module_pipe.h"
 #include <stdlib.h>
@@ -22,51 +21,51 @@
 typedef struct {
   iotjs_handlewrap_t handlewrap;
   uv_process_t handle;
-  bool initialized;
-} IOTJS_VALIDATED_STRUCT(iotjs_process_t);
+} IOTJS_VALIDATED_STRUCT(iotjs_processwrap_t);
 
-IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(process);
+IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(processwrap);
 
-static iotjs_process_t* iotjs_process_create(const jerry_value_t value) {
-  iotjs_process_t* process = IOTJS_ALLOC(iotjs_process_t);
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_process_t, process);
+iotjs_processwrap_t* iotjs_processwrap_create(const jerry_value_t value) {
+  iotjs_processwrap_t* wrap = IOTJS_ALLOC(iotjs_processwrap_t);
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_processwrap_t, wrap);
+
   iotjs_handlewrap_initialize(&_this->handlewrap, 
                               value,
                               (uv_handle_t*)(&_this->handle),
                               &this_module_native_info);
-  return process;
+  return wrap;
 }
 
-static void iotjs_process_destroy(iotjs_process_t* process) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_process_t, process);
+static void iotjs_processwrap_destroy(iotjs_processwrap_t* wrap) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_processwrap_t, wrap);
   iotjs_handlewrap_destroy(&_this->handlewrap);
-  IOTJS_RELEASE(process);
+  IOTJS_RELEASE(wrap);
 }
 
-uv_process_t* iotjs_process_get_handle(iotjs_process_t* wrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_process_t, wrap);
+uv_process_t* iotjs_processwrap_get_handle(iotjs_processwrap_t* wrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_processwrap_t, wrap);
   uv_handle_t* handle = iotjs_handlewrap_get_uv_handle(&_this->handlewrap);
   return (uv_process_t*)handle;
 }
 
-jerry_value_t iotjs_process_get_jobject(iotjs_process_t* wrap) {
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_process_t, wrap);
+jerry_value_t iotjs_processwrap_get_jobject(iotjs_processwrap_t* wrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_processwrap_t, wrap);
   return iotjs_handlewrap_jobject(&_this->handlewrap);
 }
 
-iotjs_process_t* iotjs_process_from_handle(uv_process_t* process) {
+iotjs_processwrap_t* iotjs_processwrap_from_handle(uv_process_t* process) {
   uv_handle_t* handle = (uv_handle_t*)(process);
   iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_handle(handle);
-  iotjs_process_t* wrap = (iotjs_process_t*)handlewrap;
-  IOTJS_ASSERT(iotjs_process_get_handle(wrap) == process);
+  iotjs_processwrap_t* wrap = (iotjs_processwrap_t*)handlewrap;
+  IOTJS_ASSERT(iotjs_processwrap_get_handle(wrap) == process);
   return wrap;
 }
 
-static void iotjs_process_onexit(uv_process_t* handle,
+static void iotjs_processwrap_onexit(uv_process_t* handle,
                                  int64_t exit_status,
                                  int term_signal) {
-  iotjs_process_t* wrap = iotjs_process_from_handle(handle);
-  jerry_value_t jthis = iotjs_process_get_jobject(wrap);
+  iotjs_processwrap_t* wrap = iotjs_processwrap_from_handle(handle);
+  jerry_value_t jthis = iotjs_processwrap_get_jobject(wrap);
   IOTJS_ASSERT(wrap != NULL);
 
   iotjs_jargs_t jargs = iotjs_jargs_create(2);
@@ -86,15 +85,13 @@ static void iotjs_process_onexit(uv_process_t* handle,
 
 JS_FUNCTION(ProcessConstructor) {
   DJS_CHECK_THIS();
-  const jerry_value_t self = JS_GET_THIS();
-  iotjs_process_t* process = iotjs_process_create(self);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_process_t, process);
-  _this->initialized = true;
 
+  jerry_value_t jprocess = JS_GET_THIS();
+  iotjs_processwrap_create(jprocess);
   return jerry_create_undefined();
 }
 
-static void iotjs_process_parse_args_opts(jerry_value_t js_options,
+static void iotjs_processwrap_parse_args_opts(jerry_value_t js_options,
                                    uv_process_options_t* options) {
   jerry_value_t jarr = iotjs_jval_get_property(js_options, "args");
   uint32_t len = jerry_get_array_length(jarr);
@@ -110,7 +107,7 @@ static void iotjs_process_parse_args_opts(jerry_value_t js_options,
   jerry_release_value(jarr);
 }
 
-static void iotjs_process_parse_envs_opts(jerry_value_t js_options,
+static void iotjs_processwrap_parse_envs_opts(jerry_value_t js_options,
                                    uv_process_options_t* options) {
   jerry_value_t jarr = iotjs_jval_get_property(js_options, "envPairs");
   uint32_t len = jerry_get_array_length(jarr);
@@ -126,7 +123,7 @@ static void iotjs_process_parse_envs_opts(jerry_value_t js_options,
   jerry_release_value(jarr);
 }
 
-static void iotjs_process_parse_stdio_opts(jerry_value_t js_options,
+static void iotjs_processwrap_parse_stdio_opts(jerry_value_t js_options,
                                            uv_process_options_t* options) {
   jerry_value_t stdios = iotjs_jval_get_property(js_options, "stdio");
   uint32_t len = jerry_get_array_length(stdios);
@@ -165,13 +162,13 @@ static void iotjs_process_parse_stdio_opts(jerry_value_t js_options,
 }
 
 JS_FUNCTION(ProcessSpawn) {
-  JS_DECLARE_THIS_PTR(process, process);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_process_t, process);
+  JS_DECLARE_THIS_PTR(processwrap, processwrap);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_processwrap_t, processwrap);
 
   jerry_value_t js_options = jerry_value_to_object(jargv[0]);
   uv_process_options_t options;
   memset(&options, 0, sizeof(uv_process_options_t));
-  options.exit_cb = iotjs_process_onexit;
+  options.exit_cb = iotjs_processwrap_onexit;
 
 #define IOTJS_PROCESS_SET_XID(name, type) do {                                \
   jerry_value_t val = iotjs_jval_get_property(js_options, #name);             \
@@ -198,14 +195,12 @@ JS_FUNCTION(ProcessSpawn) {
 #undef IOTJS_PROCESS_SET_XID
 #undef IOTJS_PROCESS_SET_STRING
 
-  iotjs_process_parse_args_opts(js_options, &options);
-  iotjs_process_parse_envs_opts(js_options, &options);
-  iotjs_process_parse_stdio_opts(js_options, &options);
+  iotjs_processwrap_parse_args_opts(js_options, &options);
+  iotjs_processwrap_parse_envs_opts(js_options, &options);
+  iotjs_processwrap_parse_stdio_opts(js_options, &options);
   jerry_release_value(js_options);
 
-  _this->initialized = true;
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-
   int err = uv_spawn(loop, &_this->handle, &options);
   if (err == 0) {
     jerry_value_t pid = jerry_create_number(_this->handle.pid);
@@ -225,8 +220,8 @@ JS_FUNCTION(ProcessSpawn) {
 }
 
 JS_FUNCTION(ProcessKill) {
-  JS_DECLARE_THIS_PTR(process, process);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_process_t, process);
+  JS_DECLARE_THIS_PTR(processwrap, processwrap);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_processwrap_t, processwrap);
 
   int sig = (int)jerry_get_number_value(jargv[0]);
   int err = uv_process_kill(&_this->handle, sig);
@@ -238,7 +233,7 @@ JS_FUNCTION(ProcessKill) {
 }
 
 // Socket close result handler.
-void iotjs_process_after_close(uv_handle_t* handle) {
+void iotjs_processwrap_after_close(uv_handle_t* handle) {
   iotjs_handlewrap_t* wrap = iotjs_handlewrap_from_handle(handle);
   jerry_value_t jthis = iotjs_handlewrap_jobject(wrap);
 
@@ -254,44 +249,43 @@ void iotjs_process_after_close(uv_handle_t* handle) {
 }
 
 JS_FUNCTION(ProcessClose) {
-  JS_DECLARE_THIS_PTR(handlewrap, wrap);
+  JS_DECLARE_THIS_PTR(processwrap, processwrap);
 
   // close uv handle, `AfterClose` will be called after socket closed.
-  iotjs_handlewrap_close(wrap, iotjs_process_after_close);
+  iotjs_handlewrap_close((iotjs_handlewrap_t*)processwrap, iotjs_processwrap_after_close);
   return jerry_create_undefined();
 }
 
 JS_FUNCTION(ProcessRef) {
-  JS_DECLARE_THIS_PTR(process, process);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_process_t, process);
+  JS_DECLARE_THIS_PTR(processwrap, processwrap);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_processwrap_t, processwrap);
 
   uv_ref((uv_handle_t*)&_this->handle);
   return jerry_create_undefined();
 }
 
 JS_FUNCTION(ProcessUnref) {
-  JS_DECLARE_THIS_PTR(process, process);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_process_t, process);
+  JS_DECLARE_THIS_PTR(processwrap, processwrap);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_processwrap_t, processwrap);
 
   uv_unref((uv_handle_t*)&_this->handle);
   return jerry_create_undefined();
 }
 
 jerry_value_t InitChildProcess() {
-  jerry_value_t process = jerry_create_object();
-  jerry_value_t processConstructor =
-      jerry_create_external_function(ProcessConstructor);
-  iotjs_jval_set_property_jval(process, "Process", processConstructor);
-
+  jerry_value_t exports = jerry_create_object();
+  jerry_value_t process = jerry_create_external_function(ProcessConstructor);
   jerry_value_t proto = jerry_create_object();
+
   iotjs_jval_set_method(proto, "spawn", ProcessSpawn);
   iotjs_jval_set_method(proto, "kill", ProcessKill);
   iotjs_jval_set_method(proto, "close", ProcessClose);
   iotjs_jval_set_method(proto, "ref", ProcessRef);
   iotjs_jval_set_method(proto, "unref", ProcessUnref);
-  iotjs_jval_set_property_jval(processConstructor, "prototype", proto);
+  iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_PROTOTYPE, proto);
+  iotjs_jval_set_property_jval(exports, "Process", process);
 
   jerry_release_value(proto);
-  jerry_release_value(processConstructor);
-  return process;
+  jerry_release_value(process);
+  return exports;
 }

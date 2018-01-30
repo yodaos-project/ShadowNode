@@ -159,7 +159,7 @@ function formatValue(v) {
     return '[ ' + v.map(formatValue).join(', ') + ' ]';
   }
   if (typeof v === 'object') {
-    return JSON.stringify(v, jsonReplacer);
+    return JSON.stringify(v, jsonReplacer, 2);
   }
   return v.toString();
 }
@@ -217,6 +217,46 @@ function exceptionWithHostPort(err, syscall, address, port, additional) {
 }
 
 
+// Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+function deprecate(fn, msg, code) {
+  if (process.noDeprecation === true) {
+    return fn;
+  }
+
+  if (code !== undefined && typeof code !== 'string')
+    throw new TypeError('ERR_INVALID_ARG_TYPE');
+
+  var warned = false;
+  function deprecated() {
+    if (!warned) {
+      warned = true;
+      if (code !== undefined) {
+        if (!codesWarned[code]) {
+          process.emitWarning(msg, 'DeprecationWarning', code, deprecated);
+          codesWarned[code] = true;
+        }
+      } else {
+        process.emitWarning(msg, 'DeprecationWarning', deprecated);
+      }
+    }
+    return fn.apply(this, arguments);
+  }
+
+  // The wrapper will keep the same prototype as fn to maintain prototype chain
+  Object.setPrototypeOf(deprecated, fn);
+  if (fn.prototype) {
+    // Setting this (rather than using Object.setPrototype, as above) ensures
+    // that calling the unwrapped constructor gives an instanceof the wrapped
+    // constructor.
+    deprecated.prototype = fn.prototype;
+  }
+
+  return deprecated;
+}
+
+
 exports.isNull = isNull;
 exports.isUndefined = isUndefined;
 exports.isNullOrUndefined = isNullOrUndefined;
@@ -233,3 +273,4 @@ exports.errnoException = errnoException;
 exports.stringToNumber = stringToNumber;
 exports.inherits = inherits;
 exports.format = format;
+exports.deprecate = deprecate;

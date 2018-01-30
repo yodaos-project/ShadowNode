@@ -18,6 +18,7 @@ var util = require('util');
 
 
 function Console() {
+  // Empty
 }
 
 Console.prototype._stdout = function(text) {
@@ -39,6 +40,12 @@ Console.prototype.error = function() {
   this._stderr(util.format.apply(this, arguments) + '\n');
 };
 
+var console = new Console();
 
-module.exports = new Console();
-module.exports.Console = Console;
+module.exports = {
+  log: console.log.bind(console),
+  info: console.info.bind(console),
+  warn: console.warn.bind(console),
+  error: console.error.bind(console),
+  Console: Console,
+};
