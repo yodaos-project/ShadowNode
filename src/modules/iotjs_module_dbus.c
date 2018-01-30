@@ -182,11 +182,11 @@ static bool iotjs_dbus_encode_jobject(jerry_value_t val,
     case DBUS_TYPE_SIGNATURE:
       {
         jerry_size_t size = jerry_get_string_size(val);
-        jerry_char_t buffer[size];
+        jerry_char_t buffer[size + 1];
         jerry_string_to_utf8_char_buffer(val, buffer, size);
 
         char* data = (char*)malloc(size);
-        memset(data, 0, size);
+        memset(data, 0, size + 1);
         strncpy(data, (char*)buffer, size);
         printf("put thing: %s\n", data);
 

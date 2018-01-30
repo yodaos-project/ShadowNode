@@ -80,6 +80,7 @@
 
   process.nextTick = nextTick;
   process._onNextTick = _onNextTick;
+  global.setImmediate = setImmediate;
 
   function _onNextTick() {
     // clone nextTickQueue to new array object, and calls function
@@ -109,6 +110,12 @@
     var args = Array.prototype.slice.call(arguments);
     args[0] = null;
     nextTickQueue.push(Function.prototype.bind.apply(callback, args));
+  }
+
+
+  function setImmediate(callback) {
+    // TODO(Yorkie): use nextTick for now...
+    nextTick(callback);
   }
 
 
