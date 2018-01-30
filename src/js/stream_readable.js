@@ -147,6 +147,11 @@ Readable.prototype.push = function(chunk, encoding) {
 };
 
 
+Readable.prototype.destroy = function() {
+  this.push(null);
+  this._readableState.destroyed = true;
+};
+
 Readable.prototype.pipe = function(dest) {
   var src = this;
   src.on('data', function(chunk) {
