@@ -515,15 +515,6 @@
     scope['Proxy'] = scope.Proxy;
   })(global);
 
-  Object.setPrototypeOf = function(obj, proto) {
-    for (var prop in proto) {
-      if (!obj.hasOwnProperty(prop)) {
-        obj[prop] = proto[prop];
-      }
-    }
-    return obj;
-  };
-
   /**
    * Polyfills End
    */
