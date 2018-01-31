@@ -217,6 +217,17 @@ Buffer.prototype.inspect = function() {
   return util.format('<Buffer %s>', str);
 };
 
+// buffer.indexOf('\n')
+// buffer.indexOf('\n', 10)
+Buffer.prototype.indexOf = function(value, byteOffset) {
+  try {
+    var str = this.slice(byteOffset || undefined).toString('utf8');
+    return str.indexOf(value + '');
+  } catch (err) {
+    throw new Error('Buffer.prototype.indexOf only supports for UTF-8 buffers');
+  }
+};
+
 // buff.toString([encoding,[,start[, end]]])
 // [1] buff.toString()
 // [2] buff.toString(start)

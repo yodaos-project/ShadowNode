@@ -34,13 +34,13 @@ function ClientRequest(options, cb) {
 
   this.host = host;
   this.url = protocol + '//' + host + ':' + port + path;
-  this.method = options.method || 'GET';
+  this.method = (options.method || 'GET').toUpperCase();
   this.ca = options.ca || '';
   this.cert = options.cert || '';
   this.key = options.key || '';
 
   if (options.rejectUnauthorized == null) {
-    this.rejectUnauthorized = true;
+    this.rejectUnauthorized = false;
   } else {
     this.rejectUnauthorized = options.rejectUnauthorized;
   }

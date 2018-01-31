@@ -188,7 +188,6 @@ static bool iotjs_dbus_encode_jobject(jerry_value_t val,
         char* data = (char*)malloc(size);
         memset(data, 0, size + 1);
         strncpy(data, (char*)buffer, size);
-        printf("put thing: %s\n", data);
 
         dbus_bool_t r = dbus_message_iter_append_basic(iter, type, &data);
         dbus_free(data);
@@ -322,13 +321,6 @@ static DBusHandlerResult iotjs_dbus_signal_filter(DBusConnection* connection,
   jerry_set_object_native_pointer(jmsg, msg, &this_module_native_info);
 
   iotjs_jargs_t jargs = iotjs_jargs_create(6);
-  printf("send callback with:\n");
-  printf("sender >> %s\n", sender);
-  printf("object >> %s\n", object_path);
-  printf("irface >> %s\n", interface);
-  printf("signal >> %s\n", signal);
-  printf("===================\n");
-
   if (sender) {
     iotjs_jargs_append_jval(&jargs, jerry_create_string(sender));
   } else {

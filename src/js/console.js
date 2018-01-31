@@ -30,6 +30,7 @@ function stderr(text) {
 }
 
 Console.prototype.log =
+Console.prototype.debug =
 Console.prototype.info = function() {
   stdout(util.format.apply(this, arguments) + '\n');
 };
@@ -43,6 +44,7 @@ var console = new Console();
 
 module.exports = {
   log: console.log.bind(console),
+  debug: console.debug.bind(console),
   info: console.info.bind(console),
   warn: console.warn.bind(console),
   error: console.error.bind(console),
