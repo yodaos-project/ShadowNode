@@ -15,10 +15,31 @@
 
 #include "iotjs_def.h"
 #include "iotjs_module_buffer.h"
+#include "iotjs_base64.h"
 
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+
+// supports regular and URL-safe base64
+const int8_t unbase64_table[256] =
+  { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -2, -1, -1, -2, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, 62, -1, 63,
+    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1,
+    -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, 63,
+    -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
+  };
 
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(bufferwrap);
@@ -363,6 +384,34 @@ JS_FUNCTION(HexWrite) {
 }
 
 
+JS_FUNCTION(Base64Write) {
+  JS_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
+  DJS_CHECK_ARGS(3, string, number, number);
+
+  iotjs_string_t src = JS_GET_ARG(0, string);
+
+  size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
+  size_t offset = iotjs_convert_double_to_sizet(JS_GET_ARG(1, number));
+  offset = bound_range(offset, 0, buffer_length);
+
+  size_t length = iotjs_convert_double_to_sizet(JS_GET_ARG(2, number));
+  length = bound_range(length, 0, buffer_length - offset);
+
+  const char* src_data = iotjs_string_data(&src);
+  unsigned src_length = iotjs_string_size(&src);
+  char* src_buf = iotjs_buffer_allocate(length);
+
+  size_t nbytes = base64_decode(src_buf, length, src_data, src_length);
+  size_t copied =
+      iotjs_bufferwrap_copy_internal(buffer_wrap, src_buf, 0, nbytes, offset);
+
+  iotjs_buffer_release(src_buf);
+  iotjs_string_destroy(&src);
+
+  return jerry_create_number(copied);
+}
+
+
 JS_FUNCTION(ReadUInt8) {
   JS_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
   DJS_CHECK_ARGS(1, number);
@@ -482,13 +531,45 @@ JS_FUNCTION(ToHexString) {
 }
 
 
+JS_FUNCTION(ToBase64) {
+  JS_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
+
+  size_t length = iotjs_bufferwrap_length(buffer_wrap);
+  const char* data = iotjs_bufferwrap_buffer(buffer_wrap);
+  JS_CHECK(data != NULL);
+
+  size_t dlen = base64_encoded_size(length);
+  char* buffer = iotjs_buffer_allocate(dlen);
+  iotjs_string_t str = iotjs_string_create_with_buffer(buffer, dlen);
+  // TODO(Yorkie): assert the returned with dlen
+  base64_encode(data, length, buffer, dlen);
+
+  jerry_value_t ret_value = iotjs_jval_create_string(&str);
+  iotjs_string_destroy(&str);
+
+  return ret_value;
+}
+
+
 JS_FUNCTION(ByteLength) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, string);
 
   iotjs_string_t str = JS_GET_ARG(0, string);
+  jerry_value_t enc = jargv[1];
   jerry_value_t size = iotjs_jval_get_string_size(&str);
 
+  if (jerry_value_is_string(enc)) {
+    iotjs_string_t enc_str = iotjs_jval_as_string(enc);
+    const char* enc_ = iotjs_string_data(&enc_str);
+    if (strcmp("base64", enc_) == 0) {
+      const char* buf = iotjs_string_data(&str);
+      size_t buflen = iotjs_string_size(&str);
+      size_t ss = base64_decoded_size(buf, buflen);
+      size = jerry_create_number(ss);
+    }
+    iotjs_string_destroy(&enc_str);
+  }
   iotjs_string_destroy(&str);
   return size;
 }
@@ -505,11 +586,14 @@ jerry_value_t InitBuffer() {
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_COPY, Copy);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITE, Write);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_HEXWRITE, HexWrite);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_BASE64WRITE, Base64Write);
+
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITEUINT8, WriteUInt8);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READUINT8, ReadUInt8);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SLICE, Slice);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOSTRING, ToString);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOHEXSTRING, ToHexString);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOBASE64, ToBase64);
 
   jerry_release_value(prototype);
 

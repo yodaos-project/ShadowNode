@@ -61,6 +61,11 @@ function Buffer(subject, encoding) {
             throw new TypeError('Invalid hex string');
           }
           break;
+        case 'base64':
+          if (this._builtin.base64Write(subject, 0, this.length) != this.length) {
+            throw new TypeError('Invalid base64 string');
+          }
+          break;
         default:
           this.write(subject);
       }
@@ -77,10 +82,9 @@ function Buffer(subject, encoding) {
 }
 
 
-// Buffer.byteLength(string)
+// Buffer.byteLength(string, encoding)
 Buffer.byteLength = function(str, encoding) {
-  var len = native.byteLength(str);
-
+  var len = native.byteLength(str, encoding);
   if (encoding !== undefined && util.isString(encoding)) {
     switch (encoding) {
       case 'hex':
@@ -221,12 +225,16 @@ Buffer.prototype.inspect = function() {
 // * start - default to 0
 // * end - default to buff.length
 Buffer.prototype.toString = function(encoding, start, end) {
-  start = start === undefined ? 0 : ~~start;
-  end = end === undefined ? this.length : ~~end;
-
-  if (encoding === 'hex') {
-    return this._builtin.toHexString().slice(start, end);
+  var buf;
+  if (encoding === 'hex' || encoding === 'base64') {
+    if (encoding === 'hex')
+      buf = this._builtin.toHexString();
+    else if (encoding === 'base64')
+      buf = this._builtin.toBase64();
+    return buf.slice(start || 0, end);
   } else {
+    start = start === undefined ? 0 : ~~start;
+    end = end === undefined ? this.length : ~~end;
     return this._builtin.toString(start, end);
   }
 };
