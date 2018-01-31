@@ -228,6 +228,11 @@ JS_FUNCTION(DoExit) {
 }
 
 
+JS_FUNCTION(Hrtime) {
+  return jerry_create_array(2);
+}
+
+
 JS_FUNCTION(GetEnvironArray) {
   uint32_t size = 0;
   while (environ[size])
@@ -377,11 +382,13 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DEBUGGERSOURCECOMPILE,
                         DebuggerSourceCompile);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
+  iotjs_jval_set_method(process, "hrtime", Hrtime);
 
   // env
   iotjs_jval_set_method(process, "_getEnvironArray", GetEnvironArray);
   iotjs_jval_set_method(process, "_setEnviron", SetEnviron);
   SetProcessEnv(process);
+
 
   // process.builtin_modules
   jerry_value_t builtin_modules = jerry_create_object();

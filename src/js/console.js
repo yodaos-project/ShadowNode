@@ -21,23 +21,22 @@ function Console() {
   // Empty
 }
 
-Console.prototype._stdout = function(text) {
-  native.stdout(text);
-};
+function stdout(text) {
+  return native.stdout(text);
+}
 
-Console.prototype._stderr = function(text) {
-  native.stderr(text);
-};
+function stderr(text) {
+  return native.stderr(text);
+}
 
 Console.prototype.log =
 Console.prototype.info = function() {
-  this._stdout(util.format.apply(this, arguments) + '\n');
+  stdout(util.format.apply(this, arguments) + '\n');
 };
-
 
 Console.prototype.warn =
 Console.prototype.error = function() {
-  this._stderr(util.format.apply(this, arguments) + '\n');
+  stderr(util.format.apply(this, arguments) + '\n');
 };
 
 var console = new Console();
@@ -48,4 +47,6 @@ module.exports = {
   warn: console.warn.bind(console),
   error: console.error.bind(console),
   Console: Console,
+  _stdout: stdout,
+  _stderr: stderr,
 };
