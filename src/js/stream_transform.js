@@ -79,7 +79,18 @@ function onfinish() {
 }
 
 function onpipe() {
-  this._readyToWrite();
+  var self = this;
+  checkIfReady(self, function() {
+    self._readyToWrite();
+  });
+}
+
+function checkIfReady(stream, cb) {
+  var listenersCount = stream.listeners('data').length;
+  if (listenersCount > 0)
+    cb();
+  else
+    process.nextTick(checkIfReady, stream, cb);
 }
 
 Transform.prototype.push = function(chunk, encoding) {

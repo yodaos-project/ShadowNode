@@ -152,15 +152,27 @@ Readable.prototype.destroy = function() {
   this._readableState.destroyed = true;
 };
 
+
 Readable.prototype.pipe = function(dest) {
   var src = this;
-  src.on('data', function(chunk) {
-    dest.write(chunk);
-  });
-  src.on('end', function() {
-    dest.end();
-  });
+  var state = this._readableState;
+
+  src.on('data', ondata);
   dest.emit('pipe', src);
+
+  if (state.endEmitted)
+    process.nextTikc(onend);
+  else
+    src.once('end', onend);
+
+  function onend() {
+    dest.end();
+  }
+
+  function ondata(chunk) {
+    dest.write(chunk);
+  }
+
   return dest;
 };
 
@@ -214,12 +226,11 @@ function emitData(stream, data) {
 
 function onEof(stream) {
   var state = stream._readableState;
-
-  state.ended = true;
-
-  if (state.length == 0) {
-    emitEnd(stream);
+  while (state.length > 0) {
+    stream.resume();
   }
+  state.ended = true;
+  emitEnd(stream);
 }
 
 
