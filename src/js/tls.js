@@ -14,8 +14,9 @@ function TLSSocket(socket, opts) {
 
   var tlsOptions = Object.assign({
     servername: socket.host || socket.hostname,
+    rejectUnauthorized: false,
   }, opts);
-  this.servername = null;
+  this.servername = tlsOptions.servername;
   this.authorized = false;
   this.authorizationError = null;
   this._socket = new net.Socket(socket);
@@ -67,7 +68,7 @@ TLSSocket.prototype.ondata = function(bytes, data) {
 };
 
 TLSSocket.prototype.onsocket = function() {
-  self.emit('socket', this._socket);
+  this.emit('socket', this._socket);
   this._tls.handshake();
 };
 
@@ -87,6 +88,7 @@ TLSSocket.prototype.onwrite = function(chunk) {
 
 TLSSocket.prototype.onhandshakedone = function(status) {
   var self = this.jsref;
+  self.authorized = true;
   self.emit('connect');
 };
 

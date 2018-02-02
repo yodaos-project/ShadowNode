@@ -55,26 +55,26 @@ static JNativeInfoType this_module_native_info = { .free_cb = NULL };
  *
  * To add more than one root, just concatenate them.
  */
-const char SSL_CA_PEM[] = "-----BEGIN CERTIFICATE-----\n"
-  "MIIDdTCCAl2gAwIBAgILBAAAAAABFUtaw5QwDQYJKoZIhvcNAQEFBQAwVzELMAkG\n"
-  "A1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExEDAOBgNVBAsTB1Jv\n"
-  "b3QgQ0ExGzAZBgNVBAMTEkdsb2JhbFNpZ24gUm9vdCBDQTAeFw05ODA5MDExMjAw\n"
-  "MDBaFw0yODAxMjgxMjAwMDBaMFcxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9i\n"
-  "YWxTaWduIG52LXNhMRAwDgYDVQQLEwdSb290IENBMRswGQYDVQQDExJHbG9iYWxT\n"
-  "aWduIFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDaDuaZ\n"
-  "jc6j40+Kfvvxi4Mla+pIH/EqsLmVEQS98GPR4mdmzxzdzxtIK+6NiY6arymAZavp\n"
-  "xy0Sy6scTHAHoT0KMM0VjU/43dSMUBUc71DuxC73/OlS8pF94G3VNTCOXkNz8kHp\n"
-  "1Wrjsok6Vjk4bwY8iGlbKk3Fp1S4bInMm/k8yuX9ifUSPJJ4ltbcdG6TRGHRjcdG\n"
-  "snUOhugZitVtbNV4FpWi6cgKOOvyJBNPc1STE4U6G7weNLWLBYy5d4ux2x8gkasJ\n"
-  "U26Qzns3dLlwR5EiUWMWea6xrkEmCMgZK9FGqkjWZCrXgzT/LCrBbBlDSgeF59N8\n"
-  "9iFo7+ryUp9/k5DPAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8E\n"
-  "BTADAQH/MB0GA1UdDgQWBBRge2YaRQ2XyolQL30EzTSo//z9SzANBgkqhkiG9w0B\n"
-  "AQUFAAOCAQEA1nPnfE920I2/7LqivjTFKDK1fPxsnCwrvQmeU79rXqoRSLblCKOz\n"
-  "yj1hTdNGCbM+w6DjY1Ub8rrvrTnhQ7k4o+YviiY776BQVvnGCv04zcQLcFGUl5gE\n"
-  "38NflNUVyRRBnMRddWQVDf9VMOyGj/8N7yy5Y0b2qvzfvGn9LhJIZJrglfCm7ymP\n"
-  "AbEVtQwdpf5pLGkkeB6zpxxxYu7KyJesF12KwvhHhm4qxFYxldBniYUr+WymXUad\n"
-  "DKqC5JlR3XC321Y9YeRq4VzW9v493kHMB65jUr9TU/Qr6cf9tveCX4XSQRjbgbME\n"
-  "HMUfpIBvFSDJ3gyICh3WZlXi/EjJKSZp4A==\n"
+const char SSL_CA_PEM[] = 
+  "-----BEGIN CERTIFICATE-----\n"
+  "MIIDujCCAqKgAwIBAgILBAAAAAABD4Ym5g0wDQYJKoZIhvcNAQEFBQAwTDEgMB4GA1UECxMX\n"
+  "R2xvYmFsU2lnbiBSb290IENBIC0gUjIxEzARBgNVBAoTCkdsb2JhbFNpZ24xEzARBgNVBAMT\n"
+  "Ckdsb2JhbFNpZ24wHhcNMDYxMjE1MDgwMDAwWhcNMjExMjE1MDgwMDAwWjBMMSAwHgYDVQQL\n"
+  "ExdHbG9iYWxTaWduIFJvb3QgQ0EgLSBSMjETMBEGA1UEChMKR2xvYmFsU2lnbjETMBEGA1UE\n"
+  "AxMKR2xvYmFsU2lnbjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKbPJA6+Lm8o\n"
+  "mUVCxKs+IVSbC9N/hHD6ErPLv4dfxn+G07IwXNb9rfF73OX4YJYJkhD10FPe+3t+c4isUoh7\n"
+  "SqbKSaZeqKeMWhG8eoLrvozps6yWJQeXSpkqBy+0Hne/ig+1AnwblrjFuTosvNYSuetZfeLQ\n"
+  "BoZfXklqtTleiDTsvHgMCJiEbKjNS7SgfQx5TfC4LcshytVsW33hoCmEofnTlEnLJGKRILzd\n"
+  "C9XZzPnqJworc5HGnRusyMvo4KD0L5CLTfuwNhv2GXqF4G3yYROIXJ/gkwpRl4pazq+r1feq\n"
+  "CapgvdzZX99yqWATXgAByUr6P6TqBwMhAo6CygPCm48CAwEAAaOBnDCBmTAOBgNVHQ8BAf8E\n"
+  "BAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUm+IHV2ccHsBqBt5ZtJot39wZhi4w\n"
+  "NgYDVR0fBC8wLTAroCmgJ4YlaHR0cDovL2NybC5nbG9iYWxzaWduLm5ldC9yb290LXIyLmNy\n"
+  "bDAfBgNVHSMEGDAWgBSb4gdXZxwewGoG3lm0mi3f3BmGLjANBgkqhkiG9w0BAQUFAAOCAQEA\n"
+  "mYFThxxol4aR7OBKuEQLq4GsJ0/WwbgcQ3izDJr86iw8bmEbTUsp9Z8FHSbBuOmDAGJFtqkI\n"
+  "k7mpM0sYmsL4h4hO291xNBrBVNpGP+DTKqttVCL1OmLNIG+6KYnX3ZHu01yiPqFbQfXf5WRD\n"
+  "LenVOavSot+3i9DAgBkcRcAtjOj4LaR0VknFBbVPFd5uRHg5h6h+u/N5GJG79G+dwfCMNYxd\n"
+  "AfvDbbnvRG15RjF+Cv6pgsH/76tuIMRQyV+dTZsXjAzlAcmgQWpzU/qlULRuJQ/7TBj0/VLZ\n"
+  "jmmx6BEP3ojY+x1J96relc8geMJgEtslQIxq/H5COEBkEveegeGTLg==\n"
   "-----END CERTIFICATE-----\n";
 
 static iotjs_tlswrap_t* iotjs_tlswrap_create(const jerry_value_t value) {
@@ -176,6 +176,8 @@ JS_FUNCTION(TlsConstructor) {
   iotjs_tlswrap_t* tlswrap = iotjs_tlswrap_create(jtls);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_tlswrap_t, tlswrap);
   
+  jerry_value_t opts = jargv[0];
+
   uv_sem_init(&_this->sender_locker_, 1);
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
   uv_async_init(loop, &_this->receiver_, iotjs_tlswrap_reciver_cb);
@@ -203,11 +205,23 @@ JS_FUNCTION(TlsConstructor) {
   /* It is possible to disable authentication by passing
    * MBEDTLS_SSL_VERIFY_NONE in the call to mbedtls_ssl_conf_authmode()
    */
-  mbedtls_ssl_conf_authmode(&_this->config_, MBEDTLS_SSL_VERIFY_REQUIRED);
+  jerry_value_t jrejectUnauthorized = iotjs_jval_get_property(opts, "rejectUnauthorized");
+  bool rejectUnauthorized = iotjs_jval_as_boolean(jrejectUnauthorized);
+  mbedtls_ssl_conf_authmode(&_this->config_, 
+                            rejectUnauthorized ? 
+                              MBEDTLS_SSL_VERIFY_REQUIRED : 
+                              MBEDTLS_SSL_VERIFY_NONE);
+  jerry_release_value(jrejectUnauthorized);
+
   if ((ret = mbedtls_ssl_setup(&_this->ssl_, &_this->config_)) != 0) {
     return JS_CREATE_ERROR(COMMON, "SSL failed.");
   }
-  mbedtls_ssl_set_hostname(&_this->ssl_, "os.mbed.com");
+
+  jerry_value_t jservername = iotjs_jval_get_property(opts, "servername");
+  iotjs_string_t servername = iotjs_jval_as_string(jservername);
+  mbedtls_ssl_set_hostname(&_this->ssl_, iotjs_string_data(&servername));
+  jerry_release_value(jservername);
+
   return jerry_create_undefined();
 }
 
