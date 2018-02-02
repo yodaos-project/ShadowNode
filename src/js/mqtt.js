@@ -29,7 +29,7 @@ function MqttClient(endpoint, options) {
   EventEmitter.call(this);
   var obj = URL.parse(endpoint);
   this._host = obj.hostname;
-  this._port = Number(obj.port);
+  this._port = Number(obj.port) || 8883;
   this._options = Object.assign({
     username: null,
     password: null,
@@ -45,6 +45,7 @@ function MqttClient(endpoint, options) {
   this._reconnectingTimer = null;
   this._msgId = 0;
   this._ttl = null;
+  console.log(this._options);
   this._handle = new native.MqttHandle(this._options);
 }
 util.inherits(MqttClient, EventEmitter);

@@ -192,7 +192,10 @@ function readBuffer(stream, n) {
     state.buffer = [];
     state.length = 0;
   } else {
-    throw new Error('not implemented');
+    var total = Buffer.concat(state.buffer);
+    res = total.slice(0, n);
+    state.buffer = [ total.slice(n) ];
+    state.length -= n;
   }
 
   return res;

@@ -1,17 +1,14 @@
 #include "iotjs_def.h"
 #include "iotjs_objectwrap.h"
-#include <mbedtls/ctr_drbg.h>
-#include <mbedtls/entropy.h>
+#include "iotjs_module_crypto.h"
 
 #define CRYPTO_DRGB_PERSONAL_KEY "0d8958fffc9ac7845e9ef1e38f606edd"
-
-mbedtls_entropy_context entropy;
-mbedtls_ctr_drbg_context drgb_ctx;
 
 JS_FUNCTION(RandomBytes) {
   // TODO
   return jerry_create_null();
 }
+
 
 JS_FUNCTION(RandomBytesSync) {
   size_t size = jerry_get_number_value(jargv[0]);
@@ -26,6 +23,8 @@ JS_FUNCTION(RandomBytesSync) {
   }
   return res;
 }
+
+
 jerry_value_t InitCrypto() {
   mbedtls_entropy_init(&entropy);
   mbedtls_ctr_drbg_init(&drgb_ctx);

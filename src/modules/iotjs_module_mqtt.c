@@ -120,7 +120,7 @@ JS_FUNCTION(MqttGetConnect) {
   JS_DECLARE_THIS_PTR(mqtt, mqtt);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_mqtt_t, mqtt);
 
-  unsigned char buf[50];
+  unsigned char buf[100];
   int len = MQTTSerialize_connect(buf, sizeof(buf), &_this->options_);
   if (len == MQTTPACKET_BUFFER_TOO_SHORT) {
     return JS_CREATE_ERROR(COMMON, "connection length is too short.");
@@ -169,7 +169,7 @@ JS_FUNCTION(MqttGetPublish) {
 }
 
 JS_FUNCTION(MqttGetPingReq) {
-  unsigned char buf[50];
+  unsigned char buf[100];
   int len = MQTTSerialize_pingreq(buf, sizeof(buf));
   jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
@@ -187,7 +187,7 @@ JS_FUNCTION(MqttGetSubscribe) {
   top.cstring = (char *)iotjs_string_data(&topic);
   int qos = (int)iotjs_jval_as_number(msg_qos);
 
-  unsigned char buf[50];
+  unsigned char buf[100];
   int len = MQTTSerialize_subscribe(buf, sizeof(buf),
                                     0,
                                     (unsigned short)iotjs_jval_as_number(msg_id),
@@ -212,7 +212,7 @@ JS_FUNCTION(MqttGetUnsubscribe) {
   MQTTString top = MQTTString_initializer;
   top.cstring = (char *)iotjs_string_data(&topic);
 
-  unsigned char buf[50];
+  unsigned char buf[100];
   int len = MQTTSerialize_unsubscribe(buf, sizeof(buf),
                                       0,
                                       (unsigned short)msgId,
@@ -227,7 +227,7 @@ JS_FUNCTION(MqttGetUnsubscribe) {
 }
 
 JS_FUNCTION(MqttGetDisconnect) {
-  unsigned char buf[50];
+  unsigned char buf[100];
   int len = MQTTSerialize_disconnect(buf, sizeof(buf));
   jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
