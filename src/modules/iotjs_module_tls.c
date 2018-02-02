@@ -185,12 +185,30 @@ JS_FUNCTION(TlsConstructor) {
   uv_async_init(loop, &_this->sender_, iotjs_tlswrap_sender_cb);
   _this->sender_.data = (void*)_this;
 
-  int ret;
-  if ((ret = mbedtls_x509_crt_parse(&_this->ca_, 
-                                    (const unsigned char *) SSL_CA_PEM,
-                                    sizeof(SSL_CA_PEM))) != 0) {
+  int ret = -1;
+
+  /**
+   * options.ca
+   */
+  jerry_value_t jca_txt = iotjs_jval_get_property(opts, "ca");
+  if (jerry_value_is_string(jca_txt)) {
+    iotjs_string_t ca_txt = iotjs_jval_as_string(jca_txt);
+    ret = mbedtls_x509_crt_parse(&_this->ca_,
+                                 (const unsigned char*)iotjs_string_data(&ca_txt),
+                                 (size_t)iotjs_string_size(&ca_txt) + 1);
+    iotjs_string_destroy(&ca_txt);
+  } else {
+    ret = mbedtls_x509_crt_parse(&_this->ca_, 
+                                 (const unsigned char*)SSL_CA_PEM,
+                                 sizeof(SSL_CA_PEM));
+  }
+  if (ret != 0) {
+    print_mbedtls_error("mbedtls_parse_crt", ret);
     return JS_CREATE_ERROR(COMMON, "parse x509 failed.");
   }
+  mbedtls_ssl_conf_ca_chain(&_this->config_, &_this->ca_, NULL);
+  mbedtls_ssl_conf_rng(&_this->config_, mbedtls_ctr_drbg_random, &drgb_ctx);
+  jerry_release_value(jca_txt);
 
   if ((ret = mbedtls_ssl_config_defaults(&_this->config_,
                                          MBEDTLS_SSL_IS_CLIENT,
@@ -199,11 +217,51 @@ JS_FUNCTION(TlsConstructor) {
     return JS_CREATE_ERROR(COMMON, "SSL configuration failed.");
   }
 
-  mbedtls_ssl_conf_ca_chain(&_this->config_, &_this->ca_, NULL);
-  mbedtls_ssl_conf_rng(&_this->config_, mbedtls_ctr_drbg_random, &drgb_ctx);
+  /**
+   * options.cert
+   * options.key
+   */
+  jerry_value_t jcert_txt = iotjs_jval_get_property(opts, "cert");
+  jerry_value_t jkey_txt = iotjs_jval_get_property(opts, "key");
+  if (jerry_value_is_string(jcert_txt) && jerry_value_is_string(jkey_txt)) {
+    iotjs_string_t cert_txt = iotjs_jval_as_string(jcert_txt);
+    iotjs_string_t key_txt = iotjs_jval_as_string(jkey_txt);
 
-  /* It is possible to disable authentication by passing
-   * MBEDTLS_SSL_VERIFY_NONE in the call to mbedtls_ssl_conf_authmode()
+    mbedtls_x509_crt cert_chain;
+    mbedtls_x509_crt_init(&cert_chain);
+    if (0 != mbedtls_x509_crt_parse(&cert_chain, 
+                                    (const unsigned char*)iotjs_string_data(&cert_txt),
+                                    iotjs_string_size(&cert_txt))) {
+      // TODO free tokens
+      JS_CREATE_ERROR(COMMON, "failed to parse cert");
+    }
+
+    mbedtls_pk_context key_ctx;
+    mbedtls_pk_init(&key_ctx);
+    if (0 != mbedtls_pk_parse_key(&key_ctx,
+                                  (const unsigned char*)iotjs_string_data(&key_txt),
+                                  iotjs_string_size(&key_txt),
+                                  NULL, 0)) {
+      // TODO free tokens
+      return JS_CREATE_ERROR(COMMON, "failed to parse key pem");
+    }
+
+    if (0 != mbedtls_ssl_set_hs_own_cert(&_this->ssl_, 
+                                         &cert_chain, 
+                                         &key_ctx)) {
+      // TODO free tokens
+      return JS_CREATE_ERROR(COMMON, "failed to set cert/key");
+    }
+
+    iotjs_string_destroy(&cert_txt);
+    iotjs_string_destroy(&key_txt);
+    printf("cert and key has been setup\n");
+  }
+  jerry_release_value(jcert_txt);
+  jerry_release_value(jkey_txt);
+
+  /**
+   * options.rejectUnauthorized
    */
   jerry_value_t jrejectUnauthorized = iotjs_jval_get_property(opts, "rejectUnauthorized");
   bool rejectUnauthorized = iotjs_jval_as_boolean(jrejectUnauthorized);
@@ -213,15 +271,20 @@ JS_FUNCTION(TlsConstructor) {
                               MBEDTLS_SSL_VERIFY_NONE);
   jerry_release_value(jrejectUnauthorized);
 
-  if ((ret = mbedtls_ssl_setup(&_this->ssl_, &_this->config_)) != 0) {
-    return JS_CREATE_ERROR(COMMON, "SSL failed.");
-  }
-
+  /**
+   * options.servername
+   */
   jerry_value_t jservername = iotjs_jval_get_property(opts, "servername");
   iotjs_string_t servername = iotjs_jval_as_string(jservername);
   mbedtls_ssl_set_hostname(&_this->ssl_, iotjs_string_data(&servername));
   jerry_release_value(jservername);
 
+  /**
+   * setup
+   */
+  if ((ret = mbedtls_ssl_setup(&_this->ssl_, &_this->config_)) != 0) {
+    return JS_CREATE_ERROR(COMMON, "SSL failed.");
+  }
   return jerry_create_undefined();
 }
 
@@ -242,6 +305,15 @@ static void iotjs_tlswrap_do_handshake(uv_work_t* req) {
   if (ret < 0) {
     print_mbedtls_error("mbedtls_ssl_handshake", ret);
     uv_cancel((uv_req_t*)req);
+  }
+
+  /**
+   * verify
+   */
+  if((ret = (int)mbedtls_ssl_get_verify_result(&_this->ssl_)) != 0) {
+    char vrfy_buf[512];
+    mbedtls_x509_crt_verify_info(vrfy_buf, sizeof(vrfy_buf), "@", (uint32_t)ret);
+    mbedtls_printf("%s\n", vrfy_buf);
   }
 }
 

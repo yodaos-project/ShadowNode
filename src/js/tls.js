@@ -14,7 +14,7 @@ function TLSSocket(socket, opts) {
 
   var tlsOptions = Object.assign({
     servername: socket.host || socket.hostname,
-    rejectUnauthorized: false,
+    rejectUnauthorized: true,
   }, opts);
   this.servername = tlsOptions.servername;
   this.authorized = false;
@@ -101,7 +101,7 @@ function connect(options, callback) {
   return TLSSocket({
     port: options.port,
     host: options.host,
-  }).connect(options, callback);
+  }, options).connect(options, callback);
 }
 
 exports.TLSSocket = TLSSocket;
