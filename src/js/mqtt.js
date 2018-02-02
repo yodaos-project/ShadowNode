@@ -30,6 +30,7 @@ function MqttClient(endpoint, options) {
   var obj = URL.parse(endpoint);
   this._host = obj.hostname;
   this._port = Number(obj.port) || 8883;
+  this._protocol = obj.protocol;
   this._options = Object.assign({
     username: null,
     password: null,
@@ -45,7 +46,6 @@ function MqttClient(endpoint, options) {
   this._reconnectingTimer = null;
   this._msgId = 0;
   this._ttl = null;
-  console.log(this._options);
   this._handle = new native.MqttHandle(this._options);
 }
 util.inherits(MqttClient, EventEmitter);
@@ -54,11 +54,17 @@ util.inherits(MqttClient, EventEmitter);
  * @method connect
  */
 MqttClient.prototype.connect = function() {
+  var tls;
   var opts = {
     port: this._port,
     host: this._host,
   };
-  this._socket = net.connect(opts, this._onconnect.bind(this));
+  if (this._protocol === 'mqtts:') {
+    tls = require('tls');
+    this._socket = tls.connect(opts, this._onconnect.bind(this));
+  } else {
+    this._socket = net.connect(opts, this._onconnect.bind(this));
+  }
   this._socket.on('data', (chunk) => {
     var res = this._handle._readPacket(chunk);
     this.emit('packetreceive');

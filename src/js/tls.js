@@ -73,7 +73,8 @@ TLSSocket.prototype.onsocket = function() {
 };
 
 TLSSocket.prototype.onsocketend = function() {
-  console.log('disconnected');
+  console.log('disconnected from socket');
+  this.emit('end');
 };
 
 TLSSocket.prototype.onread = function(size) {
