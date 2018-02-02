@@ -16,7 +16,8 @@
         "path",
         "sax",
         "string_decoder",
-        "stream", 
+        "stream",
+        "tls",
         "tty", 
         "querystring", 
         "punycode", 
@@ -405,6 +406,12 @@
       "init": "InitTimer",
       "js_file": "js/timers.js",
       "require": ["util"]
+    },
+    "tls": {
+      "native_files": ["modules/iotjs_module_tls.c"],
+      "init": "InitTls",
+      "js_file": "js/tls.js",
+      "require": ["util", "net"]
     },
     "tty": {
       "js_file": "js/tty.js"
