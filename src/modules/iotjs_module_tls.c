@@ -139,43 +139,43 @@ JS_FUNCTION(TlsConstructor) {
    * options.cert
    * options.key
    */
-  jerry_value_t jcert_txt = iotjs_jval_get_property(opts, "cert");
-  jerry_value_t jkey_txt = iotjs_jval_get_property(opts, "key");
-  if (jerry_value_is_string(jcert_txt) && jerry_value_is_string(jkey_txt)) {
-    iotjs_string_t cert_txt = iotjs_jval_as_string(jcert_txt);
-    iotjs_string_t key_txt = iotjs_jval_as_string(jkey_txt);
+  // jerry_value_t jcert_txt = iotjs_jval_get_property(opts, "cert");
+  // jerry_value_t jkey_txt = iotjs_jval_get_property(opts, "key");
+  // if (jerry_value_is_string(jcert_txt) && jerry_value_is_string(jkey_txt)) {
+  //   iotjs_string_t cert_txt = iotjs_jval_as_string(jcert_txt);
+  //   iotjs_string_t key_txt = iotjs_jval_as_string(jkey_txt);
 
-    mbedtls_x509_crt cert_chain;
-    mbedtls_x509_crt_init(&cert_chain);
-    if (0 != mbedtls_x509_crt_parse(&cert_chain, 
-                                    (const unsigned char*)iotjs_string_data(&cert_txt),
-                                    iotjs_string_size(&cert_txt))) {
-      // TODO free tokens
-      JS_CREATE_ERROR(COMMON, "failed to parse cert");
-    }
+  //   mbedtls_x509_crt cert_chain;
+  //   mbedtls_x509_crt_init(&cert_chain);
+  //   if (0 != mbedtls_x509_crt_parse(&cert_chain, 
+  //                                   (const unsigned char*)iotjs_string_data(&cert_txt),
+  //                                   iotjs_string_size(&cert_txt) + 1)) {
+  //     // TODO free tokens
+  //     return JS_CREATE_ERROR(COMMON, "failed to parse cert");
+  //   }
 
-    mbedtls_pk_context key_ctx;
-    mbedtls_pk_init(&key_ctx);
-    if (0 != mbedtls_pk_parse_key(&key_ctx,
-                                  (const unsigned char*)iotjs_string_data(&key_txt),
-                                  iotjs_string_size(&key_txt),
-                                  NULL, 0)) {
-      // TODO free tokens
-      return JS_CREATE_ERROR(COMMON, "failed to parse key pem");
-    }
+  //   mbedtls_pk_context key_ctx;
+  //   mbedtls_pk_init(&key_ctx);
+  //   if (0 != mbedtls_pk_parse_key(&key_ctx,
+  //                                 (const unsigned char*)iotjs_string_data(&key_txt),
+  //                                 iotjs_string_size(&key_txt) + 1,
+  //                                 NULL, 0)) {
+  //     // TODO free tokens
+  //     return JS_CREATE_ERROR(COMMON, "failed to parse key pem");
+  //   }
 
-    if (0 != mbedtls_ssl_set_hs_own_cert(&_this->ssl_, 
-                                         &cert_chain, 
-                                         &key_ctx)) {
-      // TODO free tokens
-      return JS_CREATE_ERROR(COMMON, "failed to set cert/key");
-    }
+  //   if (0 != mbedtls_ssl_set_hs_own_cert(&_this->ssl_, 
+  //                                        &cert_chain, 
+  //                                        &key_ctx)) {
+  //     // TODO free tokens
+  //     return JS_CREATE_ERROR(COMMON, "failed to set cert/key");
+  //   }
 
-    iotjs_string_destroy(&cert_txt);
-    iotjs_string_destroy(&key_txt);
-  }
-  jerry_release_value(jcert_txt);
-  jerry_release_value(jkey_txt);
+  //   iotjs_string_destroy(&cert_txt);
+  //   iotjs_string_destroy(&key_txt);
+  // }
+  // jerry_release_value(jcert_txt);
+  // jerry_release_value(jkey_txt);
 
   /**
    * options.rejectUnauthorized

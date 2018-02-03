@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <MQTTPacket/MQTTPacket.h>
 #include "iotjs_def.h"
 #include "iotjs_objectwrap.h"
@@ -188,51 +189,77 @@ JS_FUNCTION(MqttGetPingReq) {
 }
 
 JS_FUNCTION(MqttGetSubscribe) {
-  iotjs_string_t topic = JS_GET_ARG(0, string);
   jerry_value_t opts = JS_GET_ARG(1, object);
   jerry_value_t msg_id = iotjs_jval_get_property(opts, "id");
   jerry_value_t msg_qos = iotjs_jval_get_property(opts, "qos");
 
-  MQTTString top = MQTTString_initializer;
-  top.cstring = (char *)iotjs_string_data(&topic);
+  jerry_value_t jtopics = jargv[0];
+  uint32_t size = jerry_get_array_length(jtopics);
   int qos = (int)iotjs_jval_as_number(msg_qos);
+
+  MQTTString topics[size];
+  for (uint32_t i = 0; i < size; i++) {
+    jerry_value_t jtopic = iotjs_jval_get_property_by_index(jtopics, i);
+    iotjs_string_t topicstr = iotjs_jval_as_string(jtopic);
+    MQTTString curr = MQTTString_initializer;
+    curr.cstring = (char*)strdup(iotjs_string_data(&topicstr));
+    topics[i] = curr;
+
+    jerry_release_value(jtopic);
+    iotjs_string_destroy(&topicstr);
+  }
 
   unsigned char buf[100];
   int len = MQTTSerialize_subscribe(buf, sizeof(buf),
                                     0,
                                     (unsigned short)iotjs_jval_as_number(msg_id),
-                                    1,
-                                    &top,
+                                    (int)size,
+                                    topics,
                                     (int*)&qos);
 
   jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
   iotjs_bufferwrap_copy(wrap, (const char*)buf, (size_t)len);
 
-  jerry_release_value(msg_id);
-  jerry_release_value(msg_qos);
-  iotjs_string_destroy(&topic);
+  for (uint32_t i = 0; i < size; i++) {
+    if (topics[i].cstring != NULL)
+      free(topics[i].cstring);
+  }
   return retbuf;
 }
 
 JS_FUNCTION(MqttGetUnsubscribe) {
-  iotjs_string_t topic = JS_GET_ARG(0, string);
+  jerry_value_t jtopics = jargv[0];
   int msgId = JS_GET_ARG(1, number);
+  uint32_t size = jerry_get_array_length(jtopics);
 
-  MQTTString top = MQTTString_initializer;
-  top.cstring = (char *)iotjs_string_data(&topic);
+  MQTTString topics[size];
+  for (uint32_t i = 0; i < size; i++) {
+    jerry_value_t jtopic = iotjs_jval_get_property_by_index(jtopics, i);
+    iotjs_string_t topicstr = iotjs_jval_as_string(jtopic);
+    MQTTString curr = MQTTString_initializer;
+    curr.cstring = (char*)strdup(iotjs_string_data(&topicstr));
+    topics[i] = curr;
+
+    jerry_release_value(jtopic);
+    iotjs_string_destroy(&topicstr);
+  }
 
   unsigned char buf[100];
   int len = MQTTSerialize_unsubscribe(buf, sizeof(buf),
                                       0,
                                       (unsigned short)msgId,
-                                      1,
-                                      &top);
+                                      (int)size,
+                                      topics);
 
   jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
   iotjs_bufferwrap_copy(wrap, (const char*)buf, (size_t)len);
-  iotjs_string_destroy(&topic);
+  
+  for (uint32_t i = 0; i < size; i++) {
+    if (topics[i].cstring != NULL)
+      free(topics[i].cstring);
+  }
   return retbuf;
 }
 

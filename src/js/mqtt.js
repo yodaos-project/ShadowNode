@@ -156,6 +156,8 @@ MqttClient.prototype.publish = function(topic, payload, options, callback) {
  * @param {Function} callback
  */
 MqttClient.prototype.subscribe = function(topic, options, callback) {
+  if (!Array.isArray(topic))
+    topic = [ topic ];
   var buf = this._handle._getSubscribe(topic, {
     id: this._msgId++,
     qos: (options && options.qos) || 0,

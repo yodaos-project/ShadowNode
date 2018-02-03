@@ -114,7 +114,6 @@ double iotjs_jval_as_number(jerry_value_t jval) {
   return jerry_get_number_value(jval);
 }
 
-
 iotjs_string_t iotjs_jval_as_string(jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_string(jval));
 

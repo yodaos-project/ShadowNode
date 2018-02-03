@@ -16,6 +16,12 @@ function TLSSocket(socket, opts) {
     servername: socket.host || socket.hostname,
     rejectUnauthorized: false,
   }, opts);
+
+  // handle the [ca1,ca2,...]
+  if (Array.isArray(tlsOptions.ca)) {
+    tlsOptions.ca = tlsOptions.ca.join('\n');
+  }
+
   this.servername = tlsOptions.servername;
   this.authorized = false;
   this.authorizationError = null;
