@@ -64,6 +64,7 @@ as possible, and the following are the status:
 - [x] [Process](docs/api/IoT.js-API-Process.md)
 - [x] [Stream](docs/api/IoT.js-API-Stream.md)
 - [x] [Timers](docs/api/IoT.js-API-Timers.md)
+- [x] [TLS](docs/api/IoT.js-API-TLS.md)
 - [x] [UDP/Datagram](docs/api/IoT.js-API-DGRAM.md)
 - [x] [Zlib](docs/api/IoT.js-API-Zlib.md)
 

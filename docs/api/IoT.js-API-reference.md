@@ -15,6 +15,7 @@
 * [OS](IoT.js-API-OS.md)
 * [Process](IoT.js-API-Process.md)
 * [Timers](IoT.js-API-Timers.md)
+* [TLS](IoT.js-API-TLS.md)
 * [UDP/Datagram](IoT.js-API-DGRAM.md)
 * [Zlib](IoT.js-API-Zlib.md)
 
