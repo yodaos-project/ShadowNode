@@ -1,6 +1,7 @@
 #ifndef IOTJS_MODULE_TLS_BIO_H
 #define IOTJS_MODULE_TLS_BIO_H
 
+#include "string.h"
 #include "strings.h"
 #include "stdlib.h"
 #include "mbedtls/ssl.h"

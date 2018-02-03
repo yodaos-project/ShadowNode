@@ -17,7 +17,7 @@ static inline size_t base64_decoded_size_fast(size_t size) {
       size = 0;
     } else {
       // non-padded input, add 1 or 2 extra bytes
-      size += 1 + (remainder == 3);
+      size += 1 + (size_t)(remainder == 3);
     }
   }
 
