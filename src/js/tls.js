@@ -52,9 +52,6 @@ TLSSocket.prototype.write = function(data, cb) {
   var r = this._tls.write(data);
   if (!Buffer.isBuffer(r))
     throw new Error('Encryption is not available');
-
-  require('fs').writeFileSync('./test', r);
-
   return this._socket.write(r, cb);
 };
 
