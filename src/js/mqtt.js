@@ -55,10 +55,10 @@ util.inherits(MqttClient, EventEmitter);
  */
 MqttClient.prototype.connect = function() {
   var tls;
-  var opts = {
+  var opts = Object.assign({
     port: this._port,
     host: this._host,
-  };
+  }, this._options);
   if (this._protocol === 'mqtts:') {
     tls = require('tls');
     this._socket = tls.connect(opts, this._onconnect.bind(this));
@@ -105,7 +105,8 @@ MqttClient.prototype.connect = function() {
  * @method _onconnect
  */
 MqttClient.prototype._onconnect = function() {
-  return this._write(this._handle._getConnect());
+  var buf = this._handle._getConnect();
+  return this._write(buf);
 };
 
 /**
@@ -197,8 +198,8 @@ MqttClient.prototype.end = function(isForce, callback) {
  * @method reconnect
  */
 MqttClient.prototype.reconnect = function() {
-  this._reconnecting = true;
-  this.connect();
+  // this._reconnecting = true;
+  // this.connect();
 };
 
 /**

@@ -10,8 +10,15 @@
 #include "iotjs_objectwrap.h"
 #include "iotjs_module_crypto.h"
 #include "iotjs_module_buffer.h"
+#include "iotjs_module_tls_bio.h"
 
 #define DEBUG_LEVEL 1
+
+enum {
+  SSL_HANDSHAKE_READY = 0,
+  SSL_HANDSHAKING     = 1,
+  SSL_HANDSHAKE_DONE  = 2,
+};
 
 typedef struct {
   iotjs_jobjectwrap_t   jobjectwrap;
@@ -22,30 +29,14 @@ typedef struct {
   mbedtls_x509_crt      ca_;
   mbedtls_ssl_context   ssl_;
   mbedtls_ssl_config    config_;
-  uv_work_t             worker;
+  int                   handshake_state;
 
   /**
-   * read
+   * BIO buffer
    */
-  uv_work_t             read_req;
-  unsigned char*        read_buf_;
-  size_t                read_buflen_;
-  int                   read_result_;
+  BIO*                  ssl_bio_;
+  BIO*                  app_bio_;
 
-  /**
-   * output function
-   */
-  uv_async_t            sender_;
-  const unsigned char*  sender_buf_;
-  size_t                sender_buflen_;
-  uv_sem_t              sender_locker_;
-
-  /**
-   * input function
-   */
-  uv_async_t            receiver_;
-  const unsigned char*  receiver_buf_;
-  size_t                receiver_buflen_;
 } IOTJS_VALIDATED_STRUCT(iotjs_tlswrap_t);
 
 static JNativeInfoType this_module_native_info = { .free_cb = NULL };
@@ -92,7 +83,7 @@ static iotjs_tlswrap_t* iotjs_tlswrap_create(const jerry_value_t value) {
 
 static void print_mbedtls_error(const char *name, int err) {
   char buf[128];
-  mbedtls_strerror(err, buf, sizeof (buf));
+  mbedtls_strerror(err, buf, sizeof(buf));
   mbedtls_printf("%s() failed: -0x%04x (%d): %s\n", name, -err, err, buf);
 }
 
@@ -102,88 +93,15 @@ static void print_mbedtls_error(const char *name, int err) {
 //   IOTJS_RELEASE(tlswrap);
 // }
 
-static int iotjs_tlswrap_bio_recv(void *ctx, unsigned char *buf, size_t len) {
-  iotjs_tlswrap_t_impl_t* _this = (iotjs_tlswrap_t_impl_t*)ctx;
-  _this->receiver_buf_ = NULL;
-  _this->receiver_buflen_ = len;
-
-  while (_this->receiver_buf_ == NULL) {
-    uv_sleep(100);
-    uv_async_send(&_this->receiver_);
-  }
-
-  memcpy(buf, _this->receiver_buf_, _this->receiver_buflen_);
-  free((void*)_this->receiver_buf_);
-  _this->receiver_buflen_ = 0;
-  return len;
-}
-
-static void iotjs_tlswrap_reciver_cb(uv_async_t* handle) {
-  iotjs_tlswrap_t_impl_t* _this = (iotjs_tlswrap_t_impl_t*)(handle->data);
-  jerry_value_t jthis = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
-  jerry_value_t fn = iotjs_jval_get_property(jthis, "onread");
-
-  iotjs_jargs_t jargv = iotjs_jargs_create(1);
-  iotjs_jargs_append_number(&jargv, (double)(_this->receiver_buflen_));
-  jerry_value_t ret = iotjs_make_callback_with_result(fn, jthis, &jargv);
-
-  if (!jerry_value_is_null(ret)) {
-    iotjs_bufferwrap_t* bufwrap = iotjs_bufferwrap_from_jbuffer(ret);
-    char* src = iotjs_bufferwrap_buffer(bufwrap);
-    _this->receiver_buf_ = (void*)malloc(_this->receiver_buflen_);
-    memcpy((void*)_this->receiver_buf_, src, _this->receiver_buflen_);
-  }
-  iotjs_jargs_destroy(&jargv);
-  jerry_release_value(fn);
-}
-
-static int iotjs_tlswrap_bio_send(void *ctx, const unsigned char *buf, size_t len) {
-  iotjs_tlswrap_t_impl_t* _this = (iotjs_tlswrap_t_impl_t*)ctx;
-  uv_sem_wait(&_this->sender_locker_);
-  _this->sender_buf_ = (void*)malloc(len);
-  memcpy((void*)_this->sender_buf_, buf, len);
-  _this->sender_buflen_ = len;
-  uv_async_send(&_this->sender_);
-  return len;
-}
-
-static void iotjs_tlswrap_sender_cb(uv_async_t* handle) {
-  iotjs_tlswrap_t_impl_t* _this = (iotjs_tlswrap_t_impl_t*)(handle->data);
-  jerry_value_t jthis = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
-  jerry_value_t fn = iotjs_jval_get_property(jthis, "onwrite");
-
-  iotjs_jargs_t jargv = iotjs_jargs_create(1);
-  jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)_this->sender_buflen_);
-  iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
-
-  iotjs_bufferwrap_copy(buffer_wrap, 
-                        (const char*)_this->sender_buf_, 
-                        (size_t)_this->sender_buflen_);
-  iotjs_jargs_append_jval(&jargv, jbuffer);
-  iotjs_make_callback(fn, jthis, &jargv);
-  free((void*)_this->sender_buf_);
-  _this->sender_buflen_ = 0;
-
-  iotjs_jargs_destroy(&jargv);
-  jerry_release_value(fn);
-  uv_sem_post(&_this->sender_locker_);
-}
-
 JS_FUNCTION(TlsConstructor) {
   DJS_CHECK_THIS();
 
   const jerry_value_t jtls = JS_GET_THIS();
   iotjs_tlswrap_t* tlswrap = iotjs_tlswrap_create(jtls);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_tlswrap_t, tlswrap);
-  
-  jerry_value_t opts = jargv[0];
 
-  uv_sem_init(&_this->sender_locker_, 1);
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-  uv_async_init(loop, &_this->receiver_, iotjs_tlswrap_reciver_cb);
-  _this->receiver_.data = (void*)_this;
-  uv_async_init(loop, &_this->sender_, iotjs_tlswrap_sender_cb);
-  _this->sender_.data = (void*)_this;
+  jerry_value_t opts = jargv[0];
+  _this->handshake_state = SSL_HANDSHAKE_READY;
 
   int ret = -1;
 
@@ -255,7 +173,6 @@ JS_FUNCTION(TlsConstructor) {
 
     iotjs_string_destroy(&cert_txt);
     iotjs_string_destroy(&key_txt);
-    printf("cert and key has been setup\n");
   }
   jerry_release_value(jcert_txt);
   jerry_release_value(jkey_txt);
@@ -285,62 +202,96 @@ JS_FUNCTION(TlsConstructor) {
   if ((ret = mbedtls_ssl_setup(&_this->ssl_, &_this->config_)) != 0) {
     return JS_CREATE_ERROR(COMMON, "SSL failed.");
   }
+
+  /**
+   * Set BIO
+   */
+  _this->ssl_bio_ = SSL_BIO_new(BIO_BIO);
+  _this->app_bio_ = SSL_BIO_new(BIO_BIO);
+  BIO_make_bio_pair(_this->ssl_bio_, _this->app_bio_);
+  mbedtls_ssl_set_bio(&_this->ssl_, _this->ssl_bio_, BIO_net_send, BIO_net_recv, NULL);
   return jerry_create_undefined();
 }
 
-static void iotjs_tlswrap_do_handshake(uv_work_t* req) {
-  iotjs_tlswrap_t_impl_t* _this = (iotjs_tlswrap_t_impl_t*)(req->data);
-  mbedtls_ssl_set_bio(&_this->ssl_,
-                      (void*)_this,
-                      iotjs_tlswrap_bio_send,
-                      iotjs_tlswrap_bio_recv,
-                      NULL);
+jerry_value_t iotjs_tlswrap_encode_data(iotjs_tlswrap_t_impl_t* _this, 
+                                        iotjs_bufferwrap_t* inbuf) {
+  size_t rv = (size_t)mbedtls_ssl_write(&_this->ssl_, 
+                                        (const unsigned char*)iotjs_bufferwrap_buffer(inbuf),
+                                        iotjs_bufferwrap_length(inbuf));
+  size_t pending = 0;
+  if ((pending = BIO_ctrl_pending(_this->app_bio_)) > 0) {
+    const char tmpbuf[pending];
+    memset((void*)tmpbuf, 0, pending);
+    rv = (size_t)BIO_read(_this->app_bio_, tmpbuf, pending);
 
-  int ret;
-  do {
-    ret = mbedtls_ssl_handshake(&_this->ssl_);
-  } while (ret != 0 && (ret == MBEDTLS_ERR_SSL_WANT_READ ||
-           ret == MBEDTLS_ERR_SSL_WANT_WRITE));
-
-  if (ret < 0) {
-    print_mbedtls_error("mbedtls_ssl_handshake", ret);
-    uv_cancel((uv_req_t*)req);
-  }
-
-  /**
-   * verify
-   */
-  if((ret = (int)mbedtls_ssl_get_verify_result(&_this->ssl_)) != 0) {
-    char vrfy_buf[512];
-    mbedtls_x509_crt_verify_info(vrfy_buf, sizeof(vrfy_buf), "@", (uint32_t)ret);
-    mbedtls_printf("%s\n", vrfy_buf);
+    jerry_value_t out = iotjs_bufferwrap_create_buffer(rv);
+    iotjs_bufferwrap_t* outbuf = iotjs_bufferwrap_from_jbuffer(out);
+    iotjs_bufferwrap_copy(outbuf, (const char*)tmpbuf, rv);
+    return out;
+  } else {
+    return jerry_create_null();
   }
 }
 
-static void iotjs_tlswrap_after_handshake(uv_work_t* req, int status) {
-  iotjs_tlswrap_t_impl_t* _this = (iotjs_tlswrap_t_impl_t*)(req->data);
-  jerry_value_t jthis = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
-  jerry_value_t fn = iotjs_jval_get_property(jthis, "onhandshakedone");
+void iotjs_tlswrap_stay_update(iotjs_tlswrap_t_impl_t* _this) {
+  size_t pending = BIO_ctrl_pending(_this->app_bio_);
+  if (pending > 0) {
+    char src[pending];
+    BIO_read(_this->app_bio_, src, sizeof(src));
 
-  iotjs_jargs_t jargv = iotjs_jargs_create(1);
-  iotjs_jargs_append_number(&jargv, status);
-  iotjs_make_callback(fn, jthis, &jargv);
-  iotjs_jargs_destroy(&jargv);
-  jerry_release_value(fn);
+    jerry_value_t jthis = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
+    jerry_value_t fn = iotjs_jval_get_property(jthis, "onwrite");
+    iotjs_jargs_t jargv = iotjs_jargs_create(1);
+    jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)pending);
+    iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
+
+    iotjs_bufferwrap_copy(buffer_wrap, (const char*)src, pending);
+    iotjs_jargs_append_jval(&jargv, jbuffer);
+    iotjs_make_callback(fn, jthis, &jargv);
+
+    // TODO(Yorkie): should free
+  }
+}
+
+int iotjs_tlswrap_error_handler(iotjs_tlswrap_t_impl_t* _this, const int code) {
+  if (code == MBEDTLS_ERR_SSL_WANT_WRITE || 
+    code == MBEDTLS_ERR_SSL_WANT_READ) {
+    iotjs_tlswrap_stay_update(_this);
+  } else if (code < 0) {
+    print_mbedtls_error("mbedtls_ssl_handshake", code);
+  }
+  return code;
 }
 
 JS_FUNCTION(TlsHandshake) {
   JS_DECLARE_THIS_PTR(tlswrap, tlswrap);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_tlswrap_t, tlswrap);
 
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-  _this->worker.data = (void*)_this;
-  _this->read_req.data = (void*)_this;
-  uv_queue_work(loop, 
-                &_this->worker, 
-                iotjs_tlswrap_do_handshake, 
-                iotjs_tlswrap_after_handshake);
-  return jerry_create_undefined();
+  if (_this->handshake_state == SSL_HANDSHAKE_DONE) {
+    return jerry_create_number(SSL_HANDSHAKE_DONE);
+  }
+  _this->handshake_state = SSL_HANDSHAKING;
+  
+  int rv = 0;
+  rv = mbedtls_ssl_handshake(&_this->ssl_);
+  rv = iotjs_tlswrap_error_handler(_this, rv);
+  if (rv == 0) {
+    _this->handshake_state = SSL_HANDSHAKE_DONE;
+
+    int verify_status = (int)mbedtls_ssl_get_verify_result(&_this->ssl_);
+    if (verify_status) {
+      char buf[512];
+      mbedtls_x509_crt_verify_info(buf, sizeof(buf), "::", (uint32_t)verify_status);
+      mbedtls_printf("%s\n", buf);
+    }
+
+    // notify to the JS layer "onhandshakedone".
+    jerry_value_t fn = iotjs_jval_get_property(jthis, "onhandshakedone");
+    iotjs_jargs_t argv = iotjs_jargs_create(0);
+    iotjs_make_callback(fn, jthis, &argv);
+    jerry_release_value(fn);
+  }
+  return jerry_create_number(_this->handshake_state);
 }
 
 JS_FUNCTION(TlsWrite) {
@@ -348,85 +299,48 @@ JS_FUNCTION(TlsWrite) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_tlswrap_t, tlswrap);
 
   iotjs_bufferwrap_t* buf = iotjs_bufferwrap_from_jbuffer(jargv[0]);
-  int ret = mbedtls_ssl_write(&_this->ssl_, 
-                              (const unsigned char*)iotjs_bufferwrap_buffer(buf), 
-                              (size_t)iotjs_bufferwrap_length(buf));
-  if (ret < 0) {
-    print_mbedtls_error("mbedtls_ssl_write", ret);
-  }
-  return jerry_create_number(ret);
-}
-
-static void iotjs_tlswrap_do_read(uv_work_t* req) {
-  iotjs_tlswrap_t_impl_t* _this = (iotjs_tlswrap_t_impl_t*)(req->data);
-  size_t len = _this->read_buflen_;
-  unsigned char src[len];
-  
-  int bytes = -1;
-  while (true) {
-    bytes = mbedtls_ssl_read(&_this->ssl_, src, len);
-    if (bytes == MBEDTLS_ERR_SSL_WANT_READ ||
-        bytes == MBEDTLS_ERR_SSL_WANT_WRITE)
-      continue;
-    break;
-  }
-
-  if (bytes > 0) {
-    _this->read_buf_ = (unsigned char*)malloc(len);
-    if (_this->read_buf_ == NULL) {
-      fprintf(stderr, "Out of Memory\n");
-    }
-    memset(_this->read_buf_, 0, bytes);
-    memcpy(_this->read_buf_, src, bytes);
-  } else {
-    _this->read_buf_ = NULL;
-    print_mbedtls_error("mbedtls_ssl_read", bytes);
-  }
-  _this->read_result_ = bytes;
-}
-
-static void iotjs_tlswrap_after_read(uv_work_t* req, int status) {
-  iotjs_tlswrap_t_impl_t* _this = (iotjs_tlswrap_t_impl_t*)(req->data);
-  jerry_value_t jthis = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
-  jerry_value_t fn = iotjs_jval_get_property(jthis, "ondata");
-
-  iotjs_jargs_t jargv = iotjs_jargs_create(2);
-  iotjs_jargs_append_number(&jargv, _this->read_result_);
-  // push buffer
-  if (_this->read_buf_ != NULL) {
-    jerry_value_t jdata = iotjs_bufferwrap_create_buffer((size_t)_this->read_buflen_);
-    iotjs_bufferwrap_t* data = iotjs_bufferwrap_from_jbuffer(jdata);
-    iotjs_bufferwrap_copy(data,
-                          (const char*)_this->read_buf_,
-                          (size_t)_this->read_buflen_);
-    iotjs_jargs_append_jval(&jargv, jdata);
-    jerry_release_value(jdata);
-    if (_this->read_buf_ != NULL)
-      free((void*)_this->read_buf_);
-  }
-
-  iotjs_make_callback(fn, jthis, &jargv);
-  iotjs_jargs_destroy(&jargv);
-  jerry_release_value(fn);
-
-  if (_this->read_buf_ != NULL) {
-  }
+  return iotjs_tlswrap_encode_data(_this, buf);
 }
 
 JS_FUNCTION(TlsRead) {
   JS_DECLARE_THIS_PTR(tlswrap, tlswrap);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_tlswrap_t, tlswrap);
 
-  int size = JS_GET_ARG(0, number);
-  _this->read_buflen_ = (size_t)size;
-  _this->read_buf_ = malloc(_this->read_buflen_);
-  if (_this->read_buf_ == NULL) {
-    return JS_CREATE_ERROR(COMMON, "Out of Memory");
+  iotjs_bufferwrap_t* bufwrap = iotjs_bufferwrap_from_jbuffer(jargv[0]);
+  size_t size = iotjs_bufferwrap_length(bufwrap);
+  BIO_write(_this->app_bio_, iotjs_bufferwrap_buffer(bufwrap), size);
+
+  jerry_value_t checker = iotjs_jval_get_property(jthis, "handshake");
+  jerry_value_t res = iotjs_make_callback_with_result(checker, jthis,
+                                                      iotjs_jargs_get_empty());
+
+  // if handshaking, just returns
+  if (iotjs_jval_as_number(res) == SSL_HANDSHAKING) {
+    jerry_release_value(res);
+    return jerry_create_boolean(true);
   }
 
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-  uv_queue_work(loop, &_this->read_req, iotjs_tlswrap_do_read, iotjs_tlswrap_after_read);
-  return jerry_create_undefined();
+  int rv = -1;
+  unsigned char* decrypted = (unsigned char*)malloc(size);
+  memset(decrypted, 0, size);
+
+  rv = mbedtls_ssl_read(&_this->ssl_, decrypted, size);
+  rv = iotjs_tlswrap_error_handler(_this, rv);
+  
+  if (rv > 0) {
+    jerry_value_t fn = iotjs_jval_get_property(jthis, "onread");
+    iotjs_jargs_t jargv = iotjs_jargs_create(1);
+    jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)(rv));
+    iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
+
+    iotjs_bufferwrap_copy(buffer_wrap, (const char*)decrypted, (size_t)(rv));
+    iotjs_jargs_append_jval(&jargv, jbuffer);
+    iotjs_make_callback(fn, jthis, &jargv);
+    jerry_release_value(fn);
+  }
+
+  jerry_release_value(res);
+  return jerry_create_number(0);
 }
 
 jerry_value_t InitTls() {

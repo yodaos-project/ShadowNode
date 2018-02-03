@@ -14,20 +14,19 @@ function TLSSocket(socket, opts) {
 
   var tlsOptions = Object.assign({
     servername: socket.host || socket.hostname,
-    rejectUnauthorized: true,
+    rejectUnauthorized: false,
   }, opts);
   this.servername = tlsOptions.servername;
   this.authorized = false;
   this.authorizationError = null;
   this._socket = new net.Socket(socket);
-  this._pendingRead = false;
-  this._chunkSize = 8 * 1024;
 
   // Just a documented property to make secure sockets
   // distinguishable from regular ones.
   this.encrypted = true;
   this._socket.on('error', this._tlsError.bind(this));
   this._socket.on('connect', this.onsocket.bind(this));
+  this._socket.on('data', this.onsocketdata.bind(this));
   this._socket.on('end', this.onsocketend.bind(this));
 
   // init the handle
@@ -42,29 +41,21 @@ util.inherits(TLSSocket, EventEmitter);
 
 TLSSocket.prototype.connect = function(opts, callback) {
   this.once('connect', callback);
-  return this._socket.connect(opts);
+  this._socket.connect(opts);
+  return this;
 };
 
-TLSSocket.prototype.write = function(data) {
+TLSSocket.prototype.write = function(data, cb) {
   if (!Buffer.isBuffer(data))
     data = new Buffer(data);
-  return this._tls.write(data);
-};
 
-TLSSocket.prototype.read = function() {
-  if (this._pendingRead) {
-    throw new Error('read process is pending');
-  }
-  this._pendingRead = true;
-  this._tls.read(this._chunkSize);
-};
+  var r = this._tls.write(data);
+  if (!Buffer.isBuffer(r))
+    throw new Error('Encryption is not available');
 
-TLSSocket.prototype.ondata = function(bytes, data) {
-  this._pendingRead = false;
-  this.emit('data', data);
-  if (bytes > 0) {
-    this.read();
-  }
+  require('fs').writeFileSync('./test', r);
+
+  return this._socket.write(r, cb);
 };
 
 TLSSocket.prototype.onsocket = function() {
@@ -72,25 +63,29 @@ TLSSocket.prototype.onsocket = function() {
   this._tls.handshake();
 };
 
-TLSSocket.prototype.onsocketend = function() {
-  console.log('disconnected from socket');
-  this.emit('end');
+TLSSocket.prototype.onsocketdata = function(chunk) {
+  this._tls.read(chunk);
 };
 
-TLSSocket.prototype.onread = function(size) {
-  var buf = this.jsref._socket.read(size);
-  return Buffer.isBuffer(buf) ? buf : null;
+TLSSocket.prototype.onsocketend = function() {
+  this.emit('end');
 };
 
 TLSSocket.prototype.onwrite = function(chunk) {
   var self = this.jsref;
-  return self._socket.write(chunk);
+  var bytes = self._socket.write(chunk);
+  return bytes;
+};
+
+TLSSocket.prototype.onread = function(chunk) {
+  var self = this.jsref;
+  self.emit('data', chunk);
 };
 
 TLSSocket.prototype.onhandshakedone = function(status) {
   var self = this.jsref;
   self.authorized = true;
-  self.emit('connect');
+  self.emit('connect', this);
 };
 
 TLSSocket.prototype._tlsError = function(err) {

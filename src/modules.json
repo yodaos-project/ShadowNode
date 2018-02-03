@@ -408,7 +408,7 @@
       "require": ["util"]
     },
     "tls": {
-      "native_files": ["modules/iotjs_module_tls.c"],
+      "native_files": ["modules/iotjs_module_tls.c", "modules/iotjs_module_tls_bio.c"],
       "init": "InitTls",
       "js_file": "js/tls.js",
       "require": ["util", "net"]

@@ -36,6 +36,7 @@ JS_FUNCTION(MqttConstructor) {
   jerry_value_t keepalive = iotjs_jval_get_property(opts, "keepalive");
   jerry_value_t username = iotjs_jval_get_property(opts, "username");
   jerry_value_t password = iotjs_jval_get_property(opts, "password");
+  jerry_value_t clientId = iotjs_jval_get_property(opts, "clientId");
 
   MQTTPacket_connectData options = MQTTPacket_connectData_initializer;
   options.willFlag = 0;
@@ -46,7 +47,7 @@ JS_FUNCTION(MqttConstructor) {
   if (jerry_value_is_string(username)) {
     iotjs_string_t str = iotjs_jval_as_string(username);
     MQTTString mqttstr = MQTTString_initializer;
-    mqttstr.lenstring.data = (char*)iotjs_string_data(&str);
+    mqttstr.lenstring.data = strdup((char*)iotjs_string_data(&str));
     mqttstr.lenstring.len = (int)iotjs_string_size(&str);
     options.username = mqttstr;
     iotjs_string_destroy(&str);
@@ -54,9 +55,17 @@ JS_FUNCTION(MqttConstructor) {
   if (jerry_value_is_string(password)) {
     iotjs_string_t str = iotjs_jval_as_string(password);
     MQTTString mqttstr = MQTTString_initializer;
-    mqttstr.lenstring.data = (char*)iotjs_string_data(&str);
+    mqttstr.lenstring.data = strdup((char*)iotjs_string_data(&str));
     mqttstr.lenstring.len = (int)iotjs_string_size(&str);
     options.password = mqttstr;
+    iotjs_string_destroy(&str);
+  }
+  if (jerry_value_is_string(clientId)) {
+    iotjs_string_t str = iotjs_jval_as_string(clientId);
+    MQTTString mqttstr = MQTTString_initializer;
+    mqttstr.lenstring.data = strdup((char*)iotjs_string_data(&str));
+    mqttstr.lenstring.len = (int)iotjs_string_size(&str);
+    options.clientID = mqttstr;
     iotjs_string_destroy(&str);
   }
   _this->options_ = options;
@@ -65,6 +74,7 @@ JS_FUNCTION(MqttConstructor) {
   jerry_release_value(keepalive);
   jerry_release_value(username);
   jerry_release_value(password);
+  jerry_release_value(clientId);
   return jerry_create_undefined();
 }
 
