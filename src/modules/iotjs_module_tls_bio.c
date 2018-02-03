@@ -241,7 +241,7 @@ int BIO_read(BIO *bio, const char *buf, size_t size) {
   sz = BIO_nread(bio, &pt, size);
 
   if (sz > 0) {
-    memcpy((void*)buf, pt, sz);
+    memcpy((void*)buf, pt, (size_t)sz);
   }
 
   return sz;
@@ -259,7 +259,7 @@ int BIO_write(BIO *bio, const char *buf, size_t size) {
     return sz;
   }
 
-  memcpy(data, buf, sz);
+  memcpy(data, buf, (size_t)sz);
   return sz;
 }
 
