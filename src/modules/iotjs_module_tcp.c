@@ -646,6 +646,23 @@ JS_FUNCTION(GetSockeName) {
   return jerry_create_number(err);
 }
 
+
+JS_FUNCTION(GetPeerName) {
+  DJS_CHECK_ARGS(1, object);
+
+  iotjs_tcpwrap_t* wrap = iotjs_tcpwrap_from_jobject(JS_GET_THIS());
+  IOTJS_ASSERT(wrap != NULL);
+
+  sockaddr_storage storage;
+  int addrlen = sizeof(storage);
+  sockaddr* const addr = (sockaddr*)(&storage);
+  int err = uv_tcp_getpeername(iotjs_tcpwrap_tcp_handle(wrap), addr, &addrlen);
+  if (err == 0)
+    AddressToJS(JS_GET_ARG(0, object), addr);
+  return jerry_create_number(err);
+}
+
+
 jerry_value_t InitTcp() {
   jerry_value_t tcp = jerry_create_external_function(TCP);
 
@@ -666,6 +683,8 @@ jerry_value_t InitTcp() {
                         SetKeepAlive);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_GETSOCKNAME,
                         GetSockeName);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_GETPEERNAME,
+                        GetPeerName);
 
   jerry_release_value(prototype);
 

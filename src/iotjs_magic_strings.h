@@ -91,6 +91,7 @@
 #define IOTJS_MAGIC_STRING_FSTAT "fstat"
 #define IOTJS_MAGIC_STRING_GETADDRINFO "getaddrinfo"
 #define IOTJS_MAGIC_STRING_GETSOCKNAME "getsockname"
+#define IOTJS_MAGIC_STRING_GETPEERNAME "getpeername"
 #define IOTJS_MAGIC_STRING_GPIO "Gpio"
 #define IOTJS_MAGIC_STRING_HANDLER "handler"
 #define IOTJS_MAGIC_STRING_HANDLETIMEOUT "handleTimeout"

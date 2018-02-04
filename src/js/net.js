@@ -250,16 +250,7 @@ Socket.prototype.setKeepAlive = function(enable, delay) {
 
 
 Socket.prototype.address = function() {
-  if (!this._handle || !this._handle.getsockname) {
-    return {};
-  }
-  if (!this._sockname) {
-    var out = {};
-    var err = this._handle.getsockname(out);
-    if (err) return {}; // FIXME(bnoordhuis) Throw?
-    this._sockname = out;
-  }
-  return this._sockname;
+  return this._getsockname();
 };
 
 
@@ -288,6 +279,68 @@ Socket.prototype.setTimeout = function(msecs, callback) {
 Socket.prototype.setEncoding = function(enc) {
   // TODO
 };
+
+
+Socket.prototype._getpeername = function() {
+  if (!this._peername) {
+    if (!this._handle || !this._handle.getpeername) {
+      return {};
+    }
+    var out = {};
+    var err = this._handle.getpeername(out);
+    if (err) return {};  // FIXME(bnoordhuis) Throw?
+    this._peername = out;
+  }
+  return this._peername;
+};
+
+
+function protoGetter(name, callback) {
+  Object.defineProperty(Socket.prototype, name, {
+    configurable: false,
+    enumerable: true,
+    get: callback
+  });
+}
+
+
+protoGetter('remoteAddress', function remoteAddress() {
+  return this._getpeername().address;
+});
+
+
+protoGetter('remoteFamily', function remoteFamily() {
+  return this._getpeername().family;
+});
+
+
+protoGetter('remotePort', function remotePort() {
+  return this._getpeername().port;
+});
+
+
+Socket.prototype._getsockname = function() {
+  if (!this._handle || !this._handle.getsockname) {
+    return {};
+  }
+  if (!this._sockname) {
+    var out = {};
+    var err = this._handle.getsockname(out);
+    if (err) return {};  // FIXME(bnoordhuis) Throw?
+    this._sockname = out;
+  }
+  return this._sockname;
+};
+
+
+protoGetter('localAddress', function localAddress() {
+  return this._getsockname().address;
+});
+
+
+protoGetter('localPort', function localPort() {
+  return this._getsockname().port;
+});
 
 
 function connect(socket, ip, port) {
