@@ -20,6 +20,7 @@
 #include "iotjs_string.h"
 
 
+char* iotjs__file_read(const char* path, size_t* outlen);
 // Return value should be released with iotjs_string_destroy()
 iotjs_string_t iotjs_file_read(const char* path);
 

@@ -25,20 +25,22 @@
 #include <execinfo.h>
 #endif
 
-iotjs_string_t iotjs_file_read(const char* path) {
+char* iotjs__file_read(const char* path, size_t* outlen) {
   FILE* file = fopen(path, "rb");
   if (file == NULL) {
-    iotjs_string_t empty_content = iotjs_string_create();
-    return empty_content;
+    *outlen = 0;
+    return NULL;
   }
 
   fseek(file, 0, SEEK_END);
   long ftell_ret = ftell(file);
   IOTJS_ASSERT(ftell_ret >= 0);
+
   size_t len = (size_t)ftell_ret;
   fseek(file, 0, SEEK_SET);
 
   char* buffer = iotjs_buffer_allocate(len + 1);
+  *outlen = len;
 
 #if defined(__NUTTX__) || defined(__TIZENRT__)
   char* ptr = buffer;
@@ -57,9 +59,19 @@ iotjs_string_t iotjs_file_read(const char* path) {
   *(buffer + len) = 0;
 
   fclose(file);
+  return buffer;
+}
+
+
+iotjs_string_t iotjs_file_read(const char* path) {
+  size_t len = 0;
+  char* buffer = iotjs__file_read(path, &len);
+  if (buffer == NULL) {
+    iotjs_string_t empty_content = iotjs_string_create();
+    return empty_content;
+  }
 
   iotjs_string_t contents = iotjs_string_create_with_buffer(buffer, len);
-
   return contents;
 }
 

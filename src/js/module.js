@@ -93,6 +93,12 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
     if (filepath = tryPath(modulePath, ext)) {
       return filepath;
     }
+
+    // try with .jsc, it's snapshot script
+    if (filepath = tryPath(modulePath, '.jsc')) {
+      return filepath;
+    }
+
     if (filepath = tryPath(modulePath + '/index', ext)) {
       return filepath;
     }
@@ -202,6 +208,8 @@ iotjs_module_t.load = function(id, parent) {
   var ext = modPath.substr(modPath.lastIndexOf('.') + 1);
   if (ext === 'js') {
     module.compile();
+  } else if (ext === 'jsc') {
+    module.compile(true);
   } else if (ext === 'json') {
     var source = process.readSource(modPath);
     module.exports = JSON.parse(source);
@@ -210,11 +218,19 @@ iotjs_module_t.load = function(id, parent) {
 };
 
 
-iotjs_module_t.prototype.compile = function() {
+iotjs_module_t.prototype.compile = function(snapshot) {
   var __filename = this.filename;
   var __dirname = path.dirname(__filename);
-  var source = process.readSource(__filename);
-  var fn = process.compile(__filename, source);
+  var fn;
+  if (!snapshot) {
+    var source = process.readSource(__filename);
+    fn = process.compile(__filename, source);
+  } else {
+    fn = process.compileSnapshot(__filename);
+    if (typeof fn !== 'function')
+      throw new TypeError('Invalid snapshot file.');
+  }
+
   fn.apply(this.exports, [
     this.exports,             // exports
     this.require.bind(this),  // require
@@ -226,12 +242,26 @@ iotjs_module_t.prototype.compile = function() {
 };
 
 
+function makeSnapshot(id) {
+  var filename = iotjs_module_t.resolveModPath(id, null);
+  if (!filename) {
+    throw new Error('Module not found: ' + id);
+  }
+  var source = process.readSource(filename);
+  return process.makeSnapshot(filename, source);
+}
+
+
 iotjs_module_t.runMain = function() {
   if (process.debuggerWaitSource) {
     var fn = process.debuggerSourceCompile();
     fn.call();
   } else {
-    iotjs_module_t.load(process.argv[1], null);
+    if (process._shouldGenerateSnapshot()) {
+      makeSnapshot(process.argv[1]);
+    } else {
+      iotjs_module_t.load(process.argv[1], null);
+    }
   }
   while (process._onNextTick());
 };

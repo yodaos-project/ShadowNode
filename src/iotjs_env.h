@@ -25,6 +25,7 @@ typedef struct {
 } DebuggerConfig;
 
 typedef struct {
+  bool snapshot;
   bool memstat;
   bool show_opcode;
   DebuggerConfig* debugger;

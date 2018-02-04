@@ -51,14 +51,39 @@ JS_FUNCTION(Compile) {
     jerry_debugger_stop();
   }
 
-  jerry_value_t jres =
-      WrapEval(filename, strlen(filename), iotjs_string_data(&source),
-               iotjs_string_size(&source));
+  jerry_value_t jres = WrapEval(filename, strlen(filename), 
+                                iotjs_string_data(&source), 
+                                iotjs_string_size(&source));
 
   iotjs_string_destroy(&file);
   iotjs_string_destroy(&source);
-
   return jres;
+}
+
+
+JS_FUNCTION(CompileSnapshot) {
+  DJS_CHECK_ARGS(1, string);
+
+  iotjs_string_t path = JS_GET_ARG(0, string);
+  const iotjs_environment_t* env = iotjs_environment_get();
+
+  uv_fs_t fs_req;
+  uv_fs_stat(iotjs_environment_loop(env), &fs_req, iotjs_string_data(&path),
+             NULL);
+  uv_fs_req_cleanup(&fs_req);
+
+  if (!S_ISREG(fs_req.statbuf.st_mode)) {
+    iotjs_string_destroy(&path);
+    return JS_CREATE_ERROR(COMMON, "ReadSource error, not a regular file");
+  }
+
+  size_t size = 0;
+  char* bytecode = iotjs__file_read(iotjs_string_data(&path), &size);
+  if (bytecode == NULL || size == 0) {
+    return JS_CREATE_ERROR(COMMON, "Could not load the snapshot source.");
+  }
+
+  return jerry_exec_snapshot((uint32_t*)bytecode, size, true);
 }
 
 
@@ -162,7 +187,6 @@ JS_FUNCTION(ReadSource) {
   }
 
   iotjs_string_t code = iotjs_file_read(iotjs_string_data(&path));
-
   jerry_value_t ret_val = iotjs_jval_create_string(&code);
 
   iotjs_string_destroy(&path);
@@ -170,6 +194,7 @@ JS_FUNCTION(ReadSource) {
 
   return ret_val;
 }
+
 
 JS_FUNCTION(Umask) {
   uint32_t old;
@@ -274,6 +299,12 @@ JS_FUNCTION(SetEnviron) {
   iotjs_string_destroy(&key);
   iotjs_string_destroy(&val);
   return jerry_create_undefined();
+}
+
+JS_FUNCTION(ShouldGenerateSnapshot) {
+  iotjs_environment_t* env = (iotjs_environment_t*)iotjs_environment_get();
+  bool val = iotjs_environment_config(env)->snapshot;
+  return jerry_create_boolean(val);
 }
 
 void SetNativeSources(jerry_value_t native_sources) {
@@ -402,8 +433,12 @@ jerry_value_t InitProcess() {
   // env
   iotjs_jval_set_method(process, "_getEnvironArray", GetEnvironArray);
   iotjs_jval_set_method(process, "_setEnviron", SetEnviron);
+  iotjs_jval_set_method(process, "_shouldGenerateSnapshot", ShouldGenerateSnapshot);
   SetProcessEnv(process);
 
+
+  // snapshot
+  iotjs_jval_set_method(process, "compileSnapshot", CompileSnapshot);
 
   // process.builtin_modules
   jerry_value_t builtin_modules = jerry_create_object();
