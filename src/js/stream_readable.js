@@ -50,6 +50,9 @@ function Readable(options) {
   this._readableState = new ReadableState(options);
   this.readableHighWaterMark = this._readableState.highWaterMark;
 
+  // legacy.
+  this.readable = true;
+
   Stream.call(this);
 }
 

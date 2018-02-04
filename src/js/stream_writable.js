@@ -68,6 +68,9 @@ function Writable(options) {
 
   this._writableState = new WritableState(options);
 
+  // legacy.
+  this.writable = true;
+
   Stream.call(this);
 }
 
