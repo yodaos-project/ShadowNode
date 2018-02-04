@@ -107,6 +107,9 @@ STATIC_ASSERT(sizeof(&((uv_buf_t*) 0)->len) ==
 STATIC_ASSERT(offsetof(uv_buf_t, base) == offsetof(struct iovec, iov_base));
 STATIC_ASSERT(offsetof(uv_buf_t, len) == offsetof(struct iovec, iov_len));
 
+uint64_t uv_hrtime(void) {
+  return uv__hrtime(UV_CLOCK_PRECISE);
+}
 
 void uv_close(uv_handle_t* handle, uv_close_cb close_cb) {
   assert(!uv__is_closing(handle));
