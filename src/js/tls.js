@@ -14,8 +14,11 @@ function TLSSocket(socket, opts) {
 
   var tlsOptions = Object.assign({
     servername: socket.host || socket.hostname,
-    rejectUnauthorized: false,
+    // rejectUnauthorized: false,
   }, opts);
+
+  // TODO: currently certification is disabled
+  tlsOptions.rejectUnauthorized = false;
 
   // handle the [ca1,ca2,...]
   if (Array.isArray(tlsOptions.ca)) {
