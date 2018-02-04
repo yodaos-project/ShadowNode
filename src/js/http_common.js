@@ -64,7 +64,11 @@ function parserOnHeadersComplete(info) {
 
 
   this.incoming = new IncomingMessage(this.socket);
+  this.incoming.httpVersionMajor = info.versionMajor;
+  this.incoming.httpVersionMinor = info.versionMinor;
+  this.incoming.httpVersion = `${info.versionMajor}.${info.versionMinor}`;
   this.incoming.url = url;
+
 
   // add header fields of headers to incoming.headers
   this.incoming.addHeaders(headers);

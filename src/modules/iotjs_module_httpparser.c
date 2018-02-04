@@ -103,6 +103,7 @@ static void iotjs_httpparserwrap_destroy(
 
   iotjs_string_destroy(&_this->url);
   iotjs_string_destroy(&_this->status_msg);
+
   for (size_t i = 0; i < HEADER_MAX; i++) {
     iotjs_string_destroy(&_this->fields[i]);
     iotjs_string_destroy(&_this->values[i]);
@@ -266,6 +267,12 @@ static int iotjs_httpparserwrap_on_headers_complete(http_parser* parser) {
     }
   }
   _this->n_fields = _this->n_values = 0;
+
+  // Version
+  iotjs_jval_set_property_number(info, "versionMajor", 
+                                 (unsigned int)_this->parser.http_major);
+  iotjs_jval_set_property_number(info, "versionMinor", 
+                                 (unsigned int)_this->parser.http_minor);
 
   // Method
   if (_this->parser.type == HTTP_REQUEST) {
