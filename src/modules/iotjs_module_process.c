@@ -228,8 +228,23 @@ JS_FUNCTION(DoExit) {
 }
 
 
+#define NANOS_PER_SEC 1000000000
 JS_FUNCTION(Hrtime) {
-  return jerry_create_array(2);
+  uint64_t t = uv_hrtime();
+  uint32_t n1 = (t / NANOS_PER_SEC) >> 32;
+  uint32_t n2 = (t / NANOS_PER_SEC) & 0xffffffff;
+  uint32_t n3 = t % NANOS_PER_SEC;
+
+  jerry_value_t out = jerry_create_array(2);
+  jerry_value_t left = jerry_create_number(n1 * 0x100000000 + n2);
+  jerry_value_t right = jerry_create_number(n3);
+
+  iotjs_jval_set_property_by_index(out, 0, left);
+  iotjs_jval_set_property_by_index(out, 1, right);
+
+  jerry_release_value(left);
+  jerry_release_value(right);
+  return out;
 }
 
 
