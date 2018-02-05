@@ -107,8 +107,8 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
   uint32_t i = 1;
   uint8_t port_arg_len = strlen("--jerry-debugger-port=");
   while (i < argc && argv[i][0] == '-') {
-    if (!strcmp(argv[i], "--generate-snapshot")) {
-      _this->config.snapshot = true;
+    if (!strcmp(argv[i], "--loadstat")) {
+      _this->config.loadstat = true;
     } else if (!strcmp(argv[i], "--memstat")) {
       _this->config.memstat = true;
     } else if (!strcmp(argv[i], "--show-opcodes")) {

@@ -196,6 +196,13 @@ JS_FUNCTION(ReadSource) {
 }
 
 
+JS_FUNCTION(Loadstat) {
+  iotjs_environment_t* env = (iotjs_environment_t*)iotjs_environment_get();
+  bool loadstat = iotjs_environment_config(env)->loadstat;
+  return jerry_create_boolean(loadstat);
+}
+
+
 JS_FUNCTION(Umask) {
   uint32_t old;
 
@@ -299,12 +306,6 @@ JS_FUNCTION(SetEnviron) {
   iotjs_string_destroy(&key);
   iotjs_string_destroy(&val);
   return jerry_create_undefined();
-}
-
-JS_FUNCTION(ShouldGenerateSnapshot) {
-  iotjs_environment_t* env = (iotjs_environment_t*)iotjs_environment_get();
-  bool val = iotjs_environment_config(env)->snapshot;
-  return jerry_create_boolean(val);
 }
 
 void SetNativeSources(jerry_value_t native_sources) {
@@ -433,7 +434,7 @@ jerry_value_t InitProcess() {
   // env
   iotjs_jval_set_method(process, "_getEnvironArray", GetEnvironArray);
   iotjs_jval_set_method(process, "_setEnviron", SetEnviron);
-  iotjs_jval_set_method(process, "_shouldGenerateSnapshot", ShouldGenerateSnapshot);
+  iotjs_jval_set_method(process, "_loadstat", Loadstat);
   SetProcessEnv(process);
 
 

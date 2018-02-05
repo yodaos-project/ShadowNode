@@ -197,6 +197,7 @@ iotjs_module_t.load = function(id, parent) {
     throw new Error('Module not found: ' + id);
   }
 
+  var startAt = Date.now();
   module.filename = modPath;
   module.dirs = [modPath.substring(0, modPath.lastIndexOf('/') + 1)];
   iotjs_module_t.cache[modPath] = module;
@@ -209,6 +210,13 @@ iotjs_module_t.load = function(id, parent) {
   } else if (ext === 'json') {
     var source = process.readSource(modPath);
     module.exports = JSON.parse(source);
+  }
+
+  if (process._loadstat()) {
+    var endAt = new Date();
+    var relPath = modPath.replace(cwd, '');
+    var consume = Math.floor(endAt - startAt);
+    console.log(`[${endAt}] load "${relPath}" ${consume}ms`);
   }
   return module.exports;
 };
@@ -253,11 +261,7 @@ iotjs_module_t.runMain = function() {
     var fn = process.debuggerSourceCompile();
     fn.call();
   } else {
-    if (process._shouldGenerateSnapshot()) {
-      makeSnapshot(process.argv[1]);
-    } else {
-      iotjs_module_t.load(process.argv[1], null);
-    }
+    iotjs_module_t.load(process.argv[1], null);
   }
   while (process._onNextTick());
 };
