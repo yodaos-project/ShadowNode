@@ -1,7 +1,7 @@
 #include "iotjs_module_tls_bio.h"
 
 /* Return the number of pending bytes in read and write buffers */
-size_t BIO_ctrl_pending(BIO *bio) {
+size_t iotjs_bio_ctrl_pending(BIO *bio) {
   if (bio == NULL) {
     return 0;
   }
@@ -25,7 +25,7 @@ size_t BIO_ctrl_pending(BIO *bio) {
   return 0;
 }
 
-int BIO_set_write_buf_size(BIO *bio, long size) {
+int iotjs_bio_set_write_buf_size(BIO *bio, long size) {
   if (bio == NULL || bio->type != BIO_BIO || size < 0) {
     return SSL_FAILURE;
   }
@@ -59,7 +59,7 @@ int BIO_set_write_buf_size(BIO *bio, long size) {
  * versa. Creating something similar to a two way pipe.
  * Reading and writing between the two BIOs is not thread safe, they are
  * expected to be used by the same thread. */
-int BIO_make_bio_pair(BIO *b1, BIO *b2) {
+int iotjs_bio_make_bio_pair(BIO *b1, BIO *b2) {
   if (b1 == NULL || b2 == NULL) {
     return SSL_FAILURE;
   }
@@ -71,11 +71,13 @@ int BIO_make_bio_pair(BIO *b1, BIO *b2) {
   }
 
   /* set default write size if not already set */
-  if (b1->mem == NULL && BIO_set_write_buf_size(b1, SSL_BIO_SIZE) != SSL_SUCCESS) {
+  if (b1->mem == NULL && 
+    iotjs_bio_set_write_buf_size(b1, SSL_BIO_SIZE) != SSL_SUCCESS) {
     return SSL_FAILURE;
   }
 
-  if (b2->mem == NULL && BIO_set_write_buf_size(b2, SSL_BIO_SIZE) != SSL_SUCCESS) {
+  if (b2->mem == NULL && 
+    iotjs_bio_set_write_buf_size(b2, SSL_BIO_SIZE) != SSL_SUCCESS) {
     return SSL_FAILURE;
   }
 
@@ -87,7 +89,7 @@ int BIO_make_bio_pair(BIO *b1, BIO *b2) {
 
 
 /* Does not advance read index pointer */
-int BIO_nread0(BIO *bio, char **buf) {
+int iotjs_bio_nread0(BIO *bio, char **buf) {
   if (bio == NULL || buf == NULL) {
     return 0;
   }
@@ -109,7 +111,7 @@ int BIO_nread0(BIO *bio, char **buf) {
 
 
 /* similar to SSL_BIO_nread0 but advances the read index */
-int BIO_nread(BIO *bio, char **buf, size_t num) {
+int iotjs_bio_nread(BIO *bio, char **buf, size_t num) {
   int sz = SSL_BIO_UNSET;
 
   if (bio == NULL || buf == NULL) {
@@ -124,7 +126,7 @@ int BIO_nread(BIO *bio, char **buf, size_t num) {
     }
 
     /* get amount able to read and set buffer pointer */
-    sz = BIO_nread0(bio, buf);
+    sz = iotjs_bio_nread0(bio, buf);
     if (sz == 0) {
       return SSL_BIO_ERROR;
     }
@@ -153,7 +155,7 @@ int BIO_nread(BIO *bio, char **buf, size_t num) {
 }
 
 
-int BIO_nwrite(BIO *bio, char **buf, int num) {
+int iotjs_bio_nwrite(BIO *bio, char **buf, int num) {
   int sz = SSL_BIO_UNSET;
 
   if (bio == NULL || buf == NULL) {
@@ -213,7 +215,7 @@ int BIO_nwrite(BIO *bio, char **buf, int num) {
 
 
 /* Reset BIO to initial state */
-int BIO_reset(BIO *bio) {
+int iotjs_bio_reset(BIO *bio) {
 
   if (bio == NULL) {
     /* -1 is consistent failure even for FILE type */
@@ -235,10 +237,10 @@ int BIO_reset(BIO *bio) {
 }
 
 
-int BIO_read(BIO *bio, const char *buf, size_t size) {
+int iotjs_bio_read(BIO *bio, const char *buf, size_t size) {
   int   sz;
   char* pt;
-  sz = BIO_nread(bio, &pt, size);
+  sz = iotjs_bio_nread(bio, &pt, size);
 
   if (sz > 0) {
     memcpy((void*)buf, pt, (size_t)sz);
@@ -247,12 +249,12 @@ int BIO_read(BIO *bio, const char *buf, size_t size) {
   return sz;
 }
 
-int BIO_write(BIO *bio, const char *buf, size_t size) {
+int iotjs_bio_write(BIO *bio, const char *buf, size_t size) {
   /* internal function where arguments have already been sanity checked */
   int   sz;
   char* data;
 
-  sz = BIO_nwrite(bio, &data, size);
+  sz = iotjs_bio_nwrite(bio, &data, size);
 
   /* test space for write */
   if (sz <= 0) {
@@ -270,7 +272,7 @@ int BIO_write(BIO *bio, const char *buf, size_t size) {
  * @param type
  * @return
  */
-BIO *SSL_BIO_new(int type) {
+BIO* iotjs_ssl_bio_new(int type) {
   BIO *bio = (BIO *) malloc(sizeof(BIO));
   if (bio) {
     bzero(bio, sizeof(BIO));
@@ -282,7 +284,7 @@ BIO *SSL_BIO_new(int type) {
   return bio;
 }
 
-int BIO_free(BIO* bio) {
+int iotjs_bio_free(BIO* bio) {
   /* unchain?, doesn't matter in goahead since from free all */
   if (bio) {
     /* remove from pair by setting the paired bios pair to NULL */
@@ -296,31 +298,31 @@ int BIO_free(BIO* bio) {
   return 0;
 }
 
-int BIO_free_all(BIO* bio)
+int iotjs_bio_free_all(BIO* bio)
 {
   while (bio) {
     BIO* next = bio->next;
-    BIO_free(bio);
+    iotjs_bio_free(bio);
     bio = next;
   }
   return 0;
 }
 
-int BIO_net_send( void *ctx, const unsigned char *buf, size_t len ) {
+int iotjs_bio_net_send( void *ctx, const unsigned char *buf, size_t len ) {
   BIO *bio = (BIO*)ctx;
 
   int sz;
-  sz = BIO_write(bio, (const char *)buf, len);
+  sz = iotjs_bio_write(bio, (const char *)buf, len);
   if (sz <= 0) {
     return MBEDTLS_ERR_SSL_WANT_WRITE;
   }
   return sz;
 }
 
-int BIO_net_recv( void *ctx, unsigned char *buf, size_t len) {
+int iotjs_bio_net_recv( void *ctx, unsigned char *buf, size_t len) {
   BIO *bio = (BIO*)ctx;
   int sz;
-  sz = BIO_read(bio, (const char *)buf, len);
+  sz = iotjs_bio_read(bio, (const char *)buf, len);
 
   if (sz <= 0) {
     return MBEDTLS_ERR_SSL_WANT_READ;

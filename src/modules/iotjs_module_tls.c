@@ -206,10 +206,14 @@ JS_FUNCTION(TlsConstructor) {
   /**
    * Set BIO
    */
-  _this->ssl_bio_ = SSL_BIO_new(BIO_BIO);
-  _this->app_bio_ = SSL_BIO_new(BIO_BIO);
-  BIO_make_bio_pair(_this->ssl_bio_, _this->app_bio_);
-  mbedtls_ssl_set_bio(&_this->ssl_, _this->ssl_bio_, BIO_net_send, BIO_net_recv, NULL);
+  _this->ssl_bio_ = iotjs_ssl_bio_new(BIO_BIO);
+  _this->app_bio_ = iotjs_ssl_bio_new(BIO_BIO);
+  iotjs_bio_make_bio_pair(_this->ssl_bio_, _this->app_bio_);
+  mbedtls_ssl_set_bio(&_this->ssl_, 
+                      _this->ssl_bio_, 
+                      iotjs_bio_net_send, 
+                      iotjs_bio_net_recv, 
+                      NULL);
   return jerry_create_undefined();
 }
 
@@ -219,10 +223,10 @@ jerry_value_t iotjs_tlswrap_encode_data(iotjs_tlswrap_t_impl_t* _this,
                                         (const unsigned char*)iotjs_bufferwrap_buffer(inbuf),
                                         iotjs_bufferwrap_length(inbuf));
   size_t pending = 0;
-  if ((pending = BIO_ctrl_pending(_this->app_bio_)) > 0) {
+  if ((pending = iotjs_bio_ctrl_pending(_this->app_bio_)) > 0) {
     const char tmpbuf[pending];
     memset((void*)tmpbuf, 0, pending);
-    rv = (size_t)BIO_read(_this->app_bio_, tmpbuf, pending);
+    rv = (size_t)iotjs_bio_read(_this->app_bio_, tmpbuf, pending);
 
     jerry_value_t out = iotjs_bufferwrap_create_buffer(rv);
     iotjs_bufferwrap_t* outbuf = iotjs_bufferwrap_from_jbuffer(out);
@@ -234,10 +238,10 @@ jerry_value_t iotjs_tlswrap_encode_data(iotjs_tlswrap_t_impl_t* _this,
 }
 
 void iotjs_tlswrap_stay_update(iotjs_tlswrap_t_impl_t* _this) {
-  size_t pending = BIO_ctrl_pending(_this->app_bio_);
+  size_t pending = iotjs_bio_ctrl_pending(_this->app_bio_);
   if (pending > 0) {
     char src[pending];
-    BIO_read(_this->app_bio_, src, sizeof(src));
+    iotjs_bio_read(_this->app_bio_, src, sizeof(src));
 
     jerry_value_t jthis = iotjs_jobjectwrap_jobject(&_this->jobjectwrap);
     jerry_value_t fn = iotjs_jval_get_property(jthis, "onwrite");
@@ -308,7 +312,7 @@ JS_FUNCTION(TlsRead) {
 
   iotjs_bufferwrap_t* bufwrap = iotjs_bufferwrap_from_jbuffer(jargv[0]);
   size_t size = iotjs_bufferwrap_length(bufwrap);
-  BIO_write(_this->app_bio_, iotjs_bufferwrap_buffer(bufwrap), size);
+  iotjs_bio_write(_this->app_bio_, iotjs_bufferwrap_buffer(bufwrap), size);
 
   jerry_value_t checker = iotjs_jval_get_property(jthis, "handshake");
   jerry_value_t res = iotjs_make_callback_with_result(checker, jthis,

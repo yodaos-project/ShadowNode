@@ -96,17 +96,17 @@ enum BIO_TYPE {
   BIO_FILE   = 6
 };
 
-BIO *SSL_BIO_new(int type);
-int BIO_make_bio_pair(BIO *b1, BIO *b2);
+BIO* iotjs_ssl_bio_new(int type);
+int iotjs_bio_make_bio_pair(BIO *b1, BIO *b2);
 
-size_t BIO_ctrl_pending(BIO *bio);
-int BIO_read(BIO *bio, const char *buf, size_t size);
-int BIO_write(BIO *bio, const char *buf, size_t size);
+size_t iotjs_bio_ctrl_pending(BIO *bio);
+int iotjs_bio_read(BIO *bio, const char *buf, size_t size);
+int iotjs_bio_write(BIO *bio, const char *buf, size_t size);
 
-int BIO_reset(BIO *bio);
-int BIO_net_recv( void *ctx, unsigned char *buf, size_t len);
-int BIO_net_send( void *ctx, const unsigned char *buf, size_t len );
-int BIO_free_all(BIO* bio);
-int BIO_free(BIO* bio);
+int iotjs_bio_reset(BIO *bio);
+int iotjs_bio_net_recv( void *ctx, unsigned char *buf, size_t len);
+int iotjs_bio_net_send( void *ctx, const unsigned char *buf, size_t len );
+int iotjs_bio_free_all(BIO* bio);
+int iotjs_bio_free(BIO* bio);
 
 #endif // IOTJS_MODULE_TLS_BIO_H
