@@ -86,6 +86,7 @@ static void AfterAsync(uv_fs_t* req) {
         break;
       }
       case UV_FS_FSTAT:
+      case UV_FS_LSTAT:
       case UV_FS_STAT: {
         uv_stat_t s = (req->statbuf);
         jerry_value_t ret = MakeStatObject(&s);
