@@ -35,7 +35,10 @@ jerry_value_t InitConstants() {
   SET_CONSTANT(constants, O_WRONLY);
   SET_CONSTANT(constants, S_IFMT);
   SET_CONSTANT(constants, S_IFDIR);
+  SET_CONSTANT(constants, S_IFIFO);
   SET_CONSTANT(constants, S_IFREG);
+  SET_CONSTANT(constants, S_IFLNK);
+  SET_CONSTANT(constants, S_IFSOCK);
 
   return constants;
 }

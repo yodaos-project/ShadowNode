@@ -127,11 +127,31 @@ fs.existsSync = function(path) {
 };
 
 
+function _checkModeProperty(mode, property) {
+  return ((mode & constants.S_IFMT) === property);
+}
+
+
 function addXTimeProerties(stat) {
   stat.atime = new Date(stat.atimeMs);
   stat.mtime = new Date(stat.mtimeMs);
   stat.ctime = new Date(stat.ctimeMs);
   stat.birthtime = new Date(stat.birthtimeMs);
+  stat.isDirectory = function() {
+    return _checkModeProperty(stat.mode, constants.S_IFDIR);
+  };
+  stat.isFile = function() {
+    return _checkModeProperty(stat.mode, constants.S_IFREG);
+  };
+  stat.isSymbolicLink = function() {
+    return _checkModeProperty(stat.mode, constants.S_IFLNK);
+  };
+  stat.isFIFO = function() {
+    return _checkModeProperty(stat.mode, constants.S_IFIFO);
+  };
+  stat.isSocket = function() {
+    return _checkModeProperty(stat.mode, constants.S_IFSOCK);
+  };
   return stat;
 }
 
