@@ -57,6 +57,7 @@ if (process.env.IOTJS_PATH) {
 
 function tryPath(modulePath, ext) {
   return iotjs_module_t.tryPath(modulePath) ||
+         iotjs_module_t.tryPath(modulePath + ext + 'c') ||
          iotjs_module_t.tryPath(modulePath + ext);
 }
 
@@ -91,11 +92,6 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
 
     // id[.ext]
     if (filepath = tryPath(modulePath, ext)) {
-      return filepath;
-    }
-
-    // try with .jsc, it's snapshot script
-    if (filepath = tryPath(modulePath, '.jsc')) {
       return filepath;
     }
 
