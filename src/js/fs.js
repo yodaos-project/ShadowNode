@@ -150,6 +150,21 @@ fs.statSync = function(path) {
 };
 
 
+fs.lstat = function(path, callback) {
+  var cb = checkArgFunction(callback, 'callback');
+  fsBuiltin.lstat(checkArgString(path, 'path'), function(err, stat) {
+    if (err) return cb(err);
+    return cb(null, addXTimeProerties(stat));
+  });
+};
+
+
+fs.lstatSync = function(path) {
+  var val = fsBuiltin.lstat(checkArgString(path, 'path'));
+  return addXTimeProerties(val);
+};
+
+
 fs.fstat = function(fd, callback) {
   fsBuiltin.fstat(checkArgNumber(fd, 'fd'),
                   checkArgFunction(callback, 'callback'));

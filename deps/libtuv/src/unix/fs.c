@@ -631,6 +631,18 @@ static int uv__fs_stat(const char *path, uv_stat_t *buf) {
 }
 
 
+static int uv__fs_lstat(const char *path, uv_stat_t *buf) {
+  struct stat pbuf;
+  int ret;
+
+  ret = lstat(path, &pbuf);
+  if (ret == 0)
+    uv__to_stat(&pbuf, buf);
+
+  return ret;
+}
+
+
 static int uv__fs_fstat(int fd, uv_stat_t *buf) {
 #if defined(__NUTTX__) || defined(__TIZENRT__)
   return -1;
@@ -718,6 +730,7 @@ static void uv__fs_work(struct uv__work* w) {
     X(FTRUNCATE, ftruncate(req->file, req->off));
 #endif
     X(FUTIME, uv__fs_futime(req));
+    X(LSTAT, uv__fs_lstat(req->path, &req->statbuf));
     X(MKDIR, mkdir(req->path, req->mode));
     X(OPEN, uv__fs_open(req));
     X(READ, uv__fs_buf_iter(req, uv__fs_read));
@@ -811,6 +824,13 @@ int uv_fs_futime(uv_loop_t* loop,
   req->file = file;
   req->atime = atime;
   req->mtime = mtime;
+  POST;
+}
+
+
+int uv_fs_lstat(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_fs_cb cb) {
+  INIT(LSTAT);
+  PATH;
   POST;
 }
 

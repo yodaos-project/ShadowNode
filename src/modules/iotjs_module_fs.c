@@ -122,6 +122,7 @@ static jerry_value_t AfterSync(uv_fs_t* req, int err,
       case UV_FS_WRITE:
         return jerry_create_number(err);
       case UV_FS_FSTAT:
+      case UV_FS_LSTAT:
       case UV_FS_STAT: {
         uv_stat_t* s = &(req->statbuf);
         return MakeStatObject(s);
@@ -376,6 +377,28 @@ JS_FUNCTION(Stat) {
 }
 
 
+JS_FUNCTION(Lstat) {
+  DJS_CHECK_THIS();
+  DJS_CHECK_ARGS(1, string);
+  DJS_CHECK_ARG_IF_EXIST(1, function);
+
+  const iotjs_environment_t* env = iotjs_environment_get();
+
+  iotjs_string_t path = JS_GET_ARG(0, string);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
+
+  jerry_value_t ret_value;
+  if (!jerry_value_is_null(jcallback)) {
+    FS_ASYNC(env, lstat, jcallback, iotjs_string_data(&path));
+  } else {
+    FS_SYNC(env, lstat, iotjs_string_data(&path));
+  }
+
+  iotjs_string_destroy(&path);
+  return ret_value;
+}
+
+
 JS_FUNCTION(Fstat) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, number);
@@ -538,6 +561,7 @@ jerry_value_t InitFs() {
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_READ, Read);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_WRITE, Write);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_STAT, Stat);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_LSTAT, Lstat);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_FSTAT, Fstat);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_MKDIR, MkDir);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_RMDIR, RmDir);
