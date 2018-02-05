@@ -15,11 +15,15 @@
 
 var client = require('https_client');
 var util = require('util');
+var url = require('url');
 
 var HttpAgent = require('http_agent').Agent;
 var ClientRequest = exports.ClientRequest = client.ClientRequest;
 
 exports.request = function(options, cb) {
+  if (typeof options === 'string') {
+    options = url.parse(options);
+  }
   return new ClientRequest(options, cb);
 };
 

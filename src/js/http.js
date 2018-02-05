@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+var url = require('url');
 var Server = require('http_server').Server;
 var ClientRequest = require('http_client').ClientRequest;
 var HTTPParser = require('httpparser');
@@ -26,6 +27,9 @@ exports.ClientRequest = ClientRequest;
 exports.Server = Server;
 
 exports.request = function(options, cb) {
+  if (typeof options === 'string') {
+    options = url.parse(options);
+  }
   return new ClientRequest(options, cb);
 };
 
