@@ -205,6 +205,9 @@ CURLM* iotjs_https_get_multi_handle(iotjs_https_t* https_data) {
 void iotjs_https_initialize_curl_opts(iotjs_https_t* https_data) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_https_t, https_data);
 
+  // open the debug port
+  curl_easy_setopt(_this->curl_easy_handle, CURLOPT_VERBOSE, 1L);
+
   // Setup Some parameters for multi handle
   curl_multi_setopt(_this->curl_multi_handle, CURLMOPT_SOCKETFUNCTION,
                     iotjs_https_curl_socket_callback);

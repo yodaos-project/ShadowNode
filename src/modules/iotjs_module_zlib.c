@@ -85,6 +85,56 @@ static iotjs_zlib_t* iotjs_zlib_create(const jerry_value_t jval, jerry_value_t m
   return zlib;
 }
 
+static void iotjs_zlib_reset(iotjs_zlib_t_impl_t* _this) {
+  _this->err_ = Z_OK;
+  switch (_this->mode_) {
+    case DEFLATE:
+    case DEFLATERAW:
+    case GZIP:
+      _this->err_ = deflateReset(&_this->strm_);
+      break;
+    case INFLATE:
+    case INFLATERAW:
+    case GUNZIP:
+      _this->err_ = inflateReset(&_this->strm_);
+      break;
+    default:
+      break;
+  }
+
+  if (_this->err_ != Z_OK) {
+    fprintf(stderr, "Failed to reset stream\n");
+  }
+}
+
+static void iotjs_zlib_set_dir(iotjs_zlib_t_impl_t* _this) {
+  if (_this->dictionary_ == NULL)
+    return;
+
+  _this->err_ = Z_OK;
+  switch (_this->mode_) {
+    case DEFLATE:
+    case DEFLATERAW:
+      _this->err_ = deflateSetDictionary(&_this->strm_,
+                                         _this->dictionary_,
+                                         _this->dictionary_len_);
+      break;
+    case INFLATERAW:
+      // The other inflate cases will have the dictionary set when inflate()
+      // returns Z_NEED_DICT in Process()
+      _this->err_ = inflateSetDictionary(&_this->strm_,
+                                         _this->dictionary_,
+                                         _this->dictionary_len_);
+      break;
+    default:
+      break;
+  }
+  if (_this->err_ != Z_OK) {
+    fprintf(stderr, "Failed to set dictionary\n");
+  }
+}
+
+
 static void iotjs_zlib_process(uv_work_t* work_req) {
   iotjs_zlib_t_impl_t* _this = (iotjs_zlib_t_impl_t*)(work_req->data);
   _this->err_ = 0;
@@ -179,7 +229,8 @@ static void iotjs_zlib_process(uv_work_t* work_req) {
         // Trailing zero bytes are okay, though, since they are frequently
         // used for padding.
 
-        // Reset(_this);
+        iotjs_zlib_reset(_this);
+        iotjs_zlib_set_dir(_this);
         _this->err_ = inflate(&_this->strm_, _this->flush_);
       }
       break;
