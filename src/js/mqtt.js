@@ -78,7 +78,19 @@ MqttClient.prototype.connect = function() {
       this.emit('connect');
     } else if (res.type === MQTT_PUBLISH) {
       var msg = this._handle._deserialize(res.buffer);
-      this.emit('message', msg.topic, msg);
+      var ret = Object.assign(msg, {
+        toString: function(enc) {
+          return msg.payload.toString(enc || 'utf8');
+        }
+      });
+      this.emit('message', msg.topic, ret);
+      if (msg.qos > 0) {
+        // send publish ack
+        var ack = this._handle._getAck(msg.id, msg.qos);
+        this._write(ack, function(err) {
+          console.log('sent ack buffer with', err);
+        });
+      }
     }
   });
   this._socket.on('error', (err) => {
@@ -158,11 +170,15 @@ MqttClient.prototype.publish = function(topic, payload, options, callback) {
 MqttClient.prototype.subscribe = function(topic, options, callback) {
   if (!Array.isArray(topic))
     topic = [ topic ];
+  if (typeof options === 'function') {
+    callback = options;
+    options = { qos: 0 };
+  }
   var buf = this._handle._getSubscribe(topic, {
     id: this._msgId++,
     qos: (options && options.qos) || 0,
   });
-  this._write(buf);
+  this._write(buf, callback);
 };
 
 /**
@@ -174,7 +190,7 @@ MqttClient.prototype.unsubscribe = function(topic, callback) {
   var buf = this._handle._getUnsubscribe(topic, {
     id: this._msgId++,
   });
-  this._write(buf);
+  this._write(buf, callback);
 };
 
 /**

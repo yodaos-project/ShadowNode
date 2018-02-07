@@ -4,6 +4,13 @@
 #include "iotjs_objectwrap.h"
 #include "iotjs_module_buffer.h"
 
+enum QoS { 
+  QOS0, 
+  QOS1, 
+  QOS2, 
+  SUBFAIL=0x80 
+};
+
 typedef struct {
   iotjs_jobjectwrap_t jobjectwrap;
   char* host;
@@ -95,7 +102,7 @@ JS_FUNCTION(MqttReadPacket) {
   _this->srclen = iotjs_bufferwrap_length(wrap);
   _this->offset = 0;
 
-  unsigned char buf[50];
+  unsigned char buf[1024];
   int r = MQTTPacket_read(buf, sizeof(buf), iotjs_mqtt_read_buf, _this);
   jerry_value_t ret = jerry_create_object();
   iotjs_jval_set_property_jval(ret, "type", jerry_create_number(r));
@@ -156,7 +163,7 @@ JS_FUNCTION(MqttGetPublish) {
   MQTTString top = MQTTString_initializer;
   top.cstring = (char *)iotjs_string_data(&topic);
 
-  unsigned char buf[100];
+  unsigned char buf[1024];
   int len = MQTTSerialize_publish(buf, sizeof(buf), 
                                   iotjs_jval_as_boolean(msg_dup) ? 1 : 0, 
                                   iotjs_jval_as_number(msg_qos),
@@ -182,6 +189,29 @@ JS_FUNCTION(MqttGetPublish) {
 JS_FUNCTION(MqttGetPingReq) {
   unsigned char buf[100];
   int len = MQTTSerialize_pingreq(buf, sizeof(buf));
+  jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
+  iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
+  iotjs_bufferwrap_copy(wrap, (const char*)buf, (size_t)len);
+  return retbuf;
+}
+
+JS_FUNCTION(MqttGetAck) {
+  int msg_id = JS_GET_ARG(0, number);
+  int qos = JS_GET_ARG(1, number);
+  unsigned char buf[100];
+  int len = 0;
+
+  if (qos == QOS1) {
+    len = MQTTSerialize_ack(buf, sizeof(buf), PUBACK, 0, msg_id);
+  } else if (qos == QOS2) {
+    len = MQTTSerialize_ack(buf, sizeof(buf), PUBREC, 0, msg_id);
+  } else {
+    return JS_CREATE_ERROR(COMMON, "invalid qos from message.");
+  }
+
+  if (len <= 0)
+    return JS_CREATE_ERROR(COMMON, "invalid serialization for ack.")
+
   jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
   iotjs_bufferwrap_copy(wrap, (const char*)buf, (size_t)len);
@@ -326,6 +356,7 @@ jerry_value_t InitMQTT() {
   iotjs_jval_set_method(proto, "_getConnect", MqttGetConnect);
   iotjs_jval_set_method(proto, "_getPublish", MqttGetPublish);
   iotjs_jval_set_method(proto, "_getPingReq", MqttGetPingReq);
+  iotjs_jval_set_method(proto, "_getAck", MqttGetAck);
   iotjs_jval_set_method(proto, "_getSubscribe", MqttGetSubscribe);
   iotjs_jval_set_method(proto, "_getUnsubscribe", MqttGetUnsubscribe);
   iotjs_jval_set_method(proto, "_getDisconnect", MqttGetDisconnect);
