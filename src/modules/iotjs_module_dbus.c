@@ -316,17 +316,16 @@ static DBusHandlerResult iotjs_dbus_signal_filter(DBusConnection* connection,
   const jerry_char_t* object_path = (jerry_char_t*)dbus_message_get_path(msg);
   const jerry_char_t* interface = (jerry_char_t*)dbus_message_get_interface(msg);
   const jerry_char_t* signal = (jerry_char_t*)dbus_message_get_member(msg);
-  
+
   jerry_value_t jmsg = iotjs_dbus_decode_message(msg);
   jerry_set_object_native_pointer(jmsg, msg, &this_module_native_info);
 
-  iotjs_jargs_t jargs = iotjs_jargs_create(6);
+  iotjs_jargs_t jargs = iotjs_jargs_create(5);
   if (sender) {
     iotjs_jargs_append_jval(&jargs, jerry_create_string(sender));
   } else {
     iotjs_jargs_append_jval(&jargs, jerry_create_null());
   }
-  iotjs_jargs_append_jval(&jargs, jerry_create_string(sender));
   iotjs_jargs_append_jval(&jargs, jerry_create_string(object_path));
   iotjs_jargs_append_jval(&jargs, jerry_create_string(interface));
   iotjs_jargs_append_jval(&jargs, jerry_create_string(signal));
