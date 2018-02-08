@@ -185,7 +185,7 @@ static bool iotjs_dbus_encode_jobject(jerry_value_t val,
         jerry_char_t buffer[size + 1];
         jerry_string_to_utf8_char_buffer(val, buffer, size);
 
-        char* data = (char*)malloc(size);
+        char* data = (char*)malloc(size + 1);
         memset(data, 0, size + 1);
         strncpy(data, (char*)buffer, size);
 
