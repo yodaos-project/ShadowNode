@@ -11,7 +11,9 @@ JS_FUNCTION(Cal) {
   return jerry_create_boolean(true);
 }
 
-void iotjs_module_register(jerry_value_t exports) {
+void init(jerry_value_t exports) {
   iotjs_jval_set_property_number(exports, "foobar", 10);
   iotjs_jval_set_method(exports, "cal", Cal);
 }
+
+NODE_MODULE(binding, init)
