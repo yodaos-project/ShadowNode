@@ -23,8 +23,10 @@
 #define IOTJS_EXTERN_C extern
 #endif /* !__cplusplus */
 
+#include "jerryscript.h"
 
 IOTJS_EXTERN_C int iotjs_entry(int argc, char** argv);
+IOTJS_EXTERN_C void iotjs_module_register(jerry_value_t exports);
 
 
 #endif /* IOTJS_IOTJS_H */

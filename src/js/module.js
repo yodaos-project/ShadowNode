@@ -210,6 +210,12 @@ iotjs_module_t.load = function(id, parent) {
   } else if (ext === 'json') {
     var source = process.readSource(modPath);
     module.exports = JSON.parse(source);
+  } else if (ext === 'node') {
+    var native = process.dlopen(module.filename);
+    if (native === -1) {
+      throw new Error(`could not find native module "${module.filename}"`);
+    }
+    module.exports = native;
   }
 
   if (process._loadstat()) {

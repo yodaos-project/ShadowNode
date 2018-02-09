@@ -17,6 +17,7 @@
 #include "iotjs_js.h"
 #include "jerryscript-debugger.h"
 #include <stdlib.h>
+#include <dlfcn.h>
 
 #ifdef __APPLE__
 #include <crt_externs.h>
@@ -308,6 +309,30 @@ JS_FUNCTION(SetEnviron) {
   return jerry_create_undefined();
 }
 
+JS_FUNCTION(DLOpen) {
+  iotjs_string_t location = JS_GET_ARG(0, string);
+  void (*initfn)(jerry_value_t);
+
+  void* handle = dlopen(iotjs_string_data(&location), RTLD_LAZY);
+  if (handle == NULL) {
+    return jerry_create_number(-1);
+  }
+  dlerror();  // for clear dl errors.
+
+  initfn = dlsym(handle, "iotjs_module_register");
+  //check for dlsym
+  char* error = dlerror();
+  if (error != NULL) {
+    fprintf(stderr, "dlsym: error(%s)\n", error);
+    dlclose(handle);
+    return jerry_create_number(-1);
+  }
+
+  jerry_value_t exports = jerry_create_object();
+  (*initfn)(exports);
+  return exports;
+}
+
 void SetNativeSources(jerry_value_t native_sources) {
   for (int i = 0; js_modules[i].name; i++) {
     iotjs_jval_set_property_jval(native_sources, js_modules[i].name,
@@ -437,6 +462,8 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_method(process, "_loadstat", Loadstat);
   SetProcessEnv(process);
 
+  // native module
+  iotjs_jval_set_method(process, "dlopen", DLOpen);
 
   // snapshot
   iotjs_jval_set_method(process, "compileSnapshot", CompileSnapshot);
