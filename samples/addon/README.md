@@ -59,10 +59,12 @@ JS_FUNCTION(Cal) {
   return jerry_create_boolean(true);
 }
 
-void iotjs_module_register(jerry_value_t exports) {
+void init(jerry_value_t exports) {
   iotjs_jval_set_property_number(exports, "foobar", 10);
   iotjs_jval_set_method(exports, "cal", Cal);
 }
+
+NODE_MODULE(mybinding, init)
 ```
 
 Every native module requires a function `iotjs_module_register(exports)`, which is the entry
@@ -81,3 +83,4 @@ $ make
 var binding = require('./binding.node');
 binding.cal();  // true
 ```
+
