@@ -17,6 +17,7 @@
 #define IOTJS_BINDING_H
 
 #include "iotjs_util.h"
+#include "iotjs_string.h"
 #include "jerryscript.h"
 
 #include <stdio.h>
@@ -58,6 +59,7 @@ void iotjs_jval_set_property_boolean(jerry_value_t jobj, const char* name,
                                      bool v);
 void iotjs_jval_set_property_number(jerry_value_t jobj, const char* name,
                                     double v);
+
 void iotjs_jval_set_property_string(jerry_value_t jobj, const char* name,
                                     const iotjs_string_t* v);
 void iotjs_jval_set_property_string_raw(jerry_value_t jobj, const char* name,
