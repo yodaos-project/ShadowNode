@@ -88,6 +88,7 @@ JS_FUNCTION(MqttConstructor) {
 
 int iotjs_mqtt_read_buf(unsigned char* buf, int len, void* ctx) {
   iotjs_mqtt_t_impl_t* _this = (iotjs_mqtt_t_impl_t*)ctx;
+  memset(buf, 0, (size_t)len);
   memcpy(buf, _this->src + _this->offset, (size_t)len);
   _this->offset += len;
   return len;
@@ -104,6 +105,7 @@ JS_FUNCTION(MqttReadPacket) {
 
   unsigned char buf[1024];
   int r = MQTTPacket_read(buf, sizeof(buf), iotjs_mqtt_read_buf, _this);
+
   jerry_value_t ret = jerry_create_object();
   iotjs_jval_set_property_jval(ret, "type", jerry_create_number(r));
 

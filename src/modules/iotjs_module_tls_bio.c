@@ -243,6 +243,7 @@ int iotjs_bio_read(BIO *bio, const char *buf, size_t size) {
   sz = iotjs_bio_nread(bio, &pt, size);
 
   if (sz > 0) {
+    memset((void*)buf, 0, (size_t)sz);
     memcpy((void*)buf, pt, (size_t)sz);
   }
 
@@ -261,6 +262,7 @@ int iotjs_bio_write(BIO *bio, const char *buf, size_t size) {
     return sz;
   }
 
+  memset(data, 0, (size_t)sz);
   memcpy(data, buf, (size_t)sz);
   return sz;
 }
