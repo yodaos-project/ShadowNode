@@ -501,9 +501,19 @@ JS_FUNCTION(ToString) {
 
   if (!jerry_is_valid_utf8_string((const jerry_char_t*)data, length)) {
     return JS_CREATE_ERROR(TYPE, "Invalid UTF-8 string");
+  } else {
+    return jerry_create_string_sz_from_utf8((const jerry_char_t*)data, length);
   }
+}
 
-  return jerry_create_string_sz_from_utf8((const jerry_char_t*)data, length);
+
+JS_FUNCTION(IsUtf8String) {
+  JS_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
+  const char* data = iotjs_bufferwrap_buffer(buffer_wrap);
+  size_t length = iotjs_bufferwrap_length(buffer_wrap);
+
+  bool is_valid_utf8 = jerry_is_valid_utf8_string((const jerry_char_t*)data, length);
+  return jerry_create_boolean(is_valid_utf8);
 }
 
 
@@ -594,6 +604,9 @@ jerry_value_t InitBuffer() {
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOSTRING, ToString);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOHEXSTRING, ToHexString);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOBASE64, ToBase64);
+
+  // internal methods
+  iotjs_jval_set_method(prototype, "_isUtf8String", IsUtf8String);
 
   jerry_release_value(prototype);
 

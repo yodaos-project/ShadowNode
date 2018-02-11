@@ -245,19 +245,11 @@
     },
     "https": {
       "js_file": "js/https.js",
-      "require": ["https_client", "https_incoming", "https_native", "http_agent", "util"]
+      "require": ["https_client", "http_agent", "util"]
     },
     "https_client": {
       "js_file": "js/https_client.js",
-      "require": ["buffer", "https_incoming", "stream", "util"]
-    },
-    "https_incoming": {
-      "js_file": "js/https_incoming.js",
-      "require": ["buffer", "dns", "events", "stream", "util"]
-    },
-    "https_native": {
-      "native_files": ["modules/iotjs_module_https.c"],
-      "init": "InitHttps"
+      "require": ["buffer", "tls", "stream", "util"]
     },
     "i2c": {
       "platforms": {

@@ -329,11 +329,11 @@ JS_FUNCTION(TlsRead) {
     return jerry_create_boolean(true);
   }
 
-  int rv = -1;
-  unsigned char* decrypted = (unsigned char*)malloc(size);
-  memset(decrypted, 0, size);
-
   while (true) {
+    unsigned char decrypted[size];
+    memset(decrypted, 0, size);
+
+    int rv = -1;
     rv = mbedtls_ssl_read(&_this->ssl_, decrypted, size);
     rv = iotjs_tlswrap_error_handler(_this, rv);
 
@@ -361,7 +361,6 @@ JS_FUNCTION(TlsRead) {
   }
 
   jerry_release_value(res);
-  free(decrypted);
   return jerry_create_number(0);
 }
 

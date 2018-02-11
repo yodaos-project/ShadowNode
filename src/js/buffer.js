@@ -341,6 +341,16 @@ Buffer.prototype.fill = function(value) {
 };
 
 
+Buffer.prototype.valid = function(encoding) {
+  encoding = encoding || 'utf8';
+  if (encoding === 'utf8') {
+    return this._builtin._isUtf8String();
+  } else {
+    throw new TypeError(`Unknown ${encoding} validation.`);
+  }
+};
+
+
 Buffer.from = function (arg, encodingOrOffset, length) {
   if (typeof arg === 'number') {
     throw new TypeError('Argument must not be a number');

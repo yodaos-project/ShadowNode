@@ -1,4 +1,4 @@
-/* Copyright 2017-present Samsung Electronics Co., Ltd. and other contributors
+/* Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,151 +14,226 @@
  */
 
 var util = require('util');
-var incoming = require('https_incoming');
-var stream = require('stream');
-var Buffer = require('buffer');
-var httpsNative = require('https_native');
-
-var methods = {'0': 'DELETE', '1': 'GET', '2': 'HEAD', '3': 'POST',
-    '4': 'PUT', '5': 'CONNECT', '6': 'OPTIONS', '7': 'TRACE'};
-exports.METHODS = methods;
+var tls = require('tls');
+var OutgoingMessage = require('http_outgoing').OutgoingMessage;
+var common = require('http_common');
+var HTTPParser = require('httpparser').HTTPParser;
 
 function ClientRequest(options, cb) {
-  this.stream = stream.Writable.call(this, options);
+  OutgoingMessage.call(this);
 
   // get port, host and method.
   var port = options.port = options.port || 443;
   var host = options.host = options.hostname || options.host || '127.0.0.1';
+  var method = options.method || 'GET';
   var path = options.path || '/';
-  var protocol = options.protocol || 'https:';
 
-  this.host = host;
-  this.url = protocol + '//' + host + ':' + port + path;
-  this.method = (options.method || 'GET').toUpperCase();
-  this.ca = options.ca || '';
-  this.cert = options.cert || '';
-  this.key = options.key || '';
+  // buffer for cached..
+  this._buffer = null;
 
-  if (options.rejectUnauthorized == null) {
-    this.rejectUnauthorized = false;
-  } else {
-    this.rejectUnauthorized = options.rejectUnauthorized;
-  }
-
-  var isMethodGood = false;
-  for (var key in methods) {
-    if (methods.hasOwnProperty(key)) {
-      if (this.method === methods[key]) {
-        isMethodGood = true;
-        break;
-      }
+  // If `options` contains header information, save it.
+  if (options.headers) {
+    var keys = Object.keys(options.headers);
+    for (var i = 0, l = keys.length; i < l; i++) {
+      var key = keys[i];
+      this.setHeader(key, options.headers[key]);
     }
   }
 
-  if (!isMethodGood) {
-    var err = new Error('Incorrect options.method.');
-    this.emit('error', err);
-    return;
+  if (host && !this.getHeader('host')) {
+    var hostHeader = host;
+    if (port && +port !== 443) {
+      hostHeader += ':' + port;
+    }
+    this.setHeader('Host', hostHeader);
   }
 
-  this._incoming = new incoming.IncomingMessage(this);
-  this._incoming.url = this.url;
-  this._incoming.method = this.method;
-  this.aborted = null;
+  // store first header line to be sent.
+  this._storeHeader(method + ' ' + path + ' HTTP/1.1\r\n');
 
   // Register response event handler.
   if (cb) {
     this.once('response', cb);
   }
-  this.once('finish', this.onFinish);
 
-  httpsNative.createRequest(this);
+  // Create socket.
+  var socket = tls.connect({
+    host: host,
+    port: port
+  });
 
-  if (options.auth) {
-    var headerString = 'Authorization: Basic ' + toBase64(options.auth);
-    httpsNative.addHeader(headerString, this);
-  }
-  if (options.headers) {
-    var keys = Object.keys(options.headers);
-    for (var i = 0, l = keys.length; i < l; i++) {
-      var key = keys[i];
-      httpsNative.addHeader(key + ': ' + options.headers[key], this);
-    }
-  }
-  httpsNative.sendRequest(this);
+  // setup connection information.
+  setupConnection(this, socket);
 }
 
-util.inherits(ClientRequest, stream.Writable);
-
-// Concrete stream overriding the empty underlying _write method.
-ClientRequest.prototype._write = function(chunk, callback, onwrite) {
-  httpsNative._write(this, chunk.toString(), callback, onwrite);
-};
-
-ClientRequest.prototype.headersComplete = function() {
-  var self = this;
-  self.emit('response', self._incoming);
-  return (self.method == 'HEAD');
-};
-
-ClientRequest.prototype.onError = function(ret) {
-  this.emit('error', ret);
-};
-
-ClientRequest.prototype.onFinish = function() {
-  httpsNative.finishRequest(this);
-};
-
-ClientRequest.prototype.setTimeout = function(ms, cb) {
-  this._incoming.setTimeout(ms, cb);
-};
-
-ClientRequest.prototype.abort = function(doNotEmit) {
-  if (!this.aborted) {
-    httpsNative.abort(this);
-    var date = new Date();
-    this.aborted = date.getTime();
-
-    if (this._incoming.parser) {
-      this._incoming.parser.finish();
-      this._incoming.parser = null;
-    }
-
-    if (!doNotEmit) {
-      this.emit('abort');
-    }
-  }
-};
+util.inherits(ClientRequest, OutgoingMessage);
 
 exports.ClientRequest = ClientRequest;
 
-function toBase64(input) {
-  var output = '';
-  var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
-  var i = 0;
-  // Convert to UTF-8
-  input = Buffer(input).toString();
-  var _keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' +
-    '0123456789+/=';
-  while (i < input.length) {
-    chr1 = input.charCodeAt(i++);
-    chr2 = input.charCodeAt(i++);
-    chr3 = input.charCodeAt(i++);
 
-    enc1 = chr1 >> 2;
-    enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-    enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-    enc4 = chr3 & 63;
+function setupConnection(req, socket) {
+  var parser = common.createHTTPParser();
+  parser.reinitialize(HTTPParser.RESPONSE);
+  socket.parser = parser;
+  socket._httpMessage = req;
 
-    if (isNaN(chr2)) {
-      enc3 = enc4 = 64;
-    } else if (isNaN(chr3)) {
-      enc4 = 64;
-    }
+  parser.socket = socket;
+  parser.incoming = null;
+  parser._headers = [];
+  parser.onIncoming = parserOnIncomingClient;
 
-    output = output +
-      _keyStr.charAt(enc1) + _keyStr.charAt(enc2) +
-      _keyStr.charAt(enc3) + _keyStr.charAt(enc4);
-  }
-  return output;
+  req.socket = socket;
+  req.connection = socket;
+  req.parser = parser;
+
+  socket.on('error', socketOnError);
+  socket.on('data', socketOnData);
+  socket.on('end', socketOnEnd);
+  socket.on('close', socketOnClose);
+  socket.on('lookup', socketOnLookup);
+
+  // socket emitted when a socket is assigned to req
+  process.nextTick(function() {
+    req.emit('socket', socket);
+  });
 }
+
+function cleanUpSocket(socket) {
+  var parser = socket.parser;
+  var req = socket._httpMessage;
+
+  if (parser) {
+    // unref all links to parser, make parser GCed
+    parser.finish();
+    parser = null;
+    socket.parser = null;
+    req.parser = null;
+  }
+
+  socket.destroy();
+}
+
+function emitError(socket, err) {
+  var req = socket._httpMessage;
+
+  if (err) {
+    var host;
+    if (host = req.getHeader('host')) {
+      err.message += ': ' + (host ? host : '');
+    }
+    req.emit('error', err);
+  }
+}
+
+function socketOnClose() {
+  var socket = this;
+  var req = socket._httpMessage;
+  var parser = socket.parser;
+
+  // socket.read();
+
+  req.emit('close');
+
+  if (req.res && req.res.readable) {
+    // Socket closed before we emitted 'end'
+    var res = req.res;
+    res.on('end', function() {
+      res.emit('close');
+    });
+    res.push(null);
+  }
+
+  cleanUpSocket(this);
+}
+
+function socketOnError(err) {
+  cleanUpSocket(this);
+  emitError(this, err);
+}
+
+function socketOnLookup(err, ip, family) {
+  emitError(this, err);
+}
+
+function socketOnData(d) {
+  var socket = this;
+  var req = this._httpMessage;
+  var parser = this.parser;
+
+  if (!this._buffer) {
+    this._buffer = d;
+  } else {
+    this._buffer = Buffer.concat([this._buffer, d]);
+  }
+
+  if (this._buffer.valid('utf8')) {
+    ondata(this._buffer);
+    this._buffer = null;
+  }
+
+  function ondata(valid) {
+    var ret = parser.execute(valid);
+    if (ret instanceof Error) {
+      cleanUpSocket(socket);
+      req.emit('error', ret);
+    }
+  }
+}
+
+function socketOnEnd() {
+  cleanUpSocket(this);
+}
+
+// This is called by parserOnHeadersComplete after response header is parsed.
+// TODO: keepalive support
+function parserOnIncomingClient(res, shouldKeepAlive) {
+  var socket = this.socket;
+  var req = socket._httpMessage;
+
+  if (req.res) {
+    // server sent responses twice.
+    socket.destroy();
+    return false;
+  }
+  req.res = res;
+
+  res.req = req;
+
+  res.on('end', responseOnEnd);
+
+  req.emit('response', res);
+
+  // response to HEAD req has no body
+  var isHeadResponse = (req.method == 'HEAD');
+
+  return isHeadResponse;
+
+}
+
+var responseOnEnd = function() {
+  var res = this;
+  var req = res.req;
+  var socket = req.socket;
+
+  // if (socket._socketState.writable) {
+  //   socket.destroySoon();
+  // }
+};
+
+
+ClientRequest.prototype.setTimeout = function(ms, cb) {
+  var self = this;
+
+  if (cb) self.once('timeout', cb);
+
+  var emitTimeout = function() {
+    self.emit('timeout');
+  };
+
+  // In IoT.js, socket is already assigned,
+  // thus, it is sufficient to trigger timeout on socket 'connect' event.
+  this.socket.once('connect', function() {
+    self.socket.setTimeout(ms, emitTimeout);
+  });
+
+};

@@ -29,10 +29,11 @@ function TLSSocket(socket, opts) {
   this.authorized = false;
   this.authorizationError = null;
   this._socket = new net.Socket(socket);
+  this._writev = [];
 
   // Just a documented property to make secure sockets
   // distinguishable from regular ones.
-  this.encrypted = true;
+  this.encrypted = false;
   this._socket.on('error', this._tlsError.bind(this));
   this._socket.on('connect', this.onsocket.bind(this));
   this._socket.on('data', this.onsocketdata.bind(this));
@@ -50,7 +51,9 @@ function TLSSocket(socket, opts) {
 util.inherits(TLSSocket, EventEmitter);
 
 TLSSocket.prototype.connect = function(opts, callback) {
-  this.once('connect', callback);
+  if (typeof callback === 'function') {
+    this.once('connect', callback);
+  }
   this._socket.connect(opts);
   return this;
 };
@@ -59,6 +62,12 @@ TLSSocket.prototype.write = function(data, cb) {
   if (!Buffer.isBuffer(data))
     data = new Buffer(data);
 
+  if (!this.encrypted) {
+    this._writev.push([data, cb]);
+    return;
+  }
+
+  console.log('write', data+'');
   var r = this._tls.write(data);
   if (!Buffer.isBuffer(r))
     throw new Error('Encryption is not available');
@@ -97,6 +106,12 @@ TLSSocket.prototype.onclose = function() {
 TLSSocket.prototype.onhandshakedone = function(status) {
   var self = this.jsref;
   self.authorized = true;
+  self.encrypted = true;
+
+  for (var i = 0; i < self._writev.length; i++) {
+    self.write.apply(self, self._writev[i]);
+  }
+  self._writev.length = [];
   self.emit('connect', this);
 };
 
@@ -104,6 +119,17 @@ TLSSocket.prototype._tlsError = function(err) {
   console.error(err);
 };
 
+TLSSocket.prototype.pause = function() {
+  this._socket.pause();
+};
+
+TLSSocket.prototype.resume = function() {
+  this._socket.resume();
+};
+
+TLSSocket.prototype.destroy = function() {
+  this._socket.destroy();
+};
 
 function connect(options, callback) {
   return TLSSocket({
