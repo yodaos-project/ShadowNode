@@ -1,4 +1,4 @@
-# shadow-node
+# ShadowNode
 
 The Node.js Runtime in shadow, which supports NPM packages partially for embeddable platform.
 
