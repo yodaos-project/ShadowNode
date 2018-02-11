@@ -351,6 +351,7 @@ JS_FUNCTION(TlsRead) {
       jerry_value_t fn = iotjs_jval_get_property(jthis, "onclose");
       iotjs_make_callback(fn, jthis, iotjs_jargs_get_empty());
       jerry_release_value(fn);
+      break;
     } else if (rv == MBEDTLS_ERR_SSL_WANT_READ ||
       rv == MBEDTLS_ERR_SSL_WANT_WRITE) {
       break;
