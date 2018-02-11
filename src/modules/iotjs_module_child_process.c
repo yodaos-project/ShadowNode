@@ -128,7 +128,7 @@ static void iotjs_processwrap_parse_stdio_opts(jerry_value_t js_options,
   jerry_value_t stdios = iotjs_jval_get_property(js_options, "stdio");
   uint32_t len = jerry_get_array_length(stdios);
 
-  options->stdio = (uv_stdio_container_t*)malloc(len);
+  options->stdio = (uv_stdio_container_t*)malloc(sizeof(uv_stdio_container_t*) * len);
   options->stdio_count = (int)len;
 
   for (uint32_t i = 0; i < len; i++) {
