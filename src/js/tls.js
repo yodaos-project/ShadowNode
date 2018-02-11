@@ -67,7 +67,6 @@ TLSSocket.prototype.write = function(data, cb) {
     return;
   }
 
-  console.log('write', data+'');
   var r = this._tls.write(data);
   if (!Buffer.isBuffer(r))
     throw new Error('Encryption is not available');

@@ -963,7 +963,6 @@
   }
 
   function write (chunk) {
-    console.log(chunk);
     var parser = this
     if (this.error) {
       throw this.error
