@@ -56,7 +56,10 @@ JS_FUNCTION(PipeConstructor) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pipewrap_t, pipewrap);
 
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
-  bool ipc = jerry_get_boolean_value(jargv[0]);
+  bool ipc = false;
+  if (jargc >= 1 && jerry_value_is_boolean(jargv[0])) {
+    ipc = jerry_get_boolean_value(jargv[0]);
+  }
   int r = uv_pipe_init(loop, &_this->handle, ipc);
   if (r != 0) {
     return JS_CREATE_ERROR(COMMON, "failed to create pipe handle.");
