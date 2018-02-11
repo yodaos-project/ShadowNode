@@ -13,6 +13,7 @@ size_t iotjs_bio_ctrl_pending(BIO *bio) {
   /* type BIO_BIO then check paired buffer */
   if (bio->type == BIO_BIO && bio->pair != NULL) {
     BIO *pair = bio->pair;
+
     if (pair->wrIdx > 0 && pair->wrIdx <= pair->rdIdx) {
       /* in wrap around state where begining of buffer is being
        * overwritten */

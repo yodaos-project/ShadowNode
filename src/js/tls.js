@@ -43,6 +43,7 @@ function TLSSocket(socket, opts) {
   this._tls.jsref = this;
   this._tls.onread = this.onread;
   this._tls.onwrite = this.onwrite;
+  this._tls.onclose = this.onclose;
   this._tls.onhandshakedone = this.onhandshakedone;
   this._tls.ondata = this.ondata;
 }
@@ -86,6 +87,11 @@ TLSSocket.prototype.onwrite = function(chunk) {
 TLSSocket.prototype.onread = function(chunk) {
   var self = this.jsref;
   self.emit('data', chunk);
+};
+
+TLSSocket.prototype.onclose = function() {
+  var self = this.jsref;
+  self.emit('close');
 };
 
 TLSSocket.prototype.onhandshakedone = function(status) {

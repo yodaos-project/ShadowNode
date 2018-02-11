@@ -82,6 +82,9 @@ static iotjs_tlswrap_t* iotjs_tlswrap_create(const jerry_value_t value) {
 }
 
 static void print_mbedtls_error(const char *name, int err) {
+  if (err > 0) {
+    return;
+  }
   char buf[128];
   mbedtls_strerror(err, buf, sizeof(buf));
   mbedtls_printf("%s() failed: -0x%04x (%d): %s\n", name, -err, err, buf);
@@ -261,6 +264,8 @@ int iotjs_tlswrap_error_handler(iotjs_tlswrap_t_impl_t* _this, const int code) {
   if (code == MBEDTLS_ERR_SSL_WANT_WRITE || 
     code == MBEDTLS_ERR_SSL_WANT_READ) {
     iotjs_tlswrap_stay_update(_this);
+  } else if (code == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
+    return code;
   } else if (code < 0) {
     print_mbedtls_error("mbedtls_ssl_handshake", code);
   }
@@ -328,22 +333,34 @@ JS_FUNCTION(TlsRead) {
   unsigned char* decrypted = (unsigned char*)malloc(size);
   memset(decrypted, 0, size);
 
-  rv = mbedtls_ssl_read(&_this->ssl_, decrypted, size);
-  rv = iotjs_tlswrap_error_handler(_this, rv);
-  
-  if (rv > 0) {
-    jerry_value_t fn = iotjs_jval_get_property(jthis, "onread");
-    iotjs_jargs_t jargv = iotjs_jargs_create(1);
-    jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)(rv));
-    iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
+  while (true) {
+    rv = mbedtls_ssl_read(&_this->ssl_, decrypted, size);
+    rv = iotjs_tlswrap_error_handler(_this, rv);
 
-    iotjs_bufferwrap_copy(buffer_wrap, (const char*)decrypted, (size_t)(rv));
-    iotjs_jargs_append_jval(&jargv, jbuffer);
-    iotjs_make_callback(fn, jthis, &jargv);
-    jerry_release_value(fn);
+    if (rv > 0) {
+      jerry_value_t fn = iotjs_jval_get_property(jthis, "onread");
+      iotjs_jargs_t jargv = iotjs_jargs_create(1);
+      jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)(rv));
+      iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
+
+      iotjs_bufferwrap_copy(buffer_wrap, (const char*)decrypted, (size_t)(rv));
+      iotjs_jargs_append_jval(&jargv, jbuffer);
+      iotjs_make_callback(fn, jthis, &jargv);
+      jerry_release_value(fn);
+    } else if (rv == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
+      jerry_value_t fn = iotjs_jval_get_property(jthis, "onclose");
+      iotjs_make_callback(fn, jthis, iotjs_jargs_get_empty());
+      jerry_release_value(fn);
+    } else if (rv == MBEDTLS_ERR_SSL_WANT_READ ||
+      rv == MBEDTLS_ERR_SSL_WANT_WRITE) {
+      break;
+    } else {
+      print_mbedtls_error("tls read", rv);
+    }
   }
 
   jerry_release_value(res);
+  free(decrypted);
   return jerry_create_number(0);
 }
 
