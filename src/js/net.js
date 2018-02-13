@@ -72,16 +72,23 @@ function Socket(options) {
 
   this._socketState = new SocketState(options);
 
+  var handle;
+  
   if (options.handle) {
-    this._handle = options.handle;
-    initSocketHandle(this);
+    handle = options.handle;
   } else if (options.fd) {
-    this._handle = new Pipe();
-    this._handle.open(options.fd);
+    handle = new Pipe();
+    handle.open(options.fd);
     this.readable = options.readable !== false;
     this.writable = options.writable !== false;
+  }
+  if (handle) {
+    this._handle = handle;
     initSocketHandle(this);
   }
+
+  this.on('finish', onSocketFinish);
+  this.on('end', onSocketEnd);
 }
 
 // Socket inherits Duplex.
@@ -185,14 +192,20 @@ Socket.prototype._write = function(chunk, callback, afterWrite) {
 
 
 Socket.prototype.end = function(data, callback) {
-  var self = this;
-  var state = self._socketState;
+  var state = this._socketState;
 
   // end of writable stream.
-  stream.Writable.prototype.end.call(self, data, callback);
+  stream.Writable.prototype.end.call(this, data, callback);
 
   // this socket is no longer writable.
   state.writable = false;
+
+  if (this.readable && !this._readableState.endEmitted)
+    this.read(0);
+  else
+    maybeDestroy(this);
+
+  return this;
 };
 
 
