@@ -115,7 +115,7 @@ TLSSocket.prototype.onhandshakedone = function(status) {
 };
 
 TLSSocket.prototype._tlsError = function(err) {
-  console.error(err);
+  this.emit('error', err);
 };
 
 TLSSocket.prototype.pause = function() {
