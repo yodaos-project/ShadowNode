@@ -244,6 +244,11 @@ Buffer.prototype.toString = function(encoding, start, end) {
       buf = this._builtin.toBase64();
     return buf.slice(start || 0, end);
   } else {
+    // normalize the arguments.
+    if (typeof encoding === 'number') {
+      end = start;
+      start = encoding;
+    }
     start = start === undefined ? 0 : ~~start;
     end = end === undefined ? this.length : ~~end;
     return this._builtin.toString(start, end);
