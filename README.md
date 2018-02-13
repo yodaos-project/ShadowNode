@@ -19,14 +19,14 @@ will not be supported on Windows unfortunately.
 ### Getting Source Code
 
 ```sh
-$ git clone https://github.com/Rokid/shadow-node.git
+$ git clone https://github.com/Rokid/ShadowNode.git
 $ cd shadow-node
 ```
 
 ### Build
 
 ```sh
-$ tools/build.py
+$ tools/build.py --no-check-test
 ```
 
 To get supported options, run:
