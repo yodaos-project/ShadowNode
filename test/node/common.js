@@ -359,7 +359,7 @@ if (global.ArrayBuffer) {
   knownGlobals.push(Uint32Array);
   knownGlobals.push(Float32Array);
   knownGlobals.push(Float64Array);
-  knownGlobals.push(DataView);
+  // knownGlobals.push(DataView);
 }
 
 // Harmony features.

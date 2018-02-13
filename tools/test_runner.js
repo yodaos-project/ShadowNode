@@ -31,7 +31,7 @@ function Runner(driver) {
   }
   if (driver.options.quiet == 'yes') {
     this.console = console;
-    console = console_wrapper;
+    // console = console_wrapper;
   }
 
   this.timeout = this.test['timeout'];

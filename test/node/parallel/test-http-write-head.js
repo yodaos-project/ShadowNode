@@ -82,7 +82,7 @@ s.listen(0, common.mustCall(runTest));
 function runTest() {
   http.get({ port: this.address().port }, common.mustCall(function (response) {
     response.on('end', common.mustCall(function () {
-      assert.strictEqual(response.headers['test'], '1' /*'2'*/);
+      assert.strictEqual(response.headers['test'], '2');
       // assert.notStrictEqual(response.rawHeaders.indexOf('Test'), -1);
       s.close();
     }));

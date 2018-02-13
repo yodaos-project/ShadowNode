@@ -161,8 +161,8 @@ var isRequest5Finished = false;
 var request5 = http.request(options, function(response) {
   response.on('end', function() {
     isRequest5Finished = true;
-    assert.equal(response.headers['Connection'], 'close2');
-    assert.equal(response.headers['Head'], 'Value');
+    assert.equal(response.headers['connection'], 'close2');
+    assert.equal(response.headers['head'], 'Value');
     server5.close();
   });
 });
