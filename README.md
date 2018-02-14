@@ -2,9 +2,14 @@
 
 The Node.js Runtime in shadow, which supports NPM packages partially for embeddable platform.
 
+[![Build Status](https://travis-ci.org/Rokid/ShadowNode.svg?branch=master)](https://travis-ci.org/Rokid/ShadowNode)
 [![License](https://img.shields.io/badge/licence-Apache%202.0-brightgreen.svg?style=flat)](LICENSE)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FRokid%2Fshadow-node.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FRokid%2Fshadow-node?ref=badge_shield)
-[![IRC Channel](https://img.shields.io/badge/chat-on%20freenode-brightgreen.svg)](https://kiwiirc.com/client/irc.freenode.net/#shadow-node)
+
+Currently supports the following platform:
+
+- [x] OSX
+- [x] Linux
 
 ## Quick Start
 
@@ -20,7 +25,7 @@ will not be supported on Windows unfortunately.
 
 ```sh
 $ git clone https://github.com/Rokid/ShadowNode.git
-$ cd shadow-node
+$ cd ShadowNode
 ```
 
 ### Build
