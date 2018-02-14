@@ -17,4 +17,6 @@
 sudo dpkg --add-architecture i386
 sudo apt-get update -q
 sudo apt-get install -q -y \
-    linux-libc-dev:i386
+    linux-libc-dev:i386 \
+    zlib1g-dev:i386 \
+    dbus:i386 libdbus-1-dev:i386

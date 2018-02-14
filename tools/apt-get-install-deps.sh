@@ -16,4 +16,6 @@
 
 sudo apt-get update -q
 sudo apt-get install -q -y \
-    cmake gcc valgrind clang-format-3.8 libdbus-1-dev zlib1g-dev
+    cmake gcc valgrind clang-format-3.8 \
+    zlib1g-dev \
+    dbus libdbus-1-dev
