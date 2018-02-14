@@ -8,9 +8,6 @@ services:
   - docker
 
 before_install:
-  - if [[ "$INSTALL_NUTTX_DEPS" == "yes" ]]; then tools/apt-get-install-nuttx.sh; fi
-  - if [[ "$INSTALL_TIZEN_DEPS" == "yes" ]]; then . tools/apt-get-install-tizen.sh; fi
-  - if [[ "$INSTALL_TIZENRT_DEPS" == "yes" ]]; then . tools/apt-get-install-tizenrt.sh; fi
   - if [[ "$INSTALL_TRAVIS_I686_DEPS" == "yes" ]]; then tools/apt-get-install-travis-i686.sh; fi
   - if [[ "$RUN_DOCKER" == "yes" ]]; then docker pull iotjs/ubuntu:0.3; fi
   - if [ -z "$RUN_DOCKER" ] && [ "$TRAVIS_OS_NAME" == "linux" ]; then tools/apt-get-install-deps.sh; fi
@@ -29,9 +26,6 @@ env:
   matrix:
     - OPTS="host-linux" TARGET_OS="linux" RUN_DOCKER=yes
     - OPTS="rpi2" TARGET_OS="linux" RUN_DOCKER=yes
-    - OPTS="--test=nuttx" INSTALL_NUTTX_DEPS=yes
-    - OPTS="--test=artik10" INSTALL_TIZEN_DEPS=yes
-    - OPTS="artik053" TARGET_OS="tizenrt" RUN_DOCKER=yes
     - OPTS="--test=external-modules"
     - OPTS="--test=misc"
     - OPTS="--test=no-snapshot"
@@ -47,7 +41,7 @@ matrix:
       addons:
         coverity_scan:
           project:
-            name: "Samsung/iotjs"
+            name: "Rokid/ShadowNode"
             description: "Platform for Internet of Things with JavaScript"
           notification_email: duddlf.choi@samsung.com
           build_command: "tools/precommit.py --test=coverity"

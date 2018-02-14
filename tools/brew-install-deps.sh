@@ -18,6 +18,7 @@ brew update
 
 PKGS="
     cmake
+    dbus
     "
 
 for pkg in $PKGS
