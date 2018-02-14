@@ -122,12 +122,6 @@ assert.equal(readable2.read(0), null);
 readable2.push('qwerty');
 assert.equal(readable2.read(6), 'qwerty');
 
-// Throw not implemented Error when we trying to read less length data.
-readable2.push('new-data');
-assert.throws(function() {
-  readable2.read(1);
-}, Error);
-
 var readable3 = new Readable();
 var readable3End = false;
 var paused = false;
@@ -144,11 +138,11 @@ readable3.on('end', function() {
 
 readable3.pause();
 readable3.push(str);
-readable3.push(null);
 
 setTimeout(function() {
   paused = true;
   readable3.resume();
+  readable3.push(null);
 }, 1000);
 
 // End on non-EOF stream
