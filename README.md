@@ -43,15 +43,15 @@ $ tools/build.py --help
 ### Test
 
 ```sh
-$ build/x86_64-linux/debug/bin/iotjs tools/check_test.js
+$ tools/build.py
 ```
 
 For Additional information see [Getting Started](docs/Getting-Started.md).
 
 ## What's different with Node.js
 
-The [shadow-node][]'s purpose is not going to run the absolute same code both on the [Node.js][] 
-and [shadow-node][], within embeddable devices might be severe and less memory requirement, you should 
+The [ShadowNode][]'s purpose is not going to run the absolute same code both on the [Node.js][] 
+and [ShadowNode][], within embeddable devices might be severe and less memory requirement, you should 
 write your apps in an light thinking. However we are hoping to share the same community for developers 
 as possible, and the following are the status:
 
@@ -76,7 +76,7 @@ as possible, and the following are the status:
 In desktop and embedable ecosystem, the service via `DBus` is quite normal, in shadow-node, the `DBus`
 will be the built-in module. For detailed API, see [IoT.js-API-DBUS](docs/api/IoT.js-API-DBUS.md).
 
-The `MQTT` protocol is used for communication between IoT devices, then [shadow-node][] would support
+The `MQTT` protocol is used for communication between IoT devices, then [ShadowNode][] would support
 this protocol natively, and we keep the API consistent with the pop library [MQTT.js][]. See 
 [IoT.js-API-MQTT](docs/api/IoT.js-API-MQTT.md) for details.
 
@@ -99,10 +99,10 @@ start hacking with JavaScript:
 
 ## License
 
-[shadow-node][] is Open Source software under the [Apache 2.0 license][].
+[ShadowNode][] is Open Source software under the [Apache 2.0 license][].
 Complete license and copyright information can be found within the code.
 
-[shadow-node]: https://github.com/Rokid/shadow-node
+[ShadowNode]: https://github.com/Rokid/shadow-node
 [Node.js]: https://github.com/nodejs/node
 [Iot.js]: https://github.com/Samsung/iotjs
 [Samsung/iotjs]: https://github.com/Samsung/iotjs
