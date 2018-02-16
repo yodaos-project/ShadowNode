@@ -173,15 +173,17 @@ def init_options():
     parser.add_argument('--jerry-debugger',
         action='store_true', default=False,
         help='Enable JerryScript-debugger')
+
+    # Unit testing and benchmarking options
+    parser.add_argument('--tests',
+        action='store_true', default=False,
+        help='Start checking tests')
     parser.add_argument('--no-init-submodule',
         action='store_true', default=False,
         help='Disable initialization of git submodules')
     parser.add_argument('--no-check-valgrind',
         action='store_true', default=False,
         help='Disable test execution with valgrind after build')
-    parser.add_argument('--no-check-test',
-        action='store_true', default=False,
-        help='Disable test execution after build')
     parser.add_argument('--no-parallel-build',
         action='store_true', default=False,
         help='Disable parallel build')
@@ -416,7 +418,7 @@ if __name__ == '__main__':
     build_iotjs(options)
 
     # Run tests.
-    if not options.no_check_test:
+    if options.tests:
         print_progress('Run tests')
         if options.buildlib:
             print("Skip unit tests - build target is library\n")
