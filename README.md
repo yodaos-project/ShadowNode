@@ -55,47 +55,47 @@ and [ShadowNode][], within embeddable devices might be severe and less memory re
 write your apps in an light thinking. However we are hoping to share the same community for developers 
 as possible, and the following are the status:
 
-- [x] [Assert](docs/api/Assert.md)
-- [x] [Buffer](docs/api/Buffer.md)
-- [x] [Child Process](docs/api/Child-Process.md)
-- [x] [Crypto](docs/api/Crypto.md)
-- [x] [DNS](docs/api/DNS.md)
-- [x] [Events](docs/api/Events.md)
-- [x] [File System](docs/api/File-System.md)
-- [x] [HTTP](docs/api/HTTP.md)
-- [x] [Module](docs/api/Module.md)
-- [x] [Net](docs/api/Net.md)
-- [x] [OS](docs/api/OS.md)
-- [x] [Process](docs/api/Process.md)
-- [x] [Stream](docs/api/Stream.md)
-- [x] [Timers](docs/api/Timers.md)
-- [x] [TLS](docs/api/TLS.md)
-- [x] [UDP/Datagram](docs/api/DGRAM.md)
-- [x] [Zlib](docs/api/Zlib.md)
+- [Assert](docs/api/Assert.md)
+- [Buffer](docs/api/Buffer.md)
+- [Child Process](docs/api/Child-Process.md)
+- [Crypto](docs/api/Crypto.md)
+- [DNS](docs/api/DNS.md)
+- [Events](docs/api/Events.md)
+- [File System](docs/api/File-System.md)
+- [HTTP](docs/api/HTTP.md)
+- [Module](docs/api/Module.md)
+- [Net](docs/api/Net.md)
+- [OS](docs/api/OS.md)
+- [Process](docs/api/Process.md)
+- [Stream](docs/api/Stream.md)
+- [Timers](docs/api/Timers.md)
+- [TLS](docs/api/TLS.md)
+- [UDP/Datagram](docs/api/DGRAM.md)
+- [Zlib](docs/api/Zlib.md)
 
 In desktop and embedable ecosystem, the service via `DBus` is quite normal, in shadow-node, the `DBus`
-will be the built-in module. For detailed API, see [IoT.js-API-DBUS](docs/api/IoT.js-API-DBUS.md).
+will be the built-in module. For detailed API, see [DBUS API](docs/api/DBUS.md).
 
 The `MQTT` protocol is used for communication between IoT devices, then [ShadowNode][] would support
 this protocol natively, and we keep the API consistent with the pop library [MQTT.js][]. See 
-[IoT.js-API-MQTT](docs/api/IoT.js-API-MQTT.md) for details.
+[MQTT API](docs/api/MQTT.md) for details.
 
 For hardware geek, this project benefits from the upstream [IoT.js][], which has supported the 
 following hardware interfaces, you are able to port [shadow-node][] to your platform(s) and 
 start hacking with JavaScript:
 
-- [ADC](IoT.js-API-ADC.md)
-- [BLE](IoT.js-API-BLE.md)
-- [GPIO](IoT.js-API-GPIO.md)
-- [I2C](IoT.js-API-I2C.md)
-- [PWM](IoT.js-API-PWM.md)
-- [SPI](IoT.js-API-SPI.md)
-- [UART](IoT.js-API-UART.md)
+- [ADC](docs/api/ADC.md)
+- [BLE](docs/api/BLE.md)
+- [GPIO](docs/api/GPIO.md)
+- [I2C](docs/api/I2C.md)
+- [PWM](docs/api/PWM.md)
+- [SPI](docs/api/SPI.md)
+- [UART](docs/api/UART.md)
 
 ## Documentation
 
 - [Getting Started](docs/Getting-Started.md)
-- [API Reference](docs/api/IoT.js-API-reference.md)
+- [API Reference](docs/api/README.md)
 
 ## License
 
