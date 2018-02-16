@@ -31,7 +31,7 @@ $ cd ShadowNode
 ### Build
 
 ```sh
-$ tools/build.py --no-check-test
+$ tools/build.py
 ```
 
 To get supported options, run:
@@ -43,7 +43,7 @@ $ tools/build.py --help
 ### Test
 
 ```sh
-$ tools/build.py
+$ tools/build.py --tests
 ```
 
 For Additional information see [Getting Started](docs/Getting-Started.md).
@@ -55,23 +55,23 @@ and [ShadowNode][], within embeddable devices might be severe and less memory re
 write your apps in an light thinking. However we are hoping to share the same community for developers 
 as possible, and the following are the status:
 
-- [x] [Assert](docs/api/IoT.js-API-Assert.md)
-- [x] [Buffer](docs/api/IoT.js-API-Buffer.md)
-- [x] [Child Process](docs/api/IoT.js-API-Child-Process.md)
-- [x] [Crypto](docs/api/IoT.js-API-Crypto.md)
-- [x] [DNS](docs/api/IoT.js-API-DNS.md)
-- [x] [Events](docs/api/IoT.js-API-Events.md)
-- [x] [File System](docs/api/IoT.js-API-File-System.md)
-- [x] [HTTP](docs/api/IoT.js-API-HTTP.md)
-- [x] [Module](docs/api/IoT.js-API-Module.md)
-- [x] [Net](docs/api/IoT.js-API-Net.md)
-- [x] [OS](docs/api/IoT.js-API-OS.md)
-- [x] [Process](docs/api/IoT.js-API-Process.md)
-- [x] [Stream](docs/api/IoT.js-API-Stream.md)
-- [x] [Timers](docs/api/IoT.js-API-Timers.md)
-- [x] [TLS](docs/api/IoT.js-API-TLS.md)
-- [x] [UDP/Datagram](docs/api/IoT.js-API-DGRAM.md)
-- [x] [Zlib](docs/api/IoT.js-API-Zlib.md)
+- [x] [Assert](docs/api/Assert.md)
+- [x] [Buffer](docs/api/Buffer.md)
+- [x] [Child Process](docs/api/Child-Process.md)
+- [x] [Crypto](docs/api/Crypto.md)
+- [x] [DNS](docs/api/DNS.md)
+- [x] [Events](docs/api/Events.md)
+- [x] [File System](docs/api/File-System.md)
+- [x] [HTTP](docs/api/HTTP.md)
+- [x] [Module](docs/api/Module.md)
+- [x] [Net](docs/api/Net.md)
+- [x] [OS](docs/api/OS.md)
+- [x] [Process](docs/api/Process.md)
+- [x] [Stream](docs/api/Stream.md)
+- [x] [Timers](docs/api/Timers.md)
+- [x] [TLS](docs/api/TLS.md)
+- [x] [UDP/Datagram](docs/api/DGRAM.md)
+- [x] [Zlib](docs/api/Zlib.md)
 
 In desktop and embedable ecosystem, the service via `DBus` is quite normal, in shadow-node, the `DBus`
 will be the built-in module. For detailed API, see [IoT.js-API-DBUS](docs/api/IoT.js-API-DBUS.md).
