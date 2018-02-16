@@ -8,6 +8,8 @@
     { "name": "test_buffer_builtin.js" },
     { "name": "test_buffer.js" },
     { "name": "test_console.js" },
+    { "name": "test_crypto.js" },
+    { "name": "test_crypto_hash.js" },
     { "name": "test_dgram_1_server_1_client.js" },
     { "name": "test_dgram_1_server_n_clients.js", "skip": ["linux"], "reason": "[linux]: flaky on Travis" },
     { "name": "test_dgram_address.js", "skip": ["linux", "nuttx"], "reason": "[linux]: flaky on Travis, [nuttx]: not implemented for nuttx" },
