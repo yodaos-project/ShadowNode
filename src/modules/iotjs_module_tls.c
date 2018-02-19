@@ -256,7 +256,9 @@ void iotjs_tlswrap_stay_update(iotjs_tlswrap_t_impl_t* _this) {
     iotjs_jargs_append_jval(&jargv, jbuffer);
     iotjs_make_callback(fn, jthis, &jargv);
 
-    // TODO(Yorkie): should free
+    jerry_release_value(fn);
+    jerry_release_value(jbuffer);
+    iotjs_jargs_destroy(&jargv);
   }
 }
 
@@ -296,8 +298,7 @@ JS_FUNCTION(TlsHandshake) {
 
     // notify to the JS layer "onhandshakedone".
     jerry_value_t fn = iotjs_jval_get_property(jthis, "onhandshakedone");
-    iotjs_jargs_t argv = iotjs_jargs_create(0);
-    iotjs_make_callback(fn, jthis, &argv);
+    iotjs_make_callback(fn, jthis, iotjs_jargs_get_empty());
     jerry_release_value(fn);
   }
   return jerry_create_number(_this->handshake_state);
@@ -323,9 +324,12 @@ JS_FUNCTION(TlsRead) {
   jerry_value_t res = iotjs_make_callback_with_result(checker, jthis,
                                                       iotjs_jargs_get_empty());
 
+  int res_ = iotjs_jval_as_number(res);
+  jerry_release_value(checker);
+  jerry_release_value(res);
+
   // if handshaking, just returns
-  if (iotjs_jval_as_number(res) == SSL_HANDSHAKING) {
-    jerry_release_value(res);
+  if (res_ == SSL_HANDSHAKING) {
     return jerry_create_boolean(true);
   }
 
@@ -346,7 +350,11 @@ JS_FUNCTION(TlsRead) {
       iotjs_bufferwrap_copy(buffer_wrap, (const char*)decrypted, (size_t)(rv));
       iotjs_jargs_append_jval(&jargv, jbuffer);
       iotjs_make_callback(fn, jthis, &jargv);
+
+      jerry_release_value(jbuffer);
       jerry_release_value(fn);
+      iotjs_jargs_destroy(&jargv);
+
     } else if (rv == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
       jerry_value_t fn = iotjs_jval_get_property(jthis, "onclose");
       iotjs_make_callback(fn, jthis, iotjs_jargs_get_empty());
@@ -360,8 +368,13 @@ JS_FUNCTION(TlsRead) {
     }
   }
 
-  jerry_release_value(res);
   return jerry_create_number(0);
+}
+
+JS_FUNCTION(TlsEnd) {
+  // JS_DECLARE_THIS_PTR(tlswrap, tlswrap);
+  // IOTJS_VALIDATED_STRUCT_METHOD(iotjs_tlswrap_t, tlswrap);
+  return jerry_create_undefined();
 }
 
 jerry_value_t InitTls() {
@@ -374,6 +387,7 @@ jerry_value_t InitTls() {
   iotjs_jval_set_method(proto, "handshake", TlsHandshake);
   iotjs_jval_set_method(proto, "write", TlsWrite);
   iotjs_jval_set_method(proto, "read", TlsRead);
+  iotjs_jval_set_method(proto, "end", TlsEnd);
   iotjs_jval_set_property_jval(tlsConstructor, "prototype", proto);
 
   jerry_release_value(proto);

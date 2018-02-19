@@ -126,6 +126,10 @@ TLSSocket.prototype.resume = function() {
   this._socket.resume();
 };
 
+TLSSocket.prototype.end = function() {
+  this._socket.end();
+};
+
 TLSSocket.prototype.destroy = function() {
   this._socket.destroy();
 };
