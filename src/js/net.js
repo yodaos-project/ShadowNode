@@ -480,7 +480,7 @@ function onread(socket, nread, isEOF, buffer) {
       maybeDestroy(socket);
     }
   } else if (nread < 0) {
-    var err = new Error('read error: ' + nread);
+    var err = process._createUVException(nread, 'read');
     stream.Readable.prototype.error.call(socket, err);
   } else if (nread > 0) {
     if (process.platform !== 'nuttx') {

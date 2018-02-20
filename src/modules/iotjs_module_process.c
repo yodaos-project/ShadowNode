@@ -15,6 +15,7 @@
 
 #include "iotjs_def.h"
 #include "iotjs_js.h"
+#include "iotjs_exception.h"
 #include "jerryscript-debugger.h"
 #include <stdlib.h>
 #include <dlfcn.h>
@@ -309,6 +310,15 @@ JS_FUNCTION(SetEnviron) {
   return jerry_create_undefined();
 }
 
+JS_FUNCTION(CreateUVException) {
+  int uv_errno = JS_GET_ARG(0, number);
+  iotjs_string_t syscall = JS_GET_ARG(1, string);
+
+  jerry_value_t err = iotjs_create_uv_exception(uv_errno, iotjs_string_data(&syscall));
+  iotjs_string_destroy(&syscall);
+  return err;
+}
+
 JS_FUNCTION(DLOpen) {
   iotjs_string_t location = JS_GET_ARG(0, string);
   void (*initfn)(jerry_value_t);
@@ -461,6 +471,9 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_method(process, "_setEnviron", SetEnviron);
   iotjs_jval_set_method(process, "_loadstat", Loadstat);
   SetProcessEnv(process);
+
+  // errors
+  iotjs_jval_set_method(process, "_createUVException", CreateUVException);
 
   // native module
   iotjs_jval_set_method(process, "dlopen", DLOpen);
