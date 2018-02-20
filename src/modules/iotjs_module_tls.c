@@ -372,8 +372,11 @@ JS_FUNCTION(TlsRead) {
 }
 
 JS_FUNCTION(TlsEnd) {
-  // JS_DECLARE_THIS_PTR(tlswrap, tlswrap);
-  // IOTJS_VALIDATED_STRUCT_METHOD(iotjs_tlswrap_t, tlswrap);
+  JS_DECLARE_THIS_PTR(tlswrap, tlswrap);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_tlswrap_t, tlswrap);
+
+  iotjs_bio_free_all(_this->app_bio_);
+  iotjs_bio_free_all(_this->ssl_bio_);
   return jerry_create_undefined();
 }
 

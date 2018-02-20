@@ -16,6 +16,7 @@
 
 var EventEmitter = require('events').EventEmitter;
 var Pipe = require('pipe_wrap').Pipe;
+var constants = require('constants');
 var stream = require('stream');
 var util = require('util');
 var assert = require('assert');
@@ -482,6 +483,8 @@ function onread(socket, nread, isEOF, buffer) {
   } else if (nread < 0) {
     var err = process._createUVException(nread, 'read');
     stream.Readable.prototype.error.call(socket, err);
+    // FIXME(Yorkie): if error occurrs, destroy this connection ASAP
+    socket.destroy();
   } else if (nread > 0) {
     if (process.platform !== 'nuttx') {
       stream.Readable.prototype.push.call(socket, buffer);

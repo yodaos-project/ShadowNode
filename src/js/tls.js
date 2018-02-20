@@ -37,7 +37,23 @@ function TLSSocket(socket, opts) {
   this._socket.on('error', this._tlsError.bind(this));
   this._socket.on('connect', this.onsocket.bind(this));
   this._socket.on('data', this.onsocketdata.bind(this));
-  this._socket.on('end', this.onsocketend.bind(this));
+
+  function onclose() {
+    this.emit('close');
+  }
+
+  function onfinish() {
+    this.emit('finish');
+  }
+
+  function onend() {
+    this.emit('end');
+  }
+
+  // bypass event emits
+  this._socket.on('close', onclose.bind(this));
+  this._socket.on('finish', onfinish.bind(this));
+  this._socket.on('end', onend.bind(this));
 
   // init the handle
   this._tls = new TlsWrap(tlsOptions);
@@ -80,10 +96,6 @@ TLSSocket.prototype.onsocket = function() {
 
 TLSSocket.prototype.onsocketdata = function(chunk) {
   this._tls.read(chunk);
-};
-
-TLSSocket.prototype.onsocketend = function() {
-  this.emit('end');
 };
 
 TLSSocket.prototype.onwrite = function(chunk) {

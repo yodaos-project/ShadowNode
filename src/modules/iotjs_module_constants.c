@@ -40,5 +40,10 @@ jerry_value_t InitConstants() {
   SET_CONSTANT(constants, S_IFLNK);
   SET_CONSTANT(constants, S_IFSOCK);
 
+  // define uv errnos
+#define V(name, _) SET_CONSTANT(constants, UV_##name);
+  UV_ERRNO_MAP(V)
+#undef V
+
   return constants;
 }
