@@ -18,13 +18,13 @@ socket.on('finish', function() {
   finished = true;
 });
 
-var thrown = false;
+var thrown = null;
 socket.on('error', function(err) {
-  thrown = true;
+  thrown = err;
 });
 
 process.on('exit', function() {
   assert.equal(closed, true);
   assert.equal(finished, true);
-  assert.equal(thrown, true);
+  assert.equal(thrown.code, 'ECONNRESET');
 });

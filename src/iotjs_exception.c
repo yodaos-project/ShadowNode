@@ -24,8 +24,11 @@
 
 jerry_value_t iotjs_create_uv_exception(int errorno, const char* syscall) {
   static char msg[256];
-  snprintf(msg, sizeof(msg), "'%s' %s", syscall, uv_strerror(errorno));
+  const char* err_name = uv_err_name(errorno);
+  const char* err_msg = uv_strerror(errorno);
+
+  snprintf(msg, sizeof(msg), "%s %s(%s)", syscall, err_name, err_msg);
   jerry_value_t jmsg = iotjs_jval_create_error(msg);
-  iotjs_jval_set_property_string_raw(jmsg, "code", uv_err_name(errorno));
+  iotjs_jval_set_property_string_raw(jmsg, "code", err_name);
   return jmsg;
 }
