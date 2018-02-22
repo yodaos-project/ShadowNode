@@ -1,12 +1,13 @@
 {
-  "name": "IoT.js",
-  "description": "Platform for Internet of Things with JavaScript",
+  "name": "ShadowNode",
+  "version": "0.7.3",
+  "description": "Use Node.js in your embeddable devices",
   "scripts": {
     "lint": "eslint src ./*.js -f table --ext .js > eslint.log",
     "lint-autofix": "eslint src ./*.js -f table --ext .js --fix > eslint.log",
     "lint-server": "nodemon --watch .eslintrc.js --watch ./src --ext js --exec \"npm run lint\""
   },
-  "author": "Samsung Electronics Co., Ltd.",
+  "author": "Yazhong Liu <yazhong.liu@rokid.com>",
   "license": "Apache-2.0",
   "devDependencies": {
     "eslint": "^4.7.2",
