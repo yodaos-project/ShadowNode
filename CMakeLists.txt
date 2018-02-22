@@ -92,6 +92,7 @@ endif()
 
 # Add board-dependant flags
 iotjs_add_compile_flags(-DTARGET_BOARD=${TARGET_BOARD})
+iotjs_add_compile_flags(-fPIC)
 
 if("${TARGET_BOARD}" STREQUAL "artik05x")
   iotjs_add_compile_flags(-mcpu=cortex-r4 -mfpu=vfp3)
