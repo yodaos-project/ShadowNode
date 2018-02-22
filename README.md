@@ -32,6 +32,7 @@ $ cd ShadowNode
 
 ```sh
 $ tools/build.py
+$ tools/build.py --install # install the binary/library/headers to prefix, default /usr/local
 ```
 
 To get supported options, run:

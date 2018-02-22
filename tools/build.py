@@ -79,8 +79,15 @@ def init_options():
 
     parser.add_argument('--builddir', default=path.BUILD_ROOT,
         help='Specify the build directory (default: %(default)s)')
+
     parser.add_argument('--buildlib', action='store_true', default=False,
         help='Build IoT.js library only (default: %(default)s)')
+
+    parser.add_argument('--install', action='store_true', default=False,
+        help='Install IoT.js binary/library/headers')
+
+    parser.add_argument('--install-prefix', default='/usr/local',
+        help='Select the install prefix (default: %(default)s)')
 
     parser.add_argument('--clean', action='store_true', default=False,
         help='Clean build directory before build (default: %(default)s)')
@@ -231,6 +238,7 @@ def adjust_options(options):
                                  options.target_tuple,
                                  options.buildtype)
 
+
     cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', '%s.cmake')
     options.cmake_toolchain_file = cmake_path % options.target_tuple
 
@@ -313,6 +321,7 @@ def build_iotjs(options):
         '-DENABLE_LTO=%s' % get_on_off(options.jerry_lto), # --jerry-lto
         '-DENABLE_SNAPSHOT=%s' % get_on_off(not options.no_snapshot),
         '-DBUILD_LIB_ONLY=%s' % get_on_off(options.buildlib), # --buildlib
+        '-DINSTALL_PREFIX=%s' % options.install_prefix,
         # --jerry-memstat
         '-DFEATURE_MEM_STATS=%s' % get_on_off(options.jerry_memstat),
         # --external-modules
@@ -369,7 +378,11 @@ def build_iotjs(options):
 
     # Run cmake.
     ex.check_run_cmd('cmake', cmake_opt)
-    run_make(options, options.build_root)
+
+    if options.install:
+        run_make(options, options.build_root, 'install')
+    else:
+        run_make(options, options.build_root)
 
 
 def run_checktest(options):

@@ -393,10 +393,11 @@ pkg_check_modules(DBUS dbus-1)
 
 # Configure the libiotjs.a
 set(TARGET_LIB_IOTJS libiotjs)
-add_library(${TARGET_LIB_IOTJS} STATIC ${LIB_IOTJS_SRC})
+add_library(${TARGET_LIB_IOTJS} SHARED ${LIB_IOTJS_SRC})
 set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
   OUTPUT_NAME iotjs
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
 target_include_directories(${TARGET_LIB_IOTJS} 
   PRIVATE ${IOTJS_INCLUDE_DIRS} ${DBUS_INCLUDE_DIRS})
@@ -431,5 +432,8 @@ if(NOT BUILD_LIB_ONLY)
   )
   target_include_directories(${TARGET_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
   target_link_libraries(${TARGET_IOTJS} ${TARGET_LIB_IOTJS})
-  install(TARGETS ${TARGET_IOTJS} DESTINATION ${BIN_INSTALL_DIR})
+  install(TARGETS ${TARGET_IOTJS} ${TARGET_LIB_IOTJS}
+          RUNTIME DESTINATION "${INSTALL_PREFIX}/bin"
+          LIBRARY DESTINATION "${INSTALL_PREFIX}/lib"
+          PUBLIC_HEADER DESTINATION "${INSTALL_PREFIX}/include/ShadowNode")
 endif()
