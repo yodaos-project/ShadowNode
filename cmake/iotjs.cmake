@@ -391,13 +391,25 @@ iotjs_add_compile_flags(${IOTJS_MODULE_DEFINES})
 find_package(PkgConfig)
 pkg_check_modules(DBUS dbus-1)
 
-# Configure the libiotjs.a
+file(GLOB IOTJS_HEADERS "${ROOT_DIR}/src/*.h")
+file(GLOB JERRY_HEADERS "${ROOT_DIR}/deps/jerry/jerry-core/include/*.h")
+file(GLOB LIBUV_HEADERS "${ROOT_DIR}/deps/libtuv/include/*.h")
+
+set(IOTJS_PUBLIC_HEADERS
+  "include/iotjs.h"
+  ${IOTJS_HEADERS}
+  ${JERRY_HEADERS}
+  ${LIBUV_HEADERS}
+)
+
+# Configure the libiotjs
 set(TARGET_LIB_IOTJS libiotjs)
 add_library(${TARGET_LIB_IOTJS} SHARED ${LIB_IOTJS_SRC})
 set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
   OUTPUT_NAME iotjs
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+  PUBLIC_HEADER "${IOTJS_PUBLIC_HEADERS}"
 )
 target_include_directories(${TARGET_LIB_IOTJS} 
   PRIVATE ${IOTJS_INCLUDE_DIRS} ${DBUS_INCLUDE_DIRS})
@@ -435,5 +447,5 @@ if(NOT BUILD_LIB_ONLY)
   install(TARGETS ${TARGET_IOTJS} ${TARGET_LIB_IOTJS}
           RUNTIME DESTINATION "${INSTALL_PREFIX}/bin"
           LIBRARY DESTINATION "${INSTALL_PREFIX}/lib"
-          PUBLIC_HEADER DESTINATION "${INSTALL_PREFIX}/include/ShadowNode")
+          PUBLIC_HEADER DESTINATION "${INSTALL_PREFIX}/include/shadow-node")
 endif()

@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "iotjs.h"
-#include "iotjs_def.h"
-#include "iotjs_binding.h"
+#include <shadow-node/iotjs.h>
+#include <shadow-node/iotjs_def.h>
+#include <shadow-node/iotjs_binding.h>
 
 JS_FUNCTION(Cal) {
   for (int i = 0; i < 100000; i++) {
