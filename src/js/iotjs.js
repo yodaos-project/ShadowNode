@@ -118,10 +118,15 @@
     nextTick(callback);
   }
 
+  var module = Module.require('module');
 
   process._onUncaughtException = _onUncaughtException;
   function _onUncaughtException(error) {
     var event = 'uncaughtException';
+    if (error instanceof SyntaxError) {
+      error.message = `${error.message} at\n\t ${module.curr}`;
+    }
+
     if (process._events[event] && process._events[event].length > 0) {
       try {
         // Emit uncaughtException event.

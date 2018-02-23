@@ -31,6 +31,7 @@ module.exports = iotjs_module_t;
 iotjs_module_t.cache = {};
 iotjs_module_t.wrapper = Native.wrapper;
 iotjs_module_t.wrap = Native.wrap;
+iotjs_module_t.curr = null;
 
 
 var cwd;
@@ -182,6 +183,7 @@ iotjs_module_t.tryPath = function(path) {
 
 iotjs_module_t.load = function(id, parent) {
   if (process.builtin_modules[id]) {
+    iotjs_module_t.curr = id;
     return Native.require(id);
   }
   var module = new iotjs_module_t(id, parent);
@@ -190,6 +192,7 @@ iotjs_module_t.load = function(id, parent) {
 
   var cachedModule = iotjs_module_t.cache[modPath];
   if (cachedModule) {
+    iotjs_module_t.curr = modPath;
     return cachedModule.exports;
   }
 
@@ -201,6 +204,7 @@ iotjs_module_t.load = function(id, parent) {
   module.filename = modPath;
   module.dirs = [modPath.substring(0, modPath.lastIndexOf('/') + 1)];
   iotjs_module_t.cache[modPath] = module;
+  iotjs_module_t.curr = modPath;
 
   var ext = modPath.substr(modPath.lastIndexOf('.') + 1);
   if (ext === 'js') {
