@@ -90,11 +90,17 @@ static void print_mbedtls_error(const char *name, int err) {
   mbedtls_printf("%s() failed: -0x%04x (%d): %s\n", name, -err, err, buf);
 }
 
-// static void iotjs_tlswrap_destroy(iotjs_tlswrap_t* tlswrap) {
-//   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_tlswrap_t, tlswrap);
-//   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
-//   IOTJS_RELEASE(tlswrap);
-// }
+static void iotjs_tlswrap_destroy(iotjs_tlswrap_t* tlswrap) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_tlswrap_t, tlswrap);
+  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
+  iotjs_bio_free_all(_this->app_bio_);
+  iotjs_bio_free_all(_this->ssl_bio_);
+  
+  mbedtls_x509_crt_free(&_this->ca_);
+  mbedtls_ssl_free(&_this->ssl_);
+  mbedtls_ssl_config_free(&_this->config_);
+  IOTJS_RELEASE(tlswrap);
+}
 
 JS_FUNCTION(TlsConstructor) {
   DJS_CHECK_THIS();
@@ -373,10 +379,7 @@ JS_FUNCTION(TlsRead) {
 
 JS_FUNCTION(TlsEnd) {
   JS_DECLARE_THIS_PTR(tlswrap, tlswrap);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_tlswrap_t, tlswrap);
-
-  iotjs_bio_free_all(_this->app_bio_);
-  iotjs_bio_free_all(_this->ssl_bio_);
+  iotjs_tlswrap_destroy(tlswrap);
   return jerry_create_undefined();
 }
 
