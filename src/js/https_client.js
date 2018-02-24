@@ -56,6 +56,7 @@ function ClientRequest(options, cb) {
     this.once('response', cb);
   }
 
+
   // Create socket.
   var socket = tls.connect({
     host: host,
@@ -85,6 +86,9 @@ function setupConnection(req, socket) {
   req.socket = socket;
   req.connection = socket;
   req.parser = parser;
+  req.once('finish', function() {
+    socket.end();
+  });
 
   socket.on('error', socketOnError);
   socket.on('data', socketOnData);

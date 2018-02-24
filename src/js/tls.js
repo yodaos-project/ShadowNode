@@ -30,6 +30,7 @@ function TLSSocket(socket, opts) {
   this.authorizationError = null;
   this._socket = new net.Socket(socket);
   this._writev = [];
+  this._ended = false;
 
   // Just a documented property to make secure sockets
   // distinguishable from regular ones.
@@ -95,6 +96,7 @@ TLSSocket.prototype.onsocket = function() {
 };
 
 TLSSocket.prototype.onsocketdata = function(chunk) {
+  if (this._ended) return;
   this._tls.read(chunk);
 };
 
@@ -139,7 +141,10 @@ TLSSocket.prototype.resume = function() {
 };
 
 TLSSocket.prototype.end = function() {
-  this._socket.end();
+  this._ended = true;
+  this._socket.end(null, () => {
+    this._tls.end();
+  });
 };
 
 TLSSocket.prototype.destroy = function() {
