@@ -17,12 +17,13 @@
         "sax",
         "string_decoder",
         "stream",
-        "tls",
-        "tty", 
-        "querystring", 
-        "punycode", 
-        "url", 
         "testdriver",
+        "tls",
+        "tty",
+        "punycode",
+        "querystring",
+        "url",
+        "websocket",
         "zlib"
       ]
     },
@@ -435,6 +436,11 @@
     },
     "util": {
       "js_file": "js/util.js"
+    },
+    "websocket": {
+      "js_file": "js/websocket.js",
+      "native_files": ["modules/iotjs_module_websocket.c"],
+      "init": "InitWebSocket"
     },
     "zlib": {
       "js_file": "js/zlib.js",
