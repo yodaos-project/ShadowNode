@@ -18,7 +18,23 @@ var util = require('util');
 
 
 function Console() {
-  // Empty
+  var prop = {
+    writable: true,
+    enumerable: false,
+    configurable: true
+  };
+  prop.value = stdout;
+  Object.defineProperty(this, '_stdout', prop);
+  prop.value = stderr;
+  Object.defineProperty(this, '_stderr', prop);
+  prop.value = {};
+  Object.defineProperty(this, '_times', prop);
+
+  var keys = Object.keys(Console.prototype);
+  for (var v = 0; v < keys.length; v++) {
+    var k = keys[v];
+    this[k] = this[k].bind(this);
+  }
 }
 
 function stdout(text) {
@@ -40,15 +56,25 @@ Console.prototype.error = function() {
   stderr(util.format.apply(this, arguments) + '\n');
 };
 
+Console.prototype.time = function(label) {
+  this._times[String(label)] = process.hrtime();
+};
+
+Console.prototype.timeEnd = function(label) {
+  label = String(label);
+
+  var time = this._times[label];
+  if (time == null) {
+    process.emitWarning('No such label ' + label + ' for console.timeEnd()');
+    return;
+  }
+
+  var duration = process.hrtime(time);
+  var ms = duration[0] * 1000 + duration[1] / 1e6;
+  this._times[label] = undefined;
+};
+
 var console = new Console();
 
-module.exports = {
-  log: console.log.bind(console),
-  debug: console.debug.bind(console),
-  info: console.info.bind(console),
-  warn: console.warn.bind(console),
-  error: console.error.bind(console),
-  Console: Console,
-  _stdout: stdout,
-  _stderr: stderr,
-};
+module.exports = console;
+module.exports.Console = Console;
