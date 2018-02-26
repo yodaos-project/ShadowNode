@@ -371,6 +371,7 @@ JS_FUNCTION(TlsRead) {
       break;
     } else {
       print_mbedtls_error("tls read", rv);
+      break;
     }
   }
 

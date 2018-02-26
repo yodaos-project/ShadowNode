@@ -92,6 +92,7 @@ TLSSocket.prototype.write = function(data, cb) {
 
 TLSSocket.prototype.onsocket = function() {
   this.emit('socket', this._socket);
+  if (this._ended) return;
   this._tls.handshake();
 };
 

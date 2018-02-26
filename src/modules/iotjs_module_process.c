@@ -319,6 +319,11 @@ JS_FUNCTION(CreateUVException) {
   return err;
 }
 
+JS_FUNCTION(ForceGC) {
+  jerry_gc();
+  return jerry_create_boolean(true);
+}
+
 JS_FUNCTION(DLOpen) {
   iotjs_string_t location = JS_GET_ARG(0, string);
   void (*initfn)(jerry_value_t);
@@ -475,11 +480,15 @@ jerry_value_t InitProcess() {
   // errors
   iotjs_jval_set_method(process, "_createUVException", CreateUVException);
 
+  // virtual machine
+  iotjs_jval_set_method(process, "gc", ForceGC);
+
   // native module
   iotjs_jval_set_method(process, "dlopen", DLOpen);
 
   // snapshot
   iotjs_jval_set_method(process, "compileSnapshot", CompileSnapshot);
+
 
   // process.builtin_modules
   jerry_value_t builtin_modules = jerry_create_object();
@@ -499,6 +508,7 @@ jerry_value_t InitProcess() {
   // process.version
   iotjs_jval_set_property_string_raw(process, IOTJS_MAGIC_STRING_VERSION,
                                      IOTJS_VERSION);
+
 
   // Set iotjs
   SetProcessIotjs(process);
