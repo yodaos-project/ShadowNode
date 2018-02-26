@@ -40,9 +40,15 @@ function parserOnMessageComplete() {
     return;
   }
 
-  stream.complete = true;
-  // no more data from incoming, stream will emit 'end' event
-  stream.push(null);
+  var headers = stream.headers;
+  if (headers && headers.connection === 'Upgrade' &&
+    headers.upgrade === 'websocket') {
+    // should keep alive
+  } else {
+    stream.complete = true;
+    // no more data from incoming, stream will emit 'end' event
+    stream.push(null);
+  }
   stream.socket.resume();
 }
 

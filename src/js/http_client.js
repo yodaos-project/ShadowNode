@@ -189,9 +189,7 @@ function parserOnIncomingClient(res, shouldKeepAlive) {
 
   // response to HEAD req has no body
   var isHeadResponse = (req.method == 'HEAD');
-
   return isHeadResponse;
-
 }
 
 var responseOnEnd = function() {
