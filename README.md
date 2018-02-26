@@ -81,6 +81,9 @@ The `MQTT` protocol is used for communication between IoT devices, then [ShadowN
 this protocol natively, and we keep the API consistent with the pop library [MQTT.js][]. See 
 [MQTT API](docs/api/MQTT.md) for details.
 
+The `WebSocket` is the popular protocol in IoT environment as well, and also supported by [ShadowNode][]
+natively. See [WebSocket API](docs/api/WebSocket.md).
+
 For hardware geek, this project benefits from the upstream [IoT.js][], which has supported the 
 following hardware interfaces, you are able to port [shadow-node][] to your platform(s) and 
 start hacking with JavaScript:
