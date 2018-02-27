@@ -222,6 +222,32 @@
     };
   };
 
+  var _hrtime = process.hrtime;
+  var NANOSECOND_PER_SECONDS = 1e9;
+  process.hrtime = function hrtime (time) {
+    var curr = _hrtime();
+    if (time == null) {
+      return curr;
+    }
+    if (!Array.isArray(time)) {
+      var error = TypeError('[ERR_INVALID_ARG_TYPE]: The "time" argument must be of type Array. Received type ' + typeof time);
+      error.code = 'ERR_INVALID_ARG_TYPE';
+      throw error;
+    }
+    if (time.length != 2) {
+      var error = TypeError('[ERR_INVALID_ARRAY_LENGTH]: The array "time" (length ' + String(time.length) + ') must be of length 2.');
+      error.code = 'ERR_INVALID_ARRAY_LENGTH';
+      throw error;
+    }
+    var left = curr[0] - time[0];
+    var right = curr[1] - time[1];
+    if (right < 0) {
+      left -= 1;
+      right += NANOSECOND_PER_SECONDS;
+    }
+    return [left, right];
+  }
+
   function setupChannel() {
     // If we were spawned with env NODE_CHANNEL_FD then load that up and
     // start parsing data from that stream.
