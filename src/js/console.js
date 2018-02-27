@@ -64,7 +64,7 @@ Console.prototype.timeEnd = function(label) {
   label = String(label);
 
   var time = this._times[label];
-  if (time == null) {
+  if (time === undefined) {
     process.emitWarning('No such label ' + label + ' for console.timeEnd()');
     return;
   }

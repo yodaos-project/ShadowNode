@@ -226,7 +226,7 @@
   var NANOSECOND_PER_SECONDS = 1e9;
   process.hrtime = function hrtime (time) {
     var curr = _hrtime();
-    if (time == null) {
+    if (time === null || time === undefined) {
       return curr;
     }
     if (!Array.isArray(time)) {
@@ -236,7 +236,7 @@
       error.code = 'ERR_INVALID_ARG_TYPE';
       throw error;
     }
-    if (time.length != 2) {
+    if (time.length !== 2) {
       var error = new TypeError('[ERR_INVALID_ARRAY_LENGTH]: ' +
         'The array "time" (length ' + String(time.length) + ') ' +
         'must be of length 2.');
