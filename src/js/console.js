@@ -23,12 +23,12 @@ function Console() {
     enumerable: false,
     configurable: true
   };
-  prop.value = stdout;
-  Object.defineProperty(this, '_stdout', prop);
-  prop.value = stderr;
-  Object.defineProperty(this, '_stderr', prop);
-  prop.value = {};
-  Object.defineProperty(this, '_times', prop);
+  Object.defineProperty(this, '_stdout',
+    Object.assign({}, prop, { value: stdout }));
+  Object.defineProperty(this, '_stderr',
+    Object.assign({}, prop, { value: stderr }));
+  Object.defineProperty(this, '_times',
+    Object.assign({}, prop, { value: {} }));
 
   var keys = Object.keys(Console.prototype);
   for (var v = 0; v < keys.length; v++) {

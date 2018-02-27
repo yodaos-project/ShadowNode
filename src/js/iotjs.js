@@ -230,12 +230,16 @@
       return curr;
     }
     if (!Array.isArray(time)) {
-      var error = TypeError('[ERR_INVALID_ARG_TYPE]: The "time" argument must be of type Array. Received type ' + typeof time);
+      var error = new TypeError('[ERR_INVALID_ARG_TYPE]: ' +
+        'The "time" argument must be of type Array. Received type ' +
+        typeof time);
       error.code = 'ERR_INVALID_ARG_TYPE';
       throw error;
     }
     if (time.length != 2) {
-      var error = TypeError('[ERR_INVALID_ARRAY_LENGTH]: The array "time" (length ' + String(time.length) + ') must be of length 2.');
+      var error = new TypeError('[ERR_INVALID_ARRAY_LENGTH]: ' +
+        'The array "time" (length ' + String(time.length) + ') ' +
+        'must be of length 2.');
       error.code = 'ERR_INVALID_ARRAY_LENGTH';
       throw error;
     }
