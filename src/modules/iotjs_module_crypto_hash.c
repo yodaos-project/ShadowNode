@@ -9,7 +9,12 @@ typedef struct {
   const mbedtls_md_info_t* info;
 } IOTJS_VALIDATED_STRUCT(iotjs_crypto_hash_t);
 
-static JNativeInfoType this_module_native_info = { .free_cb = NULL };
+static iotjs_crypto_hash_t* iotjs_crypto_hash_create(const jerry_value_t jval);
+static void iotjs_crypto_hash_destroy(iotjs_crypto_hash_t* wrap);
+
+static JNativeInfoType this_module_native_info = { 
+  .free_cb = (jerry_object_native_free_callback_t)iotjs_crypto_hash_destroy
+};
 
 static iotjs_crypto_hash_t* iotjs_crypto_hash_create(const jerry_value_t jval) {
   iotjs_crypto_hash_t* hash = IOTJS_ALLOC(iotjs_crypto_hash_t);
@@ -17,6 +22,13 @@ static iotjs_crypto_hash_t* iotjs_crypto_hash_create(const jerry_value_t jval) {
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jval,
                                &this_module_native_info);
   return hash;
+}
+
+static void iotjs_crypto_hash_destroy(iotjs_crypto_hash_t* hashwrap) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_crypto_hash_t, hashwrap);
+  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
+  mbedtls_md_free(&_this->ctx);
+  IOTJS_RELEASE(hashwrap);
 }
 
 JS_FUNCTION(HashConstructor) {
