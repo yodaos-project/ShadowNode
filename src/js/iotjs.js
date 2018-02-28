@@ -46,225 +46,6 @@
     process.compileModule(this, Module.require);
   };
 
-  global.console = Module.require('console');
-  global.Buffer = Module.require('buffer');
-
-  var timers = undefined;
-
-  var _timeoutHandler = function(mode) {
-    if (timers == undefined) {
-      timers = Module.require('timers');
-    }
-    return timers[mode].apply(this, Array.prototype.slice.call(arguments, 1));
-  };
-
-  global.setTimeout = _timeoutHandler.bind(this, 'setTimeout');
-  global.setInterval = _timeoutHandler.bind(this, 'setInterval');
-  global.clearTimeout = _timeoutHandler.bind(this, 'clearTimeout');
-  global.clearInterval = _timeoutHandler.bind(this, 'clearInterval');
-
-  var EventEmitter = Module.require('events').EventEmitter;
-
-  EventEmitter.call(process);
-
-  var keys = Object.keys(EventEmitter.prototype);
-  var keysLength = keys.length;
-  for (var i = 0; i < keysLength; ++i) {
-    var key = keys[i];
-    if (!process[key]) {
-      process[key] = EventEmitter.prototype[key];
-    }
-  }
-
-  var nextTickQueue = [];
-
-  process.nextTick = nextTick;
-  process._onNextTick = _onNextTick;
-  global.setImmediate = setImmediate;
-
-  function _onNextTick() {
-    // clone nextTickQueue to new array object, and calls function
-    // iterating the cloned array. This is because,
-    // during processing nextTick
-    // a callback could add another next tick callback using
-    // `process.nextTick()`, if we calls back iterating original
-    // `nextTickQueue` that could turn into infinite loop.
-
-    var callbacks = nextTickQueue.slice(0);
-    nextTickQueue = [];
-
-    var len = callbacks.length;
-    for (var i = 0; i < len; ++i) {
-      try {
-        callbacks[i]();
-      } catch (e) {
-        process._onUncaughtException(e);
-      }
-    }
-
-    return nextTickQueue.length > 0;
-  }
-
-
-  function nextTick(callback) {
-    var args = Array.prototype.slice.call(arguments);
-    args[0] = null;
-    nextTickQueue.push(Function.prototype.bind.apply(callback, args));
-  }
-
-
-  function setImmediate(callback) {
-    // TODO(Yorkie): use nextTick for now...
-    nextTick(callback);
-  }
-
-  var module = Module.require('module');
-
-  process._onUncaughtException = _onUncaughtException;
-  function _onUncaughtException(error) {
-    var event = 'uncaughtException';
-    if (error instanceof SyntaxError) {
-      error.message = `${error.message} at\n\t ${module.curr}`;
-    }
-
-    if (process._events[event] && process._events[event].length > 0) {
-      try {
-        // Emit uncaughtException event.
-        process.emit('uncaughtException', error);
-      } catch (e) {
-        // Even uncaughtException handler thrown, that could not be handled.
-        console.error('uncaughtException handler throws: ' + e);
-        process.exit(1);
-      }
-    } else {
-      // Exit if there are no handler for uncaught exception.
-      console.error('uncaughtException: ' + error);
-      process.exit(1);
-    }
-  }
-
-  var os = Module.require('os');
-
-  process.uptime = function() {
-    return os.uptime();
-  };
-
-  process.exitCode = 0;
-  process._exiting = false;
-  process.emitExit = function(code) {
-    if (!process._exiting) {
-      process._exiting = true;
-      if (code || code == 0) {
-        process.exitCode = code;
-      }
-      process.emit('exit', process.exitCode || 0);
-    }
-  };
-
-  function updateEnviron() {
-    var envs = process._getEnvironArray();
-    envs.forEach(function(env, idx) {
-      var item = env.split('=');
-      var key = item[0];
-      var val = item[1];
-      process.env[key] = val;
-    });
-  }
-  updateEnviron();
-
-  // compatible with stdout
-  process.stdout = {
-    isTTY: false,
-    write: console._stdout,
-  };
-
-  // compatible with stdout
-  process.stderr = {
-    isTTY: false,
-    write: console._stderr,
-  };
-
-  // FIXME(Yorkie): the NamedPropertyHandlerConfiguration is not implemented at IoT.js
-  process.set = function(key, val) {
-    if (key === 'env' || key === 'environ') {
-      for (var key in val) {
-        process._setEnviron(key, val[key]);
-      }
-      updateEnviron();
-    } else {
-      throw new Error('Not supported property');
-    }
-  };
-
-  process.exit = function(code) {
-    try {
-      process.emitExit(code);
-    } catch (e) {
-      process.exitCode = 1;
-      process._onUncaughtException(e);
-    } finally {
-      process.doExit(process.exitCode || 0);
-    }
-  };
-
-  // TODO(Yorkie): compatible with Node.js
-  process.emitWarning = function(warning, type, code, ctor) {
-    process.emit('warning', warning, type, code, ctor);
-  };
-
-  // TODO(Yorkie): compatible with Node.js
-  process.memoryUsage = function() {
-    return {
-      rss: 0,
-      heapTotal: 0,
-      heapUsed: 0,
-      external: 0,
-    };
-  };
-
-  var _hrtime = process.hrtime;
-  var NANOSECOND_PER_SECONDS = 1e9;
-  process.hrtime = function hrtime (time) {
-    var curr = _hrtime();
-    if (time === null || time === undefined) {
-      return curr;
-    }
-    if (!Array.isArray(time)) {
-      var error = new TypeError('[ERR_INVALID_ARG_TYPE]: ' +
-        'The "time" argument must be of type Array. Received type ' +
-        typeof time);
-      error.code = 'ERR_INVALID_ARG_TYPE';
-      throw error;
-    }
-    if (time.length !== 2) {
-      var error = new TypeError('[ERR_INVALID_ARRAY_LENGTH]: ' +
-        'The array "time" (length ' + String(time.length) + ') ' +
-        'must be of length 2.');
-      error.code = 'ERR_INVALID_ARRAY_LENGTH';
-      throw error;
-    }
-    var left = curr[0] - time[0];
-    var right = curr[1] - time[1];
-    if (right < 0) {
-      left -= 1;
-      right += NANOSECOND_PER_SECONDS;
-    }
-    return [left, right];
-  }
-
-  function setupChannel() {
-    // If we were spawned with env NODE_CHANNEL_FD then load that up and
-    // start parsing data from that stream.
-    if (process.env.NODE_CHANNEL_FD) {
-      var fd = parseInt(process.env.NODE_CHANNEL_FD, 10);
-
-      // Make sure it's not accidentally inherited by child processes.
-      delete process.env.NODE_CHANNEL_FD;
-      var cp = Module.require('child_process');
-      cp._forkChild(fd);
-    }
-  }
-  setupChannel();
 
   /**
    * Polyfills Start
@@ -331,12 +112,12 @@
     if (this._origin) {
       return true;
     } else {
-      this._origin = 
+      this._origin =
         this.getFunctionName() + ' ' +
-        '(' + 
-          this.getFileName() + ':' + 
-          this.getLineNumber() + ':' + 
-          this.getColumnNumber() + 
+        '(' +
+          this.getFileName() + ':' +
+          this.getLineNumber() + ':' +
+          this.getColumnNumber() +
         ')';
       return true;
     }
@@ -560,6 +341,226 @@
   /**
    * Polyfills End
    */
+
+  global.console = Module.require('console');
+  global.Buffer = Module.require('buffer');
+
+  var timers = undefined;
+
+  var _timeoutHandler = function(mode) {
+    if (timers == undefined) {
+      timers = Module.require('timers');
+    }
+    return timers[mode].apply(this, Array.prototype.slice.call(arguments, 1));
+  };
+
+  global.setTimeout = _timeoutHandler.bind(this, 'setTimeout');
+  global.setInterval = _timeoutHandler.bind(this, 'setInterval');
+  global.clearTimeout = _timeoutHandler.bind(this, 'clearTimeout');
+  global.clearInterval = _timeoutHandler.bind(this, 'clearInterval');
+
+  var EventEmitter = Module.require('events').EventEmitter;
+
+  EventEmitter.call(process);
+
+  var keys = Object.keys(EventEmitter.prototype);
+  var keysLength = keys.length;
+  for (var i = 0; i < keysLength; ++i) {
+    var key = keys[i];
+    if (!process[key]) {
+      process[key] = EventEmitter.prototype[key];
+    }
+  }
+
+  var nextTickQueue = [];
+
+  process.nextTick = nextTick;
+  process._onNextTick = _onNextTick;
+  global.setImmediate = setImmediate;
+
+  function _onNextTick() {
+    // clone nextTickQueue to new array object, and calls function
+    // iterating the cloned array. This is because,
+    // during processing nextTick
+    // a callback could add another next tick callback using
+    // `process.nextTick()`, if we calls back iterating original
+    // `nextTickQueue` that could turn into infinite loop.
+
+    var callbacks = nextTickQueue.slice(0);
+    nextTickQueue = [];
+
+    var len = callbacks.length;
+    for (var i = 0; i < len; ++i) {
+      try {
+        callbacks[i]();
+      } catch (e) {
+        process._onUncaughtException(e);
+      }
+    }
+
+    return nextTickQueue.length > 0;
+  }
+
+
+  function nextTick(callback) {
+    var args = Array.prototype.slice.call(arguments);
+    args[0] = null;
+    nextTickQueue.push(Function.prototype.bind.apply(callback, args));
+  }
+
+
+  function setImmediate(callback) {
+    // TODO(Yorkie): use nextTick for now...
+    nextTick(callback);
+  }
+
+  var module = Module.require('module');
+
+  process._onUncaughtException = _onUncaughtException;
+  function _onUncaughtException(error) {
+    var event = 'uncaughtException';
+    if (error instanceof SyntaxError) {
+      error.message = `${error.message} at\n\t ${module.curr}`;
+    }
+
+    if (process._events[event] && process._events[event].length > 0) {
+      try {
+        // Emit uncaughtException event.
+        process.emit('uncaughtException', error);
+      } catch (e) {
+        // Even uncaughtException handler thrown, that could not be handled.
+        console.error('uncaughtException handler throws: ' + e);
+        process.exit(1);
+      }
+    } else {
+      // Exit if there are no handler for uncaught exception.
+      console.error('uncaughtException: ' + error);
+      process.exit(1);
+    }
+  }
+
+  var os = Module.require('os');
+
+  process.uptime = function() {
+    return os.uptime();
+  };
+
+  process.exitCode = 0;
+  process._exiting = false;
+  process.emitExit = function(code) {
+    if (!process._exiting) {
+      process._exiting = true;
+      if (code || code == 0) {
+        process.exitCode = code;
+      }
+      process.emit('exit', process.exitCode || 0);
+    }
+  };
+
+  function updateEnviron() {
+    var envs = process._getEnvironArray();
+    envs.forEach(function(env, idx) {
+      var item = env.split('=');
+      var key = item[0];
+      var val = item[1];
+      process.env[key] = val;
+    });
+  }
+  updateEnviron();
+
+  // compatible with stdout
+  process.stdout = {
+    isTTY: false,
+    write: console._stdout,
+  };
+
+  // compatible with stdout
+  process.stderr = {
+    isTTY: false,
+    write: console._stderr,
+  };
+
+  // FIXME(Yorkie): the NamedPropertyHandlerConfiguration is not implemented at IoT.js
+  process.set = function(key, val) {
+    if (key === 'env' || key === 'environ') {
+      for (var key in val) {
+        process._setEnviron(key, val[key]);
+      }
+      updateEnviron();
+    } else {
+      throw new Error('Not supported property');
+    }
+  };
+
+  process.exit = function(code) {
+    try {
+      process.emitExit(code);
+    } catch (e) {
+      process.exitCode = 1;
+      process._onUncaughtException(e);
+    } finally {
+      process.doExit(process.exitCode || 0);
+    }
+  };
+
+  // TODO(Yorkie): compatible with Node.js
+  process.emitWarning = function(warning, type, code, ctor) {
+    process.emit('warning', warning, type, code, ctor);
+  };
+
+  // TODO(Yorkie): compatible with Node.js
+  process.memoryUsage = function() {
+    return {
+      rss: 0,
+      heapTotal: 0,
+      heapUsed: 0,
+      external: 0,
+    };
+  };
+
+  var _hrtime = process.hrtime;
+  var NANOSECOND_PER_SECONDS = 1e9;
+  process.hrtime = function hrtime (time) {
+    var curr = _hrtime();
+    if (time === null || time === undefined) {
+      return curr;
+    }
+    if (!Array.isArray(time)) {
+      var error = new TypeError('[ERR_INVALID_ARG_TYPE]: ' +
+        'The "time" argument must be of type Array. Received type ' +
+        typeof time);
+      error.code = 'ERR_INVALID_ARG_TYPE';
+      throw error;
+    }
+    if (time.length !== 2) {
+      var error = new TypeError('[ERR_INVALID_ARRAY_LENGTH]: ' +
+        'The array "time" (length ' + String(time.length) + ') ' +
+        'must be of length 2.');
+      error.code = 'ERR_INVALID_ARRAY_LENGTH';
+      throw error;
+    }
+    var left = curr[0] - time[0];
+    var right = curr[1] - time[1];
+    if (right < 0) {
+      left -= 1;
+      right += NANOSECOND_PER_SECONDS;
+    }
+    return [left, right];
+  }
+
+  function setupChannel() {
+    // If we were spawned with env NODE_CHANNEL_FD then load that up and
+    // start parsing data from that stream.
+    if (process.env.NODE_CHANNEL_FD) {
+      var fd = parseInt(process.env.NODE_CHANNEL_FD, 10);
+
+      // Make sure it's not accidentally inherited by child processes.
+      delete process.env.NODE_CHANNEL_FD;
+      var cp = Module.require('child_process');
+      cp._forkChild(fd);
+    }
+  }
+  setupChannel();
 
   var module = Module.require('module');
   module.runMain();
