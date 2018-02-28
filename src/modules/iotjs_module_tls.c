@@ -202,7 +202,12 @@ JS_FUNCTION(TlsConstructor) {
    */
   jerry_value_t jservername = iotjs_jval_get_property(opts, "servername");
   iotjs_string_t servername = iotjs_jval_as_string(jservername);
-  const char* hostname = strdup(iotjs_string_data(&servername));
+
+  size_t hostname_size = iotjs_string_size(&servername);
+  const char hostname[hostname_size + 1];
+  memset((void*)hostname, 0, hostname_size + 1);
+  memcpy((void*)hostname, iotjs_string_data(&servername), hostname_size);
+
   iotjs_string_destroy(&servername);
   jerry_release_value(jservername);
   mbedtls_ssl_set_hostname(&_this->ssl_, hostname);
