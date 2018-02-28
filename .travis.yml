@@ -9,7 +9,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tools/brew-install-deps.sh; fi
 
 script:
-  - tools/build.py --tests
+  - tools/build.py --tests --no-check-valgrind
 
 env:
   matrix:
