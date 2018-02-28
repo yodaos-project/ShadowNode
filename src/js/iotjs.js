@@ -46,6 +46,30 @@
     process.compileModule(this, Module.require);
   };
 
+  var module = Module.require('module');
+
+  process._onUncaughtException = _onUncaughtException;
+  function _onUncaughtException(error) {
+    var event = 'uncaughtException';
+    if (error instanceof SyntaxError) {
+      error.message = `${error.message} at\n\t ${module.curr}`;
+    }
+
+    if (process._events[event] && process._events[event].length > 0) {
+      try {
+        // Emit uncaughtException event.
+        process.emit('uncaughtException', error);
+      } catch (e) {
+        // Even uncaughtException handler thrown, that could not be handled.
+        console.error('uncaughtException handler throws: ' + e);
+        process.exit(1);
+      }
+    } else {
+      // Exit if there are no handler for uncaught exception.
+      console.error('uncaughtException: ' + error);
+      process.exit(1);
+    }
+  }
 
   /**
    * Polyfills Start
@@ -412,31 +436,6 @@
   function setImmediate(callback) {
     // TODO(Yorkie): use nextTick for now...
     nextTick(callback);
-  }
-
-  var module = Module.require('module');
-
-  process._onUncaughtException = _onUncaughtException;
-  function _onUncaughtException(error) {
-    var event = 'uncaughtException';
-    if (error instanceof SyntaxError) {
-      error.message = `${error.message} at\n\t ${module.curr}`;
-    }
-
-    if (process._events[event] && process._events[event].length > 0) {
-      try {
-        // Emit uncaughtException event.
-        process.emit('uncaughtException', error);
-      } catch (e) {
-        // Even uncaughtException handler thrown, that could not be handled.
-        console.error('uncaughtException handler throws: ' + e);
-        process.exit(1);
-      }
-    } else {
-      // Exit if there are no handler for uncaught exception.
-      console.error('uncaughtException: ' + error);
-      process.exit(1);
-    }
   }
 
   var os = Module.require('os');
