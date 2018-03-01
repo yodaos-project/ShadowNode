@@ -17,7 +17,6 @@
 #include "iotjs_def.h"
 #include "iotjs_module_tcp.h"
 
-#include "iotjs_exception.h"
 #include "iotjs_handlewrap.h"
 #include "iotjs_module_buffer.h"
 #include "iotjs_reqwrap.h"
@@ -400,11 +399,6 @@ JS_FUNCTION(Listen) {
 
   int err = uv_listen((uv_stream_t*)(iotjs_tcpwrap_tcp_handle(tcp_wrap)),
                       backlog, OnConnection);
-
-  if (err < 0) {
-    jerry_value_t jerror = iotjs_create_uv_exception(err, "listen");
-    return jerror;
-  }
 
   return jerry_create_number(err);
 }

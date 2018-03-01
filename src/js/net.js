@@ -612,8 +612,9 @@ Server.prototype.listen = function() {
 
   var err = self._handle.listen(backlog);
   if (err) {
+    var e = process._createUVException(err, 'listen');
     self._handle.close();
-    self.emit('error', err);
+    self.emit('error', e);
     return self;
   }
 
