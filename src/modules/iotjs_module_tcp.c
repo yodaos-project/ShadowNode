@@ -403,7 +403,6 @@ JS_FUNCTION(Listen) {
 
   if (err < 0) {
     jerry_value_t jerror = iotjs_create_uv_exception(err, "listen");
-    jerry_value_set_error_flag(&jerror);
     return jerror;
   }
 

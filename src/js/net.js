@@ -610,14 +610,8 @@ Server.prototype.listen = function() {
   self._handle.createTCP = createTCP;
   self._handle.owner = self;
 
-  try {
-    var err = self._handle.listen(backlog);
-    if (err) {
-      self._handle.close();
-      self.emit('error', err);
-      return self;
-    }
-  } catch (err) {
+  var err = self._handle.listen(backlog);
+  if (err) {
     self._handle.close();
     self.emit('error', err);
     return self;
