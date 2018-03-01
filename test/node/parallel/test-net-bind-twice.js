@@ -48,7 +48,11 @@ server1.listen(0, '127.0.0.1', common.mustCall(function() {
   server2.on('error', common.mustCall(function(e) {
     assert(e !== null);
     assert(typeof e === 'object');
+    assert(e instanceof Error);
     assert(e.code === 'EADDRINUSE');
+    assert(e.errno === 'EADDRINUSE');
+    assert(e.address === '127.0.0.1');
+    assert(e.port === server1.address().port);
 
     server1.close();
   }));

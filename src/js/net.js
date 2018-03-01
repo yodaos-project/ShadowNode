@@ -613,6 +613,12 @@ Server.prototype.listen = function() {
   var err = self._handle.listen(backlog);
   if (err) {
     var e = process._createUVException(err, 'listen');
+    Object.assign(e, {
+      errno: e.code,
+      syscall: 'listen',
+      address: host,
+      port: port
+    });
     self._handle.close();
     self.emit('error', e);
     return self;
