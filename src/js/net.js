@@ -74,7 +74,7 @@ function Socket(options) {
   this._socketState = new SocketState(options);
 
   var handle;
-  
+
   if (options.handle) {
     handle = options.handle;
   } else if (options.fd) {
@@ -610,11 +610,17 @@ Server.prototype.listen = function() {
   self._handle.createTCP = createTCP;
   self._handle.owner = self;
 
-  var err = self._handle.listen(backlog);
-
-  if (err) {
+  try {
+    var err = self._handle.listen(backlog);
+    if (err) {
+      self._handle.close();
+      self.emit('error', err);
+      return self;
+    }
+  } catch (err) {
     self._handle.close();
-    return self.emit('error', err);
+    self.emit('error', err);
+    return self;
   }
 
   process.nextTick(function() {
