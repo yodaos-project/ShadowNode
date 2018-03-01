@@ -46,15 +46,17 @@ server1.listen(0, '127.0.0.1', common.mustCall(function() {
   var server2 = net.createServer(common.fail);
 
   server2.on('error', common.mustCall(function(e) {
-    // EADDRINUSE have different value on OSX.
-    if (common.isOSX) {
-      assert.strictEqual(e, -48);
-    } else {
-      assert.strictEqual(e, -98);
-    }
+    assert(e !== null);
+    assert(typeof e === 'object');
+    assert(e instanceof Error);
+    assert(e.code === 'EADDRINUSE');
+    assert(e.errno === 'EADDRINUSE');
+    assert(e.address === '127.0.0.1');
+    assert(e.port === server1.address().port);
 
     server1.close();
   }));
 
-  server2.listen(this.address().port, '127.0.0.1', common.fail);
+  var ret = server2.listen(this.address().port, '127.0.0.1', common.fail);
+  assert(ret === server2);
 }));

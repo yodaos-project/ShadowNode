@@ -74,7 +74,7 @@ function Socket(options) {
   this._socketState = new SocketState(options);
 
   var handle;
-  
+
   if (options.handle) {
     handle = options.handle;
   } else if (options.fd) {
@@ -611,10 +611,17 @@ Server.prototype.listen = function() {
   self._handle.owner = self;
 
   var err = self._handle.listen(backlog);
-
   if (err) {
+    var e = process._createUVException(err, 'listen');
+    Object.assign(e, {
+      errno: e.code,
+      syscall: 'listen',
+      address: host,
+      port: port
+    });
     self._handle.close();
-    return self.emit('error', err);
+    self.emit('error', e);
+    return self;
   }
 
   process.nextTick(function() {
