@@ -86,9 +86,6 @@ function setupConnection(req, socket) {
   req.socket = socket;
   req.connection = socket;
   req.parser = parser;
-  req.once('finish', function() {
-    socket.end();
-  });
 
   socket.on('error', socketOnError);
   socket.on('data', socketOnData);
@@ -217,11 +214,7 @@ function parserOnIncomingClient(res, shouldKeepAlive) {
 var responseOnEnd = function() {
   var res = this;
   var req = res.req;
-  var socket = req.socket;
-
-  // if (socket._socketState.writable) {
-  //   socket.destroySoon();
-  // }
+  req.socket.end();
 };
 
 
