@@ -43,7 +43,7 @@ var getResponseHandler = function (res) {
   });
 };
 
-https.get(options, getResponseHandler)
+https.get(options, getResponseHandler);
 
 // 2. close server req
 var testMsg = 'Hello IoT.js';
@@ -78,7 +78,7 @@ finalReq.write(testMsg);
 finalReq.end();
 
 process.on('exit', function() {
-  console.log(isRequest1Finished, isRequest2Finished)
+  console.log(isRequest1Finished, isRequest2Finished);
   assert.equal(isRequest1Finished, true);
   assert.equal(isRequest2Finished, true);
   console.log('test is done!');
