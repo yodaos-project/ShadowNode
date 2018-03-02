@@ -17,7 +17,6 @@
 var assert = require('assert');
 var https = require('https');
 
-
 var isRequest1Finished = false;
 // 1. GET req
 options = {
@@ -78,8 +77,9 @@ var finalReq = https.request(finalOptions, finalResponseHandler);
 finalReq.write(testMsg);
 finalReq.end();
 
-
 process.on('exit', function() {
+  console.log(isRequest1Finished, isRequest2Finished);
   assert.equal(isRequest1Finished, true);
   assert.equal(isRequest2Finished, true);
+  console.log('test is done!');
 });
