@@ -27,6 +27,11 @@ function WebSocketConnection(httpConnection, wsClient) {
   this.socket = httpConnection.connection;
   this.socket.on('data', this.onsocketdata.bind(this));
   this.connected = true;
+
+  this.on('ping', function() {
+    var buf = native.encodeFrame(FrameType.PONG, new Buffer('PONG'));
+    this.socket.write(buf);
+  }.bind(this));
 }
 util.inherits(WebSocketConnection, EventEmitter);
 
@@ -72,6 +77,7 @@ WebSocketConnection.prototype.sendUTF = function(buffer) {
  * @param {Buffer} buffer
  */
 WebSocketConnection.prototype.sendBytes = function(buffer) {
+  console.log('write bytes:', buffer);
   if (!(buffer instanceof Buffer))
     buffer = new Buffer(buffer);
   var buf = native.encodeFrame(FrameType.BINARY, buffer);
@@ -90,8 +96,12 @@ WebSocketConnection.prototype.close = function(code, reason) {
 /**
  * @class WebSocketClient
  */
-function WebSocketClient() {
+function WebSocketClient(options) {
   EventEmitter.call(this);
+  this._options = options || {};
+  if (this._options.tlsOptions) {
+    this._tlsOptions = this._options.tlsOptions;
+  }
   this.connection = null;
   this.connected = false;
   this.wsKey = 'dGhlIHNhbXBsZSBub25jZQ==';  // mock for now
@@ -104,7 +114,10 @@ util.inherits(WebSocketClient, EventEmitter);
  * @param {String} subProtocol
  */
 WebSocketClient.prototype.handshake = function(location, subProtocol) {
-  subProtocol = subProtocol || 'chat';
+  if (!subProtocol)
+    subProtocol = 'chat';
+  if (Array.isArray(subProtocol))
+    subProtocol = subProtocol.join(',');
 
   var self = this;
   var options = Object.assign({
@@ -116,7 +129,17 @@ WebSocketClient.prototype.handshake = function(location, subProtocol) {
       'Sec-WebSocket-Version': '13'
     }
   }, url.parse(location));
-  var httpConnection = http.get(options, function(request) {
+
+  var request = http.get;
+  if (options.protocol === 'wss:' ||
+    options.protocol === 'https:') {
+    request = require('https').get;
+    if (this._tlsOptions) {
+      options = Object.assign(this._tlsOptions, options);
+    }
+  }
+
+  var httpConnection = request(options, function(request) {
     var headers = request.headers;
     if (request.statusCode !== 101 ||
       headers.upgrade !== 'websocket' ||
@@ -145,9 +168,6 @@ WebSocketClient.prototype.handshake = function(location, subProtocol) {
 WebSocketClient.prototype.connect = function(location, subProtocol) {
   var self = this;
   self.handshake(location, subProtocol);
-  self.on('ping', function() {
-    self.send(FrameType.PONG, new Buffer('m'));
-  });
 };
 
 /**

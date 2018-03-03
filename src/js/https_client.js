@@ -58,10 +58,10 @@ function ClientRequest(options, cb) {
 
 
   // Create socket.
-  var socket = tls.connect({
+  var socket = tls.connect(Object.assign(options, {
     host: host,
-    port: port
-  });
+    port: port,
+  }));
 
   // setup connection information.
   setupConnection(this, socket);
