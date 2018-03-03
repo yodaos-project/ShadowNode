@@ -238,11 +238,11 @@ JS_FUNCTION(EncodeFrame) {
   size_t data_len = iotjs_bufferwrap_length(data);
 
   header = iotjs_ws_make_header(data_len, (enum ws_frame_type)type, &header_len, WS_FINAL_FRAME);
-  
-  size_t out_len = data_len + header_len;
-  uint64_t out_frame[out_len];
 
-  memset(out_frame, 0, data_len);
+  size_t out_len = data_len + header_len;
+  uint64_t out_frame[out_len + 1];
+
+  memset(out_frame, 0, data_len + 1);
   memcpy(out_frame, header, header_len);
 
   uint8_t* mask = header + header_len - 4;
@@ -256,6 +256,8 @@ JS_FUNCTION(EncodeFrame) {
   iotjs_bufferwrap_t* frame_wrap = iotjs_bufferwrap_from_jbuffer(jframe);
   iotjs_bufferwrap_copy(frame_wrap, (const char*)out_frame, out_len);
   
+  printf("send %s\n", out_frame);
+
   free(header);
   return jframe;
 }
