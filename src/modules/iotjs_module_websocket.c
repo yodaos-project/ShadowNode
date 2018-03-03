@@ -258,7 +258,7 @@ JS_FUNCTION(EncodeFrame) {
   
   printf("send ");
   for (size_t i = 0; i < out_len + 1; i++) {
-    printf("%llu ", out_frame[out_len]);
+    printf("%llu ", out_frame[i]);
   }
   printf("\n");
 
