@@ -256,7 +256,11 @@ JS_FUNCTION(EncodeFrame) {
   iotjs_bufferwrap_t* frame_wrap = iotjs_bufferwrap_from_jbuffer(jframe);
   iotjs_bufferwrap_copy(frame_wrap, (const char*)out_frame, out_len);
   
-  printf("send %s\n", out_frame);
+  printf("send ");
+  for (int i = 0; i < out_len + 1; i++) {
+    printf("%d ", out_frame[out_len]);
+  }
+  printf("\n");
 
   free(header);
   return jframe;
