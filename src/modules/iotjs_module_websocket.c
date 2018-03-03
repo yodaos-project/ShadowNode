@@ -219,11 +219,14 @@ uint8_t* iotjs_ws_make_header(size_t data_len,
     return NULL;
   }
 
+  printf("header: %hhu %hhu\n", header[0], header[1]);
+
   int offset = *header_len;
-  header[offset + 0] = rand() % 0xff;
-  header[offset + 1] = rand() % 0xff;
-  header[offset + 2] = rand() % 0xff;
-  header[offset + 3] = rand() % 0xff;
+  header[offset + 0] = rand() / (RAND_MAX / 0xff);
+  header[offset + 1] = rand() / (RAND_MAX / 0xff);
+  header[offset + 2] = rand() / (RAND_MAX / 0xff);
+  header[offset + 3] = rand() / (RAND_MAX / 0xff);
+
   *header_len += 4;
   return header;
 }
