@@ -219,8 +219,6 @@ uint8_t* iotjs_ws_make_header(size_t data_len,
     return NULL;
   }
 
-  printf("header: %hhu %hhu\n", header[0], header[1]);
-
   int offset = *header_len;
   header[offset + 0] = rand() / (RAND_MAX / 0xff);
   header[offset + 1] = rand() / (RAND_MAX / 0xff);
@@ -241,12 +239,14 @@ JS_FUNCTION(EncodeFrame) {
   size_t data_len = iotjs_bufferwrap_length(data);
 
   header = iotjs_ws_make_header(data_len, (enum ws_frame_type)type, &header_len, WS_FINAL_FRAME);
+  printf("header: %hhu %hhu %lu\n", header[0], header[1], data_len);
 
   size_t out_len = data_len + header_len;
-  uint64_t out_frame[out_len + 1];
+  uint8_t out_frame[out_len + 1];
 
   memset(out_frame, 0, data_len + 1);
   memcpy(out_frame, header, header_len);
+  printf("output %hhu\n", out_frame[0]);
 
   uint8_t* mask = header + header_len - 4;
   char* masked = iotjs_bufferwrap_buffer(data);
@@ -261,7 +261,7 @@ JS_FUNCTION(EncodeFrame) {
   
   printf("send ");
   for (size_t i = 0; i < out_len + 1; i++) {
-    printf("%llu ", out_frame[i]);
+    printf("%hhu ", out_frame[i]);
   }
   printf("\n");
 
