@@ -257,8 +257,8 @@ JS_FUNCTION(EncodeFrame) {
   iotjs_bufferwrap_copy(frame_wrap, (const char*)out_frame, out_len);
   
   printf("send ");
-  for (int i = 0; i < out_len + 1; i++) {
-    printf("%d ", out_frame[out_len]);
+  for (size_t i = 0; i < out_len + 1; i++) {
+    printf("%llu ", out_frame[out_len]);
   }
   printf("\n");
 
