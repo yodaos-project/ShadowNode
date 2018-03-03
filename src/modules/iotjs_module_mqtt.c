@@ -179,7 +179,6 @@ JS_FUNCTION(MqttGetPublish) {
                                   top,
                                   (unsigned char*)iotjs_string_data(&msg_payload_str),
                                   msg_size);
-  printf("len: %d\n", len);
 
   jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
