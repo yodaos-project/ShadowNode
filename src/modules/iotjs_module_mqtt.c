@@ -165,15 +165,20 @@ JS_FUNCTION(MqttGetPublish) {
   MQTTString top = MQTTString_initializer;
   top.cstring = (char *)iotjs_string_data(&topic);
 
-  unsigned char buf[1024];
-  int len = MQTTSerialize_publish(buf, sizeof(buf), 
+  int msg_size = (int)iotjs_string_size(&msg_payload_str);
+  int buf_size = 1024;
+  if (buf_size <= msg_size) {
+    buf_size = msg_size + 50;
+  }
+  unsigned char buf[buf_size];
+  int len = MQTTSerialize_publish(buf, buf_size, 
                                   iotjs_jval_as_boolean(msg_dup) ? 1 : 0, 
                                   iotjs_jval_as_number(msg_qos),
                                   iotjs_jval_as_boolean(msg_retain) ? 1 : 0,
                                   (unsigned short)iotjs_jval_as_number(msg_id),
                                   top,
                                   (unsigned char*)iotjs_string_data(&msg_payload_str),
-                                  (int)iotjs_string_size(&msg_payload_str));
+                                  msg_size);
 
   jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);

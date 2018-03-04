@@ -220,10 +220,11 @@ uint8_t* iotjs_ws_make_header(size_t data_len,
   }
 
   int offset = *header_len;
-  header[offset + 0] = rand() % 0xff;
-  header[offset + 1] = rand() % 0xff;
-  header[offset + 2] = rand() % 0xff;
-  header[offset + 3] = rand() % 0xff;
+  header[offset + 0] = rand() / (RAND_MAX / 0xff);
+  header[offset + 1] = rand() / (RAND_MAX / 0xff);
+  header[offset + 2] = rand() / (RAND_MAX / 0xff);
+  header[offset + 3] = rand() / (RAND_MAX / 0xff);
+
   *header_len += 4;
   return header;
 }
@@ -236,14 +237,13 @@ JS_FUNCTION(EncodeFrame) {
   uint8_t* header;
   size_t header_len;
   size_t data_len = iotjs_bufferwrap_length(data);
-
   header = iotjs_ws_make_header(data_len, (enum ws_frame_type)type, &header_len, WS_FINAL_FRAME);
-  
-  uint8_t *out_frame;
-  size_t out_len = data_len + header_len;
 
-  out_frame = realloc(header, out_len);
-  memset(out_frame + header_len, 0, data_len);
+  size_t out_len = data_len + header_len;
+  uint8_t out_frame[out_len + 1];
+
+  memset(out_frame, 0, data_len + 1);
+  memcpy(out_frame, header, header_len);
 
   uint8_t* mask = header + header_len - 4;
   char* masked = iotjs_bufferwrap_buffer(data);
@@ -251,11 +251,11 @@ JS_FUNCTION(EncodeFrame) {
   for (size_t i = 0; i < data_len; ++i) {
     out_frame[header_len + i] = (uint8_t) (masked[i] ^ mask[i % 4]);
   }
-
   jerry_value_t jframe = iotjs_bufferwrap_create_buffer(data_len + header_len);
   iotjs_bufferwrap_t* frame_wrap = iotjs_bufferwrap_from_jbuffer(jframe);
   iotjs_bufferwrap_copy(frame_wrap, (const char*)out_frame, out_len);
-  free(out_frame);
+  
+  free(header);
   return jframe;
 }
 
