@@ -42,18 +42,13 @@ try {
 var moduledirs = [''];
 if (cwd) {
   moduledirs.push(cwd + '/');
-  moduledirs.push(cwd + '/iotjs_modules/');
   moduledirs.push(cwd + '/node_modules/');
 }
 if (process.env.HOME) {
   moduledirs.push(process.env.HOME + '/node_modules/');
-  moduledirs.push(process.env.HOME + '/iotjs_modules/');
 }
 if (process.env.NODE_PATH) {
   moduledirs.push(process.env.NODE_PATH + '/node_modules/');
-}
-if (process.env.IOTJS_PATH) {
-  moduledirs.push(process.env.IOTJS_PATH + '/iotjs_modules/');
 }
 
 function tryPath(modulePath, ext) {
@@ -63,7 +58,18 @@ function tryPath(modulePath, ext) {
 }
 
 iotjs_module_t.resolveDirectories = function(id, parent) {
-  var dirs = moduledirs;
+  var dirs = Object.assign([], moduledirs);
+  if (parent) {
+    var start = path.dirname(parent.filename);
+    var parts = start.split('/');
+    do {
+      var last = parts[parts.length - 1];
+      dirs.push(start + 'node_modules/');
+      start = start.replace(new RegExp(last + '/?$'), '');
+      parts.length = parts.length - 1;
+    } while (parts.length > 0);
+  }
+
   if (parent) {
     if (!parent.dirs) {
       parent.dirs = [];
