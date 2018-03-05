@@ -103,8 +103,9 @@ JS_FUNCTION(MqttReadPacket) {
   _this->srclen = iotjs_bufferwrap_length(wrap);
   _this->offset = 0;
 
-  unsigned char buf[1024];
-  int r = MQTTPacket_read(buf, sizeof(buf), iotjs_mqtt_read_buf, _this);
+  // Assert the buffer size is larger
+  unsigned char buf[_this->srclen];
+  int r = MQTTPacket_read(buf, _this->srclen, iotjs_mqtt_read_buf, _this);
 
   jerry_value_t ret = jerry_create_object();
   iotjs_jval_set_property_jval(ret, "type", jerry_create_number(r));
