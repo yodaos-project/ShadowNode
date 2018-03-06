@@ -144,7 +144,8 @@ uint8_t* unmask(uint8_t* packet, uint64_t length, uint8_t *mask) {
   for (uint64_t i = 0; i < length; i++) {
     packet[i] ^= mask[i % 4];
   }
-  free(mask);
+  if (mask != NULL)
+    free(mask);
   return packet;
 }
 
@@ -242,7 +243,7 @@ JS_FUNCTION(EncodeFrame) {
   size_t out_len = data_len + header_len;
   uint8_t out_frame[out_len + 1];
 
-  memset(out_frame, 0, data_len + 1);
+  memset(out_frame, 0, out_len + 1);
   memcpy(out_frame, header, header_len);
 
   uint8_t* mask = header + header_len - 4;
