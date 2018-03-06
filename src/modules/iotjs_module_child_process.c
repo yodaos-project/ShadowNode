@@ -96,11 +96,13 @@ static void iotjs_processwrap_parse_args_opts(jerry_value_t js_options,
   jerry_value_t jarr = iotjs_jval_get_property(js_options, "args");
   uint32_t len = jerry_get_array_length(jarr);
   if (len > 0) {
-    options->args = (char**)malloc(sizeof(char*) * len + 1);
+    options->args = (char**)malloc(sizeof(char*) * len + sizeof(NULL));
     for (uint32_t i = 0; i < len; i++) {
       jerry_value_t jval = iotjs_jval_get_property_by_index(jarr, i);
       iotjs_string_t str = iotjs_jval_as_string(jval);
-      options->args[i] = (char*)iotjs_string_data(&str);
+      options->args[i] = (char*)strdup(iotjs_string_data(&str));
+      iotjs_string_destroy(&str);
+      jerry_release_value(jval);
     }
     options->args[len] = NULL;
   }
@@ -112,11 +114,13 @@ static void iotjs_processwrap_parse_envs_opts(jerry_value_t js_options,
   jerry_value_t jarr = iotjs_jval_get_property(js_options, "envPairs");
   uint32_t len = jerry_get_array_length(jarr);
   if (len > 0) {
-    options->env = (char**)malloc(sizeof(char*) * len + 1);
+    options->env = (char**)malloc(sizeof(char*) * len + sizeof(NULL));
     for (uint32_t i = 0; i < len; i++) {
       jerry_value_t jval = iotjs_jval_get_property_by_index(jarr, i);
       iotjs_string_t str = iotjs_jval_as_string(jval);
-      options->env[i] = (char*)iotjs_string_data(&str);
+      options->env[i] = (char*)strdup(iotjs_string_data(&str));
+      iotjs_string_destroy(&str);
+      jerry_release_value(jval);
     }
     options->env[len] = NULL;
   }
@@ -128,7 +132,7 @@ static void iotjs_processwrap_parse_stdio_opts(jerry_value_t js_options,
   jerry_value_t stdios = iotjs_jval_get_property(js_options, "stdio");
   uint32_t len = jerry_get_array_length(stdios);
 
-  options->stdio = (uv_stdio_container_t*)malloc(sizeof(uv_stdio_container_t*) * len);
+  options->stdio = (uv_stdio_container_t*)malloc(sizeof(uv_stdio_container_t) * len);
   options->stdio_count = (int)len;
 
   for (uint32_t i = 0; i < len; i++) {
@@ -155,6 +159,7 @@ static void iotjs_processwrap_parse_stdio_opts(jerry_value_t js_options,
       options->stdio[i].data.fd = jerry_get_number_value(fd);
       jerry_release_value(fd);
     }
+    iotjs_string_destroy(&jtype_str);
     jerry_release_value(jtype);
     jerry_release_value(stdio);
   }
