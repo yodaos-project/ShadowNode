@@ -281,8 +281,6 @@ int iotjs_tlswrap_error_handler(iotjs_tlswrap_t_impl_t* _this, const int code) {
     iotjs_tlswrap_stay_update(_this);
   } else if (code == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
     return code;
-  } else if (code < 0) {
-    print_mbedtls_error("mbedtls_ssl_handshake", code);
   }
   return code;
 }
@@ -377,7 +375,7 @@ JS_FUNCTION(TlsRead) {
       rv == MBEDTLS_ERR_SSL_WANT_WRITE) {
       break;
     } else {
-      print_mbedtls_error("tls read", rv);
+      // print_mbedtls_error("tls_read", rv);
       break;
     }
   }

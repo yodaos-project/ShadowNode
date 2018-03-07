@@ -148,7 +148,9 @@ Socket.prototype.connect = function() {
       });
     } else {
       resetSocketTimeout(self);
-      connect(self, ip, port);
+      process.nextTick(function() {
+        connect(self, ip, port);
+      });
     }
   });
 
