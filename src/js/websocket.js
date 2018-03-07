@@ -46,10 +46,15 @@ WebSocketConnection.prototype.onsocketdata = function(chunk) {
   } else if (decoded.type === FrameType.PONG) {
     this.emit('pong');
   } else if (decoded.type === FrameType.TEXT) {
-    this.emit('message', {
-      type: 'utf8',
-      utf8Data: decoded.buffer.toString('utf8'),
-    });
+    if (!decoded.buffer.toString('utf8')) {
+      var err = new Error('invalid UTF-8 message from websocket');
+      this.emit('error', err);
+    } else {
+      this.emit('message', {
+        type: 'utf8',
+        utf8Data: decoded.buffer.toString('utf8'),
+      });
+    }
   } else if (decoded.type === FrameType.BINARY) {
     this.emit('message', {
       type: 'binary',
