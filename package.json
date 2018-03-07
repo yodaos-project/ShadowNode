@@ -1,6 +1,6 @@
 {
   "name": "ShadowNode",
-  "version": "0.7.8",
+  "version": "0.7.9",
   "description": "Use Node.js in your embeddable devices",
   "scripts": {
     "lint": "eslint src ./*.js -f table --ext .js > eslint.log",
