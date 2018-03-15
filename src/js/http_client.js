@@ -22,6 +22,8 @@ var HTTPParser = require('httpparser').HTTPParser;
 function ClientRequest(options, cb) {
   OutgoingMessage.call(this);
 
+  this.aborted = undefined;
+
   // get port, host and method.
   var port = options.port = options.port || 80;
   var host = options.host = options.hostname || options.host || '127.0.0.1';
@@ -132,6 +134,8 @@ function socketOnClose() {
   req.emit('close');
 
   if (req.res && req.res.readable) {
+    // Socket closed before we emitted 'end' below.
+    if (!req.res.complete) req.res.emit('aborted');
     // Socket closed before we emitted 'end'
     var res = req.res;
     res.on('end', function() {
@@ -202,6 +206,33 @@ var responseOnEnd = function() {
   }
 };
 
+ClientRequest.prototype.abort = function() {
+  var self = this;
+  if (!self.aborted) {
+    process.nextTick(function() {
+      self.emit('abort');
+    });
+  }
+  // Mark as aborting so we can avoid sending queued request data
+  // This is used as a truthy flag elsewhere. The use of Date.now is for
+  // debugging purposes only.
+  self.aborted = Date.now();
+
+  // If we're aborting, we don't care about any more response data.
+  if (this.res) {
+    this.res._dump();
+  } else {
+    this.once('response', function(res) {
+      res._dump();
+    });
+  }
+
+  // the request queue through handling in onSocket.
+  if (this.socket) {
+    // in-progress
+    this.socket.destroy();
+  }
+};
 
 ClientRequest.prototype.setTimeout = function(ms, cb) {
   var self = this;
