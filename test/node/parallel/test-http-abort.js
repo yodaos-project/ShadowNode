@@ -1,18 +1,14 @@
 var http = require('http');
 var https = require('https');
-var Url = require('url');
 var assert = require('assert');
 
-
-function getHandle(protocol) {
-  switch (protocol) {
-    case 'http:':
-      return http;
-    case 'https:':
-      return https;
-    default:
-      throw new Error('unsupported protocol ' + protocol);
+function getHandle(url) {
+  if (/^http:\/\//.test(url)) {
+    return http;
+  } else if (/^https:\/\//.test(url)) {
+    return https;
   }
+  throw new Error('unsupported url ' + url);
 }
 
 // test http_client
@@ -21,12 +17,11 @@ test('http://www.baidu.com');
 test('https://www.baidu.com');
 
 function test(url) {
-  url = Url.parse(url);
   var isAborted = false;
   var eventTriggered = false;
   var chunks = [];
-  var handle = getHandle(url.protocol);
-  var req = handle.get(url.href, function(res) {
+  var handle = getHandle(url);
+  var req = handle.get(url, function(res) {
     res.on('data', function(chunk) {
       assert.strictEqual(isAborted, false, 'should not aborted');
       isAborted = true;
@@ -39,7 +34,7 @@ function test(url) {
 
     res.on('end', function() {
       var body = Buffer.concat(chunks).toString('utf8');
-      console.log(url.href, 'end', body.length);
+      console.log(url, 'end', body.length);
     });
 
   });
