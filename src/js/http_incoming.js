@@ -29,6 +29,8 @@ function IncomingMessage(socket) {
 
   this.complete = false;
 
+  this._dumped = false;
+
   // for request (server)
   this.url = '';
   this.method = null;
@@ -189,4 +191,15 @@ IncomingMessage.prototype.setTimeout = function(ms, cb) {
   if (cb)
     this.once('timeout', cb);
   this.socket.setTimeout(ms, cb);
+};
+
+
+IncomingMessage.prototype._dump = function() {
+  if (!this._dumped) {
+    this._dumped = true;
+    // If there is buffered data, it may trigger 'data' events.
+    // Remove 'data' event listeners explicitly.
+    this.removeAllListeners('data');
+    this.resume();
+  }
 };
