@@ -12,9 +12,9 @@ function getHandle(url) {
 }
 
 // test http_client
-test('http://www.baidu.com');
+test('http://developer.rokid.com/#/');
 // test https_client
-test('https://www.baidu.com');
+test('https://developer.rokid.com/#/');
 
 function test(url) {
   var isAborted = false;
@@ -30,11 +30,6 @@ function test(url) {
         assert.strictEqual(eventTriggered, true, 'should trigger event abort');
       });
       chunks.push(chunk);
-    });
-
-    res.on('end', function() {
-      var body = Buffer.concat(chunks).toString('utf8');
-      console.log(url, 'end', body.length);
     });
 
   });
