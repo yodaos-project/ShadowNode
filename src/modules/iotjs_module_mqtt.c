@@ -155,8 +155,11 @@ JS_FUNCTION(MqttGetConnect) {
 
 
 void alloc_payload_buf(unsigned char **buf, int expected_size, int *alloc_size) {
-  static const int buf_size = 1 * 1024 * 1024;
-  static unsigned char buf_[buf_size];
+  static int buf_size = 1 * 1024 * 1024;
+  static unsigned char *buf_ = NULL;
+  if (buf_ == NULL) {
+    buf_ = malloc((size_t)buf_size * sizeof(unsigned char));
+  }
   if (expected_size > buf_size) {
     return;
   }
