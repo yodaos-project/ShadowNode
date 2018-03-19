@@ -153,6 +153,17 @@ JS_FUNCTION(MqttGetConnect) {
   return retbuf;
 }
 
+
+void alloc_payload_buf(unsigned char **buf, int expected_size, int *alloc_size) {
+  static const int buf_size = 1 * 1024 * 1024;
+  static unsigned char buf_[buf_size];
+  if (expected_size > buf_size) {
+    return;
+  }
+  *buf = buf_;
+  *alloc_size = buf_size;
+}
+
 JS_FUNCTION(MqttGetPublish) {
   iotjs_string_t topic = JS_GET_ARG(0, string);
   jerry_value_t opts = JS_GET_ARG(1, object);
@@ -166,12 +177,15 @@ JS_FUNCTION(MqttGetPublish) {
   MQTTString top = MQTTString_initializer;
   top.cstring = (char *)iotjs_string_data(&topic);
 
+  jerry_value_t ret;
   int msg_size = (int)iotjs_string_size(&msg_payload_str);
-  int buf_size = 1024;
-  if (buf_size <= msg_size) {
-    buf_size = msg_size + 50;
+  int buf_size = 0;
+  unsigned char *buf = NULL;
+  alloc_payload_buf(&buf, msg_size, &buf_size);
+  if (buf == NULL) {
+    ret = JS_CREATE_ERROR(COMMON, "mqtt payload buf create error");
+    goto exit;
   }
-  unsigned char buf[buf_size];
   int len = MQTTSerialize_publish(buf, buf_size, 
                                   iotjs_jval_as_boolean(msg_dup) ? 1 : 0, 
                                   iotjs_jval_as_number(msg_qos),
@@ -180,18 +194,23 @@ JS_FUNCTION(MqttGetPublish) {
                                   top,
                                   (unsigned char*)iotjs_string_data(&msg_payload_str),
                                   msg_size);
-
+  if (len < 0) {
+    ret = JS_CREATE_ERROR(COMMON, "mqtt payload is too large");
+    goto exit;
+  }
   jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
   iotjs_bufferwrap_copy(wrap, (const char*)buf, (size_t)len);
+  ret = retbuf;
 
+exit:
   jerry_release_value(msg_id);
   jerry_release_value(msg_dup);
   jerry_release_value(msg_retain);
   jerry_release_value(msg_payload);
   iotjs_string_destroy(&topic);
   iotjs_string_destroy(&msg_payload_str);
-  return retbuf;
+  return ret;
 }
 
 JS_FUNCTION(MqttGetPingReq) {
