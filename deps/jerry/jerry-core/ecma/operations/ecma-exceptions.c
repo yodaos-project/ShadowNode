@@ -30,9 +30,35 @@
  * \addtogroup exceptions Exceptions
  * @{
  */
+typedef struct
+{
+  ecma_standard_error_t error_type;
+  ecma_builtin_id_t error_prototype_id;
+} ecma_error_mapping_t;
+
+const ecma_error_mapping_t ecma_error_mappings[] =
+{
+#define ERROR_ELEMENT(TYPE, ID) { TYPE, ID }
+  ERROR_ELEMENT (ECMA_ERROR_COMMON,      ECMA_BUILTIN_ID_ERROR_PROTOTYPE),
+
+#ifndef CONFIG_DISABLE_ERROR_BUILTINS
+  ERROR_ELEMENT (ECMA_ERROR_EVAL,        ECMA_BUILTIN_ID_EVAL_ERROR_PROTOTYPE),
+  ERROR_ELEMENT (ECMA_ERROR_RANGE,       ECMA_BUILTIN_ID_RANGE_ERROR_PROTOTYPE),
+  ERROR_ELEMENT (ECMA_ERROR_REFERENCE,   ECMA_BUILTIN_ID_REFERENCE_ERROR_PROTOTYPE),
+  ERROR_ELEMENT (ECMA_ERROR_TYPE,        ECMA_BUILTIN_ID_TYPE_ERROR_PROTOTYPE),
+  ERROR_ELEMENT (ECMA_ERROR_URI,         ECMA_BUILTIN_ID_URI_ERROR_PROTOTYPE),
+  ERROR_ELEMENT (ECMA_ERROR_SYNTAX,      ECMA_BUILTIN_ID_SYNTAX_ERROR_PROTOTYPE),
+#endif /* !CONFIG_DISABLE_ERROR_BUILTINS */
+
+#undef ERROR_ELEMENT
+};
 
 /**
  * Standard ecma-error object constructor.
+ *
+ * Note:
+ *    calling with ECMA_ERROR_NONE does not make sense thus it will
+ *    cause a fault in the system.
  *
  * @return pointer to ecma-object representing specified error
  *         with reference counter set to one.
@@ -86,6 +112,12 @@ ecma_new_standard_error (ecma_standard_error_t error_type) /**< native error typ
       prototype_id = ECMA_BUILTIN_ID_SYNTAX_ERROR_PROTOTYPE;
       break;
     }
+
+    case ECMA_ERROR_NONE:
+    {
+      JERRY_UNREACHABLE ();
+      break;
+    }
   }
 #else
   JERRY_UNUSED (error_type);
@@ -106,6 +138,32 @@ ecma_new_standard_error (ecma_standard_error_t error_type) /**< native error typ
 } /* ecma_new_standard_error */
 
 /**
+ * Return the error type for an Error object.
+ *
+ * @return one of the ecma_standard_error_t value
+ *         if it is not an Error object then ECMA_ERROR_NONE will be returned
+ */
+ecma_standard_error_t
+ecma_get_error_type (ecma_object_t *error_object) /**< possible error object */
+{
+  ecma_object_t *prototype_p = ecma_get_object_prototype (error_object);
+  if (prototype_p != NULL)
+  {
+    uint8_t builtin_id = ecma_get_object_builtin_id (prototype_p);
+
+    for (uint8_t idx = 0; idx < sizeof (ecma_error_mappings) / sizeof (ecma_error_mappings[0]); idx++)
+    {
+      if (ecma_error_mappings[idx].error_prototype_id == builtin_id)
+      {
+        return ecma_error_mappings[idx].error_type;
+      }
+    }
+  }
+
+  return ECMA_ERROR_NONE;
+} /* ecma_get_error_type */
+
+/**
  * Standard ecma-error object constructor.
  *
  * @return pointer to ecma-object representing specified error
@@ -117,14 +175,11 @@ ecma_new_standard_error_with_message (ecma_standard_error_t error_type, /**< nat
 {
   ecma_object_t *new_error_obj_p = ecma_new_standard_error (error_type);
 
-  ecma_string_t *message_magic_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_MESSAGE);
-
   ecma_property_value_t *prop_value_p;
   prop_value_p = ecma_create_named_data_property (new_error_obj_p,
-                                                  message_magic_string_p,
+                                                  ecma_get_magic_string (LIT_MAGIC_STRING_MESSAGE),
                                                   ECMA_PROPERTY_CONFIGURABLE_WRITABLE,
                                                   NULL);
-  ecma_deref_ecma_string (message_magic_string_p);
 
   ecma_ref_ecma_string (message_string_p);
   prop_value_p->value = ecma_make_string_value (message_string_p);
@@ -157,6 +212,7 @@ ecma_raise_standard_error (ecma_standard_error_t error_type, /**< error type */
   }
 
   JERRY_CONTEXT (error_value) = ecma_make_object_value (error_obj_p);
+  JERRY_CONTEXT (status_flags) |= ECMA_STATUS_EXCEPTION;
   return ECMA_VALUE_ERROR;
 } /* ecma_raise_standard_error */
 
@@ -176,8 +232,6 @@ ecma_raise_standard_error_with_format (ecma_standard_error_t error_type, /**< er
   JERRY_ASSERT (format != NULL);
 
   ecma_string_t *error_msg_p = ecma_get_magic_string (LIT_MAGIC_STRING__EMPTY);
-  ecma_string_t *string1_p;
-  ecma_string_t *string2_p;
 
   const char *start_p = format;
   const char *end_p = format;
@@ -193,17 +247,19 @@ ecma_raise_standard_error_with_format (ecma_standard_error_t error_type, /**< er
       /* Concat template string. */
       if (end_p > start_p)
       {
-        string1_p = error_msg_p;
-        string2_p = ecma_new_ecma_string_from_utf8 ((const lit_utf8_byte_t *) start_p,
-                                                    (lit_utf8_size_t) (end_p - start_p));
-        error_msg_p = ecma_concat_ecma_strings (string1_p, string2_p);
-        ecma_deref_ecma_string (string1_p);
-        ecma_deref_ecma_string (string2_p);
+        const lit_utf8_byte_t *chars_p = (const lit_utf8_byte_t *) start_p;
+        lit_utf8_size_t chars_size = (lit_utf8_size_t) (end_p - start_p);
+
+        error_msg_p = ecma_append_chars_to_string (error_msg_p,
+                                                   chars_p,
+                                                   chars_size,
+                                                   lit_utf8_string_length (chars_p, chars_size));
       }
 
       /* Convert an argument to string without side effects. */
       ecma_string_t *arg_string_p;
       const ecma_value_t arg_val = va_arg (args, ecma_value_t);
+
       if (unlikely (ecma_is_value_object (arg_val)))
       {
         ecma_object_t *arg_object_p = ecma_get_object_from_value (arg_val);
@@ -217,11 +273,8 @@ ecma_raise_standard_error_with_format (ecma_standard_error_t error_type, /**< er
       }
 
       /* Concat argument. */
-      string1_p = error_msg_p;
-      string2_p = arg_string_p;
-      error_msg_p = ecma_concat_ecma_strings (string1_p, string2_p);
-      ecma_deref_ecma_string (string1_p);
-      ecma_deref_ecma_string (string2_p);
+      error_msg_p = ecma_concat_ecma_strings (error_msg_p, arg_string_p);
+      ecma_deref_ecma_string (arg_string_p);
 
       start_p = end_p + 1;
     }
@@ -234,18 +287,20 @@ ecma_raise_standard_error_with_format (ecma_standard_error_t error_type, /**< er
   /* Concat reset of template string. */
   if (start_p < end_p)
   {
-    string1_p = error_msg_p;
-    string2_p = ecma_new_ecma_string_from_utf8 ((const lit_utf8_byte_t *) start_p,
-                                                (lit_utf8_size_t) (end_p - start_p));
-    error_msg_p = ecma_concat_ecma_strings (string1_p, string2_p);
-    ecma_deref_ecma_string (string1_p);
-    ecma_deref_ecma_string (string2_p);
+    const lit_utf8_byte_t *chars_p = (const lit_utf8_byte_t *) start_p;
+    lit_utf8_size_t chars_size = (lit_utf8_size_t) (end_p - start_p);
+
+    error_msg_p = ecma_append_chars_to_string (error_msg_p,
+                                               chars_p,
+                                               chars_size,
+                                               lit_utf8_string_length (chars_p, chars_size));
   }
 
   ecma_object_t *error_obj_p = ecma_new_standard_error_with_message (error_type, error_msg_p);
   ecma_deref_ecma_string (error_msg_p);
 
   JERRY_CONTEXT (error_value) = ecma_make_object_value (error_obj_p);
+  JERRY_CONTEXT (status_flags) |= ECMA_STATUS_EXCEPTION;
   return ECMA_VALUE_ERROR;
 } /* ecma_raise_standard_error_with_format */
 

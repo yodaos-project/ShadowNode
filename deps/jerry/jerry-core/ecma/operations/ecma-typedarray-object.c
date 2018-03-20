@@ -26,6 +26,7 @@
 #include "ecma-gc.h"
 #include "ecma-globals.h"
 #include "ecma-helpers.h"
+#include "jcontext.h"
 
 #ifndef CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN
 
@@ -225,7 +226,7 @@ ecma_set_typedarray_element (lit_utf8_byte_t *dst_p, /**< the location in the in
  * @return ecma value of the new typedarray object
  *         Returned value must be freed with ecma_free_value
  */
-static ecma_value_t
+ecma_value_t
 ecma_typedarray_create_object_with_length (ecma_length_t array_length, /**< length of the typedarray */
                                            ecma_object_t *proto_p, /**< prototype object */
                                            uint8_t element_size_shift, /**< the size shift of the element length */
@@ -776,7 +777,7 @@ ecma_op_typedarray_list_lazy_property_names (ecma_object_t *obj_p, /**< a TypedA
   {
     ecma_string_t *name_p = ecma_new_ecma_string_from_uint32 (i);
 
-    ecma_append_to_values_collection (main_collection_p, ecma_make_string_value (name_p), true);
+    ecma_append_to_values_collection (main_collection_p, ecma_make_string_value (name_p), 0);
 
     ecma_deref_ecma_string (name_p);
   }
@@ -892,12 +893,14 @@ ecma_op_typedarray_set_index_prop (ecma_object_t *obj_p, /**< a TypedArray objec
 
   ECMA_OP_TO_NUMBER_FINALIZE (value_num);
 
-  if (ecma_is_value_empty (error))
+  if (ECMA_IS_VALUE_ERROR (error))
   {
-    return true;
+    ecma_free_value (JERRY_CONTEXT (error_value));
+    return false;
   }
 
-  return false;
+  JERRY_ASSERT (ecma_is_value_empty (error));
+  return true;
 } /* ecma_op_typedarray_set_index_prop */
 
 /**

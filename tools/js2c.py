@@ -56,7 +56,7 @@ def force_str(string):
 
 
 def parse_literals(code):
-    JERRY_SNAPSHOT_VERSION = 8
+    JERRY_SNAPSHOT_VERSION = 10
     JERRY_SNAPSHOT_MAGIC = 0x5952524A
 
     literals = set()
@@ -69,6 +69,7 @@ def parse_literals(code):
     if header[0] != JERRY_SNAPSHOT_MAGIC:
         print('Incorrect snapshot format! Magic number is incorrect')
         exit(1)
+    print(header)
     if header[1] != JERRY_SNAPSHOT_VERSION:
         print ('Please check jerry snapshot version (Last confirmed: %d)'
                % JERRY_SNAPSHOT_VERSION)

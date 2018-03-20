@@ -131,8 +131,7 @@ ecma_builtin_helper_get_to_locale_string_at_index (ecma_object_t *obj_p, /**< th
 
   if (ecma_is_value_undefined (index_value) || ecma_is_value_null (index_value))
   {
-    ecma_string_t *return_string_p = ecma_get_magic_string (LIT_MAGIC_STRING__EMPTY);
-    ret_value = ecma_make_string_value (return_string_p);
+    ret_value = ecma_make_magic_string_value (LIT_MAGIC_STRING__EMPTY);
   }
   else
   {
@@ -203,16 +202,15 @@ ecma_builtin_helper_object_get_properties (ecma_object_t *obj_p, /**< object */
                                                                          only_enumerable_properties,
                                                                          false);
 
-  ecma_collection_iterator_t iter;
-  ecma_collection_iterator_init (&iter, props_p);
+  ecma_value_t *ecma_value_p = ecma_collection_iterator_init (props_p);
 
-  while (ecma_collection_iterator_next (&iter))
+  while (ecma_value_p != NULL)
   {
     ecma_string_t *index_string_p = ecma_new_ecma_string_from_uint32 (index);
 
     ecma_value_t completion = ecma_builtin_helper_def_prop (new_array_p,
                                                             index_string_p,
-                                                            *iter.current_value_p,
+                                                            *ecma_value_p,
                                                             true, /* Writable */
                                                             true, /* Enumerable */
                                                             true, /* Configurable */
@@ -222,10 +220,12 @@ ecma_builtin_helper_object_get_properties (ecma_object_t *obj_p, /**< object */
 
     ecma_deref_ecma_string (index_string_p);
 
+    ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
+
     index++;
   }
 
-  ecma_free_values_collection (props_p, true);
+  ecma_free_values_collection (props_p, 0);
 
   return new_array;
 } /* ecma_builtin_helper_object_get_properties */
@@ -671,13 +671,13 @@ ecma_builtin_helper_def_prop (ecma_object_t *obj_p, /**< object */
   prop_desc.value = value;
 
   prop_desc.is_writable_defined = true;
-  prop_desc.is_writable = writable;
+  prop_desc.is_writable = ECMA_BOOL_TO_BITFIELD (writable);
 
   prop_desc.is_enumerable_defined = true;
-  prop_desc.is_enumerable = enumerable;
+  prop_desc.is_enumerable = ECMA_BOOL_TO_BITFIELD (enumerable);
 
   prop_desc.is_configurable_defined = true;
-  prop_desc.is_configurable = configurable;
+  prop_desc.is_configurable = ECMA_BOOL_TO_BITFIELD (configurable);
 
   return ecma_op_object_define_own_property (obj_p,
                                              index_p,

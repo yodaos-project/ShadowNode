@@ -64,6 +64,8 @@ typedef enum
  */
 typedef enum
 {
+  JERRY_ERROR_NONE = 0,  /**< No Error */
+
   JERRY_ERROR_COMMON,    /**< Error */
   JERRY_ERROR_EVAL,      /**< EvalError */
   JERRY_ERROR_RANGE,     /**< RangeError */
@@ -215,7 +217,7 @@ typedef bool (*jerry_object_property_foreach_t) (const jerry_value_t property_na
 typedef struct
 {
   void (*init_cb) (void *); /**< callback responsible for initializing a context item, or NULL to zero out the memory */
-  void (*deinit_cb) (void *); /**< callback responsible for deinitializing a context item */
+  void (*deinit_cb) (void *); /**< callback responsible for deinitializing a context item, or NULL */
   size_t bytes_needed; /**< number of bytes to allocate for this manager */
 } jerry_context_data_manager_t;
 
@@ -285,6 +287,23 @@ bool jerry_value_is_string (const jerry_value_t value);
 bool jerry_value_is_undefined (const jerry_value_t value);
 
 /**
+ * JerryScript API value type information.
+ */
+typedef enum
+{
+  JERRY_TYPE_NONE = 0u, /**< no type information */
+  JERRY_TYPE_UNDEFINED, /**< undefined type */
+  JERRY_TYPE_NULL,      /**< null type */
+  JERRY_TYPE_BOOLEAN,   /**< boolean type */
+  JERRY_TYPE_NUMBER,    /**< number type */
+  JERRY_TYPE_STRING,    /**< string type */
+  JERRY_TYPE_OBJECT,    /**< object type */
+  JERRY_TYPE_FUNCTION,  /**< function type */
+} jerry_type_t;
+
+jerry_type_t jerry_value_get_type (const jerry_value_t value);
+
+/**
  * Checker function of whether the specified compile feature is enabled.
  */
 bool jerry_is_feature_enabled (const jerry_feature_t feature);
@@ -293,8 +312,16 @@ bool jerry_is_feature_enabled (const jerry_feature_t feature);
  * Error flag manipulation functions.
  */
 bool jerry_value_has_error_flag (const jerry_value_t value);
+bool jerry_value_has_abort_flag (const jerry_value_t value);
 void jerry_value_clear_error_flag (jerry_value_t *value_p);
 void jerry_value_set_error_flag (jerry_value_t *value_p);
+void jerry_value_set_abort_flag (jerry_value_t *value_p);
+jerry_value_t jerry_get_value_without_error_flag (jerry_value_t value);
+
+/**
+ * Error object function(s).
+ */
+jerry_error_t jerry_get_error_type (const jerry_value_t value);
 
 /**
  * Getter functions of 'jerry_value_t'.
@@ -439,6 +466,62 @@ jerry_instance_t *jerry_create_instance (uint32_t heap_size, jerry_instance_allo
  * Miscellaneous functions.
  */
 void jerry_set_vm_exec_stop_callback (jerry_vm_exec_stop_callback_t stop_cb, void *user_p, uint32_t frequency);
+
+/**
+ * Array buffer components.
+ */
+bool jerry_value_is_arraybuffer (const jerry_value_t value);
+jerry_value_t jerry_create_arraybuffer (const jerry_length_t size);
+jerry_value_t jerry_create_arraybuffer_external (const jerry_length_t size,
+                                                 uint8_t *buffer_p,
+                                                 jerry_object_native_free_callback_t free_cb);
+jerry_length_t jerry_arraybuffer_write (const jerry_value_t value,
+                                        jerry_length_t offset,
+                                        const uint8_t *buf_p,
+                                        jerry_length_t buf_size);
+jerry_length_t jerry_arraybuffer_read (const jerry_value_t value,
+                                       jerry_length_t offset,
+                                       uint8_t *buf_p,
+                                       jerry_length_t buf_size);
+jerry_length_t jerry_get_arraybuffer_byte_length (const jerry_value_t value);
+uint8_t *jerry_get_arraybuffer_pointer (const jerry_value_t value);
+
+
+/**
+ * TypedArray functions.
+ */
+
+/**
+ * TypedArray types.
+ */
+typedef enum
+{
+  JERRY_TYPEDARRAY_INVALID = 0,
+  JERRY_TYPEDARRAY_UINT8,
+  JERRY_TYPEDARRAY_UINT8CLAMPED,
+  JERRY_TYPEDARRAY_INT8,
+  JERRY_TYPEDARRAY_UINT16,
+  JERRY_TYPEDARRAY_INT16,
+  JERRY_TYPEDARRAY_UINT32,
+  JERRY_TYPEDARRAY_INT32,
+  JERRY_TYPEDARRAY_FLOAT32,
+  JERRY_TYPEDARRAY_FLOAT64,
+} jerry_typedarray_type_t;
+
+
+bool jerry_value_is_typedarray (jerry_value_t value);
+jerry_value_t jerry_create_typedarray (jerry_typedarray_type_t type_name, jerry_length_t length);
+jerry_value_t jerry_create_typedarray_for_arraybuffer_sz (jerry_typedarray_type_t type_name,
+                                                          const jerry_value_t arraybuffer,
+                                                          jerry_length_t byte_offset,
+                                                          jerry_length_t length);
+jerry_value_t jerry_create_typedarray_for_arraybuffer (jerry_typedarray_type_t type_name,
+                                                       const jerry_value_t arraybuffer);
+jerry_typedarray_type_t jerry_get_typedarray_type (jerry_value_t value);
+jerry_length_t jerry_get_typedarray_length (jerry_value_t value);
+jerry_value_t jerry_get_typedarray_buffer (jerry_value_t value,
+                                           jerry_length_t *byte_offset,
+                                           jerry_length_t *byte_length);
 
 /**
  * @}
