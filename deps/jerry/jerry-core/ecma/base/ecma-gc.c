@@ -157,7 +157,7 @@ ecma_gc_mark_property (ecma_property_pair_t *property_pair_p, /**< property pair
   {
     case ECMA_PROPERTY_TYPE_NAMEDDATA:
     {
-      if (ECMA_PROPERTY_GET_NAME_TYPE (property) == ECMA_STRING_CONTAINER_MAGIC_STRING
+      if (ECMA_PROPERTY_GET_NAME_TYPE (property) == ECMA_DIRECT_STRING_MAGIC
           && property_pair_p->names_cp[index] >= LIT_NEED_MARK_MAGIC_STRING__COUNT)
       {
         break;
@@ -192,8 +192,8 @@ ecma_gc_mark_property (ecma_property_pair_t *property_pair_p, /**< property pair
     }
     case ECMA_PROPERTY_TYPE_SPECIAL:
     {
-      JERRY_ASSERT (ECMA_PROPERTY_GET_SPECIAL_PROPERTY_TYPE (&property) == ECMA_SPECIAL_PROPERTY_DELETED
-                    || ECMA_PROPERTY_GET_SPECIAL_PROPERTY_TYPE (&property) == ECMA_SPECIAL_PROPERTY_HASHMAP);
+      JERRY_ASSERT (property == ECMA_PROPERTY_TYPE_HASHMAP
+                    || property == ECMA_PROPERTY_TYPE_DELETED);
       break;
     }
     default:
@@ -257,19 +257,21 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
           }
 
           /* Mark all reactions. */
-          ecma_collection_iterator_t iter;
-          ecma_collection_iterator_init (&iter, ((ecma_promise_object_t *) ext_object_p)->fulfill_reactions);
+          ecma_value_t *ecma_value_p;
+          ecma_value_p = ecma_collection_iterator_init (((ecma_promise_object_t *) ext_object_p)->fulfill_reactions);
 
-          while (ecma_collection_iterator_next (&iter))
+          while (ecma_value_p != NULL)
           {
-            ecma_gc_set_object_visited (ecma_get_object_from_value (*iter.current_value_p));
+            ecma_gc_set_object_visited (ecma_get_object_from_value (*ecma_value_p));
+            ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
           }
 
-          ecma_collection_iterator_init (&iter, ((ecma_promise_object_t *) ext_object_p)->reject_reactions);
+          ecma_value_p = ecma_collection_iterator_init (((ecma_promise_object_t *) ext_object_p)->reject_reactions);
 
-          while (ecma_collection_iterator_next (&iter))
+          while (ecma_value_p != NULL)
           {
-            ecma_gc_set_object_visited (ecma_get_object_from_value (*iter.current_value_p));
+            ecma_gc_set_object_visited (ecma_get_object_from_value (*ecma_value_p));
+            ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
           }
         }
 
@@ -379,10 +381,15 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
   {
     ecma_property_header_t *prop_iter_p = ecma_get_property_list (object_p);
 
+    if (prop_iter_p != NULL && prop_iter_p->types[0] == ECMA_PROPERTY_TYPE_HASHMAP)
+    {
+      prop_iter_p = ECMA_GET_POINTER (ecma_property_header_t,
+                                      prop_iter_p->next_property_cp);
+    }
+
     while (prop_iter_p != NULL)
     {
-      JERRY_ASSERT (prop_iter_p->types[0] == ECMA_PROPERTY_TYPE_HASHMAP
-                    || ECMA_PROPERTY_IS_PROPERTY_PAIR (prop_iter_p));
+      JERRY_ASSERT (ECMA_PROPERTY_IS_PROPERTY_PAIR (prop_iter_p));
 
       ecma_gc_mark_property ((ecma_property_pair_t *) prop_iter_p, 0);
       ecma_gc_mark_property ((ecma_property_pair_t *) prop_iter_p, 1);
@@ -471,7 +478,7 @@ ecma_gc_free_object (ecma_object_t *object_p) /**< object to free */
         jmem_cpointer_t name_cp = prop_pair_p->names_cp[i];
 
         /* Call the native's free callback. */
-        if (ECMA_PROPERTY_GET_NAME_TYPE (*property_p) == ECMA_STRING_CONTAINER_MAGIC_STRING
+        if (ECMA_PROPERTY_GET_NAME_TYPE (*property_p) == ECMA_DIRECT_STRING_MAGIC
             && (name_cp == LIT_INTERNAL_MAGIC_STRING_NATIVE_HANDLE
                 || name_cp == LIT_INTERNAL_MAGIC_STRING_NATIVE_POINTER))
         {
@@ -483,10 +490,6 @@ ecma_gc_free_object (ecma_object_t *object_p) /**< object to free */
           ecma_free_property (object_p, name_cp, property_p);
         }
       }
-
-      /* Both must be deleted. */
-      JERRY_ASSERT (prop_iter_p->types[0] == ECMA_PROPERTY_TYPE_DELETED
-                    && prop_iter_p->types[1] == ECMA_PROPERTY_TYPE_DELETED);
 
       prop_iter_p = ECMA_GET_POINTER (ecma_property_header_t,
                                       prop_iter_p->next_property_cp);
@@ -554,8 +557,10 @@ ecma_gc_free_object (ecma_object_t *object_p) /**< object to free */
 
         case LIT_MAGIC_STRING_REGEXP_UL:
         {
-          ecma_compiled_code_t *bytecode_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_compiled_code_t,
-                                                                              ext_object_p->u.class_prop.u.value);
+          ecma_compiled_code_t *bytecode_p;
+          bytecode_p = ECMA_GET_INTERNAL_VALUE_ANY_POINTER (ecma_compiled_code_t,
+                                                            ext_object_p->u.class_prop.u.value);
+
           if (bytecode_p != NULL)
           {
             ecma_bytecode_deref (bytecode_p);
@@ -566,18 +571,38 @@ ecma_gc_free_object (ecma_object_t *object_p) /**< object to free */
         case LIT_MAGIC_STRING_ARRAY_BUFFER_UL:
         {
           ecma_length_t arraybuffer_length = ext_object_p->u.class_prop.u.length;
-          size_t size = sizeof (ecma_extended_object_t) + arraybuffer_length;
+          size_t size;
+
+          if (ECMA_ARRAYBUFFER_HAS_EXTERNAL_MEMORY (ext_object_p))
+          {
+            size = sizeof (ecma_arraybuffer_external_info);
+
+            /* Call external free callback if any. */
+            ecma_arraybuffer_external_info *array_p = (ecma_arraybuffer_external_info *) ext_object_p;
+            JERRY_ASSERT (array_p != NULL);
+
+            if (array_p->free_cb != NULL)
+            {
+              (array_p->free_cb) (array_p->buffer_p);
+            }
+          }
+          else
+          {
+            size = sizeof (ecma_extended_object_t) + arraybuffer_length;
+          }
+
           ecma_dealloc_extended_object (object_p, size);
           return;
         }
-
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
 #ifndef CONFIG_DISABLE_ES2015_PROMISE_BUILTIN
         case LIT_MAGIC_STRING_PROMISE_UL:
         {
           ecma_free_value_if_not_object (ext_object_p->u.class_prop.u.value);
-          ecma_free_values_collection (((ecma_promise_object_t *) object_p)->fulfill_reactions, false);
-          ecma_free_values_collection (((ecma_promise_object_t *) object_p)->reject_reactions, false);
+          ecma_free_values_collection (((ecma_promise_object_t *) object_p)->fulfill_reactions,
+                                       ECMA_COLLECTION_NO_REF_OBJECTS);
+          ecma_free_values_collection (((ecma_promise_object_t *) object_p)->reject_reactions,
+                                       ECMA_COLLECTION_NO_REF_OBJECTS);
           ecma_dealloc_extended_object (object_p, sizeof (ecma_promise_object_t));
           return;
         }
@@ -606,10 +631,22 @@ ecma_gc_free_object (ecma_object_t *object_p) /**< object to free */
       /* Function with byte-code (not a built-in function). */
       ecma_extended_object_t *ext_func_p = (ecma_extended_object_t *) object_p;
 
+#ifdef JERRY_ENABLE_SNAPSHOT_EXEC
+      if (ext_func_p->u.function.bytecode_cp != ECMA_NULL_POINTER)
+      {
+        ecma_bytecode_deref (ECMA_GET_INTERNAL_VALUE_POINTER (ecma_compiled_code_t,
+                                                              ext_func_p->u.function.bytecode_cp));
+        ecma_dealloc_extended_object (object_p, sizeof (ecma_extended_object_t));
+      }
+      else
+      {
+        ecma_dealloc_extended_object (object_p, sizeof (ecma_static_function_t));
+      }
+#else /* !JERRY_ENABLE_SNAPSHOT_EXEC */
       ecma_bytecode_deref (ECMA_GET_INTERNAL_VALUE_POINTER (ecma_compiled_code_t,
                                                             ext_func_p->u.function.bytecode_cp));
-
       ecma_dealloc_extended_object (object_p, sizeof (ecma_extended_object_t));
+#endif /* JERRY_ENABLE_SNAPSHOT_EXEC */
       return;
     }
 
@@ -618,12 +655,24 @@ ecma_gc_free_object (ecma_object_t *object_p) /**< object to free */
     {
       ecma_arrow_function_t *arrow_func_p = (ecma_arrow_function_t *) object_p;
 
-      ecma_bytecode_deref (ECMA_GET_NON_NULL_POINTER (ecma_compiled_code_t,
-                                                      arrow_func_p->bytecode_cp));
-
       ecma_free_value_if_not_object (arrow_func_p->this_binding);
 
+#ifdef JERRY_ENABLE_SNAPSHOT_EXEC
+      if (arrow_func_p->bytecode_cp != ECMA_NULL_POINTER)
+      {
+        ecma_bytecode_deref (ECMA_GET_NON_NULL_POINTER (ecma_compiled_code_t,
+                                                        arrow_func_p->bytecode_cp));
+        ecma_dealloc_extended_object (object_p, sizeof (ecma_arrow_function_t));
+      }
+      else
+      {
+        ecma_dealloc_extended_object (object_p, sizeof (ecma_static_arrow_function_t));
+      }
+#else /* !JERRY_ENABLE_SNAPSHOT_EXEC */
+      ecma_bytecode_deref (ECMA_GET_NON_NULL_POINTER (ecma_compiled_code_t,
+                                                      arrow_func_p->bytecode_cp));
       ecma_dealloc_extended_object (object_p, sizeof (ecma_arrow_function_t));
+#endif /* JERRY_ENABLE_SNAPSHOT_EXEC */
       return;
     }
 #endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
@@ -637,18 +686,18 @@ ecma_gc_free_object (ecma_object_t *object_p) /**< object to free */
         case ECMA_PSEUDO_ARRAY_ARGUMENTS:
         {
           ecma_length_t formal_params_number = ext_object_p->u.pseudo_array.u1.length;
-          jmem_cpointer_t *arg_Literal_p = (jmem_cpointer_t *) (ext_object_p + 1);
+          ecma_value_t *arg_Literal_p = (ecma_value_t *) (ext_object_p + 1);
 
           for (ecma_length_t i = 0; i < formal_params_number; i++)
           {
-            if (arg_Literal_p[i] != JMEM_CP_NULL)
+            if (arg_Literal_p[i] != ECMA_VALUE_EMPTY)
             {
-              ecma_string_t *name_p = JMEM_CP_GET_NON_NULL_POINTER (ecma_string_t, arg_Literal_p[i]);
+              ecma_string_t *name_p = ecma_get_string_from_value (arg_Literal_p[i]);
               ecma_deref_ecma_string (name_p);
             }
           }
 
-          size_t formal_params_size = formal_params_number * sizeof (jmem_cpointer_t);
+          size_t formal_params_size = formal_params_number * sizeof (ecma_value_t);
           ecma_dealloc_extended_object (object_p, sizeof (ecma_extended_object_t) + formal_params_size);
           return;
         }
@@ -880,7 +929,7 @@ ecma_free_unused_memory (jmem_free_unused_memory_severity_t severity) /**< sever
     {
       --JERRY_CONTEXT (ecma_prop_hashmap_alloc_state);
     }
-    JERRY_CONTEXT (ecma_prop_hashmap_alloc_last_is_hs_gc) = false;
+    JERRY_CONTEXT (status_flags) &= (uint32_t) ~ECMA_STATUS_HIGH_SEV_GC;
 #endif /* !CONFIG_ECMA_PROPERTY_HASHMAP_DISABLE */
 
     /*
@@ -899,14 +948,14 @@ ecma_free_unused_memory (jmem_free_unused_memory_severity_t severity) /**< sever
     JERRY_ASSERT (severity == JMEM_FREE_UNUSED_MEMORY_SEVERITY_HIGH);
 
 #ifndef CONFIG_ECMA_PROPERTY_HASHMAP_DISABLE
-    if (JERRY_CONTEXT (ecma_prop_hashmap_alloc_last_is_hs_gc))
+    if (JERRY_CONTEXT (status_flags) & ECMA_STATUS_HIGH_SEV_GC)
     {
       JERRY_CONTEXT (ecma_prop_hashmap_alloc_state) = ECMA_PROP_HASHMAP_ALLOC_MAX;
     }
     else if (JERRY_CONTEXT (ecma_prop_hashmap_alloc_state) < ECMA_PROP_HASHMAP_ALLOC_MAX)
     {
       ++JERRY_CONTEXT (ecma_prop_hashmap_alloc_state);
-      JERRY_CONTEXT (ecma_prop_hashmap_alloc_last_is_hs_gc) = true;
+      JERRY_CONTEXT (status_flags) |= ECMA_STATUS_HIGH_SEV_GC;
     }
 #endif /* !CONFIG_ECMA_PROPERTY_HASHMAP_DISABLE */
 

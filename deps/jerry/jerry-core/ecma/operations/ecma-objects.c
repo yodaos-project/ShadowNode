@@ -142,9 +142,11 @@ ecma_op_object_get_own_property (ecma_object_t *object_p, /**< the object */
       /* ES2015 9.4.5.1 */
       if (ecma_is_typedarray (ecma_make_object_value (object_p)))
       {
-        if (ECMA_STRING_GET_CONTAINER (property_name_p) == ECMA_STRING_CONTAINER_UINT32_IN_DESC)
+        uint32_t array_index = ecma_string_get_array_index (property_name_p);
+
+        if (array_index != ECMA_STRING_NOT_ARRAY_INDEX)
         {
-          ecma_value_t value = ecma_op_typedarray_get_index_prop (object_p, property_name_p->u.uint32_number);
+          ecma_value_t value = ecma_op_typedarray_get_index_prop (object_p, array_index);
 
           if (!ecma_is_value_undefined (value))
           {
@@ -206,19 +208,16 @@ ecma_op_object_get_own_property (ecma_object_t *object_p, /**< the object */
           if (type != ECMA_OBJECT_TYPE_ARROW_FUNCTION)
           {
             ecma_extended_object_t *ext_func_p = (ecma_extended_object_t *) object_p;
-            bytecode_data_p = ECMA_GET_INTERNAL_VALUE_POINTER (const ecma_compiled_code_t,
-                                                               ext_func_p->u.function.bytecode_cp);
+            bytecode_data_p = ecma_op_function_get_compiled_code (ext_func_p);
           }
           else
           {
             ecma_arrow_function_t *arrow_func_p = (ecma_arrow_function_t *) object_p;
-            bytecode_data_p = ECMA_GET_NON_NULL_POINTER (const ecma_compiled_code_t,
-                                                         arrow_func_p->bytecode_cp);
+            bytecode_data_p = ecma_op_arrow_function_get_compiled_code (arrow_func_p);
           }
 #else /* CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
           ecma_extended_object_t *ext_func_p = (ecma_extended_object_t *) object_p;
-          bytecode_data_p = ECMA_GET_INTERNAL_VALUE_POINTER (const ecma_compiled_code_t,
-                                                             ext_func_p->u.function.bytecode_cp);
+          bytecode_data_p = ecma_op_function_get_compiled_code (ext_func_p);
 #endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
 
           uint32_t len;
@@ -269,12 +268,11 @@ ecma_op_object_get_own_property (ecma_object_t *object_p, /**< the object */
       {
         if (index < ext_object_p->u.pseudo_array.u1.length)
         {
-          jmem_cpointer_t *arg_Literal_p = (jmem_cpointer_t *) (ext_object_p + 1);
+          ecma_value_t *arg_Literal_p = (ecma_value_t *) (ext_object_p + 1);
 
-          if (arg_Literal_p[index] != JMEM_CP_NULL)
+          if (arg_Literal_p[index] != ECMA_VALUE_EMPTY)
           {
-            ecma_string_t *arg_name_p = JMEM_CP_GET_NON_NULL_POINTER (ecma_string_t,
-                                                                      arg_Literal_p[index]);
+            ecma_string_t *arg_name_p = ecma_get_string_from_value (arg_Literal_p[index]);
 
             ecma_object_t *lex_env_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_object_t,
                                                                         ext_object_p->u.pseudo_array.u2.lex_env_cp);
@@ -462,12 +460,11 @@ ecma_op_object_find_own (ecma_value_t base_value, /**< base value */
         {
           if (index < ext_object_p->u.pseudo_array.u1.length)
           {
-            jmem_cpointer_t *arg_Literal_p = (jmem_cpointer_t *) (ext_object_p + 1);
+            ecma_value_t *arg_Literal_p = (ecma_value_t *) (ext_object_p + 1);
 
-            if (arg_Literal_p[index] != JMEM_CP_NULL)
+            if (arg_Literal_p[index] != ECMA_VALUE_EMPTY)
             {
-              ecma_string_t *arg_name_p = JMEM_CP_GET_NON_NULL_POINTER (ecma_string_t,
-                                                                        arg_Literal_p[index]);
+              ecma_string_t *arg_name_p = ecma_get_string_from_value (arg_Literal_p[index]);
 
               ecma_object_t *lex_env_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_object_t,
                                                                           ext_object_p->u.pseudo_array.u2.lex_env_cp);
@@ -484,9 +481,11 @@ ecma_op_object_find_own (ecma_value_t base_value, /**< base value */
       /* ES2015 9.4.5.4 */
       if (ecma_is_typedarray (ecma_make_object_value (object_p)))
       {
-        if (ECMA_STRING_GET_CONTAINER (property_name_p) == ECMA_STRING_CONTAINER_UINT32_IN_DESC)
+        uint32_t array_index = ecma_string_get_array_index (property_name_p);
+
+        if (array_index != ECMA_STRING_NOT_ARRAY_INDEX)
         {
-          return ecma_op_typedarray_get_index_prop (object_p, property_name_p->u.uint32_number);
+          return ecma_op_typedarray_get_index_prop (object_p, array_index);
         }
 
         ecma_number_t num = ecma_string_to_number (property_name_p);
@@ -530,19 +529,16 @@ ecma_op_object_find_own (ecma_value_t base_value, /**< base value */
         if (type != ECMA_OBJECT_TYPE_ARROW_FUNCTION)
         {
           ecma_extended_object_t *ext_func_p = (ecma_extended_object_t *) object_p;
-          bytecode_data_p = ECMA_GET_INTERNAL_VALUE_POINTER (const ecma_compiled_code_t,
-                                                             ext_func_p->u.function.bytecode_cp);
+          bytecode_data_p = ecma_op_function_get_compiled_code (ext_func_p);
         }
         else
         {
           ecma_arrow_function_t *arrow_func_p = (ecma_arrow_function_t *) object_p;
-          bytecode_data_p = ECMA_GET_NON_NULL_POINTER (const ecma_compiled_code_t,
-                                                       arrow_func_p->bytecode_cp);
+          bytecode_data_p = ecma_op_arrow_function_get_compiled_code (arrow_func_p);
         }
 #else /* CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
         ecma_extended_object_t *ext_func_p = (ecma_extended_object_t *) object_p;
-        bytecode_data_p = ECMA_GET_INTERNAL_VALUE_POINTER (const ecma_compiled_code_t,
-                                                           ext_func_p->u.function.bytecode_cp);
+        bytecode_data_p = ecma_op_function_get_compiled_code (ext_func_p);
 #endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
 
         uint32_t len;
@@ -722,36 +718,11 @@ ecma_op_object_get (ecma_object_t *object_p, /**< the object */
  * @return ecma value
  *         Returned value must be freed with ecma_free_value
  */
-ecma_value_t
+inline ecma_value_t __attr_always_inline___
 ecma_op_object_get_by_magic_id (ecma_object_t *object_p, /**< the object */
                                 lit_magic_string_id_t property_id) /**< property magic string id */
 {
-  /* Circular reference is possible in JavaScript and testing it is complicated. */
-  int max_depth = ECMA_PROPERTY_SEARCH_DEPTH_LIMIT;
-
-  ecma_string_t property_name;
-  ecma_init_ecma_magic_string (&property_name, property_id);
-
-  ecma_value_t base_value = ecma_make_object_value (object_p);
-  do
-  {
-    ecma_value_t value = ecma_op_object_find_own (base_value, object_p, &property_name);
-
-    if (ecma_is_value_found (value))
-    {
-      return value;
-    }
-
-    if (--max_depth == 0)
-    {
-      break;
-    }
-
-    object_p = ecma_get_object_prototype (object_p);
-  }
-  while (object_p != NULL);
-
-  return ECMA_VALUE_UNDEFINED;
+  return ecma_op_object_get (object_p, ecma_get_magic_string (property_id));
 } /* ecma_op_object_get_by_magic_id */
 
 /**
@@ -814,12 +785,11 @@ ecma_op_object_put (ecma_object_t *object_p, /**< the object */
         {
           if (index < ext_object_p->u.pseudo_array.u1.length)
           {
-            jmem_cpointer_t *arg_Literal_p = (jmem_cpointer_t *) (ext_object_p + 1);
+            ecma_value_t *arg_Literal_p = (ecma_value_t *) (ext_object_p + 1);
 
-            if (arg_Literal_p[index] != JMEM_CP_NULL)
+            if (arg_Literal_p[index] != ECMA_VALUE_EMPTY)
             {
-              ecma_string_t *arg_name_p = JMEM_CP_GET_NON_NULL_POINTER (ecma_string_t,
-                                                                        arg_Literal_p[index]);
+              ecma_string_t *arg_name_p = ecma_get_string_from_value (arg_Literal_p[index]);
 
               ecma_object_t *lex_env_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_object_t,
                                                                           ext_object_p->u.pseudo_array.u2.lex_env_cp);
@@ -837,9 +807,11 @@ ecma_op_object_put (ecma_object_t *object_p, /**< the object */
       /* ES2015 9.4.5.5 */
       if (ecma_is_typedarray (ecma_make_object_value (object_p)))
       {
-        if (ECMA_STRING_GET_CONTAINER (property_name_p) == ECMA_STRING_CONTAINER_UINT32_IN_DESC)
+        uint32_t array_index = ecma_string_get_array_index (property_name_p);
+
+        if (array_index != ECMA_STRING_NOT_ARRAY_INDEX)
         {
-          bool set_status = ecma_op_typedarray_set_index_prop (object_p, property_name_p->u.uint32_number, value);
+          bool set_status = ecma_op_typedarray_set_index_prop (object_p, array_index, value);
 
           if (set_status)
           {
@@ -1179,10 +1151,12 @@ ecma_op_object_define_own_property (ecma_object_t *obj_p, /**< the object */
       /* ES2015 9.4.5.3 */
       if (ecma_is_typedarray (ecma_make_object_value (obj_p)))
       {
-        if (ECMA_STRING_GET_CONTAINER (property_name_p) == ECMA_STRING_CONTAINER_UINT32_IN_DESC)
+        uint32_t array_index = ecma_string_get_array_index (property_name_p);
+
+        if (array_index != ECMA_STRING_NOT_ARRAY_INDEX)
         {
           bool define_status = ecma_op_typedarray_define_index_prop (obj_p,
-                                                                     property_name_p->u.uint32_number,
+                                                                     array_index,
                                                                      property_desc_p);
 
           if (define_status)
@@ -1257,9 +1231,9 @@ ecma_op_object_get_own_property_descriptor (ecma_object_t *object_p, /**< the ob
 
   *prop_desc_p = ecma_make_empty_property_descriptor ();
 
-  prop_desc_p->is_enumerable = ecma_is_property_enumerable (property);
+  prop_desc_p->is_enumerable = ECMA_BOOL_TO_BITFIELD (ecma_is_property_enumerable (property));
   prop_desc_p->is_enumerable_defined = true;
-  prop_desc_p->is_configurable = ecma_is_property_configurable (property);
+  prop_desc_p->is_configurable = ECMA_BOOL_TO_BITFIELD (ecma_is_property_configurable (property));
   prop_desc_p->is_configurable_defined = true;
 
   ecma_property_types_t type = ECMA_PROPERTY_GET_TYPE (property);
@@ -1277,7 +1251,7 @@ ecma_op_object_get_own_property_descriptor (ecma_object_t *object_p, /**< the ob
     }
 
     prop_desc_p->is_value_defined = true;
-    prop_desc_p->is_writable = ecma_is_property_writable (property);
+    prop_desc_p->is_writable = ECMA_BOOL_TO_BITFIELD (ecma_is_property_writable (property));
     prop_desc_p->is_writable_defined = true;
   }
   else
@@ -1381,8 +1355,8 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
   JERRY_ASSERT (obj_p != NULL
                 && !ecma_is_lexical_environment (obj_p));
 
-  ecma_collection_header_t *ret_p = ecma_new_strings_collection (NULL, 0);
-  ecma_collection_header_t *skipped_non_enumerable_p = ecma_new_strings_collection (NULL, 0);
+  ecma_collection_header_t *ret_p = ecma_new_values_collection ();
+  ecma_collection_header_t *skipped_non_enumerable_p = ecma_new_values_collection ();
 
   const ecma_object_type_t type = ecma_get_object_type (obj_p);
   const bool obj_is_builtin = ecma_get_object_is_builtin (obj_p);
@@ -1400,7 +1374,7 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
     ecma_length_t string_named_properties_count = 0;
     ecma_length_t array_index_named_properties_count = 0;
 
-    ecma_collection_header_t *prop_names_p = ecma_new_strings_collection (NULL, 0);
+    ecma_collection_header_t *prop_names_p = ecma_new_values_collection ();
 
     if (obj_is_builtin)
     {
@@ -1482,17 +1456,17 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
       }
     }
 
-    ecma_collection_iterator_t iter;
-    ecma_collection_iterator_init (&iter, prop_names_p);
+    ecma_value_t *ecma_value_p = ecma_collection_iterator_init (prop_names_p);
 
     uint32_t own_names_hashes_bitmap[ECMA_OBJECT_HASH_BITMAP_SIZE / bitmap_row_size];
     memset (own_names_hashes_bitmap, 0, sizeof (own_names_hashes_bitmap));
 
-    while (ecma_collection_iterator_next (&iter))
+    while (ecma_value_p != NULL)
     {
-      ecma_string_t *name_p = ecma_get_string_from_value (*iter.current_value_p);
+      ecma_string_t *name_p = ecma_get_string_from_value (*ecma_value_p);
+      ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
 
-      uint8_t hash = (uint8_t) name_p->hash;
+      uint8_t hash = (uint8_t) ecma_string_hash (name_p);
       uint32_t bitmap_row = (uint32_t) (hash / bitmap_row_size);
       uint32_t bitmap_column = (uint32_t) (hash % bitmap_row_size);
 
@@ -1523,7 +1497,7 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
         {
           ecma_property_pair_t *prop_pair_p = (ecma_property_pair_t *) prop_iter_p;
 
-          if (ECMA_PROPERTY_GET_NAME_TYPE (*property_p) == ECMA_STRING_CONTAINER_MAGIC_STRING
+          if (ECMA_PROPERTY_GET_NAME_TYPE (*property_p) == ECMA_DIRECT_STRING_MAGIC
               && prop_pair_p->names_cp[i] >= LIT_NON_INTERNAL_MAGIC_STRING__COUNT)
           {
             /* Internal properties are never enumerated. */
@@ -1535,7 +1509,7 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
 
           if (!(is_enumerable_only && !ecma_is_property_enumerable (*property_p)))
           {
-            uint8_t hash = (uint8_t) name_p->hash;
+            uint8_t hash = (uint8_t) ecma_string_hash (name_p);
             uint32_t bitmap_row = (uint32_t) (hash / bitmap_row_size);
             uint32_t bitmap_column = (uint32_t) (hash % bitmap_row_size);
 
@@ -1543,13 +1517,14 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
 
             if ((own_names_hashes_bitmap[bitmap_row] & (1u << bitmap_column)) != 0)
             {
-              ecma_collection_iterator_init (&iter, prop_names_p);
+              ecma_value_p = ecma_collection_iterator_init (prop_names_p);
 
-              while (ecma_collection_iterator_next (&iter))
+              while (ecma_value_p != NULL)
               {
-                ecma_string_t *name2_p = ecma_get_string_from_value (*iter.current_value_p);
+                ecma_string_t *current_name_p = ecma_get_string_from_value (*ecma_value_p);
+                ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
 
-                if (ecma_compare_ecma_strings (name_p, name2_p))
+                if (ecma_compare_ecma_strings (name_p, current_name_p))
                 {
                   is_add = false;
                   break;
@@ -1563,7 +1538,7 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
 
               ecma_append_to_values_collection (prop_names_p,
                                                 ecma_make_string_value (name_p),
-                                                true);
+                                                0);
             }
           }
           else
@@ -1572,7 +1547,7 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
 
             ecma_append_to_values_collection (skipped_non_enumerable_p,
                                               ecma_make_string_value (name_p),
-                                              true);
+                                              0);
           }
 
           ecma_deref_ecma_string (name_p);
@@ -1583,10 +1558,12 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
                                       prop_iter_p->next_property_cp);
     }
 
-    ecma_collection_iterator_init (&iter, prop_names_p);
-    while (ecma_collection_iterator_next (&iter))
+    ecma_value_p = ecma_collection_iterator_init (prop_names_p);
+
+    while (ecma_value_p != NULL)
     {
-      ecma_string_t *name_p = ecma_get_string_from_value (*iter.current_value_p);
+      ecma_string_t *name_p = ecma_get_string_from_value (*ecma_value_p);
+      ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
 
       uint32_t index = ecma_string_get_array_index (name_p);
 
@@ -1610,10 +1587,12 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
     uint32_t name_pos = array_index_named_properties_count + string_named_properties_count;
     uint32_t array_index_name_pos = 0;
 
-    ecma_collection_iterator_init (&iter, prop_names_p);
-    while (ecma_collection_iterator_next (&iter))
+    ecma_value_p = ecma_collection_iterator_init (prop_names_p);
+
+    while (ecma_value_p != NULL)
     {
-      ecma_string_t *name_p = ecma_get_string_from_value (*iter.current_value_p);
+      ecma_string_t *name_p = ecma_get_string_from_value (*ecma_value_p);
+      ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
 
       uint32_t index = ecma_string_get_array_index (name_p);
 
@@ -1674,7 +1653,7 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
 
     JMEM_FINALIZE_LOCAL_ARRAY (array_index_names_p);
 
-    ecma_free_values_collection (prop_names_p, true);
+    ecma_free_values_collection (prop_names_p, 0);
 
     /* Third pass:
      *   embedding own property names of current object of prototype chain to aggregate property names collection */
@@ -1686,7 +1665,7 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
 
       ecma_string_t *name_p = names_p[i];
 
-      uint8_t hash = (uint8_t) name_p->hash;
+      uint8_t hash = (uint8_t) ecma_string_hash (name_p);
       uint32_t bitmap_row = (uint32_t) (hash / bitmap_row_size);
       uint32_t bitmap_column = (uint32_t) (hash % bitmap_row_size);
 
@@ -1698,13 +1677,14 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
       else
       {
         /* Name with same hash has already occured. */
-        ecma_collection_iterator_init (&iter, ret_p);
+        ecma_value_p = ecma_collection_iterator_init (ret_p);
 
-        while (ecma_collection_iterator_next (&iter))
+        while (ecma_value_p != NULL)
         {
-          ecma_string_t *iter_name_p = ecma_get_string_from_value (*iter.current_value_p);
+          ecma_string_t *current_name_p = ecma_get_string_from_value (*ecma_value_p);
+          ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
 
-          if (ecma_compare_ecma_strings (name_p, iter_name_p))
+          if (ecma_compare_ecma_strings (name_p, current_name_p))
           {
             is_append = false;
             break;
@@ -1714,12 +1694,14 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
 
       if (is_append)
       {
-        ecma_collection_iterator_init (&iter, skipped_non_enumerable_p);
-        while (ecma_collection_iterator_next (&iter))
-        {
-          ecma_string_t *iter_name_p = ecma_get_string_from_value (*iter.current_value_p);
+        ecma_value_p = ecma_collection_iterator_init (skipped_non_enumerable_p);
 
-          if (ecma_compare_ecma_strings (name_p, iter_name_p))
+        while (ecma_value_p != NULL)
+        {
+          ecma_string_t *current_name_p = ecma_get_string_from_value (*ecma_value_p);
+          ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
+
+          if (ecma_compare_ecma_strings (name_p, current_name_p))
           {
             is_append = false;
             break;
@@ -1731,7 +1713,7 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
       {
         JERRY_ASSERT ((names_hashes_bitmap[bitmap_row] & (1u << bitmap_column)) != 0);
 
-        ecma_append_to_values_collection (ret_p, ecma_make_string_value (names_p[i]), true);
+        ecma_append_to_values_collection (ret_p, ecma_make_string_value (names_p[i]), 0);
       }
 
       ecma_deref_ecma_string (name_p);
@@ -1740,7 +1722,7 @@ ecma_op_object_get_property_names (ecma_object_t *obj_p, /**< object */
     JMEM_FINALIZE_LOCAL_ARRAY (names_p);
   }
 
-  ecma_free_values_collection (skipped_non_enumerable_p, true);
+  ecma_free_values_collection (skipped_non_enumerable_p, 0);
 
   return ret_p;
 } /* ecma_op_object_get_property_names */

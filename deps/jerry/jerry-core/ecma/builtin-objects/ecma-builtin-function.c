@@ -72,7 +72,7 @@ ecma_builtin_function_helper_get_function_arguments (const ecma_value_t *argumen
 
   if (arguments_list_len <= 1)
   {
-    return ecma_make_string_value (ecma_get_magic_string (LIT_MAGIC_STRING__EMPTY));
+    return ecma_make_magic_string_value (LIT_MAGIC_STRING__EMPTY);
   }
 
   ecma_value_t final_str = ecma_op_to_string (arguments_list_p[0]);
@@ -81,8 +81,6 @@ ecma_builtin_function_helper_get_function_arguments (const ecma_value_t *argumen
   {
     return final_str;
   }
-
-  ecma_string_t *comma_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_COMMA_CHAR);
 
   for (ecma_length_t idx = 1; idx < arguments_list_len - 1; idx++)
   {
@@ -98,18 +96,16 @@ ecma_builtin_function_helper_get_function_arguments (const ecma_value_t *argumen
     }
 
     ecma_string_t *final_str_p = ecma_get_string_from_value (final_str);
-    ecma_string_t *fragment_str_p = ecma_concat_ecma_strings (final_str_p, comma_str_p);
-    ecma_deref_ecma_string (final_str_p);
+    final_str_p = ecma_append_magic_string_to_string (final_str_p,
+                                                      LIT_MAGIC_STRING_COMMA_CHAR);
 
     ecma_string_t *new_str_p = ecma_get_string_from_value (new_str);
-    final_str_p = ecma_concat_ecma_strings (fragment_str_p, new_str_p);
+    final_str_p = ecma_concat_ecma_strings (final_str_p, new_str_p);
     ecma_deref_ecma_string (new_str_p);
-    ecma_deref_ecma_string (fragment_str_p);
 
     final_str = ecma_make_string_value (final_str_p);
   }
 
-  ecma_deref_ecma_string (comma_str_p);
   return final_str;
 } /* ecma_builtin_function_helper_get_function_arguments */
 
@@ -150,7 +146,7 @@ ecma_builtin_function_dispatch_construct (const ecma_value_t *arguments_list_p, 
   else
   {
     /* Very unlikely code path, not optimized. */
-    function_body_value = ecma_make_string_value (ecma_get_magic_string (LIT_MAGIC_STRING__EMPTY));
+    function_body_value = ecma_make_magic_string_value (LIT_MAGIC_STRING__EMPTY);
   }
 
   ecma_string_t *arguments_str_p = ecma_get_string_from_value (arguments_value);

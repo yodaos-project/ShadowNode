@@ -39,19 +39,90 @@ static void ecma_instantiate_builtin (ecma_builtin_id_t id);
  */
 typedef const ecma_builtin_property_descriptor_t *ecma_builtin_property_list_reference_t;
 
+typedef ecma_value_t (*ecma_builtin_dispatch_routine_t)(uint16_t builtin_routine_id,
+                                                        ecma_value_t this_arg,
+                                                        const ecma_value_t arguments_list[],
+                                                        ecma_length_t arguments_number);
+typedef ecma_value_t (*ecma_builtin_dispatch_call_t)(const ecma_value_t arguments_list[],
+                                                     ecma_length_t arguments_number);
+
+static const ecma_builtin_dispatch_routine_t ecma_builtin_routines[] =
+{
+  #define BUILTIN(a, b, c, d, e)
+  #define BUILTIN_ROUTINE(builtin_id, \
+                          object_type, \
+                          object_prototype_builtin_id, \
+                          is_extensible, \
+                          lowercase_name) \
+    ecma_builtin_ ## lowercase_name ## _dispatch_routine,
+  #include "ecma-builtins.inc.h"
+  #undef BUILTIN
+  #undef BUILTIN_ROUTINE
+  #define BUILTIN_ROUTINE(a, b, c, d, e)
+  #define BUILTIN(builtin_id, \
+                  object_type, \
+                  object_prototype_builtin_id, \
+                  is_extensible, \
+                  lowercase_name) \
+    ecma_builtin_ ## lowercase_name ## _dispatch_routine,
+  #include "ecma-builtins.inc.h"
+  #undef BUILTIN
+  #undef BUILTIN_ROUTINE
+};
+
+static const ecma_builtin_dispatch_call_t ecma_builtin_call_functions[] =
+{
+  #define BUILTIN(a, b, c, d, e)
+  #define BUILTIN_ROUTINE(builtin_id, \
+                          object_type, \
+                          object_prototype_builtin_id, \
+                          is_extensible, \
+                          lowercase_name) \
+    ecma_builtin_ ## lowercase_name ## _dispatch_call,
+  #include "ecma-builtins.inc.h"
+  #undef BUILTIN_ROUTINE
+  #undef BUILTIN
+};
+
+static const ecma_builtin_dispatch_call_t ecma_builtin_construct_functions[] =
+{
+  #define BUILTIN(a, b, c, d, e)
+  #define BUILTIN_ROUTINE(builtin_id, \
+                          object_type, \
+                          object_prototype_builtin_id, \
+                          is_extensible, \
+                          lowercase_name) \
+    ecma_builtin_ ## lowercase_name ## _dispatch_construct,
+  #include "ecma-builtins.inc.h"
+  #undef BUILTIN_ROUTINE
+  #undef BUILTIN
+};
+
 /**
  * Property descriptor lists for all built-ins.
  */
 static const ecma_builtin_property_list_reference_t ecma_builtin_property_list_references[] =
 {
+#define BUILTIN(a, b, c, d, e)
+#define BUILTIN_ROUTINE(builtin_id, \
+                        object_type, \
+                        object_prototype_builtin_id, \
+                        is_extensible, \
+                        lowercase_name) \
+  ecma_builtin_ ## lowercase_name ## _property_descriptor_list,
+#include "ecma-builtins.inc.h"
+#undef BUILTIN
+#undef BUILTIN_ROUTINE
+#define BUILTIN_ROUTINE(a, b, c, d, e)
 #define BUILTIN(builtin_id, \
                 object_type, \
                 object_prototype_builtin_id, \
                 is_extensible, \
-                is_static, \
                 lowercase_name) \
   ecma_builtin_ ## lowercase_name ## _property_descriptor_list,
 #include "ecma-builtins.inc.h"
+#undef BUILTIN_ROUTINE
+#undef BUILTIN
 };
 
 /**
@@ -162,7 +233,7 @@ ecma_builtin_init_object (ecma_builtin_id_t obj_builtin_id, /**< built-in ID */
 
   ecma_object_t *obj_p = ecma_create_object (prototype_obj_p, ext_object_size, obj_type);
 
-  if (!is_extensible)
+  if (unlikely (!is_extensible))
   {
     ecma_set_object_extensible (obj_p, false);
   }
@@ -224,8 +295,7 @@ ecma_builtin_init_object (ecma_builtin_id_t obj_builtin_id, /**< built-in ID */
       ecma_extended_object_t *ext_object_p = (ecma_extended_object_t *) obj_p;
 
       ext_object_p->u.class_prop.class_id = LIT_MAGIC_STRING_STRING_UL;
-      ecma_string_t *prim_prop_str_value_p = ecma_get_magic_string (LIT_MAGIC_STRING__EMPTY);
-      ext_object_p->u.class_prop.u.value = ecma_make_string_value (prim_prop_str_value_p);
+      ext_object_p->u.class_prop.u.value = ecma_make_magic_string_value (LIT_MAGIC_STRING__EMPTY);
       break;
     }
 #endif /* !CONFIG_DISABLE_STRING_BUILTIN */
@@ -291,6 +361,39 @@ ecma_builtin_init_object (ecma_builtin_id_t obj_builtin_id, /**< built-in ID */
 } /* ecma_builtin_init_object */
 
 /**
+ * Helper function for 'ecma_instantiate_builtin'
+ */
+static void
+ecma_instantiate_builtin_helper (ecma_builtin_id_t builtin_id, /**< built-in id */
+                                 ecma_object_type_t object_type, /**< object type */
+                                 ecma_builtin_id_t object_prototype_builtin_id,  /**< built-in id of prototype */
+                                 bool is_extensible) /**< value of object's [[Extensible]] property */
+{
+  JERRY_ASSERT (JERRY_CONTEXT (ecma_builtin_objects)[builtin_id] == NULL);
+
+  ecma_object_t *prototype_obj_p;
+  if (object_prototype_builtin_id == ECMA_BUILTIN_ID__COUNT)
+  {
+    prototype_obj_p = NULL;
+  }
+  else
+  {
+    if (JERRY_CONTEXT (ecma_builtin_objects)[object_prototype_builtin_id] == NULL)
+    {
+      ecma_instantiate_builtin (object_prototype_builtin_id);
+    }
+    prototype_obj_p = JERRY_CONTEXT (ecma_builtin_objects)[object_prototype_builtin_id];
+    JERRY_ASSERT (prototype_obj_p != NULL);
+  }
+
+  ecma_object_t *builtin_obj_p = ecma_builtin_init_object (builtin_id,
+                                                           prototype_obj_p,
+                                                           object_type,
+                                                           is_extensible);
+  JERRY_CONTEXT (ecma_builtin_objects)[builtin_id] = builtin_obj_p;
+} /* ecma_instantiate_builtin_helper */
+
+/**
  * Instantiate specified ECMA built-in object
  */
 static void
@@ -302,37 +405,19 @@ ecma_instantiate_builtin (ecma_builtin_id_t id) /**< built-in id */
                 object_type, \
                 object_prototype_builtin_id, \
                 is_extensible, \
-                is_static, \
                 lowercase_name) \
     case builtin_id: \
     { \
-      JERRY_ASSERT (JERRY_CONTEXT (ecma_builtin_objects)[builtin_id] == NULL); \
-      \
-      ecma_object_t *prototype_obj_p; \
-      if (object_prototype_builtin_id == ECMA_BUILTIN_ID__COUNT) \
-      { \
-        prototype_obj_p = NULL; \
-      } \
-      else \
-      { \
-        if (JERRY_CONTEXT (ecma_builtin_objects)[object_prototype_builtin_id] == NULL) \
-        { \
-          ecma_instantiate_builtin (object_prototype_builtin_id); \
-        } \
-        prototype_obj_p = JERRY_CONTEXT (ecma_builtin_objects)[object_prototype_builtin_id]; \
-        JERRY_ASSERT (prototype_obj_p != NULL); \
-      } \
-      \
-      ecma_object_t *builtin_obj_p = ecma_builtin_init_object (builtin_id, \
-                                                               prototype_obj_p, \
-                                                               object_type, \
-                                                               is_extensible); \
-      JERRY_CONTEXT (ecma_builtin_objects)[builtin_id] = builtin_obj_p; \
-      \
+      ecma_instantiate_builtin_helper (builtin_id, \
+                                       object_type, \
+                                       object_prototype_builtin_id, \
+                                       is_extensible); \
       break; \
     }
+#define BUILTIN_ROUTINE(a, b, c, d, e) BUILTIN(a, b, c, d, e)
 #include "ecma-builtins.inc.h"
-
+#undef BUILTIN
+#undef BUILTIN_ROUTINE
     default:
     {
       JERRY_ASSERT (id < ECMA_BUILTIN_ID__COUNT);
@@ -611,7 +696,7 @@ ecma_builtin_try_to_instantiate_property (ecma_object_t *object_p, /**< object *
     }
     case ECMA_BUILTIN_PROPERTY_STRING:
     {
-      value = ecma_make_string_value (ecma_get_magic_string (curr_property_p->value));
+      value = ecma_make_magic_string_value (curr_property_p->value);
       break;
     }
     case ECMA_BUILTIN_PROPERTY_OBJECT:
@@ -718,9 +803,9 @@ ecma_builtin_list_lazy_property_names (ecma_object_t *object_p, /**< a built-in 
     ecma_collection_header_t *for_non_enumerable_p = separate_enumerable ? non_enum_collection_p : main_collection_p;
 
     /* 'length' property is non-enumerable (ECMA-262 v5, 15) */
-    ecma_string_t *name_p = ecma_new_ecma_length_string ();
-    ecma_append_to_values_collection (for_non_enumerable_p, ecma_make_string_value (name_p), true);
-    ecma_deref_ecma_string (name_p);
+    ecma_append_to_values_collection (for_non_enumerable_p,
+                                      ecma_make_magic_string_value (LIT_MAGIC_STRING_LENGTH),
+                                      0);
   }
   else
   {
@@ -764,8 +849,8 @@ ecma_builtin_list_lazy_property_names (ecma_object_t *object_p, /**< a built-in 
       if (!(*bitset_p & bit_for_index) || ecma_op_object_has_own_property (object_p, name_p))
       {
         ecma_append_to_values_collection (for_non_enumerable_p,
-                                          ecma_make_string_value (name_p),
-                                          true);
+                                          ecma_make_magic_string_value (curr_property_p->magic_string_id),
+                                          0);
       }
 
       ecma_deref_ecma_string (name_p);
@@ -788,38 +873,14 @@ ecma_builtin_dispatch_routine (ecma_builtin_id_t builtin_object_id, /**< built-i
                                                              *   of the built-in object's
                                                              *   routine property */
                                ecma_value_t this_arg_value, /**< 'this' argument value */
-                               const ecma_value_t arguments_list[], /**< list of arguments passed to routine */
-                               ecma_length_t arguments_number) /**< length of arguments' list */
+                               const ecma_value_t *arguments_list_p, /**< list of arguments passed to routine */
+                               ecma_length_t arguments_list_len) /**< length of arguments' list */
 {
-  switch (builtin_object_id)
-  {
-#define BUILTIN(builtin_id, \
-                object_type, \
-                object_prototype_builtin_id, \
-                is_extensible, \
-                is_static, \
-                lowercase_name) \
-    case builtin_id: \
-      { \
-        return ecma_builtin_ ## lowercase_name ## _dispatch_routine (builtin_routine_id, \
-                                                                     this_arg_value, \
-                                                                     arguments_list, \
-                                                                     arguments_number); \
-      }
-#include "ecma-builtins.inc.h"
-
-    case ECMA_BUILTIN_ID__COUNT:
-    {
-      JERRY_UNREACHABLE ();
-    }
-
-    default:
-    {
-      JERRY_UNREACHABLE (); /* The built-in is not implemented. */
-    }
-  }
-
-  JERRY_UNREACHABLE ();
+  JERRY_ASSERT (builtin_object_id < ECMA_BUILTIN_ID__COUNT);
+  return ecma_builtin_routines[builtin_object_id] (builtin_routine_id,
+                                                   this_arg_value,
+                                                   arguments_list_p,
+                                                   arguments_list_len);
 } /* ecma_builtin_dispatch_routine */
 
 /**
@@ -849,35 +910,9 @@ ecma_builtin_dispatch_call (ecma_object_t *obj_p, /**< built-in object */
   }
   else
   {
-    switch ((ecma_builtin_id_t) ext_obj_p->u.built_in.id)
-    {
-#define BUILTIN(builtin_id, \
-                object_type, \
-                object_prototype_builtin_id, \
-                is_extensible, \
-                is_static, \
-                lowercase_name) \
-      case builtin_id: \
-      { \
-        if (object_type == ECMA_OBJECT_TYPE_FUNCTION) \
-        { \
-          ret_value = ecma_builtin_ ## lowercase_name ## _dispatch_call (arguments_list_p, \
-                                                                         arguments_list_len); \
-        } \
-        break; \
-      }
-#include "ecma-builtins.inc.h"
-
-      case ECMA_BUILTIN_ID__COUNT:
-      {
-        JERRY_UNREACHABLE ();
-      }
-
-      default:
-      {
-        JERRY_UNREACHABLE (); /* The built-in is not implemented. */
-      }
-    }
+    ecma_builtin_id_t builtin_object_id = ext_obj_p->u.built_in.id;
+    JERRY_ASSERT (builtin_object_id < sizeof (ecma_builtin_call_functions) / sizeof (ecma_builtin_dispatch_call_t));
+    return ecma_builtin_call_functions[builtin_object_id] (arguments_list_p, arguments_list_len);
   }
 
   JERRY_ASSERT (!ecma_is_value_empty (ret_value));
@@ -898,43 +933,10 @@ ecma_builtin_dispatch_construct (ecma_object_t *obj_p, /**< built-in object */
   JERRY_ASSERT (ecma_get_object_type (obj_p) == ECMA_OBJECT_TYPE_FUNCTION);
   JERRY_ASSERT (ecma_get_object_is_builtin (obj_p));
 
-  ecma_value_t ret_value = ECMA_VALUE_EMPTY;
-
   ecma_extended_object_t *ext_obj_p = (ecma_extended_object_t *) obj_p;
-
-  switch (ext_obj_p->u.built_in.id)
-  {
-#define BUILTIN(builtin_id, \
-                object_type, \
-                object_prototype_builtin_id, \
-                is_extensible, \
-                is_static, \
-                lowercase_name) \
-    case builtin_id: \
-      { \
-        if (object_type == ECMA_OBJECT_TYPE_FUNCTION) \
-        { \
-          ret_value = ecma_builtin_ ## lowercase_name ## _dispatch_construct (arguments_list_p, \
-                                                                              arguments_list_len); \
-        } \
-        break; \
-      }
-#include "ecma-builtins.inc.h"
-
-    case ECMA_BUILTIN_ID__COUNT:
-    {
-      JERRY_UNREACHABLE ();
-    }
-
-    default:
-    {
-      JERRY_UNREACHABLE (); /* The built-in is not implemented. */
-    }
-  }
-
-  JERRY_ASSERT (!ecma_is_value_empty (ret_value));
-
-  return ret_value;
+  ecma_builtin_id_t builtin_object_id = ext_obj_p->u.built_in.id;
+  JERRY_ASSERT (builtin_object_id < sizeof (ecma_builtin_construct_functions) / sizeof (ecma_builtin_dispatch_call_t));
+  return ecma_builtin_construct_functions[builtin_object_id] (arguments_list_p, arguments_list_len);
 } /* ecma_builtin_dispatch_construct */
 
 /**

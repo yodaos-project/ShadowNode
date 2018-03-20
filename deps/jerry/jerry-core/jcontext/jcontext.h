@@ -84,13 +84,11 @@ typedef struct
   ecma_value_t error_value; /**< currently thrown error value */
   uint32_t lit_magic_string_ex_count; /**< external magic strings count */
   uint32_t jerry_init_flags; /**< run-time configuration flags */
-  uint8_t is_direct_eval_form_call; /**< direct call from eval */
-  uint8_t jerry_api_available; /**< API availability flag */
+  uint32_t status_flags; /**< run-time flags */
 
 #ifndef CONFIG_ECMA_PROPERTY_HASHMAP_DISABLE
   uint8_t ecma_prop_hashmap_alloc_state; /**< property hashmap allocation state: 0-4,
                                           *   if !0 property hashmap allocation is disabled */
-  bool ecma_prop_hashmap_alloc_last_is_hs_gc; /**< true, if and only if the last gc action was a high severity gc */
 #endif /* !CONFIG_ECMA_PROPERTY_HASHMAP_DISABLE */
 
 #ifndef CONFIG_DISABLE_REGEXP_BUILTIN
@@ -116,11 +114,11 @@ typedef struct
   vm_frame_ctx_t *debugger_stop_context; /**< stop only if the current context is equal to this context */
   jmem_cpointer_t debugger_byte_code_free_head; /**< head of byte code free linked list */
   jmem_cpointer_t debugger_byte_code_free_tail; /**< tail of byte code free linked list */
-  uint8_t debugger_flags; /**< debugger flags */
-  uint8_t debugger_message_delay; /**< call receive message when reaches zero */
+  uint32_t debugger_flags; /**< debugger flags */
   uint16_t debugger_receive_buffer_offset; /**< receive buffer offset */
-  int debugger_connection; /**< holds the file descriptor of the socket communication */
   uint16_t debugger_port; /**< debugger socket communication port */
+  uint8_t debugger_message_delay; /**< call receive message when reaches zero */
+  int debugger_connection; /**< holds the file descriptor of the socket communication */
 #endif /* JERRY_DEBUGGER */
 
 #ifdef JMEM_STATS

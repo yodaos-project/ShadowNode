@@ -257,7 +257,6 @@ jmem_heap_alloc_block_internal (const size_t size)
       JERRY_ASSERT (next_offset == JMEM_HEAP_END_OF_LIST
                     || jmem_is_heap_pointer (JMEM_HEAP_GET_ADDR_FROM_OFFSET (next_offset)));
 
-      // printf("current size: %u / %u next_offset: %d\n", current_p->size, required_size, next_offset);
       if (current_p->size >= required_size)
       {
         /* Region is sufficiently big, store address. */

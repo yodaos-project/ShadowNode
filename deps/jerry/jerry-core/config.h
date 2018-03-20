@@ -63,7 +63,7 @@
 /**
  * Max heap usage limit
  */
-#define CONFIG_MEM_HEAP_MAX_LIMIT (8 * 1024)
+#define CONFIG_MEM_HEAP_MAX_LIMIT 8192
 
 /**
  * Desired limit of heap usage

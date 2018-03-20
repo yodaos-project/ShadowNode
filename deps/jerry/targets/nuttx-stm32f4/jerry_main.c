@@ -20,7 +20,6 @@
 #include "jerryscript.h"
 #include "jerryscript-ext/handler.h"
 #include "jerryscript-port.h"
-#include "jmem.h"
 #include "setjmp.h"
 
 /**
@@ -94,7 +93,7 @@ read_file (const char *file_name, /**< source code */
 
   rewind (file);
 
-  uint8_t *buffer = jmem_heap_alloc_block_null_on_error (script_len);
+  uint8_t *buffer = (uint8_t *) malloc (script_len);
 
   if (buffer == NULL)
   {
@@ -108,7 +107,7 @@ read_file (const char *file_name, /**< source code */
   if (!bytes_read || bytes_read != script_len)
   {
     jerry_port_log (JERRY_LOG_LEVEL_ERROR, "Error: failed to read file: %s\n", file_name);
-    jmem_heap_free_block ((void*) buffer, script_len);
+    free ((void*) buffer);
 
     fclose (file);
     return NULL;
@@ -119,59 +118,6 @@ read_file (const char *file_name, /**< source code */
   *out_size_p = bytes_read;
   return (const uint8_t *) buffer;
 } /* read_file */
-
-/**
- * Check whether an error is a SyntaxError or not
- *
- * @return true - if param is SyntaxError
- *         false - otherwise
- */
-static bool
-jerry_value_is_syntax_error (jerry_value_t error_value) /**< error value */
-{
-  assert (jerry_is_feature_enabled (JERRY_FEATURE_ERROR_MESSAGES));
-
-  if (!jerry_value_is_object (error_value))
-  {
-    return false;
-  }
-
-  jerry_value_t prop_name = jerry_create_string ((const jerry_char_t *)"name");
-  jerry_value_t error_name = jerry_get_property (error_value, prop_name);
-  jerry_release_value (prop_name);
-
-  if (jerry_value_has_error_flag (error_name)
-      || !jerry_value_is_string (error_name))
-  {
-    return false;
-  }
-
-  jerry_size_t err_str_size = jerry_get_string_size (error_name);
-  const char syntax_error_str[] = "SyntaxError";
-
-  if (err_str_size != strlen (syntax_error_str) - 1)
-  {
-    jerry_release_value (error_name);
-    return false;
-  }
-
-  jerry_char_t err_str_buf[err_str_size];
-
-  jerry_size_t sz = jerry_string_to_char_buffer (error_name, err_str_buf, err_str_size);
-  jerry_release_value (error_name);
-
-  if (sz == 0)
-  {
-    return false;
-  }
-
-  if (!strncmp ((char *) err_str_buf, syntax_error_str, sizeof (syntax_error_str) - 1))
-  {
-    return true;
-  }
-
-  return false;
-} /* jerry_value_is_syntax_error */
 
 /**
  * Convert string into unsigned integer
@@ -206,10 +152,12 @@ print_unhandled_exception (jerry_value_t error_value, /**< error value */
 {
   assert (jerry_value_has_error_flag (error_value));
 
-  jerry_value_clear_error_flag (&error_value);
+  error_value = jerry_get_value_without_error_flag (error_value);
   jerry_value_t err_str_val = jerry_value_to_string (error_value);
   jerry_size_t err_str_size = jerry_get_string_size (err_str_val);
   jerry_char_t err_str_buf[256];
+
+  jerry_release_value (error_value);
 
   if (err_str_size >= 256)
   {
@@ -223,7 +171,8 @@ print_unhandled_exception (jerry_value_t error_value, /**< error value */
     assert (sz == err_str_size);
     err_str_buf[err_str_size] = 0;
 
-    if (jerry_is_feature_enabled (JERRY_FEATURE_ERROR_MESSAGES) && jerry_value_is_syntax_error (error_value))
+    if (jerry_is_feature_enabled (JERRY_FEATURE_ERROR_MESSAGES)
+        && jerry_get_error_type (error_value) == JERRY_ERROR_SYNTAX)
     {
       uint32_t err_line = 0;
       uint32_t err_col = 0;
@@ -482,12 +431,12 @@ int jerry_main (int argc, char *argv[])
       if (jerry_value_has_error_flag (ret_value))
       {
         print_unhandled_exception (ret_value, source_p);
-        jmem_heap_free_block ((void*) source_p, source_size);
+        free ((void*) source_p);
 
         break;
       }
 
-      jmem_heap_free_block ((void*) source_p, source_size);
+      free ((void*) source_p);
 
       jerry_release_value (ret_value);
       ret_value = jerry_create_undefined ();

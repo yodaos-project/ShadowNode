@@ -92,47 +92,7 @@ opfunc_logical_not (ecma_value_t left_value) /**< left value */
 ecma_value_t
 opfunc_typeof (ecma_value_t left_value) /**< left value */
 {
-  ecma_value_t ret_value = ECMA_VALUE_EMPTY;
-
-  ecma_string_t *type_str_p = NULL;
-
-  if (ecma_is_value_undefined (left_value))
-  {
-    type_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_UNDEFINED);
-  }
-  else if (ecma_is_value_null (left_value))
-  {
-    type_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_OBJECT);
-  }
-  else if (ecma_is_value_boolean (left_value))
-  {
-    type_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_BOOLEAN);
-  }
-  else if (ecma_is_value_number (left_value))
-  {
-    type_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_NUMBER);
-  }
-  else if (ecma_is_value_string (left_value))
-  {
-    type_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_STRING);
-  }
-  else
-  {
-    JERRY_ASSERT (ecma_is_value_object (left_value));
-
-    if (ecma_op_is_callable (left_value))
-    {
-      type_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_FUNCTION);
-    }
-    else
-    {
-      type_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_OBJECT);
-    }
-  }
-
-  ret_value = ecma_make_string_value (type_str_p);
-
-  return ret_value;
+  return ecma_make_magic_string_value (ecma_get_typeof_lit_id (left_value));
 } /* opfunc_typeof */
 
 /**
@@ -256,12 +216,12 @@ vm_op_delete_prop (ecma_value_t object, /**< base object */
  *         Returned value must be freed with ecma_free_value
  */
 ecma_value_t
-vm_op_delete_var (jmem_cpointer_t name_literal, /**< name literal */
+vm_op_delete_var (ecma_value_t name_literal, /**< name literal */
                   ecma_object_t *lex_env_p) /**< lexical environment */
 {
   ecma_value_t completion_value = ECMA_VALUE_EMPTY;
 
-  ecma_string_t *var_name_str_p = JMEM_CP_GET_NON_NULL_POINTER (ecma_string_t, name_literal);
+  ecma_string_t *var_name_str_p = ecma_get_string_from_value (name_literal);
 
   ecma_object_t *ref_base_lex_env_p = ecma_op_resolve_reference_base (lex_env_p, var_name_str_p);
 
@@ -285,15 +245,14 @@ vm_op_delete_var (jmem_cpointer_t name_literal, /**< name literal */
  * See also:
  *          ECMA-262 v5, 12.6.4
  *
- * @return completion value
- *         Returned value must be freed with ecma_free_value
+ * @return chain list of property names
  */
-ecma_collection_header_t *
+ecma_collection_chunk_t *
 opfunc_for_in (ecma_value_t left_value, /**< left value */
                ecma_value_t *result_obj_p) /**< expression object */
 {
   ecma_value_t compl_val = ECMA_VALUE_EMPTY;
-  ecma_collection_header_t *prop_names_p = NULL;
+  ecma_collection_chunk_t *prop_names_p = NULL;
 
   /* 3. */
   if (!ecma_is_value_undefined (left_value)
@@ -305,18 +264,18 @@ opfunc_for_in (ecma_value_t left_value, /**< left value */
                     compl_val);
 
     ecma_object_t *obj_p = ecma_get_object_from_value (obj_expr_value);
-    prop_names_p = ecma_op_object_get_property_names (obj_p, false, true, true);
+    ecma_collection_header_t *prop_names_coll_p = ecma_op_object_get_property_names (obj_p, false, true, true);
 
-    if (prop_names_p->unit_number != 0)
+    if (prop_names_coll_p->item_count != 0)
     {
+      prop_names_p = ECMA_GET_POINTER (ecma_collection_chunk_t,
+                                       prop_names_coll_p->first_chunk_cp);
+
       ecma_ref_object (obj_p);
       *result_obj_p = ecma_make_object_value (obj_p);
     }
-    else
-    {
-      ecma_dealloc_collection_header (prop_names_p);
-      prop_names_p = NULL;
-    }
+
+    jmem_heap_free_block (prop_names_coll_p, sizeof (ecma_collection_header_t));
 
     ECMA_FINALIZE (obj_expr_value);
   }
