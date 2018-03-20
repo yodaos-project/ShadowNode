@@ -409,6 +409,12 @@ jerry_value_t InitTls() {
   iotjs_jval_set_method(proto, "end", TlsEnd);
   iotjs_jval_set_property_jval(tlsConstructor, "prototype", proto);
 
+#ifdef MBEDTLS_SSL_MAX_CONTENT_LEN
+  iotjs_jval_set_property_number(tlsConstructor, "TLS_CHUNK_MAX_SIZE", MBEDTLS_SSL_MAX_CONTENT_LEN);
+#else
+  iotjs_jval_set_property_number(tlsConstructor, "TLS_CHUNK_MAX_SIZE", INT_MAX);
+#endif
+
   jerry_release_value(proto);
   jerry_release_value(tlsConstructor);
   return tls;

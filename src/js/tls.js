@@ -6,7 +6,7 @@ var net = require('net');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var TlsWrap = native.TlsWrap;
-var chunkMaxByteLength = 16 * 1024;
+var TLS_CHUNK_MAX_SIZE = TlsWrap.TLS_CHUNK_MAX_SIZE;
 
 function TLSSocket(socket, opts) {
   if (!(this instanceof TLSSocket))
@@ -91,22 +91,21 @@ TLSSocket.prototype.write = function(data, cb) {
   var sourceLength;
   while (sourceStart < chunkByteLength) {
     var chunkLeft = chunkByteLength - sourceStart;
-    if (chunkLeft > chunkMaxByteLength) {
-      sourceLength = chunkMaxByteLength;
+    if (chunkLeft > TLS_CHUNK_MAX_SIZE) {
+      sourceLength = TLS_CHUNK_MAX_SIZE;
     } else {
       sourceLength = chunkLeft
     }
     var chunk = data.slice(sourceStart, sourceStart + sourceLength);
     sourceStart += sourceLength;
-    var encodedChunk;
     try {
-      // tls.write may throw error if iotjs_tlswrap_encode_data failure
-      encodedChunk = this._tls.write(chunk);
+      /* XXX: tls.write may throw error if iotjs_tlswrap_encode_data failure */
+      var encodedChunk = this._tls.write(chunk);
+      chunks.push(encodedChunk);
     } catch (err) {
       cb(err);
       return false;
     }
-    chunks.push(encodedChunk);
   }
   var encodedData = Buffer.concat(chunks);
   return this._socket.write(encodedData, cb);
