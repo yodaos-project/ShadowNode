@@ -21,7 +21,6 @@
 #include "jerryscript.h"
 #include "jerryscript-ext/handler.h"
 #include "jerryscript-port.h"
-#include "jmem.h"
 #include "setjmp.h"
 
 #include <apps/shell/tash.h> // To register tash command
@@ -63,7 +62,7 @@ print_help (char *name)
 /**
  * Read source code into buffer.
  *
- * Returned value must be freed with jmem_heap_free_block if it's not NULL.
+ * Returned value must be freed if it's not NULL.
  * @return NULL, if read or allocation has failed
  *         pointer to the allocated memory block, otherwise
  */
@@ -96,7 +95,7 @@ read_file (const char *file_name, /**< source code */
 
   rewind (file);
 
-  uint8_t *buffer = jmem_heap_alloc_block_null_on_error (script_len);
+  uint8_t *buffer = (uint8_t *) malloc (script_len);
 
   if (buffer == NULL)
   {
@@ -110,7 +109,7 @@ read_file (const char *file_name, /**< source code */
   if (!bytes_read || bytes_read != script_len)
   {
     jerry_port_log (JERRY_LOG_LEVEL_ERROR, "Error: failed to read file: %s\n", file_name);
-    jmem_heap_free_block ((void*) buffer, script_len);
+    free ((void*) buffer);
 
     fclose (file);
     return NULL;
@@ -123,59 +122,6 @@ read_file (const char *file_name, /**< source code */
 } /* read_file */
 
 /**
- * Check whether an error is a SyntaxError or not
- *
- * @return true - if param is SyntaxError
- *         false - otherwise
- */
-static bool
-jerry_value_is_syntax_error (jerry_value_t error_value) /**< error value */
-{
-  assert (jerry_is_feature_enabled (JERRY_FEATURE_ERROR_MESSAGES));
-
-  if (!jerry_value_is_object (error_value))
-  {
-    return false;
-  }
-
-  jerry_value_t prop_name = jerry_create_string ((const jerry_char_t *)"name");
-  jerry_value_t error_name = jerry_get_property (error_value, prop_name);
-  jerry_release_value (prop_name);
-
-  if (jerry_value_has_error_flag (error_name)
-      || !jerry_value_is_string (error_name))
-  {
-    return false;
-  }
-
-  jerry_size_t err_str_size = jerry_get_string_size (error_name);
-  const char syntax_error_str[] = "SyntaxError";
-
-  if (err_str_size != strlen (syntax_error_str) - 1)
-  {
-    jerry_release_value (error_name);
-    return false;
-  }
-
-  jerry_char_t err_str_buf[err_str_size];
-
-  jerry_size_t sz = jerry_string_to_char_buffer (error_name, err_str_buf, err_str_size);
-  jerry_release_value (error_name);
-
-  if (sz == 0)
-  {
-    return false;
-  }
-
-  if (!strncmp ((char *) err_str_buf, syntax_error_str, sizeof (syntax_error_str) - 1))
-  {
-    return true;
-  }
-
-  return false;
-} /* jerry_value_is_syntax_error */
-
-/**
  * Print error value
  */
 static void
@@ -184,10 +130,12 @@ print_unhandled_exception (jerry_value_t error_value, /**< error value */
 {
   assert (jerry_value_has_error_flag (error_value));
 
-  jerry_value_clear_error_flag (&error_value);
+  error_value = jerry_get_value_without_error_flag (error_value);
   jerry_value_t err_str_val = jerry_value_to_string (error_value);
   jerry_size_t err_str_size = jerry_get_string_size (err_str_val);
   jerry_char_t err_str_buf[256];
+
+  jerry_release_value (error_value);
 
   if (err_str_size >= 256)
   {
@@ -201,7 +149,8 @@ print_unhandled_exception (jerry_value_t error_value, /**< error value */
     assert (sz == err_str_size);
     err_str_buf[err_str_size] = 0;
 
-    if (jerry_is_feature_enabled (JERRY_FEATURE_ERROR_MESSAGES) && jerry_value_is_syntax_error (error_value))
+    if (jerry_is_feature_enabled (JERRY_FEATURE_ERROR_MESSAGES)
+        && jerry_get_error_type (error_value) == JERRY_ERROR_SYNTAX)
     {
       unsigned int err_line = 0;
       unsigned int err_col = 0;
@@ -458,12 +407,12 @@ jerry_cmd_main (int argc, char *argv[])
       if (jerry_value_has_error_flag (ret_value))
       {
         print_unhandled_exception (ret_value, source_p);
-        jmem_heap_free_block ((void*) source_p, source_size);
+        free ((void*) source_p);
 
         break;
       }
 
-      jmem_heap_free_block ((void*) source_p, source_size);
+      free ((void*) source_p);
 
       jerry_release_value (ret_value);
       ret_value = jerry_create_undefined ();
@@ -482,6 +431,21 @@ jerry_cmd_main (int argc, char *argv[])
 
   return ret_code;
 } /* jerry_cmd_main */
+
+/**
+ * Run JerryScript and print its return value.
+ */
+static int
+jerry(int argc, char *argv[])
+{
+  int ret_code = jerry_cmd_main(argc, argv);
+
+#ifdef CONFIG_DEBUG_VERBOSE
+  jerry_port_log(JERRY_LOG_LEVEL_DEBUG, "JerryScript result: %d\n", ret_code);
+#endif
+
+  return ret_code;
+} /* jerry */
 
 /**
  * Aborts the program.
@@ -555,6 +519,6 @@ int main (int argc, FAR char *argv[])
 int jerry_main (int argc, char *argv[])
 #endif
 {
-  tash_cmd_install("jerry", jerry_cmd_main, TASH_EXECMD_SYNC);
+  tash_cmd_install("jerry", jerry, TASH_EXECMD_SYNC);
   return 0;
 } /* main */

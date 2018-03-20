@@ -31,6 +31,15 @@
 #endif /* HAVE_TIME_H */
 
 /**
+ * The number of message types in the debugger should reflect the
+ * debugger versioning.
+ */
+JERRY_STATIC_ASSERT (JERRY_DEBUGGER_MESSAGES_OUT_MAX_COUNT == 27
+                     && JERRY_DEBUGGER_MESSAGES_IN_MAX_COUNT == 19
+                     && JERRY_DEBUGGER_VERSION == 2,
+                     debugger_version_correlates_to_message_type_count);
+
+/**
  * Type cast the debugger send buffer into a specific type.
  */
 #define JERRY_DEBUGGER_SEND_BUFFER_AS(type, name_p) \
@@ -71,7 +80,7 @@ jerry_debugger_free_unreferenced_byte_code (void)
  * Send backtrace.
  */
 static void
-jerry_debugger_send_backtrace (uint8_t *recv_buffer_p) /**< pointer the the received data */
+jerry_debugger_send_backtrace (uint8_t *recv_buffer_p) /**< pointer to the received data */
 {
   JERRY_DEBUGGER_RECEIVE_BUFFER_AS (jerry_debugger_receive_get_backtrace_t, get_backtrace_p);
 
@@ -145,9 +154,9 @@ jerry_debugger_send_eval (const lit_utf8_byte_t *eval_string_p, /**< evaluated s
   JERRY_ASSERT (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED);
   JERRY_ASSERT (!(JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_VM_IGNORE));
 
-  JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) | JERRY_DEBUGGER_VM_IGNORE);
+  JERRY_DEBUGGER_SET_FLAGS (JERRY_DEBUGGER_VM_IGNORE);
   ecma_value_t result = ecma_op_eval_chars_buffer (eval_string_p, eval_string_size, true, false);
-  JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) & ~JERRY_DEBUGGER_VM_IGNORE);
+  JERRY_DEBUGGER_CLEAR_FLAGS (JERRY_DEBUGGER_VM_IGNORE);
 
   if (!ECMA_IS_VALUE_ERROR (result))
   {
@@ -166,12 +175,8 @@ jerry_debugger_send_eval (const lit_utf8_byte_t *eval_string_p, /**< evaluated s
 
     if (ecma_is_value_object (result))
     {
-      ecma_string_t *message_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_MESSAGE);
-
       message = ecma_op_object_find (ecma_get_object_from_value (result),
-                                     message_string_p);
-
-      ecma_deref_ecma_string (message_string_p);
+                                     ecma_get_magic_string (LIT_MAGIC_STRING_MESSAGE));
 
       if (!ecma_is_value_string (message)
           || ecma_string_is_empty (ecma_get_string_from_value (message)))
@@ -189,7 +194,7 @@ jerry_debugger_send_eval (const lit_utf8_byte_t *eval_string_p, /**< evaluated s
     }
     else
     {
-      /* Primitve type. */
+      /* Primitive type. */
       message = ecma_op_to_string (result);
       JERRY_ASSERT (!ECMA_IS_VALUE_ERROR (message));
     }
@@ -244,7 +249,7 @@ jerry_debugger_sleep (void)
  *         false - otherwise
  */
 inline bool __attr_always_inline___
-jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the received data */
+jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer to the received data */
                                 uint32_t message_size, /**< message size */
                                 bool *resume_exec_p, /**< pointer to the resume exec flag */
                                 uint8_t *expected_message_type_p, /**< message type */
@@ -316,8 +321,7 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
     else
     {
       result = true;
-      JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags)
-                                       & ~JERRY_DEBUGGER_CLIENT_SOURCE_MODE);
+      JERRY_DEBUGGER_CLEAR_FLAGS (JERRY_DEBUGGER_CLIENT_SOURCE_MODE);
       *resume_exec_p = true;
     }
 
@@ -398,7 +402,7 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
     {
       JERRY_DEBUGGER_CHECK_PACKET_SIZE (jerry_debugger_receive_type_t);
 
-      JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) | JERRY_DEBUGGER_VM_STOP);
+      JERRY_DEBUGGER_SET_FLAGS (JERRY_DEBUGGER_VM_STOP);
       JERRY_CONTEXT (debugger_stop_context) = NULL;
       *resume_exec_p = false;
       return true;
@@ -408,7 +412,7 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
     {
       JERRY_DEBUGGER_CHECK_PACKET_SIZE (jerry_debugger_receive_type_t);
 
-      JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) & ~JERRY_DEBUGGER_VM_STOP);
+      JERRY_DEBUGGER_CLEAR_FLAGS (JERRY_DEBUGGER_VM_STOP);
       JERRY_CONTEXT (debugger_stop_context) = NULL;
       *resume_exec_p = true;
       return true;
@@ -418,7 +422,7 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
     {
       JERRY_DEBUGGER_CHECK_PACKET_SIZE (jerry_debugger_receive_type_t);
 
-      JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) | JERRY_DEBUGGER_VM_STOP);
+      JERRY_DEBUGGER_SET_FLAGS (JERRY_DEBUGGER_VM_STOP);
       JERRY_CONTEXT (debugger_stop_context) = NULL;
       *resume_exec_p = true;
       return true;
@@ -428,8 +432,21 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
     {
       JERRY_DEBUGGER_CHECK_PACKET_SIZE (jerry_debugger_receive_type_t);
 
-      JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) | JERRY_DEBUGGER_VM_STOP);
+      JERRY_DEBUGGER_SET_FLAGS (JERRY_DEBUGGER_VM_STOP);
       JERRY_CONTEXT (debugger_stop_context) = JERRY_CONTEXT (vm_top_context_p);
+      *resume_exec_p = true;
+      return true;
+    }
+
+    case JERRY_DEBUGGER_FINISH:
+    {
+      JERRY_DEBUGGER_CHECK_PACKET_SIZE (jerry_debugger_receive_type_t);
+
+      JERRY_DEBUGGER_SET_FLAGS (JERRY_DEBUGGER_VM_STOP);
+
+      /* This will point to the current context's parent (where the function was called)
+       * and in case of NULL the result will the same as in case of STEP. */
+      JERRY_CONTEXT (debugger_stop_context) = JERRY_CONTEXT (vm_top_context_p->prev_context_p);
       *resume_exec_p = true;
       return true;
     }
@@ -447,20 +464,51 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
       JERRY_DEBUGGER_CHECK_PACKET_SIZE (jerry_debugger_receive_exception_config_t);
       JERRY_DEBUGGER_RECEIVE_BUFFER_AS (jerry_debugger_receive_exception_config_t, exception_config_p);
 
-      uint8_t debugger_flags = JERRY_CONTEXT (debugger_flags);
-
       if (exception_config_p->enable == 0)
       {
-        debugger_flags = (uint8_t) (debugger_flags | JERRY_DEBUGGER_VM_IGNORE_EXCEPTION);
+        JERRY_DEBUGGER_SET_FLAGS (JERRY_DEBUGGER_VM_IGNORE_EXCEPTION);
         jerry_port_log (JERRY_LOG_LEVEL_DEBUG, "Stop at exception disabled\n");
       }
       else
       {
-        debugger_flags = (uint8_t) (debugger_flags & ~JERRY_DEBUGGER_VM_IGNORE_EXCEPTION);
+        JERRY_DEBUGGER_CLEAR_FLAGS (JERRY_DEBUGGER_VM_IGNORE_EXCEPTION);
         jerry_port_log (JERRY_LOG_LEVEL_DEBUG, "Stop at exception enabled\n");
       }
 
-      JERRY_CONTEXT (debugger_flags)  = debugger_flags;
+      return true;
+    }
+
+    case JERRY_DEBUGGER_PARSER_CONFIG:
+    {
+      JERRY_DEBUGGER_CHECK_PACKET_SIZE (jerry_debugger_receive_parser_config_t);
+      JERRY_DEBUGGER_RECEIVE_BUFFER_AS (jerry_debugger_receive_parser_config_t, parser_config_p);
+
+      if (parser_config_p->enable_wait != 0)
+      {
+        JERRY_DEBUGGER_SET_FLAGS (JERRY_DEBUGGER_PARSER_WAIT);
+        jerry_port_log (JERRY_LOG_LEVEL_DEBUG, "Waiting after parsing enabled\n");
+      }
+      else
+      {
+        JERRY_DEBUGGER_CLEAR_FLAGS (JERRY_DEBUGGER_PARSER_WAIT);
+        jerry_port_log (JERRY_LOG_LEVEL_DEBUG, "Waiting after parsing disabled\n");
+      }
+
+      return true;
+    }
+
+    case JERRY_DEBUGGER_PARSER_RESUME:
+    {
+      JERRY_DEBUGGER_CHECK_PACKET_SIZE (jerry_debugger_receive_type_t);
+
+      if (!(JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_PARSER_WAIT_MODE))
+      {
+        jerry_port_log (JERRY_LOG_LEVEL_ERROR, "Not in parser wait mode\n");
+        jerry_debugger_close_connection ();
+        return false;
+      }
+
+      JERRY_DEBUGGER_CLEAR_FLAGS (JERRY_DEBUGGER_PARSER_WAIT_MODE);
       return true;
     }
 
@@ -559,8 +607,7 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
       }
       else
       {
-        JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags)
-                                         & ~JERRY_DEBUGGER_CLIENT_SOURCE_MODE);
+        JERRY_DEBUGGER_CLEAR_FLAGS (JERRY_DEBUGGER_CLIENT_SOURCE_MODE);
         *resume_exec_p = true;
       }
       return true;
@@ -577,8 +624,7 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
 
       JERRY_DEBUGGER_CHECK_PACKET_SIZE (jerry_debugger_receive_type_t);
 
-      JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) & ~JERRY_DEBUGGER_CLIENT_SOURCE_MODE);
-      JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) | JERRY_DEBUGGER_CLIENT_NO_SOURCE);
+      JERRY_DEBUGGER_UPDATE_FLAGS (JERRY_DEBUGGER_CLIENT_NO_SOURCE, JERRY_DEBUGGER_CLIENT_SOURCE_MODE);
 
       *resume_exec_p = true;
 
@@ -596,8 +642,7 @@ jerry_debugger_process_message (uint8_t *recv_buffer_p, /**< pointer the the rec
 
       JERRY_DEBUGGER_CHECK_PACKET_SIZE (jerry_debugger_receive_type_t);
 
-      JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) & ~JERRY_DEBUGGER_CLIENT_SOURCE_MODE);
-      JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) | JERRY_DEBUGGER_CONTEXT_RESET_MODE);
+      JERRY_DEBUGGER_UPDATE_FLAGS (JERRY_DEBUGGER_CONTEXT_RESET_MODE, JERRY_DEBUGGER_CLIENT_SOURCE_MODE);
 
       *resume_exec_p = true;
 
@@ -643,7 +688,7 @@ jerry_debugger_breakpoint_hit (uint8_t message_type) /**< message type */
     return;
   }
 
-  JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) | JERRY_DEBUGGER_BREAKPOINT_MODE);
+  JERRY_DEBUGGER_SET_FLAGS (JERRY_DEBUGGER_BREAKPOINT_MODE);
 
   jerry_debugger_uint8_data_t *uint8_data = NULL;
 
@@ -658,7 +703,7 @@ jerry_debugger_breakpoint_hit (uint8_t message_type) /**< message type */
                           uint8_data->uint8_size + sizeof (jerry_debugger_uint8_data_t));
   }
 
-  JERRY_CONTEXT (debugger_flags) = (uint8_t) (JERRY_CONTEXT (debugger_flags) & ~JERRY_DEBUGGER_BREAKPOINT_MODE);
+  JERRY_DEBUGGER_CLEAR_FLAGS (JERRY_DEBUGGER_BREAKPOINT_MODE);
 
   JERRY_CONTEXT (debugger_message_delay) = JERRY_DEBUGGER_MESSAGE_FREQUENCY;
 } /* jerry_debugger_breakpoint_hit */
@@ -707,6 +752,7 @@ jerry_debugger_send_configuration (uint8_t max_message_size) /**< maximum messag
   configuration_p->max_message_size = max_message_size;
   configuration_p->cpointer_size = sizeof (jmem_cpointer_t);
   configuration_p->little_endian = (endian_data.uint8_value[0] == 1);
+  configuration_p->version = JERRY_DEBUGGER_VERSION;
 
   return jerry_debugger_send (sizeof (jerry_debugger_send_configuration_t));
 } /* jerry_debugger_send_configuration */
@@ -941,12 +987,9 @@ jerry_debugger_exception_object_to_string (ecma_value_t exception_obj_value) /**
   lit_utf8_byte_t data[16];
   memcpy (data, lit_get_magic_string_utf8 (string_id), size);
 
-  ecma_string_t message_string;
-  ecma_init_ecma_magic_string (&message_string, LIT_MAGIC_STRING_MESSAGE);
-
   ecma_property_t *property_p;
   property_p = ecma_find_named_property (ecma_get_object_from_value (exception_obj_value),
-                                         &message_string);
+                                         ecma_get_magic_string (LIT_MAGIC_STRING_MESSAGE));
 
   if (property_p == NULL
       || ECMA_PROPERTY_GET_TYPE (*property_p) != ECMA_PROPERTY_TYPE_NAMEDDATA)
@@ -964,12 +1007,8 @@ jerry_debugger_exception_object_to_string (ecma_value_t exception_obj_value) /**
   data[size] = LIT_CHAR_COLON;
   data[size + 1] = LIT_CHAR_SP;
 
-  ecma_string_t *type_string_p = ecma_new_ecma_string_from_utf8 (data, size + 2);
-
-  ecma_string_t *string_p = ecma_concat_ecma_strings (type_string_p,
-                                                      ecma_get_string_from_value (prop_value_p->value));
-  ecma_deref_ecma_string (type_string_p);
-  return string_p;
+  return ecma_concat_ecma_strings (ecma_new_ecma_string_from_utf8 (data, size + 2),
+                                   ecma_get_string_from_value (prop_value_p->value));
 } /* jerry_debugger_exception_object_to_string */
 
 /**

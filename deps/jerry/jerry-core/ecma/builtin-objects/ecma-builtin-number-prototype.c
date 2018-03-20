@@ -590,8 +590,7 @@ ecma_builtin_number_prototype_object_to_fixed (ecma_value_t this_arg, /**< this 
     /* 4. */
     if (ecma_number_is_nan (this_num))
     {
-      ecma_string_t *nan_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_NAN);
-      ret_value = ecma_make_string_value (nan_str_p);
+      ret_value = ecma_make_magic_string_value (LIT_MAGIC_STRING_NAN);
     }
     else
     {
@@ -606,20 +605,10 @@ ecma_builtin_number_prototype_object_to_fixed (ecma_value_t this_arg, /**< this 
       /* We handle infinities separately. */
       if (ecma_number_is_infinity (this_num))
       {
-        ecma_string_t *infinity_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_INFINITY_UL);
+        lit_magic_string_id_t id = (is_negative ? LIT_MAGIC_STRING_NEGATIVE_INFINITY_UL
+                                                : LIT_MAGIC_STRING_INFINITY_UL);
 
-        if (is_negative)
-        {
-          ecma_string_t *neg_str_p = ecma_new_ecma_string_from_utf8 ((const lit_utf8_byte_t *) "-", 1);
-          ecma_string_t *neg_inf_str_p = ecma_concat_ecma_strings (neg_str_p, infinity_str_p);
-          ecma_deref_ecma_string (infinity_str_p);
-          ecma_deref_ecma_string (neg_str_p);
-          ret_value = ecma_make_string_value (neg_inf_str_p);
-        }
-        else
-        {
-          ret_value = ecma_make_string_value (infinity_str_p);
-        }
+        ret_value = ecma_make_magic_string_value (id);
       }
       else
       {
@@ -731,8 +720,7 @@ ecma_builtin_number_prototype_object_to_exponential (ecma_value_t this_arg, /**<
     /* 3. */
     if (ecma_number_is_nan (this_num))
     {
-      ecma_string_t *nan_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_NAN);
-      ret_value = ecma_make_string_value (nan_str_p);
+      ret_value = ecma_make_magic_string_value (LIT_MAGIC_STRING_NAN);
     }
     else
     {
@@ -747,20 +735,10 @@ ecma_builtin_number_prototype_object_to_exponential (ecma_value_t this_arg, /**<
       /* 6. */
       if (ecma_number_is_infinity (this_num))
       {
-        ecma_string_t *infinity_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_INFINITY_UL);
+        lit_magic_string_id_t id = (is_negative ? LIT_MAGIC_STRING_NEGATIVE_INFINITY_UL
+                                                : LIT_MAGIC_STRING_INFINITY_UL);
 
-        if (is_negative)
-        {
-          ecma_string_t *neg_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_MINUS_CHAR);
-          ecma_string_t *neg_inf_str_p = ecma_concat_ecma_strings (neg_str_p, infinity_str_p);
-          ecma_deref_ecma_string (infinity_str_p);
-          ecma_deref_ecma_string (neg_str_p);
-          ret_value = ecma_make_string_value (neg_inf_str_p);
-        }
-        else
-        {
-          ret_value = ecma_make_string_value (infinity_str_p);
-        }
+        ret_value = ecma_make_magic_string_value (id);
       }
       else
       {
@@ -878,8 +856,7 @@ ecma_builtin_number_prototype_object_to_precision (ecma_value_t this_arg, /**< t
     /* 4. */
     if (ecma_number_is_nan (this_num))
     {
-      ecma_string_t *nan_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_NAN);
-      ret_value = ecma_make_string_value (nan_str_p);
+      ret_value = ecma_make_magic_string_value (LIT_MAGIC_STRING_NAN);
     }
     else
     {
@@ -894,20 +871,10 @@ ecma_builtin_number_prototype_object_to_precision (ecma_value_t this_arg, /**< t
       /* 7. */
       if (ecma_number_is_infinity (this_num))
       {
-        ecma_string_t *infinity_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_INFINITY_UL);
+        lit_magic_string_id_t id = (is_negative ? LIT_MAGIC_STRING_NEGATIVE_INFINITY_UL
+                                                : LIT_MAGIC_STRING_INFINITY_UL);
 
-        if (is_negative)
-        {
-          ecma_string_t *neg_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_MINUS_CHAR);
-          ecma_string_t *neg_inf_str_p = ecma_concat_ecma_strings (neg_str_p, infinity_str_p);
-          ecma_deref_ecma_string (infinity_str_p);
-          ecma_deref_ecma_string (neg_str_p);
-          ret_value = ecma_make_string_value (neg_inf_str_p);
-        }
-        else
-        {
-          ret_value = ecma_make_string_value (infinity_str_p);
-        }
+        ret_value = ecma_make_magic_string_value (id);
       }
       /* 8. */
       else if (arg_num < 1.0 || arg_num >= 22.0)
