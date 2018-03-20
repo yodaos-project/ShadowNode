@@ -6,7 +6,7 @@ var net = require('net');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var TlsWrap = native.TlsWrap;
-var TLS_CHUNK_MAX_SIZE = TlsWrap.TLS_CHUNK_MAX_SIZE;
+var TLS_CHUNK_MAX_SIZE = require('constants').TLS_CHUNK_MAX_SIZE;
 
 function TLSSocket(socket, opts) {
   if (!(this instanceof TLSSocket))

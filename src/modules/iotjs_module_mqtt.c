@@ -177,15 +177,15 @@ JS_FUNCTION(MqttGetPublish) {
   jerry_value_t msg_qos = iotjs_jval_get_property(opts, "qos");
   jerry_value_t msg_dup = iotjs_jval_get_property(opts, "dup");
   jerry_value_t msg_retain = iotjs_jval_get_property(opts, "retain");
-  jerry_value_t msg_payload = iotjs_jval_get_property(opts, "payload");
-  iotjs_string_t msg_payload_str = iotjs_jval_as_string(msg_payload);
-
+  jerry_value_t msg_payload_ = iotjs_jval_get_property(opts, "payload");
+  iotjs_bufferwrap_t* msg_payload = iotjs_bufferwrap_from_jbuffer(msg_payload_);
+  
   MQTTString top = MQTTString_initializer;
   top.cstring = (char *)iotjs_string_data(&topic);
 
   jerry_value_t ret;
   do {
-    int msg_size = (int)iotjs_string_size(&msg_payload_str);
+    int msg_size = (int)iotjs_bufferwrap_length(msg_payload);
     int buf_size = 0;
     unsigned char *buf = NULL;
     alloc_payload_buf(&buf, msg_size, &buf_size);
@@ -199,7 +199,7 @@ JS_FUNCTION(MqttGetPublish) {
                                     iotjs_jval_as_boolean(msg_retain) ? 1 : 0,
                                     (unsigned short)iotjs_jval_as_number(msg_id),
                                     top,
-                                    (unsigned char*)iotjs_string_data(&msg_payload_str),
+                                    (unsigned char*)iotjs_bufferwrap_buffer(msg_payload),
                                     msg_size);
     if (len < 0) {
       ret = JS_CREATE_ERROR(COMMON, "mqtt payload is too large");
@@ -212,11 +212,11 @@ JS_FUNCTION(MqttGetPublish) {
   } while (false);
 
   jerry_release_value(msg_id);
+  jerry_release_value(msg_qos);
   jerry_release_value(msg_dup);
   jerry_release_value(msg_retain);
-  jerry_release_value(msg_payload);
+  jerry_release_value(msg_payload_);
   iotjs_string_destroy(&topic);
-  iotjs_string_destroy(&msg_payload_str);
   return ret;
 }
 
