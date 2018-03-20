@@ -6,6 +6,7 @@ var net = require('net');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var TlsWrap = native.TlsWrap;
+var TLS_CHUNK_MAX_SIZE = require('constants').TLS_CHUNK_MAX_SIZE;
 
 function TLSSocket(socket, opts) {
   if (!(this instanceof TLSSocket))
@@ -84,10 +85,30 @@ TLSSocket.prototype.write = function(data, cb) {
     return;
   }
 
-  var r = this._tls.write(data);
-  if (!Buffer.isBuffer(r))
-    throw new Error('Encryption is not available');
-  return this._socket.write(r, cb);
+  var chunks = [];
+  var chunkByteLength = data.byteLength;
+  var sourceStart = 0;
+  var sourceLength;
+  while (sourceStart < chunkByteLength) {
+    var chunkLeft = chunkByteLength - sourceStart;
+    if (chunkLeft > TLS_CHUNK_MAX_SIZE) {
+      sourceLength = TLS_CHUNK_MAX_SIZE;
+    } else {
+      sourceLength = chunkLeft
+    }
+    var chunk = data.slice(sourceStart, sourceStart + sourceLength);
+    sourceStart += sourceLength;
+    try {
+      /* XXX: tls.write may throw error if iotjs_tlswrap_encode_data failure */
+      var encodedChunk = this._tls.write(chunk);
+      chunks.push(encodedChunk);
+    } catch (err) {
+      cb(err);
+      return false;
+    }
+  }
+  var encodedData = Buffer.concat(chunks);
+  return this._socket.write(encodedData, cb);
 };
 
 TLSSocket.prototype.onsocket = function() {
