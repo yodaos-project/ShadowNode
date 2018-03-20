@@ -151,14 +151,20 @@ MqttClient.prototype._keepAlive = function() {
  * @param {Function} callback
  */
 MqttClient.prototype.publish = function(topic, payload, options, callback) {
-  var buf = this._handle._getPublish(topic, {
-    id: this._msgId++,
-    qos: (options && options.qos) || 0,
-    dup: (options && options.dup) || false,
-    retain: (options && options.retain) || false,
-    payload: payload || '',
-  });
-  this._write(buf);
+  var buf;
+  try {
+    buf = this._handle._getPublish(topic, {
+      id: this._msgId++,
+      qos: (options && options.qos) || 0,
+      dup: (options && options.dup) || false,
+      retain: (options && options.retain) || false,
+      payload: payload || '',
+    });
+  } catch (err) {
+    callback(err);
+    return;
+  }
+  this._write(buf, callback);
 };
 
 /**

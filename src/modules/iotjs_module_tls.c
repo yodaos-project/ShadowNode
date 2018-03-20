@@ -235,9 +235,9 @@ JS_FUNCTION(TlsConstructor) {
 
 jerry_value_t iotjs_tlswrap_encode_data(iotjs_tlswrap_t_impl_t* _this, 
                                         iotjs_bufferwrap_t* inbuf) {
-  /*
-    inbuf length should less equal than MBEDTLS_SSL_MAX_CONTENT_LEN which is 16384 bytes
-  */
+  /**
+   * inbuf length should less equal than MBEDTLS_SSL_MAX_CONTENT_LEN which is 16384 bytes
+   */
   size_t inbuf_len = iotjs_bufferwrap_length(inbuf);
   if (inbuf_len > MBEDTLS_SSL_MAX_CONTENT_LEN) {
     return JS_CREATE_ERROR(COMMON, "tls encode data is too large");
@@ -256,7 +256,7 @@ jerry_value_t iotjs_tlswrap_encode_data(iotjs_tlswrap_t_impl_t* _this,
     iotjs_bufferwrap_copy(outbuf, (const char*)tmpbuf, rv);
     return out;
   } else {
-    return jerry_create_null();
+    return JS_CREATE_ERROR(COMMON, "tls encode data failure");
   }
 }
 

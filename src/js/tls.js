@@ -98,9 +98,13 @@ TLSSocket.prototype.write = function(data, cb) {
     }
     var chunk = data.slice(sourceStart, sourceStart + sourceLength);
     sourceStart += sourceLength;
-    var encodedChunk = this._tls.write(chunk);
-    if (!Buffer.isBuffer(encodedChunk)) {
-      throw new Error('Encryption is not available');
+    var encodedChunk;
+    try {
+      // tls.write may throw error if iotjs_tlswrap_encode_data failure
+      encodedChunk = this._tls.write(chunk);
+    } catch (err) {
+      cb(err);
+      return false;
     }
     chunks.push(encodedChunk);
   }
