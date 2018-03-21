@@ -66,7 +66,14 @@ MqttClient.prototype.connect = function() {
     this._socket = net.connect(opts, this._onconnect.bind(this));
   }
   this._socket.on('data', (chunk) => {
-    var res = this._handle._readPacket(chunk);
+    var res;
+    try {
+      res = this._handle._readPacket(chunk);
+    } catch (err) {
+      this._socket.destroy();
+     this.emit('error', err);
+      return;
+    }
     this.emit('packetreceive');
 
     if (res.type === MQTT_CONNACK) {
@@ -151,13 +158,16 @@ MqttClient.prototype._keepAlive = function() {
  * @param {Function} callback
  */
 MqttClient.prototype.publish = function(topic, payload, options, callback) {
+  if (!Buffer.isBuffer(payload)) {
+    payload = new Buffer(payload);
+  }
   try {
     var buf = this._handle._getPublish(topic, {
       id: this._msgId++,
       qos: (options && options.qos) || 0,
       dup: (options && options.dup) || false,
       retain: (options && options.retain) || false,
-      payload: payload || '',
+      payload: payload,
     });
     this._write(buf, callback);
   } catch (err) {
