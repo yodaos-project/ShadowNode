@@ -135,7 +135,7 @@ TLSSocket.prototype.onread = function(chunk) {
 
 TLSSocket.prototype.onclose = function() {
   var self = this.jsref;
-  self.emit('close');
+  self.end();
 };
 
 TLSSocket.prototype.onhandshakedone = function(status) {
