@@ -210,6 +210,8 @@ jerry_cleanup (void)
   }
 #endif /* JERRY_DEBUGGER */
 
+  jerry_cleanup_parser_dump_file ();
+
   for (jerry_context_data_header_t *this_p = JERRY_CONTEXT (context_data_p), *next_p = NULL;
        this_p != NULL;
        this_p = next_p)
@@ -433,6 +435,15 @@ jerry_parse_named_resource (const jerry_char_t *resource_name_p, /**< resource n
                             size_t source_size, /**< script source size */
                             bool is_strict) /**< strict mode */
 {
+  char source_name[resource_name_length + 1];
+  memset(source_name, 0, resource_name_length + 1);
+  memcpy(source_name, resource_name_p, resource_name_length);
+
+  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
+  {
+    fprintf (JERRY_CONTEXT (parser_dump_fd), "%s:\n", source_name);
+  }
+
 #if defined JERRY_DEBUGGER && !defined JERRY_DISABLE_JS_PARSER
   if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
   {
@@ -465,6 +476,15 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
                       size_t source_size, /**< script source size */
                       bool is_strict) /**< strict mode */
 {
+  char source_name[resource_name_length + 1];
+  memset(source_name, 0, resource_name_length + 1);
+  memcpy(source_name, resource_name_p, resource_name_length);
+
+  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
+  {
+    fprintf (JERRY_CONTEXT (parser_dump_fd), "%s:\n", source_name);
+  }
+
 #if defined JERRY_DEBUGGER && !defined JERRY_DISABLE_JS_PARSER
   if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
   {
@@ -3329,6 +3349,39 @@ jerry_get_typedarray_buffer (jerry_value_t value, /**< TypedArray to get the arr
   return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG ("TypedArray is not supported.")));
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
 } /* jerry_get_typedarray_buffer */
+
+bool
+jerry_set_parser_dump_file (char *path)
+{
+  jerry_assert_api_available ();
+  JERRY_CONTEXT (parser_dump_fd) = fopen(path, "a+");
+  return true;
+}
+
+bool
+jerry_cleanup_parser_dump_file () {
+  if (JERRY_CONTEXT (parser_dump_fd))
+  {
+    fclose (JERRY_CONTEXT (parser_dump_fd));
+    JERRY_CONTEXT (parser_dump_fd) = NULL;
+    return true;
+  }
+  return false;
+}
+
+uint32_t*
+jerry_get_stacktrace (void)
+{
+  jerry_assert_api_available ();
+  return JERRY_CONTEXT (stack_frames);
+}
+
+uint32_t
+jerry_get_stacktrace_max_depth (void)
+{
+  jerry_assert_api_available ();
+  return 10;
+}
 
 /**
  * @}
