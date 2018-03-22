@@ -20,6 +20,8 @@ var MQTT_PINGREQ      = 12;
 var MQTT_PINGRESP     = 13;
 var MQTT_DISCONNECT   = 14;
 
+var noop = function() {};
+
 /**
  * @class MqttClient
  * @param {String} endpoint
@@ -78,7 +80,6 @@ MqttClient.prototype.connect = function() {
  * @method _onconnect
  */
 MqttClient.prototype._onconnect = function() {
-  console.log('_onconnect');
   this._isConnected = true;
   var buf;
   try {
@@ -91,17 +92,14 @@ MqttClient.prototype._onconnect = function() {
 };
 
 MqttClient.prototype._onerror = function (err) {
-  console.log('_onerror');
   this._ondisconnect(err);
 }
 
 MqttClient.prototype._onend = function () {
-  console.log('_onend');
   this._ondisconnect();
 }
 
 MqttClient.prototype._ondisconnect = function (err) {
-  console.log('_ondisconnect');
   if (err) {
     this.emit('error', err);
   }
@@ -113,7 +111,6 @@ MqttClient.prototype._ondisconnect = function (err) {
 }
 
 MqttClient.prototype._ondata = function (chunk) {
-  console.log('_ondata');
   var res;
   try {
     res = this._handle._readPacket(chunk);
@@ -151,7 +148,7 @@ MqttClient.prototype._ondata = function (chunk) {
       }
     }
   } else {
-    console.log(res.type)
+    // TODO handle other message type
   }
 }
 
@@ -162,22 +159,20 @@ MqttClient.prototype._ondata = function (chunk) {
  * @param {Function} callback
  */
 MqttClient.prototype._write = function(buffer, callback) {
+  callback = callback || noop;
   if (!this._isConnected) {
     throw new Error('mqtt is disconnected');
   }
   this._socket.write(buffer, () => {
     this.emit('packetsend');
-  });
-  if (typeof callback === 'function') {
     callback();
-  }
+  });
 };
 
 /**
  * @method _keepAlive
  */
 MqttClient.prototype._keepAlive = function() {
-  console.log('_keepAlive');
   try {
     var buf = this._handle._getPingReq();
     this._write(buf);
@@ -189,7 +184,6 @@ MqttClient.prototype._keepAlive = function() {
 };
 
 MqttClient.prototype.disconnect = function (err) {
-  console.log('disconnect');
   if (err) {
     this.emit('error', err);
   }
@@ -215,7 +209,7 @@ MqttClient.prototype.disconnect = function (err) {
  * @param {Function} callback
  */
 MqttClient.prototype.publish = function(topic, payload, options, callback) {
-  console.log('publish');
+  callback = callback || noop;
   if (!Buffer.isBuffer(payload)) {
     payload = new Buffer(payload);
   }
@@ -240,12 +234,13 @@ MqttClient.prototype.publish = function(topic, payload, options, callback) {
  * @param {Function} callback
  */
 MqttClient.prototype.subscribe = function(topic, options, callback) {
-  console.log('subscribe');
   if (!Array.isArray(topic))
     topic = [ topic ];
   if (typeof options === 'function') {
     callback = options;
     options = { qos: 0 };
+  } else {
+    callback = callback || noop;
   }
   try {
     var buf = this._handle._getSubscribe(topic, {
@@ -264,7 +259,7 @@ MqttClient.prototype.subscribe = function(topic, options, callback) {
  * @param {Function} callback
  */
 MqttClient.prototype.unsubscribe = function(topic, callback) {
-  console.log('unsubscribe');
+  callback = callback || noop;
   if (!Array.isArray(topic)) {
     topic = [ topic ];
   }
@@ -282,7 +277,6 @@ MqttClient.prototype.unsubscribe = function(topic, callback) {
  * @method reconnect
  */
 MqttClient.prototype.reconnect = function() {
-  console.log('reconnect');
   if (this._reconnecting) {
     return;
   }
