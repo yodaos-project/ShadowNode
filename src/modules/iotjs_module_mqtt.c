@@ -275,12 +275,15 @@ JS_FUNCTION(MqttGetAck) {
 
 JS_FUNCTION(MqttGetSubscribe) {
   jerry_value_t opts = JS_GET_ARG(1, object);
-  jerry_value_t msg_id = iotjs_jval_get_property(opts, "id");
-  jerry_value_t msg_qos = iotjs_jval_get_property(opts, "qos");
+  jerry_value_t msg_id_ = iotjs_jval_get_property(opts, "id");
+  unsigned short msg_id = iotjs_jval_as_number(msg_id_);
+  jerry_release_value(msg_id_);
+  jerry_value_t msg_qos_ = iotjs_jval_get_property(opts, "qos");
+  int qos = (int)iotjs_jval_as_number(msg_qos_);
+  jerry_release_value(msg_qos_);
 
   jerry_value_t jtopics = jargv[0];
   uint32_t size = jerry_get_array_length(jtopics);
-  int qos = (int)iotjs_jval_as_number(msg_qos);
 
   MQTTString topics[size];
   for (uint32_t i = 0; i < size; i++) {
@@ -302,7 +305,7 @@ JS_FUNCTION(MqttGetSubscribe) {
   }
   int len = MQTTSerialize_subscribe(buf, buf_size,
                                     0,
-                                    (unsigned short)iotjs_jval_as_number(msg_id),
+                                    msg_id,
                                     (int)size,
                                     topics,
                                     (int*)&qos);
@@ -323,8 +326,11 @@ JS_FUNCTION(MqttGetSubscribe) {
 
 JS_FUNCTION(MqttGetUnsubscribe) {
   jerry_value_t jtopics = jargv[0];
-  int msgId = JS_GET_ARG(1, number);
   uint32_t size = jerry_get_array_length(jtopics);
+  jerry_value_t opts = JS_GET_ARG(1, object);
+  jerry_value_t msg_id_ = iotjs_jval_get_property(opts, "id");
+  unsigned short msg_id = iotjs_jval_as_number(msg_id_);
+  jerry_release_value(msg_id_);
 
   MQTTString topics[size];
   for (uint32_t i = 0; i < size; i++) {
@@ -346,7 +352,7 @@ JS_FUNCTION(MqttGetUnsubscribe) {
   }
   int len = MQTTSerialize_unsubscribe(buf, buf_size,
                                       0,
-                                      (unsigned short)msgId,
+                                      msg_id,
                                       (int)size,
                                       topics);
 

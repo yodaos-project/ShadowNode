@@ -201,6 +201,9 @@ MqttClient.prototype.subscribe = function(topic, options, callback) {
  * @param {Function} callback
  */
 MqttClient.prototype.unsubscribe = function(topic, callback) {
+  if (!Array.isArray(topic)) {
+    topic = [ topic ];
+  }
   var buf = this._handle._getUnsubscribe(topic, {
     id: this._msgId++,
   });
