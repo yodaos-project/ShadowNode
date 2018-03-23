@@ -3359,7 +3359,8 @@ jerry_set_parser_dump_file (char *path)
 }
 
 bool
-jerry_cleanup_parser_dump_file () {
+jerry_cleanup_parser_dump_file ()
+{
   if (JERRY_CONTEXT (parser_dump_fd))
   {
     fclose (JERRY_CONTEXT (parser_dump_fd));

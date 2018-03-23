@@ -49,11 +49,18 @@
   var module = Module.require('module');
   var fs = Module.require('fs');
 
+  function loadDumpIfExists() {
+    var lines = [];
+    try {
+      var loc = '/tmp/iotjs.' + process.pid;
+      lines = fs.readFileSync(loc).toString().split('\n');
+      fs.unlinkSync(loc);
+    } catch (err) {}
+    return lines;
+  }
+
   function makeStackTraceFromDump(frames) {
-    var loc = '/tmp/iotjs.' + process.pid;
-    var lines = fs.readFileSync(loc).toString().split('\n');
-    fs.unlinkSync(loc);
-    
+    var lines = loadDumpIfExists();
     var file = null;
     var bcTable = {};
     lines.forEach(function(line, index) {
@@ -64,7 +71,7 @@
         if (m) {
           var cp = m[5];
           bcTable[cp] = {
-            name: m[2],
+            name: m[2] || 'anonymous',
             line: m[3],
             column: m[4],
             source: file,
@@ -87,8 +94,8 @@
   function _onUncaughtException(error, frames) {
     var event = 'uncaughtException';
     if (error instanceof SyntaxError) {
-      error.message = `${error.message} at\n\t ${module.curr}`;
-    } else {
+      error.message = `${error.message} at\n    ${module.curr}`;
+    } else if (frames) {
       var stacktrace = makeStackTraceFromDump(frames);
       error.message += '\n' + stacktrace.join('\n');
     }
@@ -421,7 +428,6 @@
   global.clearInterval = _timeoutHandler.bind(this, 'clearInterval');
 
   var EventEmitter = Module.require('events').EventEmitter;
-
   EventEmitter.call(process);
 
   var keys = Object.keys(EventEmitter.prototype);
