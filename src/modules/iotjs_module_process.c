@@ -19,6 +19,8 @@
 #include "jerryscript-debugger.h"
 #include <stdlib.h>
 #include <dlfcn.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #ifdef __APPLE__
 #include <crt_externs.h>
@@ -496,6 +498,10 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_BUILTIN_MODULES,
                                builtin_modules);
   jerry_release_value(builtin_modules);
+
+  // process.pid
+  iotjs_jval_set_property_number(process, IOTJS_MAGIC_STRING_PID, 
+                                 (double)getpid());
 
   // process.platform
   iotjs_jval_set_property_string_raw(process, IOTJS_MAGIC_STRING_PLATFORM,

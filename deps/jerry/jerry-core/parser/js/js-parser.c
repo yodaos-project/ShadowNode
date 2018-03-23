@@ -2000,6 +2000,13 @@ parser_post_processing (parser_context_t *context_p) /**< context */
                                      compiled_code_p);
   }
 
+  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
+  {
+    jmem_cpointer_t compressed_compiled_code_cp;
+    JMEM_CP_SET_NON_NULL_POINTER (compressed_compiled_code_cp, compiled_code_p);
+    fprintf (JERRY_CONTEXT (parser_dump_fd), " %u\n", compressed_compiled_code_cp);
+  }
+
 #ifdef JERRY_DEBUGGER
   if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
   {
@@ -2456,6 +2463,17 @@ parser_parse_function (parser_context_t *context_p, /**< context */
     }
 #endif /* JERRY_DEBUGGER */
 
+    if (JERRY_CONTEXT (parser_dump_fd) != NULL)
+    {
+      char func_name[context_p->lit_object.literal_p->prop.length + 1];
+      memset (func_name, 0, 
+              context_p->lit_object.literal_p->prop.length + 1);
+      memcpy (func_name, 
+              context_p->lit_object.literal_p->u.char_p, 
+              context_p->lit_object.literal_p->prop.length);
+      fprintf (JERRY_CONTEXT (parser_dump_fd), "+ %s", func_name);
+    }
+
     /* The arguments object is created later than the binding to the
      * function expression name, so there is no need to assign special flags. */
     if (context_p->lit_object.type != LEXER_LITERAL_OBJECT_ARGUMENTS)
@@ -2471,6 +2489,11 @@ parser_parse_function (parser_context_t *context_p, /**< context */
     }
 
     lexer_next_token (context_p);
+  }
+
+  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
+  {
+    fprintf (JERRY_CONTEXT (parser_dump_fd), " [%d,%d]", debugger_line, debugger_column);
   }
 
 #ifdef JERRY_DEBUGGER
@@ -2559,6 +2582,13 @@ parser_parse_arrow_function (parser_context_t *context_p, /**< context */
     JERRY_DEBUG_MSG ("\n--- Arrow function parsing start ---\n\n");
   }
 #endif /* PARSER_DUMP_BYTE_CODE */
+
+  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
+  {
+    fprintf (JERRY_CONTEXT (parser_dump_fd), " [%d,%d]", 
+                            context_p->token.line, 
+                            context_p->token.column);
+  }
 
 #ifdef JERRY_DEBUGGER
   if ((JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)

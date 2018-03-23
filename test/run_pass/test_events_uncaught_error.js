@@ -21,8 +21,8 @@ var EventEmitter = require('events').EventEmitter;
 var uncaught_error = false;
 
 process.on('uncaughtException', function(err) {
-  assert.equal(err.message, "Uncaught 'error' event",
-               'Error type does not match');
+  var pass = /Uncaught \'error\' event/.test(err.message);
+  assert.equal(pass, true, 'Error type does not match');
   uncaught_error = true;
 });
 
