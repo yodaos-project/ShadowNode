@@ -148,7 +148,8 @@ MqttClient.prototype._ondata = function(chunk) {
       }
     }
   } else {
-    // TODO handle other message type
+    // FIXME handle other message type
+    this.emit('unhandledMessage', res);
   }
 };
 
@@ -264,14 +265,16 @@ MqttClient.prototype.unsubscribe = function(topic, callback) {
   if (!Array.isArray(topic)) {
     topic = [topic];
   }
+  var buf;
   try {
-    var buf = this._handle._getUnsubscribe(topic, {
+    buf = this._handle._getUnsubscribe(topic, {
       id: this._msgId++,
     });
-    this._write(buf, callback);
   } catch (err) {
     callback(err);
+    return;
   }
+  this._write(buf, callback);
 };
 
 /**
