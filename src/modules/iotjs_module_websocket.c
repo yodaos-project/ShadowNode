@@ -9,19 +9,17 @@
 #define WS_MASKED_FRAME   0x4
 
 enum ws_frame_type {
-  WS_ERROR_FRAME = 0x00,
-  WS_INCOMPLETE_FRAME = 0x08,
-  WS_UNFINISHED_FRAME = 0x04,
+  WS_INCOMPLETE_FRAME = 0x00,
   WS_TEXT_FRAME = 0x01,
   WS_BINARY_FRAME = 0x02,
   WS_OPENING_FRAME = 0x05,
-  WS_CLOSING_FRAME = 0x06,
+  WS_CLOSING_FRAME = 0x08,
   WS_PING_FRAME = 0x09,
-  WS_PONG_FRAME = 0x0A
+  WS_PONG_FRAME = 0x0A,
+  WS_ERROR_FRAME = 0x0f,
 };
 
-#define WS_PAYLOAD_MAX_SIZE 128 * 1024
-enum ws_frame_parse_error {
+enum ws_frame_error_type {
   WS_PARSE_ERROR_INVALID = -1,
   WS_PARSE_ERROR_LENGTH = -2,
   WS_PARSE_ERROR_FRAME = -3,
@@ -29,26 +27,6 @@ enum ws_frame_parse_error {
   WS_PARSE_ERROR_PAYLOAD_TOO_LARGE = -5,
 };
 
-/*
-   0               1               2               3              
-   0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
-  +-+-+-+-+-------+-+-------------+-------------------------------+
-  |F|R|R|R| opcode|M| Payload len |    Extended payload length    |
-  |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
-  |N|V|V|V|       |S|             |   (if payload len==126/127)   |
-  | |1|2|3|       |K|             |                               |
-  +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
-  |     Extended payload length continued, if payload len == 127  |
-  + - - - - - - - - - - - - - - - +-------------------------------+
-  |                               |Masking-key, if MASK set to 1  |
-  +-------------------------------+-------------------------------+
-  | Masking-key (continued)       |          Payload Data         |
-  +-------------------------------- - - - - - - - - - - - - - - - +
-  :                     Payload Data continued ...                :
-  + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
-  |                     Payload Data continued ...                |
-  +---------------------------------------------------------------+
-*/
 typedef struct ws_frame {
   uint8_t fin;
   uint8_t rsv1;
@@ -74,11 +52,8 @@ void w64to8(uint8_t *dstbuffer, uint64_t value, size_t length) {
 }
 
 void iotjs_ws_parse_frame_type(struct ws_frame *frame) {
-  uint8_t fin = frame->fin;
   uint8_t opcode = frame->opcode;
-  if (fin == 0) {
-    frame->type = WS_UNFINISHED_FRAME; 
-  } else if (opcode == 0x01) {
+  if (opcode == 0x01) {
     frame->type = WS_TEXT_FRAME;
   } else if (opcode == 0x00) {
     frame->type = WS_INCOMPLETE_FRAME;
@@ -175,14 +150,14 @@ int iotjs_ws_parse_input(uint8_t* input_frame,
   if (input_len < 2)
     return WS_PARSE_ERROR_LENGTH;
   memset(frame, 0, sizeof(struct ws_frame));
-  frame->fin = input_frame[0] & 0x80;
-  frame->rsv1 = input_frame[0] & 0x40;
-  frame->rsv2 = input_frame[0] & 0x20;
-  frame->rsv3 = input_frame[0] & 0x10;
+  frame->fin = input_frame[0] >> 7;
+  frame->rsv1 = input_frame[0] >> 6 & 0x01;
+  frame->rsv2 = input_frame[0] >> 5 & 0x01;
+  frame->rsv3 = input_frame[0] >> 4 & 0x01;
   frame->opcode = input_frame[0] & 0x0f;
-  frame->mask = input_frame[1] & 0x80;
+  frame->mask = input_frame[1] >> 7;
   iotjs_ws_parse_frame_type(frame);
-  if (frame->opcode != WS_ERROR_FRAME) {
+  if (frame->type != WS_ERROR_FRAME) {
     iotjs_ws_parse_payload(input_frame, frame);
     return frame->payload != NULL ? 0 : WS_PARSE_ERROR_PAYLOAD;
   } else {

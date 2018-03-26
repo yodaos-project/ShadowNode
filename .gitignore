@@ -45,3 +45,6 @@ TAGS
 
 .DS_Store
 */.DS_Store
+
+# vs sutdio
+.vscode/
