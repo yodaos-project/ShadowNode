@@ -94,68 +94,8 @@ int iotjs_mqtt_read_buf(unsigned char* buf, int len, void* ctx) {
   return len;
 }
 
-JS_FUNCTION(MqttReadPacket) {
-  JS_DECLARE_THIS_PTR(mqtt, mqtt);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_mqtt_t, mqtt);
-
-  iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(jargv[0]);
-  _this->src = (unsigned char*)iotjs_bufferwrap_buffer(wrap);
-  _this->srclen = iotjs_bufferwrap_length(wrap);
-  _this->offset = 0;
-
-  // Assert the buffer size is larger
-  unsigned char buf[_this->srclen];
-  int r = MQTTPacket_read(buf, _this->srclen, iotjs_mqtt_read_buf, _this);
-
-  jerry_value_t ret = jerry_create_object();
-  iotjs_jval_set_property_jval(ret, "type", jerry_create_number(r));
-
-  if (r == CONNACK) {
-    unsigned char present;
-    unsigned char code;
-    if (MQTTDeserialize_connack(&present, &code, buf, sizeof(buf)) != 1 || code != 0) {
-      return JS_CREATE_ERROR(COMMON, "Unable to connect.");
-    }
-  } else if (r == SUBACK) {
-    int count = 0;
-    int grantedQoS = 0;
-    unsigned short msgId;
-    if (MQTTDeserialize_suback(&msgId, 
-                               1, 
-                               &count, 
-                               (int*)&grantedQoS, 
-                               buf, sizeof(buf)) != 1 || grantedQoS == 0x80) {
-      return JS_CREATE_ERROR(COMMON, "SUBACK failed with server.");
-    }
-  } else if (r == PUBLISH) {
-    jerry_value_t databuf = iotjs_bufferwrap_create_buffer(sizeof(buf));
-    iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(databuf);
-    iotjs_bufferwrap_copy(wrap, (const char*)buf, sizeof(buf));
-    iotjs_jval_set_property_jval(ret, "buffer", databuf);
-    jerry_release_value(databuf);
-  }
-  return ret;
-}
-
-JS_FUNCTION(MqttGetConnect) {
-  JS_DECLARE_THIS_PTR(mqtt, mqtt);
-  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_mqtt_t, mqtt);
-
-  unsigned char buf[100];
-  int len = MQTTSerialize_connect(buf, sizeof(buf), &_this->options_);
-  if (len == MQTTPACKET_BUFFER_TOO_SHORT) {
-    return JS_CREATE_ERROR(COMMON, "connection length is too short.");
-  }
-
-  jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
-  iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
-  iotjs_bufferwrap_copy(wrap, (const char*)buf, (size_t)len);
-  return retbuf;
-}
-
-
-void alloc_payload_buf(unsigned char **buf, int expected_size, int *alloc_size) {
-  static int buf_size = 1 * 1024 * 1024;
+static void iotjs_mqtt_alloc_buf(unsigned char **buf, int expected_size, int *alloc_size) {
+  static int buf_size = 128 * 1024;
   static unsigned char *buf_ = NULL;
   if (buf_ == NULL) {
     buf_ = malloc((size_t)buf_size * sizeof(unsigned char));
@@ -168,6 +108,77 @@ void alloc_payload_buf(unsigned char **buf, int expected_size, int *alloc_size) 
   }
   *buf = buf_;
   *alloc_size = buf_size;
+}
+
+JS_FUNCTION(MqttReadPacket) {
+  JS_DECLARE_THIS_PTR(mqtt, mqtt);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_mqtt_t, mqtt);
+
+  iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(jargv[0]);
+  _this->src = (unsigned char*)iotjs_bufferwrap_buffer(wrap);
+  _this->srclen = iotjs_bufferwrap_length(wrap);
+  _this->offset = 0;
+
+  unsigned char *buf = NULL;
+  int buf_size = 0;
+  iotjs_mqtt_alloc_buf(&buf, _this->srclen, &buf_size);
+  if (buf == NULL) {
+    return JS_CREATE_ERROR(COMMON, "mqtt payload buf create error on read");
+  }
+  int r = MQTTPacket_read(buf, buf_size, iotjs_mqtt_read_buf, _this);
+  if (r < 0) {
+    return JS_CREATE_ERROR(COMMON, "mqtt payload unknown header type");
+  }
+
+  jerry_value_t ret = jerry_create_object();
+  iotjs_jval_set_property_jval(ret, "type", jerry_create_number(r));
+
+  if (r == CONNACK) {
+    unsigned char present;
+    unsigned char code;
+    if (MQTTDeserialize_connack(&present, &code, buf, buf_size) != 1 || code != 0) {
+      return JS_CREATE_ERROR(COMMON, "Unable to connect.");
+    }
+  } else if (r == SUBACK) {
+    int count = 0;
+    int grantedQoS = 0;
+    unsigned short msgId;
+    if (MQTTDeserialize_suback(&msgId, 
+                               1, 
+                               &count, 
+                               (int*)&grantedQoS, 
+                               buf, buf_size) != 1 || grantedQoS == 0x80) {
+      return JS_CREATE_ERROR(COMMON, "SUBACK failed with server.");
+    }
+  } else if (r == PUBLISH) {
+    jerry_value_t databuf = iotjs_bufferwrap_create_buffer((size_t)buf_size);
+    iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(databuf);
+    iotjs_bufferwrap_copy(wrap, (const char*)buf, (size_t)buf_size);
+    iotjs_jval_set_property_jval(ret, "buffer", databuf);
+    jerry_release_value(databuf);
+  }
+  return ret;
+}
+
+JS_FUNCTION(MqttGetConnect) {
+  JS_DECLARE_THIS_PTR(mqtt, mqtt);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_mqtt_t, mqtt);
+
+  unsigned char *buf = NULL;
+  int buf_size = 0;
+  iotjs_mqtt_alloc_buf(&buf, 256, &buf_size);
+  if (buf == NULL) {
+    return JS_CREATE_ERROR(COMMON, "mqtt payload buf create error on connect");
+  }
+  int len = MQTTSerialize_connect(buf, buf_size, &_this->options_);
+  if (len == MQTTPACKET_BUFFER_TOO_SHORT) {
+    return JS_CREATE_ERROR(COMMON, "connection length is too short.");
+  }
+
+  jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
+  iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
+  iotjs_bufferwrap_copy(wrap, (const char*)buf, (size_t)len);
+  return retbuf;
 }
 
 JS_FUNCTION(MqttGetPublish) {
@@ -188,7 +199,7 @@ JS_FUNCTION(MqttGetPublish) {
     int msg_size = (int)iotjs_bufferwrap_length(msg_payload);
     int buf_size = 0;
     unsigned char *buf = NULL;
-    alloc_payload_buf(&buf, msg_size, &buf_size);
+    iotjs_mqtt_alloc_buf(&buf, msg_size, &buf_size);
     if (buf == NULL) {
       ret = JS_CREATE_ERROR(COMMON, "mqtt payload buf create error");
       break;
@@ -221,8 +232,13 @@ JS_FUNCTION(MqttGetPublish) {
 }
 
 JS_FUNCTION(MqttGetPingReq) {
-  unsigned char buf[100];
-  int len = MQTTSerialize_pingreq(buf, sizeof(buf));
+  unsigned char *buf = NULL;
+  int buf_size = 0;
+  iotjs_mqtt_alloc_buf(&buf, 100, &buf_size);
+  if (buf == NULL) {
+    return JS_CREATE_ERROR(COMMON, "mqtt payload buf create error on ping req");
+  }
+  int len = MQTTSerialize_pingreq(buf, buf_size);
   jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
   iotjs_bufferwrap_copy(wrap, (const char*)buf, (size_t)len);
@@ -232,13 +248,18 @@ JS_FUNCTION(MqttGetPingReq) {
 JS_FUNCTION(MqttGetAck) {
   int msg_id = JS_GET_ARG(0, number);
   int qos = JS_GET_ARG(1, number);
-  unsigned char buf[100];
+  unsigned char *buf = NULL;
+  int buf_size = 0;
+  iotjs_mqtt_alloc_buf(&buf, 100, &buf_size);
+  if (buf == NULL) {
+    return JS_CREATE_ERROR(COMMON, "mqtt payload buf create error on get ack");
+  }
   int len = 0;
 
   if (qos == QOS1) {
-    len = MQTTSerialize_ack(buf, sizeof(buf), PUBACK, 0, msg_id);
+    len = MQTTSerialize_ack(buf, buf_size, PUBACK, 0, msg_id);
   } else if (qos == QOS2) {
-    len = MQTTSerialize_ack(buf, sizeof(buf), PUBREC, 0, msg_id);
+    len = MQTTSerialize_ack(buf, buf_size, PUBREC, 0, msg_id);
   } else {
     return JS_CREATE_ERROR(COMMON, "invalid qos from message.");
   }
@@ -254,12 +275,15 @@ JS_FUNCTION(MqttGetAck) {
 
 JS_FUNCTION(MqttGetSubscribe) {
   jerry_value_t opts = JS_GET_ARG(1, object);
-  jerry_value_t msg_id = iotjs_jval_get_property(opts, "id");
-  jerry_value_t msg_qos = iotjs_jval_get_property(opts, "qos");
+  jerry_value_t msg_id_ = iotjs_jval_get_property(opts, "id");
+  unsigned short msg_id = iotjs_jval_as_number(msg_id_);
+  jerry_release_value(msg_id_);
+  jerry_value_t msg_qos_ = iotjs_jval_get_property(opts, "qos");
+  int qos = (int)iotjs_jval_as_number(msg_qos_);
+  jerry_release_value(msg_qos_);
 
   jerry_value_t jtopics = jargv[0];
   uint32_t size = jerry_get_array_length(jtopics);
-  int qos = (int)iotjs_jval_as_number(msg_qos);
 
   MQTTString topics[size];
   for (uint32_t i = 0; i < size; i++) {
@@ -273,13 +297,21 @@ JS_FUNCTION(MqttGetSubscribe) {
     iotjs_string_destroy(&topicstr);
   }
 
-  unsigned char buf[100];
-  int len = MQTTSerialize_subscribe(buf, sizeof(buf),
+  unsigned char *buf = NULL;
+  int buf_size = 0;
+  iotjs_mqtt_alloc_buf(&buf, 256, &buf_size);
+  if (buf == NULL) {
+    return JS_CREATE_ERROR(COMMON, "mqtt payload buf create error on get ack");
+  }
+  int len = MQTTSerialize_subscribe(buf, buf_size,
                                     0,
-                                    (unsigned short)iotjs_jval_as_number(msg_id),
+                                    msg_id,
                                     (int)size,
                                     topics,
                                     (int*)&qos);
+  if (len < 0) {
+    return JS_CREATE_ERROR(COMMON, "mqtt subscribe topic is too large");
+  }
 
   jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
@@ -294,8 +326,11 @@ JS_FUNCTION(MqttGetSubscribe) {
 
 JS_FUNCTION(MqttGetUnsubscribe) {
   jerry_value_t jtopics = jargv[0];
-  int msgId = JS_GET_ARG(1, number);
   uint32_t size = jerry_get_array_length(jtopics);
+  jerry_value_t opts = JS_GET_ARG(1, object);
+  jerry_value_t msg_id_ = iotjs_jval_get_property(opts, "id");
+  unsigned short msg_id = iotjs_jval_as_number(msg_id_);
+  jerry_release_value(msg_id_);
 
   MQTTString topics[size];
   for (uint32_t i = 0; i < size; i++) {
@@ -309,13 +344,21 @@ JS_FUNCTION(MqttGetUnsubscribe) {
     iotjs_string_destroy(&topicstr);
   }
 
-  unsigned char buf[100];
-  int len = MQTTSerialize_unsubscribe(buf, sizeof(buf),
+  unsigned char *buf = NULL;
+  int buf_size = 0;
+  iotjs_mqtt_alloc_buf(&buf, 256, &buf_size);
+  if (buf == NULL) {
+    return JS_CREATE_ERROR(COMMON, "mqtt payload buf create error on get ack");
+  }
+  int len = MQTTSerialize_unsubscribe(buf, buf_size,
                                       0,
-                                      (unsigned short)msgId,
+                                      msg_id,
                                       (int)size,
                                       topics);
 
+  if (len < 0) {
+    return JS_CREATE_ERROR(COMMON, "mqtt unsubscribe topic is too large");
+  }
   jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
   iotjs_bufferwrap_copy(wrap, (const char*)buf, (size_t)len);
@@ -328,8 +371,16 @@ JS_FUNCTION(MqttGetUnsubscribe) {
 }
 
 JS_FUNCTION(MqttGetDisconnect) {
-  unsigned char buf[100];
-  int len = MQTTSerialize_disconnect(buf, sizeof(buf));
+  unsigned char *buf = NULL;
+  int buf_size = 0;
+  iotjs_mqtt_alloc_buf(&buf, 100, &buf_size);
+  if (buf == NULL) {
+    return JS_CREATE_ERROR(COMMON, "mqtt payload buf create error on get ack");
+  }
+  int len = MQTTSerialize_disconnect(buf, buf_size);
+  if (len < 0) {
+    return JS_CREATE_ERROR(COMMON, "mqtt get disconnect is too large");
+  }
   jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
   iotjs_bufferwrap_copy(wrap, (const char*)buf, (size_t)len);
