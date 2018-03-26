@@ -266,6 +266,7 @@ MqttClient.prototype.unsubscribe = function(topic, callback) {
     topic = [topic];
   }
   var buf;
+  // TODO don't use try catch
   try {
     buf = this._handle._getUnsubscribe(topic, {
       id: this._msgId++,
