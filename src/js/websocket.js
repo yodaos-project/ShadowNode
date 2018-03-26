@@ -41,7 +41,13 @@ util.inherits(WebSocketConnection, EventEmitter);
  * @param {Buffer} chunk
  */
 WebSocketConnection.prototype.onsocketdata = function(chunk) {
-  var decoded = native.decodeFrame(chunk);
+  var decoded;
+  try {
+    decoded = native.decodeFrame(chunk);
+  } catch (err) {
+    this.emit('error', err);
+    return;
+  }
   if (decoded.fin === 0) {
     if (this.lastMessage && decoded.type === FrameType.INCOMPLETE) {
       this.lastMessage.chunks.push(decoded.buffer);
