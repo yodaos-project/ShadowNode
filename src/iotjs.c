@@ -29,6 +29,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 /**
  * Initialize JerryScript.
@@ -212,6 +214,11 @@ int iotjs_entry(int argc, char** argv) {
 
   // Set event loop.
   iotjs_environment_set_loop(env, uv_default_loop());
+
+  // set parser dump file
+  char dump_path[20];
+  snprintf(dump_path, 20, "/tmp/iotjs.%zu", (size_t)getpid());
+  jerry_set_parser_dump_file(dump_path);
 
   // Start iot.js.
   ret_code = iotjs_start(env);

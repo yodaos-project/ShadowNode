@@ -23,12 +23,24 @@
 void iotjs_uncaught_exception(jerry_value_t jexception) {
   const jerry_value_t process = iotjs_module_get("process");
 
+  // clean dump file
+  jerry_cleanup_parser_dump_file();
+
+  // create frames
+  uint32_t* frames = jerry_get_stacktrace();
+  uint32_t len = jerry_get_stacktrace_max_depth();
+  jerry_value_t jframes = jerry_create_array(len);
+  for (uint32_t i = 0; i < len; i++) {
+    jerry_set_property_by_index(jframes, i, jerry_create_number(frames[i]));
+  }
+
   jerry_value_t jonuncaughtexception =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONUNCAUGHTEXCEPTION);
   IOTJS_ASSERT(jerry_value_is_function(jonuncaughtexception));
 
-  iotjs_jargs_t args = iotjs_jargs_create(1);
+  iotjs_jargs_t args = iotjs_jargs_create(3);
   iotjs_jargs_append_jval(&args, jexception);
+  iotjs_jargs_append_jval(&args, jframes);
 
   bool throws;
   jerry_value_t jres =
@@ -37,6 +49,7 @@ void iotjs_uncaught_exception(jerry_value_t jexception) {
   iotjs_jargs_destroy(&args);
   jerry_release_value(jres);
   jerry_release_value(jonuncaughtexception);
+  jerry_release_value(jframes);
 
   if (throws) {
     iotjs_environment_t* env = iotjs_environment_get();
