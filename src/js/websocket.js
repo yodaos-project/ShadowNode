@@ -16,6 +16,12 @@ var FrameType = {
   ERROR: 0x0f,
 };
 
+var ParseErrorType = {
+  OK: 0,
+  INVALID: -1,
+  INCOMPLETE: -2,
+};
+
 /**
  * @class WebSocketConnection
  * @param {HttpClient} httpConnection
@@ -28,6 +34,7 @@ function WebSocketConnection(httpConnection, wsClient) {
   this.socket.on('data', this.onsocketdata.bind(this));
   this.connected = true;
   this.lastMessage = null;
+  this.lastChunk = null;
 
   this.on('ping', function() {
     var buf = native.encodeFrame(FrameType.PONG, new Buffer('PONG'));
@@ -41,57 +48,72 @@ util.inherits(WebSocketConnection, EventEmitter);
  * @param {Buffer} chunk
  */
 WebSocketConnection.prototype.onsocketdata = function(chunk) {
-  var decoded;
-  try {
-    decoded = native.decodeFrame(chunk);
-  } catch (err) {
-    this.emit('error', err);
+  if (this.lastChunk) {
+    chunk = Buffer.concat([this.lastChunk, chunk]);
+    this.lastChunk = null;
+  }
+  var decoded = native.decodeFrame(chunk);
+  var errCode = decoded.err_code;
+  if (errCode === ParseErrorType.INCOMPLETE) {
+    this.lastChunk = chunk;
+    return;
+  } else if (errCode !== ParseErrorType.OK) {
     return;
   }
-  if (decoded.fin === 0) {
-    if (this.lastMessage && decoded.type === FrameType.INCOMPLETE) {
+  var totalLen = decoded.total_len;
+  var leftChunk;
+  if (totalLen < chunk.byteLength) {
+    leftChunk = chunk.slice(totalLen, chunk.byteLength);
+  }
+  do {
+    if (decoded.fin === 0) {
+      if (this.lastMessage && decoded.type === FrameType.INCOMPLETE) {
+        this.lastMessage.chunks.push(decoded.buffer);
+      } else {
+        this.lastMessage = decoded;
+        this.lastMessage.chunks = [ decoded.buffer ];
+        delete this.lastMessage.buffer;
+      }
+      break;
+    }
+    if (decoded.type === FrameType.INCOMPLETE) {
+      if (!this.lastMessage) {
+        break;
+      }
       this.lastMessage.chunks.push(decoded.buffer);
+      this.lastMessage.buffer = Buffer.concat(this.lastMessage.chunks);
+      delete this.lastMessage.chunks;
+      decoded = this.lastMessage;
+      this.lastMessage = null;
+    }
+    if (decoded.type === FrameType.PING) {
+      this.emit('ping');
+    } else if (decoded.type === FrameType.PONG) {
+      this.emit('pong');
+    } else if (decoded.type === FrameType.TEXT) {
+      var message;
+      try {
+        message = decoded.buffer.toString('utf8');
+      } catch (err) {
+        this.emit('error', new Error('invalid websocket utf8 message'));
+        break;
+      }
+      this.emit('message', {
+        type: 'utf8',
+        utf8Data: message,
+      });
+    } else if (decoded.type === FrameType.BINARY) {
+      this.emit('message', {
+        type: 'binary',
+        binaryData: decoded.buffer,
+      });
     } else {
-      this.lastMessage = decoded;
-      this.lastMessage.chunks = [ decoded.buffer ];
-      delete this.lastMessage.buffer;
+      var err = new Error(`unhandled message type ${decoded.type}`);
+      this.emit('error', err);
     }
-    return;
-  }
-  if (decoded.type === FrameType.INCOMPLETE) {
-    if (!this.lastMessage) {
-      return;
-    }
-    this.lastMessage.chunks.push(decoded.buffer);
-    this.lastMessage.buffer = Buffer.concat(this.lastMessage.chunks);
-    delete this.lastMessage.chunks;
-    decoded = this.lastMessage;
-    this.lastMessage = null;
-  }
-  if (decoded.type === FrameType.PING) {
-    this.emit('ping');
-  } else if (decoded.type === FrameType.PONG) {
-    this.emit('pong');
-  } else if (decoded.type === FrameType.TEXT) {
-    var message;
-    try {
-      message = decoded.buffer.toString('utf8');
-    } catch (err) {
-      this.emit('error', new Error('invalid websocket utf8 message'));
-      return;
-    }
-    this.emit('message', {
-      type: 'utf8',
-      utf8Data: message,
-    });
-  } else if (decoded.type === FrameType.BINARY) {
-    this.emit('message', {
-      type: 'binary',
-      binaryData: decoded.buffer,
-    });
-  } else {
-    var err = new Error(`unhandled message type ${decoded.type}`);
-    this.emit('error', err);
+  } while (false)
+  if (leftChunk) {
+    this.onsocketdata(leftChunk);
   }
 };
 
