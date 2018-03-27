@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-
-
 var assert = require('assert');
 
 var trace = '';
@@ -30,6 +28,7 @@ process.on('uncaughtException', function (err) {
 process.on('exit', function() {
   trace += 'C';
   process.removeAllListeners('uncaughtException');
+  console.log(trace);
   assert.equal(trace, 'ABABC');
 });
 

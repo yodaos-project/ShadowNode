@@ -416,6 +416,14 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
   }
 #endif /* JERRY_DEBUGGER */
 
+  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
+  {
+    char func_name[name_p->prop.length + 1];
+    memset(func_name, 0, name_p->prop.length + 1);
+    memcpy(func_name, name_p->u.char_p, name_p->prop.length);
+    fprintf (JERRY_CONTEXT (parser_dump_fd), "+ %s", func_name);
+  }
+
   if (name_p->status_flags & LEXER_FLAG_INITIALIZED)
   {
     if (!(name_p->status_flags & (LEXER_FLAG_FUNCTION_NAME | LEXER_FLAG_FUNCTION_ARGUMENT)))

@@ -149,6 +149,7 @@
 #define IOTJS_MAGIC_STRING_OWNER "owner"
 #define IOTJS_MAGIC_STRING_PAUSE "pause"
 #define IOTJS_MAGIC_STRING_PERIOD "period"
+#define IOTJS_MAGIC_STRING_PID "pid"
 #define IOTJS_MAGIC_STRING_PIN "pin"
 #define IOTJS_MAGIC_STRING_PLATFORM "platform"
 #define IOTJS_MAGIC_STRING_PORT "port"

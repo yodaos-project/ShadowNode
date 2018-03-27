@@ -18,7 +18,6 @@ var assert = require('assert');
 
 {
   var filePath = process.cwd() + '/resources/tobeornottobe.txt';
-
   fs.exists(filePath, function(exists) {
     assert.equal(exists, true, 'File should exist: ' + filePath);
   });

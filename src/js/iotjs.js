@@ -47,14 +47,58 @@
   };
 
   var module = Module.require('module');
+  var fs = Module.require('fs');
+
+  function loadDumpIfExists() {
+    var lines = [];
+    try {
+      var loc = '/tmp/iotjs.' + process.pid;
+      lines = fs.readFileSync(loc).toString().split('\n');
+      fs.unlinkSync(loc);
+    } catch (err) {}
+    return lines;
+  }
+
+  function makeStackTraceFromDump(frames) {
+    var lines = loadDumpIfExists();
+    var file = null;
+    var bcTable = {};
+    lines.forEach(function(line, index) {
+      if (/.*:/.test(line)) {
+        file = line.slice(0, -1);
+      } else {
+        var m = line.match(/(\+ ([a-z0-9_]*))? \[(\d+),(\d+)\] (\d+)/);
+        if (m) {
+          var cp = m[5];
+          bcTable[cp] = {
+            name: m[2] || 'anonymous',
+            line: m[3],
+            column: m[4],
+            source: file,
+          };
+        }
+      }
+    });
+
+    return frames.map(function(offset) {
+      var info = bcTable[offset];
+      if (info) {
+        return `    at ${info.name} (${info.source}:${info.line}:${info.column})`
+      }
+    }).filter(function(str) {
+      return typeof str === 'string';
+    });
+  }
 
   process._onUncaughtException = _onUncaughtException;
-  function _onUncaughtException(error) {
+  function _onUncaughtException(error, frames) {
     var event = 'uncaughtException';
     if (error instanceof SyntaxError) {
-      error.message = `${error.message} at\n\t ${module.curr}`;
+      error.message = `${error.message} at\n    ${module.curr}`;
+    } else if (frames) {
+      var stacktrace = makeStackTraceFromDump(frames);
+      error.message += '\n' + stacktrace.join('\n');
     }
-
     if (process._events[event] && process._events[event].length > 0) {
       try {
         // Emit uncaughtException event.
@@ -66,7 +110,7 @@
       }
     } else {
       // Exit if there are no handler for uncaught exception.
-      console.error('uncaughtException: ' + error);
+      console.error(error);
       process.exit(1);
     }
   }
@@ -384,7 +428,6 @@
   global.clearInterval = _timeoutHandler.bind(this, 'clearInterval');
 
   var EventEmitter = Module.require('events').EventEmitter;
-
   EventEmitter.call(process);
 
   var keys = Object.keys(EventEmitter.prototype);

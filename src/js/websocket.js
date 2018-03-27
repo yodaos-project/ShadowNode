@@ -6,14 +6,14 @@ var url = require('url');
 var EventEmitter = require('events').EventEmitter;
 
 var FrameType = {
-  ERROR: 0,
-  PING: 0x09,
-  PONG: 0x0a,
+  INCOMPLETE: 0x00,
   TEXT: 0x01,
   BINARY: 0x02,
   OPENING: 0x05,
-  CLOSING: 0x06,
-  INCOMPLETE: 0x08,
+  CLOSING: 0x08,
+  PING: 0x09,
+  PONG: 0x0a,
+  ERROR: 0x0f,
 };
 
 /**
@@ -27,6 +27,7 @@ function WebSocketConnection(httpConnection, wsClient) {
   this.socket = httpConnection.connection;
   this.socket.on('data', this.onsocketdata.bind(this));
   this.connected = true;
+  this.lastMessage = null;
 
   this.on('ping', function() {
     var buf = native.encodeFrame(FrameType.PONG, new Buffer('PONG'));
@@ -40,21 +41,49 @@ util.inherits(WebSocketConnection, EventEmitter);
  * @param {Buffer} chunk
  */
 WebSocketConnection.prototype.onsocketdata = function(chunk) {
-  var decoded = native.decodeFrame(chunk);
+  var decoded;
+  try {
+    decoded = native.decodeFrame(chunk);
+  } catch (err) {
+    this.emit('error', err);
+    return;
+  }
+  if (decoded.fin === 0) {
+    if (this.lastMessage && decoded.type === FrameType.INCOMPLETE) {
+      this.lastMessage.chunks.push(decoded.buffer);
+    } else {
+      this.lastMessage = decoded;
+      this.lastMessage.chunks = [ decoded.buffer ];
+      delete this.lastMessage.buffer;
+    }
+    return;
+  }
+  if (decoded.type === FrameType.INCOMPLETE) {
+    if (!this.lastMessage) {
+      return;
+    }
+    this.lastMessage.chunks.push(decoded.buffer);
+    this.lastMessage.buffer = Buffer.concat(this.lastMessage.chunks);
+    delete this.lastMessage.chunks;
+    decoded = this.lastMessage;
+    this.lastMessage = null;
+  }
   if (decoded.type === FrameType.PING) {
     this.emit('ping');
   } else if (decoded.type === FrameType.PONG) {
     this.emit('pong');
   } else if (decoded.type === FrameType.TEXT) {
-    if (!decoded.buffer.toString('utf8')) {
-      var err = new Error('invalid UTF-8 message from websocket');
-      this.emit('error', err);
-    } else {
-      this.emit('message', {
-        type: 'utf8',
-        utf8Data: decoded.buffer.toString('utf8'),
-      });
+    var message;
+    try {
+      message = decoded.buffer.toString('utf8');
+    } catch (err) {
+      this.emit('error', new Error('invalid websocket utf8 message'));
+      return;
     }
+    this.emit('message', {
+      type: 'utf8',
+      utf8Data: message,
+    });
   } else if (decoded.type === FrameType.BINARY) {
     this.emit('message', {
       type: 'binary',
@@ -82,7 +111,6 @@ WebSocketConnection.prototype.sendUTF = function(buffer) {
  * @param {Buffer} buffer
  */
 WebSocketConnection.prototype.sendBytes = function(buffer) {
-  console.log('write bytes:', buffer);
   if (!(buffer instanceof Buffer))
     buffer = new Buffer(buffer);
   var buf = native.encodeFrame(FrameType.BINARY, buffer);

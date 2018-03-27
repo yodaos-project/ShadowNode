@@ -86,6 +86,10 @@ typedef struct
   uint32_t jerry_init_flags; /**< run-time configuration flags */
   uint32_t status_flags; /**< run-time flags */
 
+  uint32_t stack_frames[10];
+  uint32_t stack_index;
+  FILE *parser_dump_fd;
+
 #ifndef CONFIG_ECMA_PROPERTY_HASHMAP_DISABLE
   uint8_t ecma_prop_hashmap_alloc_state; /**< property hashmap allocation state: 0-4,
                                           *   if !0 property hashmap allocation is disabled */
