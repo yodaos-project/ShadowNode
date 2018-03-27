@@ -8,6 +8,8 @@
 #define WS_NEXT_FRAME     0x2
 #define WS_MASKED_FRAME   0x4
 
+#define WS_FIXED_BYTES 2
+
 enum ws_frame_type {
   WS_INCOMPLETE_FRAME = 0x00,
   WS_TEXT_FRAME = 0x01,
@@ -20,11 +22,9 @@ enum ws_frame_type {
 };
 
 enum ws_frame_error_type {
+  WS_ERROR_OK = 0,
   WS_PARSE_ERROR_INVALID = -1,
-  WS_PARSE_ERROR_LENGTH = -2,
-  WS_PARSE_ERROR_FRAME = -3,
-  WS_PARSE_ERROR_PAYLOAD = -4,
-  WS_PARSE_ERROR_PAYLOAD_TOO_LARGE = -5,
+  WS_PARSE_ERROR_INCOMPLETE = -2,
 };
 
 typedef struct ws_frame {
@@ -33,12 +33,18 @@ typedef struct ws_frame {
   uint8_t rsv2;
   uint8_t rsv3;
   uint8_t opcode;
-  uint8_t mask;
+  uint8_t mask; // always 0 at client
   uint64_t payload_len;
-  int32_t masking_key;
+  uint64_t ext_len; // extended payload length
+  int32_t masking_key; // useless at client
   uint8_t *payload;
   enum ws_frame_type type;
 } ws_frame;
+
+typedef struct ws_packet {
+  uint8_t *data;
+  uint64_t len;
+} ws_packet;
 
 void w64to8(uint8_t *dstbuffer, uint64_t value, size_t length) {
   if (dstbuffer == NULL) {
@@ -70,32 +76,26 @@ void iotjs_ws_parse_frame_type(struct ws_frame *frame) {
   }
 }
 
-uint64_t f_uint64(uint8_t *value) {
+uint64_t f_uint_parse(uint8_t *value, int offset) {
   uint64_t length = 0;
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < offset; i++) {
     length = (length << 8) | value[i];
   }
   return length;
 }
 
-uint16_t f_uint16(uint8_t *value) {
-  uint16_t length = 0;
-  for (int i = 0; i < 2; i++) {
-    length = (length << 8) | value[i];
-  }
-  return length;
-}
-
-void _payload_length(uint8_t *packet, struct ws_frame *frame) {
-  int length = packet[1] & 0x7f;
-
+int iotjs_ws_parse_payload_length(ws_packet *packet, struct ws_frame *frame) {
+  int length = packet->data[1] & 0x7f;
   if (length < 126) {
     frame->payload_len = (uint64_t)length;
-  } else if (length == 126) {
-    frame->payload_len = f_uint16(&packet[2]);
   } else {
-    frame->payload_len = f_uint64(&packet[2]);
+    frame->ext_len = length == 126 ? 2 : 8;
+    if (packet->len < WS_FIXED_BYTES + frame->ext_len) {
+      return WS_PARSE_ERROR_INCOMPLETE;
+    }
+    frame->payload_len = f_uint_parse(&packet->data[2], frame->ext_len);
   }
+  return 0;
 }
 
 void iotjs_ws_parse_masking_key(uint8_t* packet, int offset, struct ws_frame *frame) {
@@ -117,51 +117,40 @@ void iotjs_ws_decode_payload(uint8_t* packet, struct ws_frame *frame) {
   frame->payload = packet;
 }
 
-void iotjs_ws_parse_payload(uint8_t* packet, struct ws_frame *frame) {
-  _payload_length(packet, frame);
-
-  if (frame->mask == 1) {
-    int masking_key_offset;
-    if (frame->payload_len < 126) {
-      masking_key_offset = 2;
-    } else if (frame->payload_len < 65536) {
-      masking_key_offset = 4;
-    } else {
-      masking_key_offset = 10;
-    }
-    iotjs_ws_parse_masking_key(packet, masking_key_offset, frame);
-    iotjs_ws_decode_payload(&packet[masking_key_offset + 4], frame);
-  } else {
-    if (frame->payload_len < 126) {
-      frame->payload = &packet[2];
-    } else if (frame->payload_len < 65536) {
-      frame->payload = &packet[4];
-    } else {
-      frame->payload = &packet[10];
-    }
+int iotjs_ws_parse_payload(ws_packet *packet, struct ws_frame *frame) {
+  int r = iotjs_ws_parse_payload_length(packet, frame);
+  if (r != WS_ERROR_OK) {
+    return r;
   }
+  if (frame->mask == 1) {
+    // messages from server should not mask data, so we don't need unmask data
+    return WS_PARSE_ERROR_INVALID;
+  } else {
+    if (packet->len < WS_FIXED_BYTES + frame->ext_len + frame->payload_len) {
+      return WS_PARSE_ERROR_INCOMPLETE;
+    }
+    frame->payload = &packet->data[WS_FIXED_BYTES + frame->ext_len];
+  }
+  return 0;
 }
 
-int iotjs_ws_parse_input(uint8_t* input_frame,
-                          size_t input_len,
-                          struct ws_frame *frame) {
-  if (input_frame == NULL)
+int iotjs_ws_parse_input(ws_packet* packet, struct ws_frame *frame) {
+  if (packet->data == NULL)
     return WS_PARSE_ERROR_INVALID;
-  if (input_len < 2)
-    return WS_PARSE_ERROR_LENGTH;
+  if (packet->len < WS_FIXED_BYTES)
+    return WS_PARSE_ERROR_INVALID;
   memset(frame, 0, sizeof(struct ws_frame));
-  frame->fin = input_frame[0] >> 7;
-  frame->rsv1 = input_frame[0] >> 6 & 0x01;
-  frame->rsv2 = input_frame[0] >> 5 & 0x01;
-  frame->rsv3 = input_frame[0] >> 4 & 0x01;
-  frame->opcode = input_frame[0] & 0x0f;
-  frame->mask = input_frame[1] >> 7;
+  frame->fin = packet->data[0] >> 7;
+  frame->rsv1 = packet->data[0] >> 6 & 0x01;
+  frame->rsv2 = packet->data[0] >> 5 & 0x01;
+  frame->rsv3 = packet->data[0] >> 4 & 0x01;
+  frame->opcode = packet->data[0] & 0x0f;
+  frame->mask = packet->data[1] >> 7;
   iotjs_ws_parse_frame_type(frame);
   if (frame->type != WS_ERROR_FRAME) {
-    iotjs_ws_parse_payload(input_frame, frame);
-    return frame->payload != NULL ? 0 : WS_PARSE_ERROR_PAYLOAD;
+    return iotjs_ws_parse_payload(packet, frame);
   } else {
-    return WS_PARSE_ERROR_FRAME;
+    return WS_PARSE_ERROR_INVALID;
   }
 }
 
@@ -252,23 +241,31 @@ JS_FUNCTION(DecodeFrame) {
   uint8_t* chunk = (uint8_t*)iotjs_bufferwrap_buffer(data);
   size_t chunk_size = iotjs_bufferwrap_length(data);
 
+  jerry_value_t ret = jerry_create_object();
+  struct ws_packet packet;
+  packet.data = chunk;
+  packet.len = chunk_size;
   struct ws_frame frame;
-  int r = iotjs_ws_parse_input(chunk, chunk_size, &frame);
-  if (r < 0) {
-    return JS_CREATE_ERROR(COMMON, "websocket frame parse error");
+  int r = iotjs_ws_parse_input(&packet, &frame);
+  if (r != WS_ERROR_OK) {
+    iotjs_jval_set_property_jval(ret, "err_code", jerry_create_number(r));
+    return ret;
   }
+
+  int total_len = frame.payload_len + frame.ext_len + WS_FIXED_BYTES;
 
   jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer(frame.payload_len);
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
   iotjs_bufferwrap_copy(buffer_wrap, (const char*)frame.payload, frame.payload_len);
 
-  jerry_value_t ret = jerry_create_object();
   iotjs_jval_set_property_jval(ret, "type", jerry_create_number((int)frame.type));
   iotjs_jval_set_property_jval(ret, "fin", jerry_create_number(frame.fin));
   iotjs_jval_set_property_jval(ret, "opcode", jerry_create_number(frame.opcode));
   iotjs_jval_set_property_jval(ret, "mask", jerry_create_number(frame.mask));
   iotjs_jval_set_property_jval(ret, "masking_key", jerry_create_number(frame.masking_key));
+  iotjs_jval_set_property_jval(ret, "total_len", jerry_create_number(total_len));
   iotjs_jval_set_property_jval(ret, "buffer", jbuffer);
+  iotjs_jval_set_property_jval(ret, "err_code", jerry_create_number((int)WS_ERROR_OK));
   jerry_release_value(jbuffer);
 
   return ret;
