@@ -139,8 +139,10 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
   // except when sources are sent over by the debugger client.
   if ((argc - i) < 1 && (_this->config.debugger == NULL ||
                          !_this->config.debugger->wait_source)) {
+    fprintf(stderr, 
+            "Version: v" NODE_MAJOR_VERSION "." NODE_MINOR_VERSION "." NODE_PATCH_VERSION "\n");
     fprintf(stderr,
-            "Usage: iotjs [options] {script | script.js} [arguments]\n");
+            "Usage: iotjs [options] {script | script.js} [arguments]\n\n");
     return false;
   }
 
