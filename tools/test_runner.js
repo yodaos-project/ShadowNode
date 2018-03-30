@@ -104,6 +104,9 @@ Runner.prototype.checkSupportedModule = function() {
   // The second part of the array contains the module
   // which is under test
   var tested_module = parts[1];
+  if (tested_module === 'child' && parts[2] === 'process') {
+    tested_module = 'child_process';
+  }
   for (var i = 0; i < builtin_modules.length; i++) {
     if (tested_module == builtin_modules[i]) {
       return true;
