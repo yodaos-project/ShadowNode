@@ -6,6 +6,39 @@ var StringDecoder = require('string_decoder').StringDecoder;
 var util = require('util');
 var net = require('net');
 
+var SIGNAL_NO = {
+  SIGHUP: 1,
+  SIGINT: 2,
+  SIGQUIT: 3,
+  SIGILL: 4,
+  SIGTRAP: 5,
+  SIGABRT: 6,
+  SIGBUS: 7,
+  SIGFPE: 8,
+  SIGKILL: 9,
+  SIGUSR1: 10,
+  SIGSEGV: 11,
+  SIGUSR2: 12,
+  SIGPIPE: 13,
+  SIGALRM: 14,
+  SIGTERM: 15,
+  SIGSTKFLT: 16,
+  SIGSTOP: 19,
+};
+
+function signalName(code) {
+  var name = undefined;
+  var names = Object.keys(SIGNAL_NO);
+  for (var i = 0; i < names.length; i++) {
+    var curr = names[i];
+    if (SIGNAL_NO[curr] === code) {
+      name = curr
+      break;
+    }
+  }
+  return name;
+}
+
 function ChildProcess() {
   EventEmitter.call(this);
   this._closesNeeded = 1;
@@ -43,13 +76,13 @@ function ChildProcess() {
       err.spawnargs = this.spawnargs.slice(1);
       this.emit('error', err);
     } else {
-      this.emit('exit', this.exitCode, this.signalCode);
+      this.emit('exit', this.exitCode, signalName(this.signalCode));
     }
     process.nextTick(flushStdio, this);
     
     // FIXME(Yorkie): use maybeClose later
     // maybeClose(this);
-    this.emit('close', this.exitCode, this.signalCode);
+    this.emit('close', this.exitCode, signalName(this.signalCode));
   }.bind(this);
 }
 util.inherits(ChildProcess, EventEmitter);
@@ -83,7 +116,14 @@ function onErrorNT(self, err) {
 }
 
 ChildProcess.prototype.kill = function(sig) {
-  var signal = sig === 0 ? sig : 'SIGTERM';
+  var signal;
+  if (typeof sig === 'number') {
+    signal = sig;
+  } else if (SIGNAL_NO[sig]) {
+    signal = SIGNAL_NO[sig];
+  } else {
+    signal = SIGNAL_NO.SIGTERM;
+  }
   if (this._handle) {
     var err = this._handle.kill(signal);
     if (err === 0) {
