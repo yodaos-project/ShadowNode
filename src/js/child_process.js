@@ -27,6 +27,8 @@ var SIGNAL_NO = {
 };
 
 function signalName(code) {
+  if (!code)
+    return null;
   var name = undefined;
   var names = Object.keys(SIGNAL_NO);
   for (var i = 0; i < names.length; i++) {
