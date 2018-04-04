@@ -123,6 +123,7 @@ TLSSocket.prototype.onsocketdata = function(chunk) {
 };
 
 TLSSocket.prototype.onwrite = function(chunk) {
+  if (this._ended) return;
   var self = this.jsref;
   var bytes = self._socket.write(chunk);
   return bytes;
