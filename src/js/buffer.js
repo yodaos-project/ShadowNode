@@ -334,6 +334,44 @@ Buffer.prototype.readUInt16LE = function(offset, noAssert) {
 };
 
 
+// buff.readInt16LE(offset[,noAssert])
+// [1] buff.readInt16LE(offset)
+// [2] buff.readInt16LE(offset, noAssert)
+Buffer.prototype.readInt16LE = function(offset, noAssert) {
+  offset = offset >>> 0;
+  if (!noAssert)
+    checkOffset(offset, 2, this.length);
+  return this.readInt8(offset) |
+         (this.readInt8(offset + 1) << 8);
+};
+
+
+// buff.readInt32LE(offset[,noAssert])
+// [1] buff.readInt32LE(offset)
+// [2] buff.readInt32LE(offset, noAssert)
+Buffer.prototype.readInt32LE = function(offset, noAssert) {
+  offset = offset >>> 0;
+  if (!noAssert)
+    checkOffset(offset, 4, this.length);
+  return this.readInt8(offset) |
+         (this.readInt8(offset + 1) << 8) |
+         (this.readInt8(offset + 2) << 16) |
+         (this.readInt8(offset + 3) << 24);
+};
+
+
+// buff.readFloatLE(offset[,noAssert])
+// [1] buff.readFloatLE(offset)
+// [2] buff.readFloatLE(offset, noAssert)
+Buffer.prototype.readFloatLE = function(offset, noAssert) {
+  // TODO
+  offset = offset >>> 0;
+  if (!noAssert)
+    checkOffset(offset, 2, this.length);
+  return 1.0;
+};
+
+
 // buff.fill(value)
 Buffer.prototype.fill = function(value) {
   if (util.isNumber(value)) {

@@ -177,3 +177,8 @@ assert.equal(new Buffer(1).readUInt16LE({}, true), 0);
 
 var buff17 = new Buffer("a");
 assert.throws(function() { buff17.fill(8071).toString(); }, TypeError);
+
+var buff18 = new Buffer(4);
+var ret = buff18.fill(7);
+assert.equal(buff18.readInt16LE(0), 1799);
+assert.equal(buff18.readInt32LE(0), 117901063);
