@@ -341,8 +341,10 @@ Buffer.prototype.readInt16LE = function(offset, noAssert) {
   offset = offset >>> 0;
   if (!noAssert)
     checkOffset(offset, 2, this.length);
-  return this.readInt8(offset) |
-         (this.readInt8(offset + 1) << 8);
+
+  var val = this._builtin.readUInt8(offset) | 
+    (this._builtin.readUInt8(offset + 1) << 8);
+  return (val & 0x8000) ? val | 0xFFFF0000 : val;
 };
 
 
@@ -353,10 +355,10 @@ Buffer.prototype.readInt32LE = function(offset, noAssert) {
   offset = offset >>> 0;
   if (!noAssert)
     checkOffset(offset, 4, this.length);
-  return this.readInt8(offset) |
-         (this.readInt8(offset + 1) << 8) |
-         (this.readInt8(offset + 2) << 16) |
-         (this.readInt8(offset + 3) << 24);
+  return this._builtin.readUInt8(offset) |
+         (this._builtin.readUInt8(offset + 1) << 8) |
+         (this._builtin.readUInt8(offset + 2) << 16) |
+         (this._builtin.readUInt8(offset + 3) << 24);
 };
 
 
