@@ -182,3 +182,7 @@ var buff18 = new Buffer(4);
 var ret = buff18.fill(7);
 assert.equal(buff18.readInt16LE(0), 1799);
 assert.equal(buff18.readInt32LE(0), 117901063);
+
+var buff19 = new Buffer([0xb5, 0x01]);
+assert.equal(buff19.readInt16LE(0), 437);
+
