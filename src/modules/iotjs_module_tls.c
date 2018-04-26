@@ -37,6 +37,11 @@ typedef struct {
   BIO*                  ssl_bio_;
   BIO*                  app_bio_;
 
+  /**
+   * status
+   */
+  bool                  destroyed;
+
 } IOTJS_VALIDATED_STRUCT(iotjs_tlswrap_t);
 
 static JNativeInfoType this_module_native_info = { .free_cb = NULL };
@@ -95,6 +100,7 @@ static void iotjs_tlswrap_destroy(iotjs_tlswrap_t* tlswrap) {
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
   iotjs_bio_free_all(_this->app_bio_);
   iotjs_bio_free_all(_this->ssl_bio_);
+  _this->destroyed = true;
   
   mbedtls_x509_crt_free(&_this->ca_);
   mbedtls_ssl_free(&_this->ssl_);
@@ -352,6 +358,9 @@ JS_FUNCTION(TlsRead) {
   }
 
   while (true) {
+    if (_this->destroyed)
+      break;
+
     unsigned char decrypted[size];
     memset(decrypted, 0, size);
 
