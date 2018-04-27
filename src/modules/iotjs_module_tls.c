@@ -96,7 +96,7 @@ static iotjs_tlswrap_t* iotjs_tlswrap_create(const jerry_value_t value) {
                                value,
                                &this_module_native_info);
 
-  _this->destroyed = DESTROYED_INIT
+  _this->destroyed = DESTROYED_INIT;
   mbedtls_x509_crt_init(&_this->ca_);
   mbedtls_ssl_init(&_this->ssl_);
   mbedtls_ssl_config_init(&_this->config_);
