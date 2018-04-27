@@ -44,7 +44,10 @@ typedef struct {
 
 } IOTJS_VALIDATED_STRUCT(iotjs_tlswrap_t);
 
-static JNativeInfoType this_module_native_info = { .free_cb = NULL };
+static void iotjs_tlswrap_destroy(iotjs_tlswrap_t* tlswrap);
+static JNativeInfoType this_module_native_info = { 
+  .free_cb = (void*)iotjs_tlswrap_destroy
+};
 
 /* List of trusted root CA certificates
  * currently only GlobalSign, the CA for os.mbed.com
@@ -73,6 +76,17 @@ const char SSL_CA_PEM[] =
   "jmmx6BEP3ojY+x1J96relc8geMJgEtslQIxq/H5COEBkEveegeGTLg==\n"
   "-----END CERTIFICATE-----\n";
 
+
+static void print_mbedtls_error(const char *name, int err) {
+  if (err > 0) {
+    return;
+  }
+  char buf[128];
+  mbedtls_strerror(err, buf, sizeof(buf));
+  mbedtls_printf("%s() failed: -0x%04x (%d): %s\n", name, -err, err, buf);
+}
+
+
 static iotjs_tlswrap_t* iotjs_tlswrap_create(const jerry_value_t value) {
   iotjs_tlswrap_t* tlswrap = IOTJS_ALLOC(iotjs_tlswrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_tlswrap_t, tlswrap);
@@ -86,27 +100,25 @@ static iotjs_tlswrap_t* iotjs_tlswrap_create(const jerry_value_t value) {
   return tlswrap;
 }
 
-static void print_mbedtls_error(const char *name, int err) {
-  if (err > 0) {
-    return;
-  }
-  char buf[128];
-  mbedtls_strerror(err, buf, sizeof(buf));
-  mbedtls_printf("%s() failed: -0x%04x (%d): %s\n", name, -err, err, buf);
+
+static void iotjs_tlswrap_free(iotjs_tlswrap_t* tlswrap) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_tlswrap_t, tlswrap);
+  _this->destroyed = true;
+  iotjs_bio_free_all(_this->app_bio_);
+  iotjs_bio_free_all(_this->ssl_bio_);
+
+  mbedtls_x509_crt_free(&_this->ca_);
+  mbedtls_ssl_free(&_this->ssl_);
+  mbedtls_ssl_config_free(&_this->config_);
 }
+
 
 static void iotjs_tlswrap_destroy(iotjs_tlswrap_t* tlswrap) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_tlswrap_t, tlswrap);
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
-  iotjs_bio_free_all(_this->app_bio_);
-  iotjs_bio_free_all(_this->ssl_bio_);
-  _this->destroyed = true;
-  
-  mbedtls_x509_crt_free(&_this->ca_);
-  mbedtls_ssl_free(&_this->ssl_);
-  mbedtls_ssl_config_free(&_this->config_);
   IOTJS_RELEASE(tlswrap);
 }
+
 
 JS_FUNCTION(TlsConstructor) {
   DJS_CHECK_THIS();
@@ -401,7 +413,7 @@ JS_FUNCTION(TlsRead) {
 
 JS_FUNCTION(TlsEnd) {
   JS_DECLARE_THIS_PTR(tlswrap, tlswrap);
-  iotjs_tlswrap_destroy(tlswrap);
+  iotjs_tlswrap_free(tlswrap);
   return jerry_create_undefined();
 }
 
