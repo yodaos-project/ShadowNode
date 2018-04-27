@@ -13,6 +13,8 @@
 #include "iotjs_module_tls_bio.h"
 
 #define DEBUG_LEVEL 1
+#define DESTROYED_TRUE 0x3096
+#define DESTROYED_INIT 0x1000
 
 enum {
   SSL_HANDSHAKE_READY = 0,
@@ -40,7 +42,7 @@ typedef struct {
   /**
    * status
    */
-  bool                  destroyed;
+  unsigned int          destroyed;
 
 } IOTJS_VALIDATED_STRUCT(iotjs_tlswrap_t);
 
@@ -94,6 +96,7 @@ static iotjs_tlswrap_t* iotjs_tlswrap_create(const jerry_value_t value) {
                                value,
                                &this_module_native_info);
 
+  _this->destroyed = DESTROYED_INIT
   mbedtls_x509_crt_init(&_this->ca_);
   mbedtls_ssl_init(&_this->ssl_);
   mbedtls_ssl_config_init(&_this->config_);
@@ -103,7 +106,7 @@ static iotjs_tlswrap_t* iotjs_tlswrap_create(const jerry_value_t value) {
 
 static void iotjs_tlswrap_free(iotjs_tlswrap_t* tlswrap) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_tlswrap_t, tlswrap);
-  _this->destroyed = true;
+  _this->destroyed = DESTROYED_TRUE;
   iotjs_bio_free_all(_this->app_bio_);
   iotjs_bio_free_all(_this->ssl_bio_);
 
@@ -370,7 +373,7 @@ JS_FUNCTION(TlsRead) {
   }
 
   while (true) {
-    if (_this->destroyed)
+    if (_this->destroyed == DESTROYED_TRUE)
       break;
 
     unsigned char decrypted[size];
