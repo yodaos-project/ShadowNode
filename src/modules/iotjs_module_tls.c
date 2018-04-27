@@ -104,18 +104,6 @@ static iotjs_tlswrap_t* iotjs_tlswrap_create(const jerry_value_t value) {
 }
 
 
-static void iotjs_tlswrap_free(iotjs_tlswrap_t* tlswrap) {
-  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_tlswrap_t, tlswrap);
-  _this->destroyed = DESTROYED_TRUE;
-  iotjs_bio_free_all(_this->app_bio_);
-  iotjs_bio_free_all(_this->ssl_bio_);
-
-  mbedtls_x509_crt_free(&_this->ca_);
-  mbedtls_ssl_free(&_this->ssl_);
-  mbedtls_ssl_config_free(&_this->config_);
-}
-
-
 static void iotjs_tlswrap_destroy(iotjs_tlswrap_t* tlswrap) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_tlswrap_t, tlswrap);
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
@@ -311,6 +299,17 @@ int iotjs_tlswrap_error_handler(iotjs_tlswrap_t_impl_t* _this, const int code) {
     return code;
   }
   return code;
+}
+
+void iotjs_tlswrap_free(iotjs_tlswrap_t* tlswrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_tlswrap_t, tlswrap);
+  _this->destroyed = DESTROYED_TRUE;
+  iotjs_bio_free_all(_this->app_bio_);
+  iotjs_bio_free_all(_this->ssl_bio_);
+
+  mbedtls_x509_crt_free(&_this->ca_);
+  mbedtls_ssl_free(&_this->ssl_);
+  mbedtls_ssl_config_free(&_this->config_);
 }
 
 JS_FUNCTION(TlsHandshake) {
