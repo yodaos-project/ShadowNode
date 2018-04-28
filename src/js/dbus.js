@@ -210,6 +210,7 @@ Bus.prototype.introspect = function(serviceName, objectPath, callback) {
         var max = argsIn.length - 1;
         var args = Array.prototype.slice.call(arguments, 0, max);
         var cb = arguments[argsIn.length];
+        console.log('call args:', args);
         self.callMethod(
           serviceName,
           objectPath,
