@@ -207,7 +207,7 @@ Bus.prototype.introspect = function(serviceName, objectPath, callback) {
         }
       }
       iface[name] = function() {
-        var max = argsIn.length - 1;
+        var max = argsIn.length;
         var args = Array.prototype.slice.call(arguments, 0, max);
         var cb = arguments[argsIn.length];
         self.callMethod(
@@ -216,7 +216,7 @@ Bus.prototype.introspect = function(serviceName, objectPath, callback) {
           iface.name,
           name,
           argsIn.join(''),
-          [],
+          args || [],
           cb
         );
       };
