@@ -216,7 +216,7 @@ Bus.prototype.introspect = function(serviceName, objectPath, callback) {
           iface.name,
           name,
           argsIn.join(''),
-          [],
+          args || [],
           cb
         );
       };
