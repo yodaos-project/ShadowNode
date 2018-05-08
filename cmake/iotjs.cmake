@@ -437,8 +437,6 @@ if("${BIN_INSTALL_DIR}" STREQUAL "")
   set(BIN_INSTALL_DIR "bin")
 endif()
 
-install(TARGETS ${TARGET_LIB_IOTJS} DESTINATION ${LIB_INSTALL_DIR})
-
 # Configure the iotjs executable
 if(NOT BUILD_LIB_ONLY)
   set(TARGET_IOTJS iotjs)
@@ -453,4 +451,6 @@ if(NOT BUILD_LIB_ONLY)
           RUNTIME DESTINATION "${INSTALL_PREFIX}/bin"
           LIBRARY DESTINATION "${INSTALL_PREFIX}/lib"
           PUBLIC_HEADER DESTINATION "${INSTALL_PREFIX}/include/shadow-node")
+else()
+  install(TARGETS ${TARGET_LIB_IOTJS} DESTINATION ${LIB_INSTALL_DIR})
 endif()

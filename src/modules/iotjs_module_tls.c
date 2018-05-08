@@ -13,6 +13,8 @@
 #include "iotjs_module_tls_bio.h"
 
 #define DEBUG_LEVEL 1
+#define DESTROYED_TRUE 0x3096
+#define DESTROYED_INIT 0x1000
 
 enum {
   SSL_HANDSHAKE_READY = 0,
@@ -37,9 +39,17 @@ typedef struct {
   BIO*                  ssl_bio_;
   BIO*                  app_bio_;
 
+  /**
+   * status
+   */
+  unsigned int          destroyed;
+
 } IOTJS_VALIDATED_STRUCT(iotjs_tlswrap_t);
 
-static JNativeInfoType this_module_native_info = { .free_cb = NULL };
+static void iotjs_tlswrap_destroy(iotjs_tlswrap_t* tlswrap);
+static JNativeInfoType this_module_native_info = { 
+  .free_cb = (void*)iotjs_tlswrap_destroy
+};
 
 /* List of trusted root CA certificates
  * currently only GlobalSign, the CA for os.mbed.com
@@ -68,18 +78,6 @@ const char SSL_CA_PEM[] =
   "jmmx6BEP3ojY+x1J96relc8geMJgEtslQIxq/H5COEBkEveegeGTLg==\n"
   "-----END CERTIFICATE-----\n";
 
-static iotjs_tlswrap_t* iotjs_tlswrap_create(const jerry_value_t value) {
-  iotjs_tlswrap_t* tlswrap = IOTJS_ALLOC(iotjs_tlswrap_t);
-  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_tlswrap_t, tlswrap);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, 
-                               value,
-                               &this_module_native_info);
-
-  mbedtls_x509_crt_init(&_this->ca_);
-  mbedtls_ssl_init(&_this->ssl_);
-  mbedtls_ssl_config_init(&_this->config_);
-  return tlswrap;
-}
 
 static void print_mbedtls_error(const char *name, int err) {
   if (err > 0) {
@@ -90,17 +88,28 @@ static void print_mbedtls_error(const char *name, int err) {
   mbedtls_printf("%s() failed: -0x%04x (%d): %s\n", name, -err, err, buf);
 }
 
+
+static iotjs_tlswrap_t* iotjs_tlswrap_create(const jerry_value_t value) {
+  iotjs_tlswrap_t* tlswrap = IOTJS_ALLOC(iotjs_tlswrap_t);
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_tlswrap_t, tlswrap);
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, 
+                               value,
+                               &this_module_native_info);
+
+  _this->destroyed = DESTROYED_INIT;
+  mbedtls_x509_crt_init(&_this->ca_);
+  mbedtls_ssl_init(&_this->ssl_);
+  mbedtls_ssl_config_init(&_this->config_);
+  return tlswrap;
+}
+
+
 static void iotjs_tlswrap_destroy(iotjs_tlswrap_t* tlswrap) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_tlswrap_t, tlswrap);
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
-  iotjs_bio_free_all(_this->app_bio_);
-  iotjs_bio_free_all(_this->ssl_bio_);
-  
-  mbedtls_x509_crt_free(&_this->ca_);
-  mbedtls_ssl_free(&_this->ssl_);
-  mbedtls_ssl_config_free(&_this->config_);
   IOTJS_RELEASE(tlswrap);
 }
+
 
 JS_FUNCTION(TlsConstructor) {
   DJS_CHECK_THIS();
@@ -292,6 +301,17 @@ int iotjs_tlswrap_error_handler(iotjs_tlswrap_t_impl_t* _this, const int code) {
   return code;
 }
 
+void iotjs_tlswrap_free(iotjs_tlswrap_t* tlswrap) {
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_tlswrap_t, tlswrap);
+  _this->destroyed = DESTROYED_TRUE;
+  iotjs_bio_free_all(_this->app_bio_);
+  iotjs_bio_free_all(_this->ssl_bio_);
+
+  mbedtls_x509_crt_free(&_this->ca_);
+  mbedtls_ssl_free(&_this->ssl_);
+  mbedtls_ssl_config_free(&_this->config_);
+}
+
 JS_FUNCTION(TlsHandshake) {
   JS_DECLARE_THIS_PTR(tlswrap, tlswrap);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_tlswrap_t, tlswrap);
@@ -352,6 +372,9 @@ JS_FUNCTION(TlsRead) {
   }
 
   while (true) {
+    if (_this->destroyed == DESTROYED_TRUE)
+      break;
+
     unsigned char decrypted[size];
     memset(decrypted, 0, size);
 
@@ -392,7 +415,7 @@ JS_FUNCTION(TlsRead) {
 
 JS_FUNCTION(TlsEnd) {
   JS_DECLARE_THIS_PTR(tlswrap, tlswrap);
-  iotjs_tlswrap_destroy(tlswrap);
+  iotjs_tlswrap_free(tlswrap);
   return jerry_create_undefined();
 }
 

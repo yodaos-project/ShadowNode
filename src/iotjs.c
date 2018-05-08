@@ -213,6 +213,10 @@ int iotjs_entry(int argc, char** argv) {
   }
 
   // Set event loop.
+  if (!uv_default_loop()) {
+    DLOG("iotjs uvloop init failed");
+    return false;
+  }
   iotjs_environment_set_loop(env, uv_default_loop());
 
   // set parser dump file
