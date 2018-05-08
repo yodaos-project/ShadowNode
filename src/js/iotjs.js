@@ -550,15 +550,6 @@
     process.emit('warning', warning, type, code, ctor);
   };
 
-  // TODO(Yorkie): compatible with Node.js
-  process.memoryUsage = function() {
-    return {
-      rss: 0,
-      heapTotal: 0,
-      heapUsed: 0,
-      external: 0,
-    };
-  };
 
   var _hrtime = process.hrtime;
   var NANOSECOND_PER_SECONDS = 1e9;
