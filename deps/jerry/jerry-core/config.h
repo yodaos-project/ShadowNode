@@ -107,7 +107,7 @@
  * Share is calculated as the following:
  *                1.0 / CONFIG_ECMA_GC_NEW_OBJECTS_SHARE_TO_START_GC
  */
-#define CONFIG_ECMA_GC_NEW_OBJECTS_SHARE_TO_START_GC (16)
+#define CONFIG_ECMA_GC_NEW_OBJECTS_SHARE_TO_START_GC (2)
 
 /**
  * Link Global Environment to an empty declarative lexical environment
