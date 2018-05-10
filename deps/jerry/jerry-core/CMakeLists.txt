@@ -22,7 +22,7 @@ set(FEATURE_DEBUGGER           ON       CACHE BOOL   "Enable JerryScript debugge
 set(FEATURE_ERROR_MESSAGES     ON       CACHE BOOL   "Enable error messages?")
 set(FEATURE_EXTERNAL_CONTEXT   OFF      CACHE BOOL   "Enable external context?")
 set(FEATURE_JS_PARSER          ON       CACHE BOOL   "Enable js-parser?")
-set(FEATURE_MEM_STATS          ON      CACHE BOOL   "Enable memory statistics?")
+set(FEATURE_MEM_STATS          OFF      CACHE BOOL   "Enable memory statistics?")
 set(FEATURE_MEM_STRESS_TEST    OFF      CACHE BOOL   "Enable mem-stress test?")
 set(FEATURE_PARSER_DUMP        OFF      CACHE BOOL   "Enable parser byte-code dumps?")
 set(FEATURE_PROFILE            "es5.1"  CACHE STRING "Use default or other profile?")
