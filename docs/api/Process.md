@@ -244,3 +244,20 @@ process.on('uncaughtException', function(err) {
 nonExistentFunctionCall();
 console.log('This will not be printed.');
 ```
+
+### process.memoryUsage()
+
+Returns: {Object}
+* `rss` {integer} the amount of space occupied in the main memory device
+* `heapTotal` {integer} heap total size
+* `heapUsed` {integer} currently allocated bytes
+* `peakHeapTotal` {integer} peak allocated bytes
+* `external` {undefined} **this field is not implement yet**
+
+The process.memoryUsage() method returns an object describing the memory usage of the shadow-node process measured in bytes.**This feature is disabled by default, You can enable it by compilation option `jerry-memstat`**
+
+**Example**
+
+```js
+process.memoryUsage()
+```

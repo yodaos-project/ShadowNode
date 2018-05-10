@@ -365,7 +365,7 @@ JS_FUNCTION(MemoryUsage) {
   iotjs_jval_set_property_number(ret, "peakHeapTotal", stats.peak_allocated_bytes);
   iotjs_jval_set_property_number(ret, "heapTotal", stats.size);
   iotjs_jval_set_property_number(ret, "heapUsed", stats.allocated_bytes);
-  //FIXME external memory usage is not implement yet
+  // FIXME external memory usage is not implement yet
   // iotjs_jval_set_property_number(ret, "external", -1);
   return ret;
 }
