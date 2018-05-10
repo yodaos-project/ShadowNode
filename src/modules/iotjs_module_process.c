@@ -349,6 +349,26 @@ JS_FUNCTION(DLOpen) {
   (*initfn)(exports);
   return exports;
 }
+JS_FUNCTION(MemoryUsage) {
+  size_t rss;
+  jerry_heap_stats_t stats;
+  memset(&stats, 0, sizeof(jerry_heap_stats_t));
+  int err = uv_resident_set_memory(&rss);
+  if (err) {
+    char errStr[64];
+    sprintf(errStr, "uv_resident_set_memory error with code %d", err);
+    return JS_CREATE_ERROR(COMMON, errStr);
+  }
+  jerry_get_memory_stats(&stats);
+  jerry_value_t ret = jerry_create_object();
+  iotjs_jval_set_property_number(ret, "rss", rss);
+  iotjs_jval_set_property_number(ret, "peakHeapTotal", stats.peak_allocated_bytes);
+  iotjs_jval_set_property_number(ret, "heapTotal", stats.size);
+  iotjs_jval_set_property_number(ret, "heapUsed", stats.allocated_bytes);
+  // FIXME external memory usage is not implement yet
+  // iotjs_jval_set_property_number(ret, "external", -1);
+  return ret;
+}
 
 void SetNativeSources(jerry_value_t native_sources) {
   for (int i = 0; js_modules[i].name; i++) {
@@ -491,6 +511,8 @@ jerry_value_t InitProcess() {
   // snapshot
   iotjs_jval_set_method(process, "compileSnapshot", CompileSnapshot);
 
+  // stats
+  iotjs_jval_set_method(process, "memoryUsage", MemoryUsage);
 
   // process.builtin_modules
   jerry_value_t builtin_modules = jerry_create_object();
