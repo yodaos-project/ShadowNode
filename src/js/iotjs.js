@@ -67,7 +67,7 @@
       if (/.*:/.test(line)) {
         file = line.slice(0, -1);
       } else {
-        var m = line.match(/(\+ ([a-z0-9_]*))? \[(\d+),(\d+)\] (\d+)/);
+        var m = line.match(/(\+ ([a-zA-Z0-9_]*))? \[(\d+),(\d+)\] (\d+)/);
         if (m) {
           var cp = m[5];
           bcTable[cp] = {
