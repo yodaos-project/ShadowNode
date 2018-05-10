@@ -350,20 +350,16 @@ JS_FUNCTION(DLOpen) {
   return exports;
 }
 JS_FUNCTION(MemoryUsage) {
-  size_t rss = 0;
+  size_t rss;
   jerry_heap_stats_t stats;
   memset(&stats, 0, sizeof(jerry_heap_stats_t));
-#ifdef JMEM_STATS
   int err = uv_resident_set_memory(&rss);
   if (err) {
     char errStr[64];
     sprintf(errStr, "uv_resident_set_memory error with code %d", err);
     return JS_CREATE_ERROR(COMMON, errStr);
   }
-  if (!jerry_get_memory_stats(&stats)) {
-    return JS_CREATE_ERROR(COMMON, "memory stats is not enabled");
-  }
-#endif
+  jerry_get_memory_stats(&stats);
   jerry_value_t ret = jerry_create_object();
   iotjs_jval_set_property_number(ret, "rss", rss);
   iotjs_jval_set_property_number(ret, "peakHeapTotal", stats.peak_allocated_bytes);
