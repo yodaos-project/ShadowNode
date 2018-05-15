@@ -2709,12 +2709,16 @@ error:
 
       stack_top_p = frame_ctx_p->registers_p + register_end + frame_ctx_p->context_depth;
       {
-        jmem_cpointer_t byte_code_cp;
-        JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, frame_ctx_p->bytecode_header_p);
+        vm_frame_ctx_t *ctx_p = frame_ctx_p;
+        uint32_t len = jerry_get_stacktrace_max_depth();
         uint32_t idx = JERRY_CONTEXT (stack_index);
-        if (idx < 10) {
+        while (ctx_p != NULL && idx < len) {
+          jmem_cpointer_t byte_code_cp;
+          JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, ctx_p->bytecode_header_p);
           JERRY_CONTEXT (stack_frames) [idx] = (uint32_t) byte_code_cp;
           JERRY_CONTEXT (stack_index) += 1;
+          idx = JERRY_CONTEXT (stack_index);
+          ctx_p = ctx_p->prev_context_p;
         }
       }
 
