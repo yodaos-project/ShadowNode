@@ -55,8 +55,8 @@ JS_FUNCTION(Compile) {
     jerry_debugger_stop();
   }
 
-  jerry_value_t jres = WrapEval(filename, strlen(filename), 
-                                iotjs_string_data(&source), 
+  jerry_value_t jres = WrapEval(filename, strlen(filename),
+                                iotjs_string_data(&source),
                                 iotjs_string_size(&source));
 
   iotjs_string_destroy(&file);
@@ -207,6 +207,22 @@ JS_FUNCTION(Loadstat) {
 }
 
 
+JS_FUNCTION(GetStackFrames) {
+  // clean dump file
+  jerry_cleanup_parser_dump_file();
+
+  // create frames
+  uint32_t* frames = jerry_get_stacktrace();
+  uint32_t len = jerry_get_stacktrace_max_depth();
+  jerry_value_t jframes = jerry_create_array(len);
+  for (uint32_t i = 0; i < len; i++) {
+    jerry_set_property_by_index(jframes, i, jerry_create_number(frames[i]));
+  }
+
+  return jframes;
+}
+
+
 JS_FUNCTION(Umask) {
   uint32_t old;
 
@@ -303,8 +319,8 @@ JS_FUNCTION(SetEnviron) {
   iotjs_string_t val = JS_GET_ARG(1, string);
 
   setenv(
-    iotjs_string_data(&key), 
-    iotjs_string_data(&val), 
+    iotjs_string_data(&key),
+    iotjs_string_data(&val),
     1);
 
   iotjs_string_destroy(&key);
@@ -501,6 +517,7 @@ jerry_value_t InitProcess() {
 
   // errors
   iotjs_jval_set_method(process, "_createUVException", CreateUVException);
+  iotjs_jval_set_method(process, "_getStackFrames", GetStackFrames);
 
   // virtual machine
   iotjs_jval_set_method(process, "gc", ForceGC);
@@ -522,7 +539,7 @@ jerry_value_t InitProcess() {
   jerry_release_value(builtin_modules);
 
   // process.pid
-  iotjs_jval_set_property_number(process, IOTJS_MAGIC_STRING_PID, 
+  iotjs_jval_set_property_number(process, IOTJS_MAGIC_STRING_PID,
                                  (double)getpid());
 
   // process.platform
