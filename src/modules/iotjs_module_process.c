@@ -208,9 +208,6 @@ JS_FUNCTION(Loadstat) {
 
 
 JS_FUNCTION(GetStackFrames) {
-  // flush dump file
-  jerry_flush_parser_dump_file();
-
   // create frames
   uint32_t* frames = jerry_get_stacktrace();
   uint32_t len = jerry_get_stacktrace_max_depth();
@@ -220,6 +217,14 @@ JS_FUNCTION(GetStackFrames) {
   }
 
   return jframes;
+}
+
+
+JS_FUNCTION(FlushParserDumpFile) {
+  // flush dump file
+  jerry_flush_parser_dump_file();
+
+  return jerry_create_undefined();
 }
 
 
@@ -518,6 +523,7 @@ jerry_value_t InitProcess() {
   // errors
   iotjs_jval_set_method(process, "_createUVException", CreateUVException);
   iotjs_jval_set_method(process, "_getStackFrames", GetStackFrames);
+  iotjs_jval_set_method(process, "_flushParserDumpFile", FlushParserDumpFile);
 
   // virtual machine
   iotjs_jval_set_method(process, "gc", ForceGC);
