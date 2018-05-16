@@ -208,14 +208,27 @@ JS_FUNCTION(Loadstat) {
 
 
 JS_FUNCTION(GetStackFrames) {
+  uint32_t depth;
+
+  if (jargc < 1 || jerry_value_is_undefined(jargv[0])) {
+    depth = 10;
+  } else if (!jerry_value_is_number(jargv[0])) {
+    return JS_CREATE_ERROR(COMMON, "argument must be an integer.");
+  } else {
+    depth = jerry_get_number_value(jargv[0]);
+  }
+
   // create frames
-  uint32_t* frames = jerry_get_stacktrace();
-  uint32_t len = jerry_get_stacktrace_max_depth();
-  jerry_value_t jframes = jerry_create_array(len);
-  for (uint32_t i = 0; i < len; i++) {
+  uint32_t* frames = malloc(sizeof(uint32_t) * depth);
+  memset(frames, 0, sizeof(uint32_t) * depth);
+  jerry_get_stacktrace_depth(frames, depth);
+
+  jerry_value_t jframes = jerry_create_array(depth);
+  for (uint32_t i = 0; i < depth; ++i) {
     jerry_set_property_by_index(jframes, i, jerry_create_number(frames[i]));
   }
 
+  free(frames);
   return jframes;
 }
 

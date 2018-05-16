@@ -528,6 +528,7 @@ bool jerry_cleanup_parser_dump_file (void);
 bool jerry_flush_parser_dump_file (void);
 
 uint32_t *jerry_get_stacktrace (void);
+void jerry_get_stacktrace_depth (uint32_t *stack_frames, uint32_t depth);
 uint32_t jerry_get_stacktrace_max_depth (void);
 
 /**
