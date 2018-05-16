@@ -208,8 +208,8 @@ JS_FUNCTION(Loadstat) {
 
 
 JS_FUNCTION(GetStackFrames) {
-  // clean dump file
-  jerry_cleanup_parser_dump_file();
+  // flush dump file
+  jerry_flush_parser_dump_file();
 
   // create frames
   uint32_t* frames = jerry_get_stacktrace();

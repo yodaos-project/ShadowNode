@@ -3370,6 +3370,17 @@ jerry_cleanup_parser_dump_file (void)
   return false;
 }
 
+bool
+jerry_flush_parser_dump_file (void)
+{
+  if (JERRY_CONTEXT (parser_dump_fd))
+  {
+    fflush (JERRY_CONTEXT (parser_dump_fd));
+    return true;
+  }
+  return false;
+}
+
 uint32_t*
 jerry_get_stacktrace (void)
 {
