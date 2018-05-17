@@ -54,7 +54,6 @@
     try {
       var loc = '/tmp/iotjs.' + process.pid;
       lines = fs.readFileSync(loc).toString().split('\n');
-      fs.unlinkSync(loc);
     } catch (err) {}
     return lines;
   }
@@ -80,14 +79,16 @@
       }
     });
 
-    return frames.map(function(offset) {
-      var info = bcTable[offset];
-      if (info) {
-        return `    at ${info.name} (${info.source}:${info.line}:${info.column})`
-      }
-    }).filter(function(str) {
-      return typeof str === 'string';
-    });
+    return frames
+      .reduce((accu, curr) => {
+        var info = bcTable[curr];
+        if (info !== undefined) {
+          accu.push(info);
+        }
+        return accu;
+      }, [])
+      .map(info => `    at ${info.name} (${info.source}:${info.line}:${info.column})`)
+      .join('\n');
   }
 
   process._onUncaughtException = _onUncaughtException;
@@ -97,7 +98,7 @@
       error.message = `${error.message} at\n    ${module.curr}`;
     } else if (frames) {
       var stacktrace = makeStackTraceFromDump(frames);
-      error.message += '\n' + stacktrace.join('\n');
+      error.message += '\n' + stacktrace;
     }
     if (process._events[event] && process._events[event].length > 0) {
       try {
@@ -196,56 +197,41 @@
   };
 
   function prepareStackTrace(throwable) {
-    return [
-      CallSite.create('main', ['<anonymous>', 1, 7]),
-      CallSite.create('main', ['<anonymous>', 2, 7]),
-      CallSite.create('main', ['<anonymous>', 3, 7]),
-      CallSite.create('main', ['<anonymous>', 4, 7]),
-    ];
+    return makeStackTraceFromDump(throwable.__frames__ || []);
   }
+
+  var stackPropertiesDescriptor = {
+    stack: {
+      configurable: true,
+      enumerable: false,
+      get: function () {
+        if (this.__stack__ === undefined) {
+          process._flushParserDumpFile();
+          this.__stack__ = makeStackTraceFromDump(this.__frames__);
+        }
+        return this.__stack__;
+      },
+    },
+    __stack__: {
+      configurable: true,
+      writable: true,
+      enumerable: false,
+    },
+  };
+  Object.defineProperties(Error.prototype, stackPropertiesDescriptor);
 
   Error.stackTraceLimit = 1;
   Error.prepareStackTrace = prepareStackTrace;
   Error.captureStackTrace = function(throwable, terminator) {
-    Object.defineProperties(throwable, {
-      stack: {
-        configurable: true,
-        get: function () {
-          return prepareStackTrace(throwable);
-        }
-      },
-      cachedStack: {
+    var frames = process._getStackFrames(11).slice(1);
+    Object.defineProperties(throwable, Object.assign({
+      __frames__: {
         configurable: true,
         writable: true,
         enumerable: false,
-        value: true
-      }
-    });
-  };
-
-  Error.getStackTrace = function(throwable) {
-    if (throwable.cachedStack)
-      return throwable.stack;
-    var stack = prepareStackTrace(throwable);
-    try {
-      Object.defineProperties(throwable, {
-        stack: {
-          configurable: true,
-          writable: true,
-          enumerable: false,
-          value: stack
-        },
-        cachedStack: {
-          configurable: true,
-          writable: true,
-          enumerable: false,
-          value: true
-        }
-      });
-    } catch (nonConfigurableError) {
-      // SKIP
-    }
-    return stack;
+        value: frames,
+      },
+    }, stackPropertiesDescriptor));
   };
 
   // Symbol

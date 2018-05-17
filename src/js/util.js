@@ -147,8 +147,11 @@ function formatValue(v) {
   if (v === null)
     return 'null';
 
-  if (v instanceof Error || 
-    v instanceof Date) {
+  if (v instanceof Error) {
+    return v.name + ': ' + v.message + '\n' + v.stack;
+  }
+
+  if (v instanceof Date) {
     return v.toString();
   }
 

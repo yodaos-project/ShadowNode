@@ -134,6 +134,32 @@ ecma_new_standard_error (ecma_standard_error_t error_type) /**< native error typ
 
   ((ecma_extended_object_t *) new_error_obj_p)->u.class_prop.class_id = LIT_MAGIC_STRING_ERROR_UL;
 
+  const char *frames_id_p = "__frames__";
+
+  ecma_string_t *frames_str_p = ecma_new_ecma_string_from_utf8 ((const lit_utf8_byte_t *) frames_id_p, 10);
+
+  ecma_property_value_t *prop_value_p = ecma_create_named_data_property (new_error_obj_p,
+                                                                         frames_str_p,
+                                                                         ECMA_PROPERTY_CONFIGURABLE_WRITABLE,
+                                                                         NULL);
+  ecma_deref_ecma_string (frames_str_p);
+
+  uint32_t depth = 10;
+  // create frames
+  uint32_t* frames = malloc(sizeof(uint32_t) * depth);
+  memset(frames, 0, sizeof(uint32_t) * depth);
+  jerry_get_stacktrace_depth(frames, depth);
+
+  jerry_value_t jframes = jerry_create_array(depth);
+  for (uint32_t i = 0; i < depth; ++i) {
+    jerry_set_property_by_index(jframes, i, jerry_create_number(frames[i]));
+  }
+
+  free(frames);
+
+  prop_value_p->value = jframes;
+  ecma_deref_object (ecma_get_object_from_value (jframes));
+
   return new_error_obj_p;
 } /* ecma_new_standard_error */
 
