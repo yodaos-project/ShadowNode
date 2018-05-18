@@ -2426,6 +2426,7 @@ parser_parse_function (parser_context_t *context_p, /**< context */
 {
   parser_saved_context_t saved_context;
   ecma_compiled_code_t *compiled_code_p;
+  ecma_value_t name = ECMA_VALUE_EMPTY;
 
   JERRY_ASSERT (status_flags & PARSER_IS_FUNCTION);
   parser_save_context (context_p, &saved_context);
@@ -2452,6 +2453,10 @@ parser_parse_function (parser_context_t *context_p, /**< context */
     lexer_construct_literal_object (context_p,
                                     &context_p->token.lit_location,
                                     LEXER_IDENT_LITERAL);
+
+    /* record function name in bytecode */
+    name = ecma_find_or_create_literal_string (context_p->lit_object.literal_p->u.char_p,
+                                               context_p->lit_object.literal_p->prop.length);
 
 #ifdef JERRY_DEBUGGER
     if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
@@ -2553,6 +2558,8 @@ parser_parse_function (parser_context_t *context_p, /**< context */
 #endif /* PARSER_DUMP_BYTE_CODE */
 
   parser_restore_context (context_p, &saved_context);
+
+  compiled_code_p->name = name;
 
   return compiled_code_p;
 } /* parser_parse_function */
