@@ -1662,6 +1662,7 @@ parser_post_processing (parser_context_t *context_p) /**< context */
   compiled_code_p->size = (uint16_t) (total_size >> JMEM_ALIGNMENT_LOG);
   compiled_code_p->refs = 1;
   compiled_code_p->status_flags = CBC_CODE_FLAGS_FUNCTION;
+  compiled_code_p->name = ECMA_VALUE_EMPTY;
 
   if (needs_uint16_arguments)
   {

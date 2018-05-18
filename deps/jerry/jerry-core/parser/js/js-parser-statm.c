@@ -485,7 +485,7 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
   uint16_t index = lexer_construct_function_object (context_p, status_flags);
 
   /* record function name in bytecode */
-  lexer_literal_t *func_literal = (lexer_literal_t *)parser_list_get(&context_p->literal_pool, index);
+  lexer_literal_t *func_literal = (lexer_literal_t *) parser_list_get (&context_p->literal_pool, index);
   ecma_value_t name = ecma_find_or_create_literal_string (name_p->u.char_p, name_p->prop.length);
   func_literal->u.bytecode_p->name = name;
 
