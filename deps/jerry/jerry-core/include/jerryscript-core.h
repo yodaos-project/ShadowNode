@@ -525,8 +525,10 @@ jerry_value_t jerry_get_typedarray_buffer (jerry_value_t value,
 
 bool jerry_set_parser_dump_file (char* path);
 bool jerry_cleanup_parser_dump_file (void);
+bool jerry_flush_parser_dump_file (void);
 
 uint32_t *jerry_get_stacktrace (void);
+void jerry_get_stacktrace_depth (uint32_t *stack_frames, uint32_t depth);
 uint32_t jerry_get_stacktrace_max_depth (void);
 
 /**

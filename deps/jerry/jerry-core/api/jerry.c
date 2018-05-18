@@ -3370,11 +3370,37 @@ jerry_cleanup_parser_dump_file (void)
   return false;
 }
 
+bool
+jerry_flush_parser_dump_file (void)
+{
+  if (JERRY_CONTEXT (parser_dump_fd))
+  {
+    fflush (JERRY_CONTEXT (parser_dump_fd));
+    return true;
+  }
+  return false;
+}
+
 uint32_t*
 jerry_get_stacktrace (void)
 {
   jerry_assert_api_available ();
   return JERRY_CONTEXT (stack_frames);
+}
+
+void
+jerry_get_stacktrace_depth (uint32_t *stack_frames, uint32_t depth)
+{
+  jerry_assert_api_available ();
+
+  vm_frame_ctx_t *ctx_p = JERRY_CONTEXT (vm_top_context_p);
+  for (uint32_t idx = 0; idx < depth && ctx_p != NULL; ++idx) {
+    jmem_cpointer_t byte_code_cp;
+    JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, ctx_p->bytecode_header_p);
+    stack_frames[idx] = (uint32_t) byte_code_cp;
+
+    ctx_p = ctx_p->prev_context_p;
+  }
 }
 
 uint32_t
