@@ -14,6 +14,7 @@
  */
 
 #include <stdarg.h>
+#include <stdlib.h>
 #include "ecma-builtins.h"
 #include "ecma-conversion.h"
 #include "ecma-exceptions.h"
