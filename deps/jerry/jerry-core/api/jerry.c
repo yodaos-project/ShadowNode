@@ -3369,7 +3369,7 @@ jerry_cleanup_parser_dump_file (void)
   }
   return false;
 }
-int fflush(FILE *stream);
+
 bool
 jerry_flush_parser_dump_file (void)
 {
