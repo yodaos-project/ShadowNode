@@ -69,27 +69,6 @@ ecma_builtin_function_prototype_object_to_string (ecma_value_t this_arg) /**< th
   else
   {
     ret_value = ecma_make_magic_string_value (LIT_MAGIC_STRING__FUNCTION_TO_STRING);
-#if 0 // debug code for function name
-    ecma_object_t *obj_p = ecma_get_object_from_value (this_arg);
-    ecma_object_type_t type = ecma_get_object_type (obj_p);
-    if (type == ECMA_OBJECT_TYPE_FUNCTION)
-    {
-      ecma_extended_object_t *func_obj_p = (ecma_extended_object_t*)obj_p;
-      const ecma_compiled_code_t *bytecode_data_p;
-      bytecode_data_p = ECMA_GET_INTERNAL_VALUE_POINTER (const ecma_compiled_code_t,
-                                                         func_obj_p->u.function.bytecode_cp);
-      ecma_value_t name = bytecode_data_p->name;
-      if(name != ECMA_VALUE_EMPTY)
-      {
-        ecma_string_t *name_str_p = ecma_get_string_from_value (name);
-        lit_utf8_size_t sz = ecma_string_get_utf8_size (name_str_p);
-        lit_utf8_byte_t utf8_ptr[sz+1];
-        ecma_string_to_utf8_bytes (name_str_p, utf8_ptr, sz);
-        utf8_ptr[sz] = '\0';
-        printf("function name:%s\n", utf8_ptr);
-      }
-    }
-#endif
   }
   return ret_value;
 } /* ecma_builtin_function_prototype_object_to_string */
