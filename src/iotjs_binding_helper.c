@@ -27,8 +27,8 @@ void iotjs_uncaught_exception(jerry_value_t jexception) {
   jerry_cleanup_parser_dump_file();
 
   // create frames
-  uint32_t* frames = jerry_get_stacktrace();
-  uint32_t len = jerry_get_stacktrace_max_depth();
+  uint32_t* frames = jerry_get_backtrace();
+  uint32_t len = jerry_get_backtrace_max_depth();
   jerry_value_t jframes = jerry_create_array(len);
   for (uint32_t i = 0; i < len; i++) {
     jerry_set_property_by_index(jframes, i, jerry_create_number(frames[i]));
