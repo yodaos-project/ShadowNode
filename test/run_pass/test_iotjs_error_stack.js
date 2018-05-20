@@ -2,11 +2,11 @@ var assert = require('assert');
 
 var error = getError();
 assert(typeof error.stack === 'string');
-assert(error.stack.match(/^    at getError/));
+assert(error.stack.match(/at getError/));
 
 var plain = getPlainObject();
 assert(typeof plain.stack === 'string');
-assert(error.stack.match(/^    at getPlainObject/));
+assert(error.stack.match(/at getPlainObject/));
 
 function getError() {
   return new Error('foobar');
