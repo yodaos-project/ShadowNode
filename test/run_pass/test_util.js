@@ -142,7 +142,7 @@ assert.equal(util.format('%j', '5001'), '"5001"');
 assert.equal(util.format('%d%d', 5001), '5001%d');
 assert.equal(util.format('%s%d%s%d', 'IoT.js ', 5001), 'IoT.js 5001%s%d');
 assert.equal(util.format('%d%% %s', 100, 'IoT.js'), '100% IoT.js');
-assert.equal(util.format(new Error('format')), 'Error: format');
+assert(util.format(new Error('format')).match(/^Error: format/));
 
 var err1 = util.errnoException(3008, 'syscall', 'original message');
 assert.equal(err1 instanceof Error, true);

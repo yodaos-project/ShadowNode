@@ -92,13 +92,10 @@
   }
 
   process._onUncaughtException = _onUncaughtException;
-  function _onUncaughtException(error, frames) {
+  function _onUncaughtException(error) {
     var event = 'uncaughtException';
     if (error instanceof SyntaxError) {
       error.message = `${error.message} at\n    ${module.curr}`;
-    } else if (frames) {
-      var stacktrace = makeStackTraceFromDump(frames);
-      error.message += '\n' + stacktrace;
     }
     if (process._events[event] && process._events[event].length > 0) {
       try {
