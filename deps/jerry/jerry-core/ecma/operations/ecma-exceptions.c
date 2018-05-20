@@ -135,9 +135,9 @@ ecma_new_standard_error (ecma_standard_error_t error_type) /**< native error typ
 
   ((ecma_extended_object_t *) new_error_obj_p)->u.class_prop.class_id = LIT_MAGIC_STRING_ERROR_UL;
 
-  const char *frames_id_p = "__frames__";
+  const char *frames_id_p = "_frames";
 
-  ecma_string_t *frames_str_p = ecma_new_ecma_string_from_utf8 ((const lit_utf8_byte_t *) frames_id_p, 10);
+  ecma_string_t *frames_str_p = ecma_new_ecma_string_from_utf8 ((const lit_utf8_byte_t *) frames_id_p, 7);
 
   ecma_property_value_t *prop_value_p = ecma_create_named_data_property (new_error_obj_p,
                                                                          frames_str_p,
@@ -147,7 +147,7 @@ ecma_new_standard_error (ecma_standard_error_t error_type) /**< native error typ
 
   uint32_t depth = 10;
   // create frames
-  uint32_t* frames = malloc(sizeof(uint32_t) * depth);
+  uint32_t *frames = malloc(sizeof(uint32_t) * depth);
   memset(frames, 0, sizeof(uint32_t) * depth);
   jerry_get_stacktrace_depth(frames, depth);
 

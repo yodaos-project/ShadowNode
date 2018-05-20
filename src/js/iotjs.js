@@ -197,7 +197,7 @@
   };
 
   function prepareStackTrace(throwable) {
-    return makeStackTraceFromDump(throwable.__frames__ || []);
+    return makeStackTraceFromDump(throwable._frames || []);
   }
 
   var stackPropertiesDescriptor = {
@@ -205,14 +205,14 @@
       configurable: true,
       enumerable: false,
       get: function () {
-        if (this.__stack__ === undefined) {
+        if (this._stack === undefined) {
           process._flushParserDumpFile();
-          this.__stack__ = makeStackTraceFromDump(this.__frames__);
+          this._stack = makeStackTraceFromDump(this._frames);
         }
-        return this.__stack__;
+        return this._stack;
       },
     },
-    __stack__: {
+    _stack: {
       configurable: true,
       writable: true,
       enumerable: false,
@@ -225,7 +225,7 @@
   Error.captureStackTrace = function(throwable, terminator) {
     var frames = process._getStackFrames(11).slice(1);
     Object.defineProperties(throwable, Object.assign({
-      __frames__: {
+      _frames: {
         configurable: true,
         writable: true,
         enumerable: false,
