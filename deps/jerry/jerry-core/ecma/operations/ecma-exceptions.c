@@ -15,8 +15,8 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
+#include "ecma-array-object.h"
 #include "ecma-builtins.h"
-#include "ecma-builtin-helpers.h"
 #include "ecma-conversion.h"
 #include "ecma-exceptions.h"
 #include "ecma-gc.h"
