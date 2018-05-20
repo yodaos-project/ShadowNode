@@ -6,7 +6,7 @@ assert(error.stack.match(/at getError/));
 
 var plain = getPlainObject();
 assert(typeof plain.stack === 'string');
-assert(error.stack.match(/at getPlainObject/));
+assert(plain.stack.match(/at getPlainObject/));
 
 function getError() {
   return new Error('foobar');

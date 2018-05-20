@@ -207,7 +207,7 @@
       get: function () {
         if (this._stack === undefined) {
           process._flushParserDumpFile();
-          this._stack = makeStackTraceFromDump(this._frames);
+          this._stack = makeStackTraceFromDump(this._frames || []);
         }
         return this._stack;
       },
