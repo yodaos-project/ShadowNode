@@ -201,7 +201,7 @@
     stack: {
       configurable: true,
       enumerable: false,
-      get: function () {
+      get: function() {
         if (this._stack === undefined) {
           process._flushParserDumpFile();
           this._stack = makeStackTraceFromDump(this._frames || []);
@@ -221,14 +221,15 @@
   Error.prepareStackTrace = prepareStackTrace;
   Error.captureStackTrace = function(throwable, terminator) {
     var frames = process._getStackFrames(11).slice(1);
-    Object.defineProperties(throwable, Object.assign({
+    var descriptor = Object.assign({
       _frames: {
         configurable: true,
         writable: true,
         enumerable: false,
         value: frames,
       },
-    }, stackPropertiesDescriptor));
+    }, stackPropertiesDescriptor);
+    Object.defineProperties(throwable, descriptor);
   };
 
   // Symbol

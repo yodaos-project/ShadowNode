@@ -52,9 +52,11 @@ jerry_hash_table_t jerry_global_hash_table;
 #endif /* !JERRY_ENABLE_EXTERNAL_CONTEXT */
 
 void
-jcontext_get_backtrace_depth (uint32_t *frames, uint32_t depth) {
+jcontext_get_backtrace_depth (uint32_t *frames, uint32_t depth)
+{
   vm_frame_ctx_t *ctx_p = JERRY_CONTEXT (vm_top_context_p);
-  for (uint32_t idx = 0; idx < depth && ctx_p != NULL; ++idx) {
+  for (uint32_t idx = 0; idx < depth && ctx_p != NULL; ++idx)
+  {
     jmem_cpointer_t byte_code_cp;
     JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, ctx_p->bytecode_header_p);
     frames[idx] = (uint32_t) byte_code_cp;
