@@ -161,7 +161,7 @@ ecma_op_create_function_object (ecma_object_t *scope_p, /**< function's scope */
   /* 10., 11., 12. */
 
   /* Add function name which is not in spec */
-  if(bytecode_data_p->name != ECMA_VALUE_EMPTY)
+  if (bytecode_data_p->name != ECMA_VALUE_EMPTY)
   {
     ecma_string_t *name_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_NAME);
     ecma_ref_ecma_string (name_str_p);

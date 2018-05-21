@@ -381,7 +381,8 @@ static_snapshot_add_compiled_code (ecma_compiled_code_t *compiled_code_p, /**< c
 static void
 jerry_snapshot_set_offsets (uint32_t *buffer_p, /**< buffer */
                             uint32_t size, /**< buffer size */
-                            lit_mem_to_snapshot_id_map_entry_t *lit_map_p) /**< literal map */
+                            lit_mem_to_snapshot_id_map_entry_t *lit_map_p, /**< literal map */
+                            uint32_t literals_num) /**< number of literals */
 {
   JERRY_ASSERT (size > 0);
 
@@ -450,6 +451,15 @@ jerry_snapshot_set_offsets (uint32_t *buffer_p, /**< buffer */
 
             literal_start_p[i] = current_p->literal_offset;
           }
+        }
+      }
+
+      /* patch function name literal */
+      for (uint32_t i = 0; i < literals_num; i++)
+      {
+        if ((bytecode_p->name != ECMA_VALUE_EMPTY) && (lit_map_p[i].literal_id == bytecode_p->name))
+        {
+          bytecode_p->name = lit_map_p[i].literal_offset;
         }
       }
 
@@ -649,6 +659,11 @@ snapshot_load_compiled_code (const uint8_t *base_addr_p, /**< base address of th
     }
   }
 
+  if (bytecode_p->name != ECMA_VALUE_EMPTY)
+  {
+    bytecode_p->name = ecma_snapshot_get_literal (literal_base_p, bytecode_p->name);
+  }
+
   return bytecode_p;
 } /* snapshot_load_compiled_code */
 
@@ -755,7 +770,8 @@ jerry_parse_and_save_snapshot_with_args (const jerry_char_t *source_p, /**< scri
 
     jerry_snapshot_set_offsets (buffer_p + (aligned_header_size / sizeof (uint32_t)),
                                 (uint32_t) (header.lit_table_offset - aligned_header_size),
-                                lit_map_p);
+                                lit_map_p,
+                                literals_num);
   }
 
   size_t header_offset = 0;
