@@ -25,7 +25,7 @@ var var1 = function foo1() {
 
 assert.equal(var1.name, "foo1");
 
-var var2 = ()=>{};
+var var2 = () => false;
 
 /* arrow function name not supported */
 assert.equal(var2.name, undefined);
