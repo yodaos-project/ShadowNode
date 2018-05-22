@@ -221,4 +221,6 @@ def check_tidy(src_dir, options=None):
 if __name__ == '__main__':
     from common_py import path
     options = parse_option()
-    check_tidy(path.PROJECT_ROOT, options)
+    no_error = check_tidy(path.PROJECT_ROOT, options)
+    if not no_error:
+        exit(1)
