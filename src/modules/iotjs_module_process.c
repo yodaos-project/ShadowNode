@@ -221,7 +221,7 @@ JS_FUNCTION(GetStackFrames) {
   // create frames
   uint32_t* frames = malloc(sizeof(uint32_t) * depth);
   memset(frames, 0, sizeof(uint32_t) * depth);
-  jerry_get_stacktrace_depth(frames, depth);
+  jerry_get_backtrace_depth(frames, depth);
 
   jerry_value_t jframes = jerry_create_array(depth);
   for (uint32_t i = 0; i < depth; ++i) {

@@ -3382,29 +3382,21 @@ jerry_flush_parser_dump_file (void)
 }
 
 uint32_t*
-jerry_get_stacktrace (void)
+jerry_get_backtrace (void)
 {
   jerry_assert_api_available ();
   return JERRY_CONTEXT (stack_frames);
 }
 
 void
-jerry_get_stacktrace_depth (uint32_t *stack_frames, uint32_t depth)
+jerry_get_backtrace_depth (uint32_t *frames, uint32_t depth)
 {
   jerry_assert_api_available ();
-
-  vm_frame_ctx_t *ctx_p = JERRY_CONTEXT (vm_top_context_p);
-  for (uint32_t idx = 0; idx < depth && ctx_p != NULL; ++idx) {
-    jmem_cpointer_t byte_code_cp;
-    JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, ctx_p->bytecode_header_p);
-    stack_frames[idx] = (uint32_t) byte_code_cp;
-
-    ctx_p = ctx_p->prev_context_p;
-  }
+  jcontext_get_backtrace_depth(frames, depth);
 }
 
 uint32_t
-jerry_get_stacktrace_max_depth (void)
+jerry_get_backtrace_max_depth (void)
 {
   jerry_assert_api_available ();
   return 10;
