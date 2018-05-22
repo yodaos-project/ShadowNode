@@ -256,7 +256,7 @@ int iotjs_bio_write(BIO *bio, const char *buf, size_t size) {
   int   sz;
   char* data;
 
-  sz = iotjs_bio_nwrite(bio, &data, size);
+  sz = iotjs_bio_nwrite(bio, &data, (int)size);
 
   /* test space for write */
   if (sz <= 0) {
