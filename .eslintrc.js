@@ -74,6 +74,9 @@ module.exports = {
     'node': true,
     'es6': false,
   },
+  'globals': {
+    'native': 1,
+  },
   'rules': Object.assign(
     eslintRecommended,
     style,
@@ -87,5 +90,6 @@ module.exports = {
         ignoreTemplateLiterals: true,
         ignoreRegExpLiterals: true
       }],
-  }),
+    }
+  ),
 }
