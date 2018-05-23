@@ -33,12 +33,12 @@ ExternalProject_Add(hostjerry
     -DFEATURE_SNAPSHOT_SAVE=${ENABLE_SNAPSHOT}
     -DFEATURE_PROFILE=${FEATURE_PROFILE}
 )
-set(JERRY_HOST_SNAPSHOT
-    ${CMAKE_BINARY_DIR}/${DEPS_HOST_JERRY}/bin/jerry-snapshot)
-add_executable(jerry-snapshot IMPORTED)
-add_dependencies(jerry-snapshot hostjerry)
-set_property(TARGET jerry-snapshot PROPERTY
-  IMPORTED_LOCATION ${JERRY_HOST_SNAPSHOT})
+# set(JERRY_HOST_SNAPSHOT
+#     ${CMAKE_BINARY_DIR}/${DEPS_HOST_JERRY}/bin/jerry-snapshot)
+# add_executable(jerry-snapshot IMPORTED)
+# add_dependencies(jerry-snapshot hostjerry)
+# set_property(TARGET jerry-snapshot PROPERTY
+#   IMPORTED_LOCATION ${JERRY_HOST_SNAPSHOT})
 
 # Utility method to add -D<KEY>=<KEY_Value>
 macro(add_cmake_arg TARGET_ARG KEY)
