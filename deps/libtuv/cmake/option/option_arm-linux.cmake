@@ -26,8 +26,6 @@ if(DEFINED TARGET_BOARD)
           "-mfloat-abi=hard"
           "-mfpu=neon-vfpv4"
           )
-  else()
-    message(FATAL_ERROR "TARGET_BOARD=`${TARGET_BOARD}` is unknown to make")
   endif()
 else()
   message(FATAL_ERROR "TARGET_BOARD is undefined")
