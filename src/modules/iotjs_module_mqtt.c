@@ -116,7 +116,7 @@ JS_FUNCTION(MqttReadPacket) {
 
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(jargv[0]);
   _this->src = (unsigned char*)iotjs_bufferwrap_buffer(wrap);
-  _this->srclen = iotjs_bufferwrap_length(wrap);
+  _this->srclen = (int)iotjs_bufferwrap_length(wrap);
   _this->offset = 0;
 
   unsigned char *buf = NULL;

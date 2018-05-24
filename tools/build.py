@@ -104,7 +104,7 @@ def init_options():
         help='Specify the module profile file for IoT.js')
 
     parser.add_argument('--target-arch',
-        choices=['aarch64', 'arm', 'x86', 'i686', 'x86_64', 'x64'],
+        choices=['aarch64', 'arm', 'openwrt', 'x86', 'i686', 'x86_64', 'x64'],
         default=platform.arch(),
         help='Specify the target architecture: '
              '%(choices)s (default: %(default)s)')

@@ -196,7 +196,7 @@ uint8_t* iotjs_ws_make_header(size_t data_len,
     return NULL;
   }
 
-  int offset = *header_len;
+  int offset = (int)*header_len;
   header[offset + 0] = rand() / (RAND_MAX / 0xff);
   header[offset + 1] = rand() / (RAND_MAX / 0xff);
   header[offset + 2] = rand() / (RAND_MAX / 0xff);
@@ -272,7 +272,7 @@ JS_FUNCTION(DecodeFrame) {
 }
 
 jerry_value_t InitWebSocket() {
-  srand(time(NULL));
+  srand((unsigned int)time(NULL));
 
   jerry_value_t exports = jerry_create_object();
   iotjs_jval_set_method(exports, "encodeFrame", EncodeFrame);
