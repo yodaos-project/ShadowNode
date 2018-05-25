@@ -16,7 +16,7 @@ before_install:
 script:
   - clang-format --version
   - tools/check_tidy.py && \
-    npx eslint . && \
+    ./node_modules/.bin/eslint . && \
     tools/build.py --tests --no-check-valgrind
 
 env:
