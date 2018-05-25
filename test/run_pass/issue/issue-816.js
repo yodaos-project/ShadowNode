@@ -16,11 +16,11 @@
 var Buffer = require('buffer');
 var assert = require('assert');
 
-assert.throws(function () {
-  var buf = new Buffer("ABCDEF");
+assert.throws(function() {
+  var buf = new Buffer('ABCDEF');
   var o = {
     _builtin: {
-      compare: function () {
+      compare: function() {
         buf._builtin.compare.call(this, arguments);
       }
     },

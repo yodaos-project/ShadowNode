@@ -137,7 +137,7 @@ try {
 assert.strictEqual(true, threw,
                    'a.doesNotThrow is not catching type matching errors');
 
-var circular = {y: 1};
+var circular = { y: 1 };
 circular.x = circular;
 
 function testAssertionMessage(actual, expected) {
@@ -167,8 +167,8 @@ testAssertionMessage(function f() {}, '[Function: f]');
 testAssertionMessage(function() {}, '[Function]');
 testAssertionMessage({}, '{}');
 testAssertionMessage(circular, '{ y: 1, x: [Circular] }');
-testAssertionMessage({a: undefined, b: null}, '{ a: undefined, b: null }');
-testAssertionMessage({a: NaN, b: Infinity, c: -Infinity},
+testAssertionMessage({ a: undefined, b: null }, '{ a: undefined, b: null }');
+testAssertionMessage({ a: NaN, b: Infinity, c: -Infinity },
                      '{ a: NaN, b: Infinity, c: -Infinity }');
 
 // #2893

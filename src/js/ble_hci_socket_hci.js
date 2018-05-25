@@ -47,7 +47,7 @@ var HCI_ACLDATA_PKT = 0x02;
 var HCI_EVENT_PKT = 0x04;
 
 var ACL_START_NO_FLUSH = 0x00;
-var ACL_CONT  = 0x01;
+var ACL_CONT = 0x01;
 var ACL_START = 0x02;
 
 var EVT_DISCONN_COMPLETE = 0x05;
@@ -166,7 +166,7 @@ Hci.prototype.pollIsDevUp = function() {
 
 Hci.prototype.setSocketFilter = function() {
   var filter = new Buffer(14);
-  var typeMask = (1 << HCI_EVENT_PKT)| (1 << HCI_ACLDATA_PKT);
+  var typeMask = (1 << HCI_EVENT_PKT) | (1 << HCI_ACLDATA_PKT);
   var eventMask1 = (1 << EVT_DISCONN_COMPLETE) | (1 << EVT_ENCRYPT_CHANGE) | (1 << EVT_CMD_COMPLETE) | (1 << EVT_CMD_STATUS);
   var eventMask2 = (1 << (EVT_LE_META_EVENT - 32));
   var opcode = 0;
@@ -438,7 +438,7 @@ Hci.prototype.onSocketData = function(data) {
     debug('\tsub event type = ' + subEventType);
 
     if (subEventType === EVT_DISCONN_COMPLETE) {
-      handle =  data.readUInt16LE(4);
+      handle = data.readUInt16LE(4);
       var reason = data.readUInt8(6);
 
       debug('\t\thandle = ' + handle);
@@ -446,7 +446,7 @@ Hci.prototype.onSocketData = function(data) {
 
       this.emit('disconnComplete', handle, reason);
     } else if (subEventType === EVT_ENCRYPT_CHANGE) {
-      handle =  data.readUInt16LE(4);
+      handle = data.readUInt16LE(4);
       var encrypt = data.readUInt8(6);
 
       debug('\t\thandle = ' + handle);
@@ -605,7 +605,7 @@ Hci.prototype.processLeMetaEvent = function(eventType, status, data) {
 Hci.prototype.processLeConnComplete = function(status, data) {
   var handle = data.readUInt16LE(0);
   var role = data.readUInt8(2);
-  var addressType = data.readUInt8(3) === 0x01 ? 'random': 'public';
+  var addressType = data.readUInt8(3) === 0x01 ? 'random' : 'public';
   var address = uuidUtil.reverseByteOrder(data.slice(4, 10).toString('hex'), ':');
   var interval = data.readUInt16LE(10) * 1.25;
   var latency = data.readUInt16LE(12); // TODO: multiplier?

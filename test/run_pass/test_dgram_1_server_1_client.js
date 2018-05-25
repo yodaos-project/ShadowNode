@@ -31,7 +31,7 @@ server.on('message', function(data, rinfo) {
   console.log('client port : ' + rinfo.port);
   console.log('client family : ' + rinfo.family);
   assert.equal(data, msg);
-  server.send(msg, rinfo.port, 'localhost', function (err, len) {
+  server.send(msg, rinfo.port, 'localhost', function(err, len) {
     assert.equal(err, null);
     assert.equal(len, msg.length);
     server.close();

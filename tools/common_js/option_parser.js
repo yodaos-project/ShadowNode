@@ -25,9 +25,9 @@ function Option(arg, value, default_value, help) {
 }
 
 Option.prototype.printHelp = function() {
-  console.log("\t" + this.arg + "=[" + this.value + "](default: " +
-              this.default_value + ") : " + this.help);
-}
+  console.log('\t' + this.arg + '=[' + this.value + '](default: ' +
+              this.default_value + ') : ' + this.help);
+};
 
 function OptionParser() {
   this.options = [];
@@ -35,9 +35,9 @@ function OptionParser() {
 }
 
 OptionParser.prototype.addOption = function(arg, value, default_value, help) {
-  var option  = new Option(arg, value, default_value, help);
+  var option = new Option(arg, value, default_value, help);
   this.options.push(option);
-}
+};
 
 OptionParser.prototype.parse = function() {
   var options = {};
@@ -45,14 +45,14 @@ OptionParser.prototype.parse = function() {
   for (var idx in this.options) {
     var option = this.options[idx];
     var default_value = option.default_value;
-    if (default_value !== "") {
+    if (default_value !== '') {
       options[option.arg] = default_value;
     }
   }
 
   for (var aIdx = 2; aIdx < process.argv.length; aIdx++) {
     var option = process.argv[aIdx];
-    var arg_val = option.split("=");
+    var arg_val = option.split('=');
 
     if (arg_val.length != 2 || !arg_val[0] || !arg_val[1]) {
       return null;
@@ -62,7 +62,7 @@ OptionParser.prototype.parse = function() {
     var val = arg_val[1];
     var found = false;
 
-    if (arg === "default-timeout") {
+    if (arg === 'default-timeout') {
       // Transform to number, or use default value.
       val = util.stringToNumber(val, options[arg]);
     }
@@ -80,15 +80,15 @@ OptionParser.prototype.parse = function() {
   }
 
   return options;
-}
+};
 
 OptionParser.prototype.printHelp = function() {
   console.log(process.argv[1]);
-  console.log("\noptional arguments");
+  console.log('\noptional arguments');
   for (var idx in this.options) {
     this.options[idx].printHelp();
   }
-}
+};
 
 
 module.exports.OptionParser = OptionParser;

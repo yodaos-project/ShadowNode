@@ -72,12 +72,12 @@ int iotjs_bio_make_bio_pair(BIO *b1, BIO *b2) {
   }
 
   /* set default write size if not already set */
-  if (b1->mem == NULL && 
+  if (b1->mem == NULL &&
     iotjs_bio_set_write_buf_size(b1, SSL_BIO_SIZE) != SSL_SUCCESS) {
     return SSL_FAILURE;
   }
 
-  if (b2->mem == NULL && 
+  if (b2->mem == NULL &&
     iotjs_bio_set_write_buf_size(b2, SSL_BIO_SIZE) != SSL_SUCCESS) {
     return SSL_FAILURE;
   }
@@ -294,7 +294,7 @@ int iotjs_bio_free(BIO* bio) {
     if (bio->pair != NULL) {
       bio->pair->pair = NULL;
     }
-    if (bio->mem) 
+    if (bio->mem)
       free(bio->mem);
     free(bio);
   }

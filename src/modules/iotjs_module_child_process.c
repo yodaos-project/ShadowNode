@@ -29,7 +29,7 @@ iotjs_processwrap_t* iotjs_processwrap_create(const jerry_value_t value) {
   iotjs_processwrap_t* wrap = IOTJS_ALLOC(iotjs_processwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_processwrap_t, wrap);
 
-  iotjs_handlewrap_initialize(&_this->handlewrap, 
+  iotjs_handlewrap_initialize(&_this->handlewrap,
                               value,
                               (uv_handle_t*)(&_this->handle),
                               &this_module_native_info);
@@ -132,7 +132,9 @@ static void iotjs_processwrap_parse_stdio_opts(jerry_value_t js_options,
   jerry_value_t stdios = iotjs_jval_get_property(js_options, "stdio");
   uint32_t len = jerry_get_array_length(stdios);
 
-  options->stdio = (uv_stdio_container_t*)malloc(sizeof(uv_stdio_container_t) * len);
+  options->stdio =
+    (uv_stdio_container_t*)malloc(sizeof(uv_stdio_container_t) * len);
+  // TODO(Yorkie): check if malloc succeed.
   options->stdio_count = (int)len;
 
   for (uint32_t i = 0; i < len; i++) {
@@ -146,7 +148,8 @@ static void iotjs_processwrap_parse_stdio_opts(jerry_value_t js_options,
     } else if (!strcmp(type, "pipe")) {
       jerry_value_t jhandle = iotjs_jval_get_property(stdio, "handle");
       iotjs_pipewrap_t* wrap = iotjs_pipewrap_from_jobject(jhandle);
-      options->stdio[i].data.stream = (uv_stream_t*)iotjs_pipewrap_get_handle(wrap);
+      options->stdio[i].data.stream =
+        (uv_stream_t*)iotjs_pipewrap_get_handle(wrap);
       options->stdio[i].flags = (uv_stdio_flags)(
         UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
       jerry_release_value(jhandle);
@@ -246,7 +249,7 @@ void iotjs_processwrap_after_close(uv_handle_t* handle) {
   jerry_value_t jcallback =
       iotjs_jval_get_property(jthis, "onclose");
   if (jerry_value_is_function(jcallback)) {
-    iotjs_make_callback(jcallback, 
+    iotjs_make_callback(jcallback,
                         jerry_create_undefined(),
                         iotjs_jargs_get_empty());
   }
@@ -257,7 +260,8 @@ JS_FUNCTION(ProcessClose) {
   JS_DECLARE_THIS_PTR(processwrap, processwrap);
 
   // close uv handle, `AfterClose` will be called after socket closed.
-  iotjs_handlewrap_close((iotjs_handlewrap_t*)processwrap, iotjs_processwrap_after_close);
+  iotjs_handlewrap_close((iotjs_handlewrap_t*)processwrap,
+                         iotjs_processwrap_after_close);
   return jerry_create_undefined();
 }
 

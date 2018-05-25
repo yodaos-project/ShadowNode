@@ -1,3 +1,5 @@
+'use strict';
+
 // var _randomBytes = native.randomBytes;
 var _randomBytesSync = native.randomBytesSync;
 var _Hash = require('crypto_hash').Hash;

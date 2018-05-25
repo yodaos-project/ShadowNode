@@ -32,7 +32,8 @@ extern char **environ;
 
 static jerry_value_t WrapEval(const char* name, size_t name_len,
                               const char* source, size_t length) {
-  static const char* args = "exports, require, module, native, __filename, __dirname";
+  static const char* args =
+    "exports, require, module, native, __filename, __dirname";
   jerry_value_t res =
       jerry_parse_function((const jerry_char_t*)name, name_len,
                            (const jerry_char_t*)args, strlen(args),
@@ -350,7 +351,8 @@ JS_FUNCTION(CreateUVException) {
   int uv_errno = JS_GET_ARG(0, number);
   iotjs_string_t syscall = JS_GET_ARG(1, string);
 
-  jerry_value_t err = iotjs_create_uv_exception(uv_errno, iotjs_string_data(&syscall));
+  jerry_value_t err = iotjs_create_uv_exception(uv_errno,
+                                                iotjs_string_data(&syscall));
   iotjs_string_destroy(&syscall);
   return err;
 }
@@ -396,7 +398,8 @@ JS_FUNCTION(MemoryUsage) {
   jerry_get_memory_stats(&stats);
   jerry_value_t ret = jerry_create_object();
   iotjs_jval_set_property_number(ret, "rss", rss);
-  iotjs_jval_set_property_number(ret, "peakHeapTotal", stats.peak_allocated_bytes);
+  iotjs_jval_set_property_number(ret, "peakHeapTotal",
+                                 stats.peak_allocated_bytes);
   iotjs_jval_set_property_number(ret, "heapTotal", stats.size);
   iotjs_jval_set_property_number(ret, "heapUsed", stats.allocated_bytes);
   // FIXME external memory usage is not implement yet

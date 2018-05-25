@@ -15,7 +15,7 @@
 
 var ble = require('ble');
 
-ble.on('stateChange', function(state){
+ble.on('stateChange', function(state) {
   console.log('onStateChange: ' + state);
 
   if (state == 'poweredOn') {

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var util = require('util');
 var stream = require('stream');
@@ -139,7 +139,7 @@ OutgoingMessage.prototype._storeHeader = function(statusLine) {
   var keys;
   if (this._headers) {
     keys = Object.keys(this._headers);
-    for (var i=0; i<keys.length; i++) {
+    for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
       headerStr += key + ': ' + this._headers[key] + '\r\n';
     }
@@ -187,8 +187,8 @@ OutgoingMessage.prototype.setTimeout = function(ms, cb) {
 
   if (!this.socket) {
     this.once('socket', function(socket) {
-      socket.setTimeout(msecs);
+      socket.setTimeout(ms);
     });
   } else
-    this.socket.setTimeout(msecs);
+    this.socket.setTimeout(ms);
 };

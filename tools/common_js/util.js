@@ -32,7 +32,7 @@ function Watch() {
 Watch.prototype.reset = function() {
   this.startTime = 0;
   this.elapsedTime = 0;
-}
+};
 
 Watch.prototype.delta = function() {
   if (this.startTime) {
@@ -42,7 +42,7 @@ Watch.prototype.delta = function() {
   this.startTime = Date.now();
 
   return this.elapsedTime;
-}
+};
 
 module.exports.absolutePath = absolutePath;
 module.exports.join = join;

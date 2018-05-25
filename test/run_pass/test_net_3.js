@@ -29,7 +29,7 @@ server.on('connection', function(socket) {
   var writing = function() {
     var ok;
     do {
-      ok = socket.write("" + (i % 10));
+      ok = socket.write('' + (i % 10));
       if (++i == limit) {
         socket.end();
         ok = false;
@@ -50,7 +50,7 @@ socket1.on('data', function(data) {
 
 
 var msg2 = '';
-var socket2 = net.createConnection({port: port});
+var socket2 = net.createConnection({ port: port });
 
 socket2.on('data', function(data) {
   msg2 += data;
@@ -58,7 +58,7 @@ socket2.on('data', function(data) {
 
 
 var msg3 = '';
-var socket3 = net.createConnection({port: port, host: '127.0.0.1'});
+var socket3 = net.createConnection({ port: port, host: '127.0.0.1' });
 
 socket3.on('data', function(data) {
   msg3 += data;
@@ -67,7 +67,7 @@ socket3.on('data', function(data) {
 
 var msg4 = '';
 var connectListenerCheck = false;
-var socket4 = net.createConnection({port: port}, function() {
+var socket4 = net.createConnection({ port: port }, function() {
   connectListenerCheck = true;
 });
 

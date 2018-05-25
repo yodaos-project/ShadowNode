@@ -14,6 +14,6 @@
  */
 
 module.exports = {
-    foo: function() { return "Hello"; },
-    message: " world!"
-}
+  foo: function() { return 'Hello'; },
+  message: ' world!'
+};

@@ -79,13 +79,18 @@ JS_FUNCTION(GetInterfaceAddresses) {
     jerry_value_t addr = jerry_create_object();
     jerry_value_t name_key = jerry_create_string((const jerry_char_t*)"name");
     jerry_value_t ip_name = jerry_create_string((const jerry_char_t*)"address");
-    jerry_value_t netmask_name = jerry_create_string((const jerry_char_t*)"netmask");
-    jerry_value_t family_name = jerry_create_string((const jerry_char_t*)"family");
+    jerry_value_t netmask_name = jerry_create_string(
+      (const jerry_char_t*)"netmask");
+    jerry_value_t family_name = jerry_create_string(
+      (const jerry_char_t*)"family");
     jerry_value_t mac_name = jerry_create_string((const jerry_char_t*)"mac");
 
-    jerry_value_t name_data = jerry_create_string((const jerry_char_t*)raw_name);
-    jerry_value_t ip_data = jerry_create_string((const jerry_char_t*)ip);
-    jerry_value_t netmask_data = jerry_create_string((const jerry_char_t*)netmask);
+    jerry_value_t name_data = jerry_create_string(
+      (const jerry_char_t*)raw_name);
+    jerry_value_t ip_data = jerry_create_string(
+      (const jerry_char_t*)ip);
+    jerry_value_t netmask_data = jerry_create_string(
+      (const jerry_char_t*)netmask);
     jerry_value_t mac_data = jerry_create_string((const jerry_char_t*)mac);
 
     jerry_set_property(addr, name_key, name_data);

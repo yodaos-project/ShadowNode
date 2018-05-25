@@ -43,7 +43,7 @@ var http = require('http');
 // Verify that ServerResponse.writeHead() works as setHeader.
 // Issue 5036 on github.
 
-var s = http.createServer(common.mustCall(function (req, res) {
+var s = http.createServer(common.mustCall(function(req, res) {
   res.setHeader('test', '1');
 
   // toLowerCase() is used on the name argument, so it must be a string.
@@ -70,7 +70,7 @@ var s = http.createServer(common.mustCall(function (req, res) {
   res.writeHead(200, { Test: '2' });
 
   // assert.throws(function () {
-  assert.doesNotThrow(function () {
+  assert.doesNotThrow(function() {
     res.writeHead(100, {});
   });
 
@@ -80,9 +80,9 @@ var s = http.createServer(common.mustCall(function (req, res) {
 s.listen(0, common.mustCall(runTest));
 
 function runTest() {
-  http.get({ port: this.address().port }, common.mustCall(function (response) {
-    response.on('end', common.mustCall(function () {
-      assert.strictEqual(response.headers['test'], '2');
+  http.get({ port: this.address().port }, common.mustCall(function(response) {
+    response.on('end', common.mustCall(function() {
+      assert.strictEqual(response.headers.test, '2');
       // assert.notStrictEqual(response.rawHeaders.indexOf('Test'), -1);
       s.close();
     }));

@@ -14,37 +14,36 @@
  */
 
 
-
 var assert = require('assert');
 
-var buff1 = new Buffer("test");
-assert.equal(buff1.toString(), "test");
-assert.equal(buff1.toString(0, 0), "");
-assert.equal(buff1.toString(0, 1), "t");
-assert.equal(buff1.toString(0, 2), "te");
-assert.equal(buff1.toString(0, 3), "tes");
-assert.equal(buff1.toString(0, 4), "test");
-assert.equal(buff1.toString(1, 4), "est");
-assert.equal(buff1.toString(2, 4), "st");
-assert.equal(buff1.toString(3, 4), "t");
-assert.equal(buff1.toString(4, 4), "");
+var buff1 = new Buffer('test');
+assert.equal(buff1.toString(), 'test');
+assert.equal(buff1.toString(0, 0), '');
+assert.equal(buff1.toString(0, 1), 't');
+assert.equal(buff1.toString(0, 2), 'te');
+assert.equal(buff1.toString(0, 3), 'tes');
+assert.equal(buff1.toString(0, 4), 'test');
+assert.equal(buff1.toString(1, 4), 'est');
+assert.equal(buff1.toString(2, 4), 'st');
+assert.equal(buff1.toString(3, 4), 't');
+assert.equal(buff1.toString(4, 4), '');
 assert.equal(buff1.length, 4);
 
 var buff2 = new Buffer(10);
-buff2.write("abcde");
-assert.equal(buff2.toString(), "abcde");
-assert.equal(buff2.length ,10);
+buff2.write('abcde');
+assert.equal(buff2.toString(), 'abcde');
+assert.equal(buff2.length, 10);
 
-buff2.write("fgh", 5);
-assert.equal(buff2.toString(), "abcdefgh");
-assert.equal(buff2.length ,10);
+buff2.write('fgh', 5);
+assert.equal(buff2.toString(), 'abcdefgh');
+assert.equal(buff2.length, 10);
 
-assert.throws(function() { buff2.write("ijk", -1); }, RangeError);
-assert.throws(function() { buff2.write("ijk", 10); }, RangeError);
+assert.throws(function() { buff2.write('ijk', -1); }, RangeError);
+assert.throws(function() { buff2.write('ijk', 10); }, RangeError);
 
 var buff3 = Buffer.concat([buff1, buff2]);
-assert.equal(buff3.toString(), "testabcdefgh");
-assert.equal(buff3.length ,14);
+assert.equal(buff3.toString(), 'testabcdefgh');
+assert.equal(buff3.length, 14);
 
 var buff4 = new Buffer(10);
 var buff5 = new Buffer('a1b2c3');
@@ -53,32 +52,32 @@ assert.equal(buff4.toString(), 'a1b2c3');
 buff5.copy(buff4, 4, 2);
 assert.equal(buff4.toString(), 'a1b2b2c3');
 assert.throws(function() { buff5.copy(buff4, -1); }, RangeError);
-assert.throws(function() { buff2.write(null, 0, 0);}, TypeError);
+assert.throws(function() { buff2.write(null, 0, 0); }, TypeError);
 assert.throws(function() { buff5.copy(null); }, TypeError);
 assert.throws(function() { buff5.compare(null); }, TypeError);
 assert.throws(function() { buff5.equals(null); }, TypeError);
-assert.throws(function() { Buffer.concat([buff1, null]);}, TypeError);
-assert.throws(function() {Buffer.concat(null, null); }, TypeError);
-assert.throws(function() {var buff_err = new Buffer(null); }, TypeError);
+assert.throws(function() { Buffer.concat([buff1, null]); }, TypeError);
+assert.throws(function() { Buffer.concat(null, null); }, TypeError);
+assert.throws(function() { var buff_err = new Buffer(null); }, TypeError);
 
 var buffer_err = new Buffer(-1);
 
-var buff_1 = new Buffer("asd");
+var buff_1 = new Buffer('asd');
 var buff_2 = new Buffer(2);
 buff_1.copy(buff_2, 0, 0, 2);
-buff_2.write("asd", 0, 3);
+buff_2.write('asd', 0, 3);
 
-assert.throws(function() {var buff_3 = new Buffer('asd', 'hex'); }, TypeError);
+assert.throws(function() { var buff_3 = new Buffer('asd', 'hex'); }, TypeError);
 
 var buff_3 = new Buffer(4);
-assert.throws(function() {buff_3.writeUInt8(10000, 0); }, TypeError);
+assert.throws(function() { buff_3.writeUInt8(10000, 0); }, TypeError);
 var buff_4 = new Buffer(4);
-assert.throws(function() {buff_4.writeUInt8(0x11, 3000); }, RangeError);
+assert.throws(function() { buff_4.writeUInt8(0x11, 3000); }, RangeError);
 var buff_5 = new Buffer(4);
-assert.throws(function() {buff_5.readUInt8(3000); }, RangeError);
+assert.throws(function() { buff_5.readUInt8(3000); }, RangeError);
 var buff_6 = buff_5.slice(undefined, 2);
 
-buff_5.fill("asd");
+buff_5.fill('asd');
 
 buff_5.readInt8(3, true);
 buff_5.writeUInt32LE(0, 0, true);
@@ -122,7 +121,7 @@ assert.equal(Buffer.isBuffer({}), false);
 assert.equal(Buffer.isBuffer('1'), false);
 assert.equal(Buffer.isBuffer([1]), false);
 assert.equal(Buffer.isBuffer([buff1]), false);
-assert.equal(Buffer.isBuffer({obj:buff1}), false);
+assert.equal(Buffer.isBuffer({ obj: buff1 }), false);
 
 
 assert.equal(buff3.toString(), 'testabcdefgh');
@@ -165,7 +164,7 @@ assert.equal(buff16.readInt8(1), 7);
 assert.equal(buff16.readInt8(2), 7);
 assert.equal(buff16.readInt8(3), 7);
 assert.equal(buff16, ret);
-buff16.fill(13+1024);
+buff16.fill(13 + 1024);
 assert.equal(buff16.readInt8(0), 13);
 assert.equal(buff16.readInt8(1), 13);
 assert.equal(buff16.readInt8(2), 13);
@@ -175,7 +174,7 @@ assert.equal(Buffer(new Array()).toString(), '');
 assert.equal(new Buffer(1).readUInt8(1, true), 0);
 assert.equal(new Buffer(1).readUInt16LE({}, true), 0);
 
-var buff17 = new Buffer("a");
+var buff17 = new Buffer('a');
 assert.throws(function() { buff17.fill(8071).toString(); }, TypeError);
 
 var buff18 = new Buffer(4);
@@ -185,4 +184,3 @@ assert.equal(buff18.readInt32LE(0), 117901063);
 
 var buff19 = new Buffer([0xb5, 0x01]);
 assert.equal(buff19.readInt16LE(0), 437);
-

@@ -21,24 +21,24 @@ var isRequest1Finished = false;
 // 1. GET req
 options = {
   method: 'GET',
-  host: "httpbin.org",
+  host: 'httpbin.org',
   path: '/user-agent',
-  headers: {'user-agent': 'iotjs'}
+  headers: { 'user-agent': 'iotjs' }
 };
 
-var getResponseHandler = function (res) {
+var getResponseHandler = function(res) {
   var res_body = '';
 
   assert.equal(200, res.statusCode);
 
-  var endHandler = function(){
+  var endHandler = function() {
     var response = JSON.parse(res_body);
     assert.equal('iotjs', response['user-agent']);
     isRequest1Finished = true;
   };
   res.on('end', endHandler);
 
-  res.on('data', function(chunk){
+  res.on('data', function(chunk) {
     res_body += chunk.toString();
   });
 };
@@ -49,26 +49,26 @@ https.get(options, getResponseHandler);
 var testMsg = 'Hello IoT.js';
 var finalOptions = {
   method: 'POST',
-  host: "httpbin.org",
+  host: 'httpbin.org',
   path: '/post',
-  headers: {'Content-Length': testMsg.length,
-    'Content-Type': 'application/json'}
+  headers: { 'Content-Length': testMsg.length,
+             'Content-Type': 'application/json' }
 };
 var isRequest2Finished = false;
 
-var finalResponseHandler = function (res) {
+var finalResponseHandler = function(res) {
   var res_body = '';
 
   assert.equal(200, res.statusCode);
 
-  var endHandler = function(){
+  var endHandler = function() {
     var response = JSON.parse(res_body);
-    assert.equal(testMsg, response['data']);
+    assert.equal(testMsg, response.data);
     isRequest2Finished = true;
   };
   res.on('end', endHandler);
 
-  res.on('data', function(chunk){
+  res.on('data', function(chunk) {
     res_body += chunk.toString();
   });
 };

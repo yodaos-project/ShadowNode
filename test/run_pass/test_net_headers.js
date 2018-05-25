@@ -14,7 +14,6 @@
  */
 
 
-
 var assert = require('assert');
 var http = require('http');
 var checkReqFinish = false;
@@ -22,22 +21,22 @@ var checkReqFinish = false;
 // server side code
 // Server just ends after sending with some headers.
 
-var server = http.createServer(function (req, res) {
+var server = http.createServer(function(req, res) {
 
-  req.on('data', function (chunk) {
+  req.on('data', function(chunk) {
     body += chunk;
   });
 
-  var endHandler = function () {
+  var endHandler = function() {
     // this should return.
     res.removeHeader('h1');
 
-    res.setHeader('h1','h1');
-    res.setHeader('h2','h2');
-    res.setHeader('h3','h3');
+    res.setHeader('h1', 'h1');
+    res.setHeader('h2', 'h2');
+    res.setHeader('h3', 'h3');
     res.removeHeader('h2');
     if (res.getHeader('h3') == 'h3') {
-      res.setHeader('h3','h3prime'); // h3 value should be overwrited
+      res.setHeader('h3', 'h3prime'); // h3 value should be overwrited
     }
     // final res.headers = { 'h1' : 'h1', 'h3': 'h3prime' }
 
@@ -53,7 +52,7 @@ var server = http.createServer(function (req, res) {
       res.setHeader('h' + (5 + i), 'h' + (5 + i));
     }
 
-    res.end(function(){
+    res.end(function() {
       server.close();
     });
   };
@@ -67,25 +66,25 @@ server.listen(3045, 3);
 // client req code
 
 var options = {
-  method : 'GET',
-  port : 3045
+  method: 'GET',
+  port: 3045
 };
 
 
-var postResponseHandler = function (res) {
+var postResponseHandler = function(res) {
   var res_body = '';
 
   assert.equal(200, res.statusCode);
-  assert.equal(res.headers['h1'], 'h1');
-  assert.equal(res.headers['h2'], undefined);
-  assert.equal(res.headers['h3'], 'h3prime');
+  assert.equal(res.headers.h1, 'h1');
+  assert.equal(res.headers.h2, undefined);
+  assert.equal(res.headers.h3, 'h3prime');
 
-  var endHandler = function(){
+  var endHandler = function() {
     checkReqFinish = true;
   };
   res.on('end', endHandler);
 
-  res.on('data', function(chunk){
+  res.on('data', function(chunk) {
     res_body += chunk.toString();
   });
 };

@@ -86,7 +86,7 @@ function xor(b1, b2) {
   var result = new Buffer(b1.length);
 
   for (var i = 0; i < b1.length; i++) {
-    //result[i] = b1[i] ^ b2[i];
+    // result[i] = b1[i] ^ b2[i];
     result.writeUInt8(b1.readUInt8(i) ^ b2.readUInt8(i), i);
   }
 
@@ -97,7 +97,7 @@ function swap(input) {
   var output = new Buffer(input.length);
 
   for (var i = 0; i < output.length; i++) {
-    //output[i] = input[input.length - i - 1];
+    // output[i] = input[input.length - i - 1];
     output.writeUInt8(input.readUInt8(input.length - i - 1), i);
   }
 

@@ -18,13 +18,13 @@ var fs = require('fs');
 var assert = require('assert');
 
 
-var srcFilePath = process.cwd() + "/resources/test1.txt";
-var dstFilePath = process.cwd() + "/tmp/test_fs2.txt";
+var srcFilePath = process.cwd() + '/resources/test1.txt';
+var dstFilePath = process.cwd() + '/tmp/test_fs2.txt';
 
 // TizenRT tests are performed from ROM
 // Files should be stored in other path
 if (process.platform === 'tizenrt') {
-  dstFilePath = "/mnt/test_fs2.txt";
+  dstFilePath = '/mnt/test_fs2.txt';
 
   // Prepare test environment
   if (fs.existsSync(dstFilePath)) {
@@ -44,7 +44,7 @@ var data;
 function onOpenForWrite(err, fd) {
   assert.equal(err, null, 'Failed to open for write file:' + err);
 
-  fs.write(fd, data, 0, data.length, function (err, written, buffer) {
+  fs.write(fd, data, 0, data.length, function(err, written, buffer) {
     assert.equal(err, null, 'Failed to write file:' + err);
     fs.closeSync(fd);
 

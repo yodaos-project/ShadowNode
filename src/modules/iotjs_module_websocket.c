@@ -98,7 +98,8 @@ int iotjs_ws_parse_payload_length(ws_packet *packet, struct ws_frame *frame) {
   return 0;
 }
 
-void iotjs_ws_parse_masking_key(uint8_t* packet, int offset, struct ws_frame *frame) {
+void iotjs_ws_parse_masking_key(uint8_t* packet, int offset,
+                                struct ws_frame *frame) {
   int j = 0;
 
   uint8_t* masking_key = (uint8_t*)&frame->masking_key;
@@ -154,8 +155,8 @@ int iotjs_ws_parse_input(ws_packet* packet, struct ws_frame *frame) {
   }
 }
 
-uint8_t* iotjs_ws_make_header(size_t data_len, 
-                              enum ws_frame_type frame_type, 
+uint8_t* iotjs_ws_make_header(size_t data_len,
+                              enum ws_frame_type frame_type,
                               size_t* header_len, int options) {
   uint8_t *header;
   uint8_t end_byte;
@@ -214,7 +215,9 @@ JS_FUNCTION(EncodeFrame) {
   uint8_t* header;
   size_t header_len;
   size_t data_len = iotjs_bufferwrap_length(data);
-  header = iotjs_ws_make_header(data_len, (enum ws_frame_type)type, &header_len, WS_FINAL_FRAME);
+  header = iotjs_ws_make_header(data_len,
+                                (enum ws_frame_type)type,
+                                &header_len, WS_FINAL_FRAME);
 
   size_t out_len = data_len + header_len;
   uint8_t out_frame[out_len + 1];
@@ -231,7 +234,7 @@ JS_FUNCTION(EncodeFrame) {
   jerry_value_t jframe = iotjs_bufferwrap_create_buffer(data_len + header_len);
   iotjs_bufferwrap_t* frame_wrap = iotjs_bufferwrap_from_jbuffer(jframe);
   iotjs_bufferwrap_copy(frame_wrap, (const char*)out_frame, out_len);
-  
+
   free(header);
   return jframe;
 }
@@ -256,16 +259,24 @@ JS_FUNCTION(DecodeFrame) {
 
   jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer(frame.payload_len);
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
-  iotjs_bufferwrap_copy(buffer_wrap, (const char*)frame.payload, frame.payload_len);
+  iotjs_bufferwrap_copy(buffer_wrap, (const char*)frame.payload,
+                        frame.payload_len);
 
-  iotjs_jval_set_property_jval(ret, "type", jerry_create_number((int)frame.type));
-  iotjs_jval_set_property_jval(ret, "fin", jerry_create_number(frame.fin));
-  iotjs_jval_set_property_jval(ret, "opcode", jerry_create_number(frame.opcode));
-  iotjs_jval_set_property_jval(ret, "mask", jerry_create_number(frame.mask));
-  iotjs_jval_set_property_jval(ret, "masking_key", jerry_create_number(frame.masking_key));
-  iotjs_jval_set_property_jval(ret, "total_len", jerry_create_number(total_len));
+  iotjs_jval_set_property_jval(ret, "type",
+                               jerry_create_number((int)frame.type));
+  iotjs_jval_set_property_jval(ret, "fin",
+                               jerry_create_number(frame.fin));
+  iotjs_jval_set_property_jval(ret, "opcode",
+                               jerry_create_number(frame.opcode));
+  iotjs_jval_set_property_jval(ret, "mask",
+                               jerry_create_number(frame.mask));
+  iotjs_jval_set_property_jval(ret, "masking_key",
+                               jerry_create_number(frame.masking_key));
+  iotjs_jval_set_property_jval(ret, "total_len",
+                               jerry_create_number(total_len));
   iotjs_jval_set_property_jval(ret, "buffer", jbuffer);
-  iotjs_jval_set_property_jval(ret, "err_code", jerry_create_number((int)WS_ERROR_OK));
+  iotjs_jval_set_property_jval(ret, "err_code",
+                               jerry_create_number((int)WS_ERROR_OK));
   jerry_release_value(jbuffer);
 
   return ret;

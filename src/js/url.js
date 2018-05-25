@@ -87,31 +87,31 @@ Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
   var rest = '';
   var lastPos = 0;
   var i = 0;
+  var code;
+
   for (var inWs = false, split = false; i < url.length; ++i) {
-    var code = url.charCodeAt(i);
+    code = url.charCodeAt(i);
 
     // Find first and last non-whitespace characters for trimming
     var isWs = code === 32/* */ ||
-                 code === 9/*\t*/ ||
-                 code === 13/*\r*/ ||
-                 code === 10/*\n*/ ||
-                 code === 12/*\f*/ ||
-                 code === 160/*\u00A0*/ ||
-                 code === 65279/*\uFEFF*/;
+                 code === 9/* \t */ ||
+                 code === 13/* \r */ ||
+                 code === 10/* \n */ ||
+                 code === 12/* \f */ ||
+                 code === 160/* \u00A0 */ ||
+                 code === 65279/* \uFEFF */;
     if (start === -1) {
       if (isWs)
         continue;
       lastPos = start = i;
-    } else {
-      if (inWs) {
-        if (!isWs) {
-          end = -1;
-          inWs = false;
-        }
-      } else if (isWs) {
-        end = i;
-        inWs = true;
+    } else if (inWs) {
+      if (!isWs) {
+        end = -1;
+        inWs = false;
       }
+    } else if (isWs) {
+      end = i;
+      inWs = true;
     }
 
     // Only convert backslashes while we haven't seen a split character
@@ -130,7 +130,7 @@ Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
           lastPos = i + 1;
           break;
       }
-    } else if (!hasHash && code === 35/*#*/) {
+    } else if (!hasHash && code === 35/* # */) {
       hasHash = true;
     }
   }
@@ -192,8 +192,8 @@ Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
   // resolution will treat //foo/bar as host=foo,path=bar because that's
   // how the browser resolves relative URLs.
   if (slashesDenoteHost || proto || /^\/\/[^@/]+@[^@/]+/.test(rest)) {
-    var slashes = rest.charCodeAt(0) === 47/*/*/ &&
-                  rest.charCodeAt(1) === 47/*/*/;
+    var slashes = rest.charCodeAt(0) === 47/* / */ &&
+                  rest.charCodeAt(1) === 47/* / */;
     if (slashes && !(proto && hostlessProtocol[proto])) {
       rest = rest.slice(2);
       this.slashes = true;
@@ -286,14 +286,14 @@ Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
 
     // if hostname begins with [ and ends with ]
     // assume that it's an IPv6 address.
-    var ipv6Hostname = hostname.charCodeAt(0) === 91/*[*/ &&
-                       hostname.charCodeAt(hostname.length - 1) === 93/*]*/;
+    var ipv6Hostname = hostname.charCodeAt(0) === 91/* [ */ &&
+                       hostname.charCodeAt(hostname.length - 1) === 93/* ] */;
 
     // validate a little.
     if (!ipv6Hostname) {
-      var result = validateHostname(this, rest, hostname);
-      if (result !== undefined)
-        rest = result;
+      var r = validateHostname(this, rest, hostname);
+      if (r !== undefined)
+        rest = r;
     }
 
     if (this.hostname.length > hostnameMaxLen) {
@@ -339,12 +339,12 @@ Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
   var questionIdx = -1;
   var hashIdx = -1;
   for (i = 0; i < rest.length; ++i) {
-    var code = rest.charCodeAt(i);
-    if (code === 35/*#*/) {
+    code = rest.charCodeAt(i);
+    if (code === 35/* # */) {
       this.hash = rest.slice(i);
       hashIdx = i;
       break;
-    } else if (code === 63/*?*/ && questionIdx === -1) {
+    } else if (code === 63/* ? */ && questionIdx === -1) {
       questionIdx = i;
     }
   }
@@ -367,9 +367,9 @@ Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
   }
 
   var firstIdx = (questionIdx !== -1 &&
-                  (hashIdx === -1 || questionIdx < hashIdx)
-                  ? questionIdx
-                  : hashIdx);
+                  (hashIdx === -1 || questionIdx < hashIdx) ?
+    questionIdx :
+    hashIdx);
   if (firstIdx === -1) {
     if (rest.length > 0)
       this.pathname = rest;
@@ -383,9 +383,9 @@ Url.prototype.parse = function(url, parseQueryString, slashesDenoteHost) {
 
   // to support http.request
   if (this.pathname || this.search) {
-    var p = this.pathname || '';
-    var s = this.search || '';
-    this.path = p + s;
+    var pathname = this.pathname || '';
+    var search = this.search || '';
+    this.path = pathname + search;
   }
 
   // finally, revarruct the href based on what has been validated.
@@ -398,7 +398,7 @@ function validateHostname(self, rest, hostname) {
     var code;
     if (i < hostname.length)
       code = hostname.charCodeAt(i);
-    if (code === 46/*.*/ || i === hostname.length) {
+    if (code === 46/* . */ || i === hostname.length) {
       if (i - lastPos > 0) {
         if (i - lastPos > 63) {
           self.hostname = hostname.slice(0, lastPos + 63);
@@ -407,12 +407,12 @@ function validateHostname(self, rest, hostname) {
       }
       lastPos = i + 1;
       continue;
-    } else if ((code >= 48/*0*/ && code <= 57/*9*/) ||
-               (code >= 97/*a*/ && code <= 122/*z*/) ||
+    } else if ((code >= 48/* 0 */ && code <= 57/* 9 */) ||
+               (code >= 97/* a */ && code <= 122/* z */) ||
                code === 45/*-*/ ||
-               (code >= 65/*A*/ && code <= 90/*Z*/) ||
-               code === 43/*+*/ ||
-               code === 95/*_*/ ||
+               (code >= 65/* A */ && code <= 90/* Z */) ||
+               code === 43/* + */ ||
+               code === 95/* _ */ ||
                code > 127) {
       continue;
     }
@@ -565,8 +565,8 @@ Url.prototype.format = function() {
     host = auth + this.host;
   } else if (this.hostname) {
     host = auth + (this.hostname.indexOf(':') === -1 ?
-        this.hostname :
-        '[' + this.hostname + ']');
+      this.hostname :
+      '[' + this.hostname + ']');
     if (this.port) {
       host += ':' + this.port;
     }
@@ -577,7 +577,7 @@ Url.prototype.format = function() {
 
   var search = this.search || (query && ('?' + query)) || '';
 
-  if (protocol && protocol.charCodeAt(protocol.length - 1) !== 58/*:*/)
+  if (protocol && protocol.charCodeAt(protocol.length - 1) !== 58/* : */)
     protocol += ':';
 
   var newPathname = '';
@@ -610,7 +610,7 @@ Url.prototype.format = function() {
   if (this.slashes ||
       (!protocol || slashedProtocol[protocol]) && host !== false) {
     host = '//' + (host || '');
-    if (pathname && pathname.charCodeAt(0) !== 47/*/*/)
+    if (pathname && pathname.charCodeAt(0) !== 47/* / */)
       pathname = '/' + pathname;
   } else if (!host) {
     host = '';
@@ -618,8 +618,8 @@ Url.prototype.format = function() {
 
   search = search.replace(/#/g, '%23');
 
-  if (hash && hash.charCodeAt(0) !== 35/*#*/) hash = '#' + hash;
-  if (search && search.charCodeAt(0) !== 63/*?*/) search = '?' + search;
+  if (hash && hash.charCodeAt(0) !== 35/* # */) hash = '#' + hash;
+  if (search && search.charCodeAt(0) !== 63/* ? */) search = '?' + search;
 
   return protocol + host + pathname + search + hash;
 };
@@ -671,7 +671,7 @@ Url.prototype.resolveObject = function(relative) {
         result[rkey] = relative[rkey];
     }
 
-    //urlParse appends trailing / to urls like http://www.example.com
+    // urlParse appends trailing / to urls like http://www.example.com
     if (slashedProtocol[result.protocol] &&
         result.hostname && !result.pathname) {
       result.path = result.pathname = '/';
@@ -704,13 +704,13 @@ Url.prototype.resolveObject = function(relative) {
     if (!relative.host &&
         !/^file:?$/.test(relative.protocol) &&
         !hostlessProtocol[relative.protocol]) {
-      var relPath = (relative.pathname || '').split('/');
-      while (relPath.length && !(relative.host = relPath.shift()));
+      var relPath0 = (relative.pathname || '').split('/');
+      while (relPath0.length && !(relative.host = relPath0.shift()));
       if (!relative.host) relative.host = '';
       if (!relative.hostname) relative.hostname = '';
-      if (relPath[0] !== '') relPath.unshift('');
-      if (relPath.length < 2) relPath.unshift('');
-      result.pathname = relPath.join('/');
+      if (relPath0[0] !== '') relPath0.unshift('');
+      if (relPath0.length < 2) relPath0.unshift('');
+      result.pathname = relPath0.join('/');
     } else {
       result.pathname = relative.pathname;
     }
@@ -733,7 +733,7 @@ Url.prototype.resolveObject = function(relative) {
 
   var isSourceAbs = (result.pathname && result.pathname.charAt(0) === '/');
   var isRelAbs = (
-      relative.host ||
+    relative.host ||
       relative.pathname && relative.pathname.charAt(0) === '/'
   );
   var mustEndAbs = (isRelAbs || isSourceAbs ||
@@ -798,19 +798,19 @@ Url.prototype.resolveObject = function(relative) {
     // Put this after the other two cases because it simplifies the booleans
     if (psychotic) {
       result.hostname = result.host = srcPath.shift();
-      //occasionally the auth can get stuck only in host
-      //this especially happens in cases like
-      //url.resolveObject('mailto:local1@domain1', 'local2@domain2')
-      var authInHost = result.host && result.host.indexOf('@') > 0 ?
-                       result.host.split('@') : false;
-      if (authInHost) {
-        result.auth = authInHost.shift();
-        result.host = result.hostname = authInHost.shift();
+      // occasionally the auth can get stuck only in host
+      // this especially happens in cases like
+      // url.resolveObject('mailto:local1@domain1', 'local2@domain2')
+      var authInHost0 = result.host && result.host.indexOf('@') > 0 ?
+        result.host.split('@') : false;
+      if (authInHost0) {
+        result.auth = authInHost0.shift();
+        result.host = result.hostname = authInHost0.shift();
       }
     }
     result.search = relative.search;
     result.query = relative.query;
-    //to support http.request
+    // to support http.request
     if (result.pathname !== null || result.search !== null) {
       result.path = (result.pathname ? result.pathname : '') +
                     (result.search ? result.search : '');
@@ -823,7 +823,7 @@ Url.prototype.resolveObject = function(relative) {
     // no path at all.  easy.
     // we've already handled the other stuff above.
     result.pathname = null;
-    //to support http.request
+    // to support http.request
     if (result.search) {
       result.path = '/' + result.search;
     } else {
@@ -838,7 +838,7 @@ Url.prototype.resolveObject = function(relative) {
   // then it must NOT get a trailing slash.
   var last = srcPath.slice(-1)[0];
   var hasTrailingSlash = (
-      (result.host || relative.host || srcPath.length > 1) &&
+    (result.host || relative.host || srcPath.length > 1) &&
       (last === '.' || last === '..') || last === '');
 
   // strip single dots, resolve double dots to parent dir
@@ -879,12 +879,12 @@ Url.prototype.resolveObject = function(relative) {
   // put the host back
   if (psychotic) {
     result.hostname = result.host = isAbsolute ? '' :
-                                    srcPath.length ? srcPath.shift() : '';
-    //occasionally the auth can get stuck only in host
-    //this especially happens in cases like
-    //url.resolveObject('mailto:local1@domain1', 'local2@domain2')
+      srcPath.length ? srcPath.shift() : '';
+    // occasionally the auth can get stuck only in host
+    // this especially happens in cases like
+    // url.resolveObject('mailto:local1@domain1', 'local2@domain2')
     var authInHost = result.host && result.host.indexOf('@') > 0 ?
-                     result.host.split('@') : false;
+      result.host.split('@') : false;
     if (authInHost) {
       result.auth = authInHost.shift();
       result.host = result.hostname = authInHost.shift();
@@ -904,7 +904,7 @@ Url.prototype.resolveObject = function(relative) {
     result.pathname = srcPath.join('/');
   }
 
-  //to support request.http
+  // to support request.http
   if (result.pathname !== null || result.search !== null) {
     result.path = (result.pathname ? result.pathname : '') +
                   (result.search ? result.search : '');

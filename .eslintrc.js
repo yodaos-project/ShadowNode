@@ -192,7 +192,7 @@ module.exports = {
     }],
     'no-useless-call': 'error',
     'no-useless-concat': 'error',
-    'no-useless-escape': 'error',
+    'no-useless-escape': 'off',
     'no-useless-return': 'error',
     'no-void': 'error',
     'no-whitespace-before-property': 'error',
@@ -230,5 +230,7 @@ module.exports = {
     // Custom rules from eslint-plugin-node-core
     'node-core/no-unescaped-regexp-dot': 'error',
   },
-  globals: {},
+  globals: {
+    native: true,
+  },
 };

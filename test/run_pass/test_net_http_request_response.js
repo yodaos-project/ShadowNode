@@ -25,13 +25,13 @@ var options = {
   method: 'POST',
   port: 3005,
   path: '/',
-  headers : {'Content-Length': message.length}
+  headers: { 'Content-Length': message.length }
 };
 
 var server1 = http.createServer(function(request, response) {
   var str = '';
 
-  request.on('data', function (chunk) {
+  request.on('data', function(chunk) {
     str += chunk.toString();
   });
 
@@ -145,11 +145,11 @@ var server5 = http.createServer(function(request, response) {
   });
 
   request.on('end', function() {
-    response.writeHead(200, 'OK', {'Connection' : 'close1'});
+    response.writeHead(200, 'OK', { 'Connection': 'close1' });
     // Wrote the same head twice.
-    response.writeHead(200, 'OK', {'Connection' : 'close2'});
+    response.writeHead(200, 'OK', { 'Connection': 'close2' });
     // Wrote a new head.
-    response.writeHead(200, {'Head' : 'Value'});
+    response.writeHead(200, { 'Head': 'Value' });
     response.end();
   });
 });
@@ -161,8 +161,8 @@ var isRequest5Finished = false;
 var request5 = http.request(options, function(response) {
   response.on('end', function() {
     isRequest5Finished = true;
-    assert.equal(response.headers['connection'], 'close2');
-    assert.equal(response.headers['head'], 'Value');
+    assert.equal(response.headers.connection, 'close2');
+    assert.equal(response.headers.head, 'Value');
     server5.close();
   });
 });

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var util = require('util');
 var stream = require('stream');
@@ -180,9 +180,9 @@ IncomingMessage.prototype.addHeaders = function(headers) {
 
   var key;
   // FIXME: handle headers as array if array C API is done.
-  for (var i=0; i<headers.length; i=i+2) {
-    key = matchKnownFields(headers[i])
-    this.headers[key] = headers[i+1];
+  for (var i = 0; i < headers.length; i = i + 2) {
+    key = matchKnownFields(headers[i]);
+    this.headers[key] = headers[i + 1];
   }
 };
 

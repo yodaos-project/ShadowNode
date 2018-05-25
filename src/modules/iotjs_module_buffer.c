@@ -512,7 +512,8 @@ JS_FUNCTION(IsUtf8String) {
   const char* data = iotjs_bufferwrap_buffer(buffer_wrap);
   size_t length = iotjs_bufferwrap_length(buffer_wrap);
 
-  bool is_valid_utf8 = jerry_is_valid_utf8_string((const jerry_char_t*)data, length);
+  bool is_valid_utf8 = jerry_is_valid_utf8_string((const jerry_char_t*)data,
+                                                  length);
   return jerry_create_boolean(is_valid_utf8);
 }
 

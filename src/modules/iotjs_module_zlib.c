@@ -62,7 +62,8 @@ typedef struct {
 
 static JNativeInfoType this_module_native_info = { .free_cb = NULL };
 
-static iotjs_zlib_t* iotjs_zlib_create(const jerry_value_t jval, jerry_value_t mode) {
+static iotjs_zlib_t* iotjs_zlib_create(const jerry_value_t jval,
+                                       jerry_value_t mode) {
   iotjs_zlib_t* zlib = IOTJS_ALLOC(iotjs_zlib_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_zlib_t, zlib);
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jval,
@@ -190,7 +191,8 @@ static void iotjs_zlib_process(uv_work_t* work_req) {
 
           break;
         default:
-          JS_CREATE_ERROR(COMMON, "invalid number of gzip magic number bytes read");
+          JS_CREATE_ERROR(COMMON,
+                          "invalid number of gzip magic number bytes read");
           return;
       }
 
@@ -252,12 +254,12 @@ static void iotjs_zlib_after_process(uv_work_t* work_req, int status) {
   iotjs_bufferwrap_t* out_buf = iotjs_bufferwrap_from_jbuffer(_this->out_buf_);
   iotjs_bufferwrap_copy(out_buf, (char*)_this->out_, _this->strm_.avail_out);
 
-  if (_this->out_ != NULL) 
+  if (_this->out_ != NULL)
     free(_this->out_);
 
-  jerry_set_property_by_index(_this->write_result_, 0, 
+  jerry_set_property_by_index(_this->write_result_, 0,
     jerry_create_number(_this->strm_.avail_out));
-  jerry_set_property_by_index(_this->write_result_, 1, 
+  jerry_set_property_by_index(_this->write_result_, 1,
     jerry_create_number(_this->strm_.avail_in));
   _this->write_in_progress_ = false;
 
@@ -444,7 +446,7 @@ JS_FUNCTION(ZlibDoWriteSync) {
 JS_FUNCTION(ZlibReset) {
   JS_DECLARE_THIS_PTR(zlib, zlib);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_zlib_t, zlib);
-  
+
   _this->err_ = Z_OK;
   switch (_this->mode_) {
     case DEFLATE:
@@ -478,12 +480,12 @@ JS_FUNCTION(ZlibClose) {
 
   _this->pending_close_ = false;
   int status = Z_OK;
-  if (_this->mode_ == DEFLATE || 
-      _this->mode_ == GZIP || 
+  if (_this->mode_ == DEFLATE ||
+      _this->mode_ == GZIP ||
       _this->mode_ == DEFLATERAW) {
     status = deflateEnd(&_this->strm_);
-  } else if (_this->mode_ == INFLATE || 
-             _this->mode_ == GUNZIP || 
+  } else if (_this->mode_ == INFLATE ||
+             _this->mode_ == GUNZIP ||
              _this->mode_ == INFLATERAW ||
              _this->mode_ == UNZIP) {
     status = inflateEnd(&_this->strm_);

@@ -15,22 +15,22 @@
 
 var console = require('console');
 
-console.log("Hello IoT.js!!");
+console.log('Hello IoT.js!!');
 console.log(1);
 console.log(2);
 console.log(3);
-console.log(3+5*2);
+console.log(3 + 5 * 2);
 console.log([1, 2, 3]);
 console.log(1, 2, 3);
 console.log('a', 1, 'b', 2, 'c', 3);
-console.log("test", null, undefined);
-console.log({ a: '123', b: 123, c: [1, 2, 3]});
+console.log('test', null, undefined);
+console.log({ a: '123', b: 123, c: [1, 2, 3] });
 
-console.error("Hello IoT.js!!");
+console.error('Hello IoT.js!!');
 console.error(1);
 console.error(2);
 console.error(3);
-console.error(3+5*2);
+console.error(3 + 5 * 2);
 console.error([1, 2, 3]);
 console.error(1, 2, 3);
 console.error('a', 1, 'b', 2, 'c', 3);

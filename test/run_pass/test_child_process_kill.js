@@ -9,7 +9,7 @@ var grep = fork(
 );
 
 var closed;
-var exited
+var exited;
 
 grep.on('close', function(code, signal) {
   assert.equal(signal, 'SIGTERM');

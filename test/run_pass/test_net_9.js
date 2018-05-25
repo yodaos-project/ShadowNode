@@ -37,10 +37,10 @@ server.on('connection', function(socket) {
 
 
 var socket = new net.Socket();
-var msg = "";
+var msg = '';
 
-socket.connect(port, "127.0.0.1");
-socket.write("Hello IoT.js");
+socket.connect(port, '127.0.0.1');
+socket.write('Hello IoT.js');
 
 socket.on('data', function(data) {
   msg += data;
@@ -52,5 +52,5 @@ socket.on('end', function() {
 
 process.on('exit', function(code) {
   assert.equal(code, 0);
-  assert.equal(msg, "Hello IoT.js");
+  assert.equal(msg, 'Hello IoT.js');
 });

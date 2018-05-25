@@ -77,7 +77,7 @@ var dgram = require('dgram'),
   BCAST_ADDR = '255.255.255.255';
 
 // log only if log_enabled flag is set to true
-function log(/*...args*/) {
+function log(/* ...args */) {
   if (log_enabled) {
     console.log.apply(console, [].slice.call(arguments));
   }
@@ -95,14 +95,14 @@ function randomNickname() {
 }
 
 // wraps arguments to JSON string format
-function wrapToString(/*...args*/) {
+function wrapToString(/* ...args */) {
   return JSON.stringify([].slice.call(arguments));
 }
 
 // closes socket and releases timers
 function cleanup() {
   if (socket) {
-    socket.close(function (err) {
+    socket.close(function(err) {
       if (err) {
         log('ERROR: could not close server: ' + err);
       } else {
@@ -135,11 +135,11 @@ function converse() {
       msg.length,
       remote.port,
       remote.address,
-      function (err) {
+      function(err) {
         if (err) {
           log('ERROR: could not send message: ' + err);
         }
-    });
+      });
   }
 }
 
@@ -161,15 +161,15 @@ function join() {
     message.length,
     remote.port,
     remote.address,
-    function (err) {
-    if (err) {
-      log('ERROR: could not join: ' + err);
-    } else {
-      log('INFO: joined!');
-      joined = true;
-      converseTimer = setInterval(converse, CONVERSE_INTERVAL);
-    }
-  });
+    function(err) {
+      if (err) {
+        log('ERROR: could not join: ' + err);
+      } else {
+        log('INFO: joined!');
+        joined = true;
+        converseTimer = setInterval(converse, CONVERSE_INTERVAL);
+      }
+    });
 }
 
 // sends supplied message to connected clients
@@ -184,11 +184,11 @@ function forwardMessageToClients(message) {
       message.length,
       clients[i].port,
       clients[i].address,
-      function (err) {
-      if (err) {
-        log('ERROR: could not send data to client: ' + err);
-      }
-    });
+      function(err) {
+        if (err) {
+          log('ERROR: could not send data to client: ' + err);
+        }
+      });
   }
 }
 
@@ -207,13 +207,13 @@ function handleServerMessage(data, rinfo) {
           message.length,
           rinfo.port,
           rinfo.address,
-          function (err) {
-          if (err) {
-            log('ERROR: could not respond to inquiry: ' + err);
-          } else {
-            log('INFO: responded');
-          }
-        });
+          function(err) {
+            if (err) {
+              log('ERROR: could not respond to inquiry: ' + err);
+            } else {
+              log('INFO: responded');
+            }
+          });
       }
       break;
     case MSG.INQUIRE_SERVER_ADDR: // response with server address
@@ -234,7 +234,7 @@ function handleServerMessage(data, rinfo) {
       break;
     case MSG.CHAT: // plain chat messages
       console.log(message[1] + ': ' + message[2]); // console here
-                                                   // not log wrap
+      // not log wrap
       if (mode === 'server') {
         forwardMessageToClients(data);
       }
@@ -248,9 +248,9 @@ function handleServerMessage(data, rinfo) {
 
 // check if anyone else is server
 log('INFO: looking up server');
-socket = dgram.createSocket({type: 'udp4'});
+socket = dgram.createSocket({ type: 'udp4' });
 socket.on('message', handleServerMessage);
-socket.bind(PORT, function (err) {
+socket.bind(PORT, function(err) {
   var message = new Buffer(wrapToString(MSG.INQUIRE_SERVER));
   if (err) {
     log('ERROR: could not bind to server port: ' + err);
@@ -265,11 +265,11 @@ socket.bind(PORT, function (err) {
       message.length,
       PORT,
       BCAST_ADDR,
-      function (err) {
-      if (err) {
-        log('ERROR: could not send broadcast message: ' + err);
-      }
-    });
+      function(err) {
+        if (err) {
+          log('ERROR: could not send broadcast message: ' + err);
+        }
+      });
   }
 });
 

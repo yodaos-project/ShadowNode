@@ -20,7 +20,7 @@ var recievedResponse = false;
 var server = http.createServer(function(request, response) {
   var str = '';
 
-  request.on('data', function (chunk) {
+  request.on('data', function(chunk) {
     str += chunk;
   });
 

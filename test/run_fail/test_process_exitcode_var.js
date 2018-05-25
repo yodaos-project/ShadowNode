@@ -16,10 +16,10 @@
 
 var assert = require('assert');
 
- process.on('exit', function(code) {
-   assert.equal(2, code);
-   assert.fail();
- });
+process.on('exit', function(code) {
+  assert.equal(2, code);
+  assert.fail();
+});
 
 process.exitCode = 2;
 process.exit();

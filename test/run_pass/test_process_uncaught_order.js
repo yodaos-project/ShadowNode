@@ -17,11 +17,11 @@ var assert = require('assert');
 
 var trace = '';
 
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', function(err) {
   trace += 'A';
 });
 
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', function(err) {
   trace += 'B';
 });
 

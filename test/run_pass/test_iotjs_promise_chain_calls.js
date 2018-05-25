@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-var fs = require('fs')
+var fs = require('fs');
 var assert = require('assert');
 
 function readfile(fileName) {
-  return new Promise(function (resolve, reject) {
+  return new Promise(function(resolve, reject) {
     fs.readFile(fileName, function(error, data) {
       if (error) {
         reject(new Error('Cannot open file!'));
@@ -26,33 +26,33 @@ function readfile(fileName) {
       }
     });
   });
-};
+}
 
 function loadfi(files, idx) {
-  var fileName = process.cwd()
-                 + '/resources/promise_chain_calls/'
-                 + files[idx];
+  var fileName = process.cwd() +
+                 '/resources/promise_chain_calls/' +
+                 files[idx];
 
-  readfile(fileName).
-    then(function(value) {
+  readfile(fileName)
+    .then(function(value) {
       assert.equal(value, 'Content of ' + files[idx] + '\n');
       idx++;
       loadfi(files, idx);
-    }).catch(function (e) {
+    }).catch(function(e) {
       // Note: assert cannot be used here, because exception cannot be thrown
       //       from Promise.prototype.catch
-      if (e.message !== "Cannot open file!") {
-        console.log('Error message does not match. Expected '
-                    + '"Cannot open file!", but got "'
-                    + e.message + '".');
+      if (e.message !== 'Cannot open file!') {
+        console.log('Error message does not match. Expected ' +
+                    '"Cannot open file!", but got "' +
+                    e.message + '".');
         process.emitExit(1);
       } else if (idx !== 4) {
-        console.log('Did not read every file. The expected number of files '
-                    + 'read is "4", but got "' + idx + '".');
+        console.log('Did not read every file. The expected number of files ' +
+                    'read is "4", but got "' + idx + '".');
         process.emitExit(1);
       }
     });
-};
+}
 
 var files = ['1.txt', '2.txt', '3.txt', '4.txt'];
 loadfi(files, 0);

@@ -11,11 +11,11 @@ cache:
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tools/apt-get-install-deps.sh; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tools/brew-install-deps.sh; fi
-  - npm i
+  - npm install
 
 script:
-  - tools/check_tidy.py
-  - npx eslint .
+  - tools/check_tidy.py # check clang/shell/python/cmake syntax rules
+  - npx eslint .        # check JavaScript rules
   - tools/build.py --tests --no-check-valgrind
 
 env:

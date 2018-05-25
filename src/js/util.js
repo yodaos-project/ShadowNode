@@ -1,18 +1,4 @@
-/* Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
+'use strict';
 
 function isNull(arg) {
   return arg === null;
@@ -34,7 +20,7 @@ function isNumber(arg) {
 }
 
 function isFinite(arg) {
-  return (arg == 0) || (arg != arg / 2);
+  return (arg === 0) || (arg !== arg / 2);
 }
 
 function isBoolean(arg) {
@@ -77,8 +63,8 @@ function inherits(ctor, superCtor) {
 function format(s) {
   if (!isString(s)) {
     var arrs = [];
-    for (var i = 0; i < arguments.length; ++i) {
-      arrs.push(formatValue(arguments[i]));
+    for (var i0 = 0; i0 < arguments.length; ++i0) {
+      arrs.push(formatValue(arguments[i0]));
     }
     return arrs.join(' ');
   }
@@ -219,6 +205,7 @@ function exceptionWithHostPort(err, syscall, address, port, additional) {
   return ex;
 }
 
+var codesWarned = {};
 
 // Mark that a method should not be used.
 // Returns a modified function which warns once by default.

@@ -231,18 +231,6 @@ function processChunk(self, chunk, flushFlag, cb) {
   handle._doWrite();
 }
 
-function _close(engine, callback) {
-  if (callback)
-    process.nextTick(callback);
-
-  // Caller may invoke .close after a zlib error (which will null _handle).
-  if (!engine._handle)
-    return;
-
-  engine._handle.close();
-  engine._handle = null;
-}
-
 // generic zlib
 // minimal 2-byte header
 function Deflate(opts) {

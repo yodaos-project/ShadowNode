@@ -77,9 +77,10 @@ class StyleChecker(object):
                 self.report_error('line exceeds %d characters'
                                   % StyleChecker.column_limit)
 
-            if fileinput.isfirstline():
-                if not CheckLicenser.check(fileinput.filename()):
-                    self.report_error('incorrect license')
+            # disable check license
+            # if fileinput.isfirstline():
+            #     if not CheckLicenser.check(fileinput.filename()):
+            #         self.report_error('incorrect license')
 
 
             self.count_lines += 1
@@ -165,10 +166,10 @@ class FileFilter(object):
 
 
 def check_tidy(src_dir, options=None):
-    allowed_exts = ['.c', '.h', '.js', '.py', '.sh', '.cmake']
+    allowed_exts = ['.c', '.h', '.py', '.sh', '.cmake']
     allowed_files = ['CMakeLists.txt']
     clang_format_exts = ['.c', '.h']
-    skip_dirs = ['deps', 'build', '.git', 'node_modules', 'coverage']
+    skip_dirs = ['deps', 'build', '.git', 'node_modules', 'coverage', 'samples']
     skip_files = ['check_signed_off.sh', '__init__.py',
                   'iotjs_js.c', 'iotjs_js.h', 'iotjs_string_ext.inl.h',
                   "iotjs_module_inl.h",

@@ -29,7 +29,7 @@ if (process.platform === 'linux') {
 } else if (process.platform === 'nuttx') {
   pin = require('stm32f4dis').pin.PA10;
   mode = gpio.MODE.PUSHPULL;
-} else if(process.platform === 'tizenrt') {
+} else if (process.platform === 'tizenrt') {
   pin = 41;
   mode = gpio.MODE.NONE;
 } else {

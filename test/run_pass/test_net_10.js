@@ -26,7 +26,7 @@ server.listen(port, 1);
 
 server.on('connection', function(newSocket) {
   connected = true;
-  console.log("Connected!");
+  console.log('Connected!');
 
   newSocket.on('error', function() {
     assert.fail();
@@ -35,7 +35,7 @@ server.on('connection', function(newSocket) {
   newSocket.setTimeout(500);
 
   newSocket.on('timeout', function() {
-    console.log("Timeout");
+    console.log('Timeout');
     timedout = true;
     newSocket.destroy();
     socket.destroy();

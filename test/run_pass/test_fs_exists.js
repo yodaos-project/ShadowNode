@@ -27,7 +27,7 @@ var assert = require('assert');
   var filePath = '';
 
   assert.doesNotThrow(function() {
-    fs.exists(filePath, function (exists) {
+    fs.exists(filePath, function(exists) {
       assert.equal(exists, false, 'File with empty name should not exist');
     });
   }, 'Checking fs.exists(\'\') without callback does not throw exception');

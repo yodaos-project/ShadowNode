@@ -23,11 +23,11 @@ assert.throws(function() {
 
 // Timeout with invalid callback function parameter.
 assert.throws(function() {
-  setTimeout({function: null}, 1000);
+  setTimeout({ function: null }, 1000);
 }, TypeError);
 
 assert.throws(function() {
-  setTimeout({function: null, value: function() {}}, 1000);
+  setTimeout({ function: null, value: function() {} }, 1000);
 }, TypeError);
 
 assert.throws(function() {
@@ -68,7 +68,7 @@ assert.doesNotThrow(function() {
 });
 
 assert.throws(function() {
-  clearTimeout({timeout: 1000});
+  clearTimeout({ timeout: 1000 });
 }, Error);
 
 // SetInterval without callback function.
@@ -86,7 +86,7 @@ assert.throws(function() {
 }, TypeError);
 
 assert.throws(function() {
-  setInterval({function: null, value: function() {}}, 10);
+  setInterval({ function: null, value: function() {} }, 10);
 }, TypeError);
 
 assert.throws(function() {
@@ -128,5 +128,5 @@ assert.throws(function() {
 }, Error);
 
 assert.throws(function() {
-  clearInterval({interval: function() {}, value: 1000});
+  clearInterval({ interval: function() {}, value: 1000 });
 }, Error);

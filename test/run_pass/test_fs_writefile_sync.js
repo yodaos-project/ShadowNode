@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
- /*
+/*
   @STDOUT=Pass
  */
 

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var util = require('util');
 var tls = require('tls');
@@ -131,7 +132,6 @@ function emitError(socket, err) {
 function socketOnClose() {
   var socket = this;
   var req = socket._httpMessage;
-  var parser = socket.parser;
 
   // socket.read();
 
@@ -209,17 +209,17 @@ function parserOnIncomingClient(res, shouldKeepAlive) {
   req.emit('response', res);
 
   // response to HEAD req has no body
-  var isHeadResponse = (req.method == 'HEAD');
+  var isHeadResponse = (req.method === 'HEAD');
 
   return isHeadResponse;
 
 }
 
-var responseOnEnd = function() {
+function responseOnEnd() {
   var res = this;
   var req = res.req;
   req.socket.end();
-};
+}
 
 ClientRequest.prototype.abort = function() {
   var self = this;
@@ -254,9 +254,9 @@ ClientRequest.prototype.setTimeout = function(ms, cb) {
 
   if (cb) self.once('timeout', cb);
 
-  var emitTimeout = function() {
+  function emitTimeout() {
     self.emit('timeout');
-  };
+  }
 
   // In IoT.js, socket is already assigned,
   // thus, it is sufficient to trigger timeout on socket 'connect' event.

@@ -28,7 +28,7 @@ var gpio_led = gpio.open({
     var interval = setInterval(function() {
       gpio_led.read(function(err, value) {
         if (!err) {
-          console.log("read value:%d", value);
+          console.log('read value:%d', value);
           gpio_led.write(!value);
         } else {
           clearInterval(interval);

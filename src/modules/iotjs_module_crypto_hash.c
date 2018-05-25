@@ -12,7 +12,7 @@ typedef struct {
 static iotjs_crypto_hash_t* iotjs_crypto_hash_create(const jerry_value_t jval);
 static void iotjs_crypto_hash_destroy(iotjs_crypto_hash_t* wrap);
 
-static JNativeInfoType this_module_native_info = { 
+static JNativeInfoType this_module_native_info = {
   .free_cb = (jerry_object_native_free_callback_t)iotjs_crypto_hash_destroy
 };
 
@@ -38,7 +38,7 @@ JS_FUNCTION(HashConstructor) {
   const jerry_value_t val = JS_GET_THIS();
   iotjs_crypto_hash_t* hash = iotjs_crypto_hash_create(val);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_crypto_hash_t, hash);
-  
+
   mbedtls_md_init(&_this->ctx);
   size_t type = jerry_get_number_value(jargv[0]);
   _this->info = mbedtls_md_info_from_type(type);

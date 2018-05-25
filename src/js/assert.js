@@ -33,6 +33,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var util = require('util');
 
@@ -75,6 +76,7 @@ function fail(actual, expected, message, operator) {
 
 
 function equal(actual, expected, message) {
+  // eslint-disable-next-line eqeqeq
   if (actual != expected) {
     fail(actual, expected, message, '==');
   }
@@ -82,6 +84,7 @@ function equal(actual, expected, message) {
 
 
 function notEqual(actual, expected, message) {
+  // eslint-disable-next-line eqeqeq
   if (actual == expected) {
     fail(actual, expected, message, '!=');
   }
@@ -143,7 +146,9 @@ function doesNotThrow(block, message) {
 assert.AssertionError = AssertionError;
 assert.assert = assert;
 assert.fail = fail;
+// eslint-disable-next-line no-restricted-properties
 assert.equal = equal;
+// eslint-disable-next-line no-restricted-properties
 assert.notEqual = notEqual;
 assert.strictEqual = strictEqual;
 assert.notStrictEqual = notStrictEqual;

@@ -18,12 +18,13 @@ var assert = require('assert');
 var Gpio = require('gpio');
 var gpio = new Gpio();
 
-var ledGpio = null, switchGpio = null;
+var ledGpio = null,
+  switchGpio = null;
 var ledPin, switchPin, ledMode;
 
 var SWITCH_ON = false,
-    LED_ON = true,
-    LED_OFF = false;
+  LED_ON = true,
+  LED_OFF = false;
 
 var loopCnt = 0;
 
@@ -36,7 +37,7 @@ if (process.platform === 'linux') {
   ledPin = pin.PA10;
   switchPin = pin.PA15;
   ledMode = gpio.MODE.PUSHPULL;
-} else if(process.platform === 'tizenrt') {
+} else if (process.platform === 'tizenrt') {
   ledPin = 41;
   switchPin = 39;
   ledMode = gpio.MODE.NONE;

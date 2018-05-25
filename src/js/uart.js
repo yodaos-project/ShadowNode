@@ -12,13 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
 // VALIDATION ARRAYS
 var BAUDRATE = [0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400,
-                 4800, 9600, 19200, 38400, 57600, 115200, 230400];
+                4800, 9600, 19200, 38400, 57600, 115200, 230400];
 var DATABITS = [5, 6, 7, 8];
 
 var defaultConfiguration = {
@@ -101,8 +102,6 @@ function uartPortOpen(configuration, callback) {
   };
 
   UartPort.prototype.writeSync = function(buffer) {
-    var self = this;
-
     if (_binding === null) {
       throw new Error('UART port is not opened');
     }

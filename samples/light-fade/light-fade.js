@@ -47,7 +47,7 @@ var PWM = require('pwm'),
   pwmDevice = null;
 
 // log only when log_enabled flag is set to true
-function log(/*...args*/) {
+function log(/* ...args */) {
   if (log_enabled) {
     console.log.apply(console, [].slice.call(arguments));
   }
@@ -55,13 +55,13 @@ function log(/*...args*/) {
 
 // polling for gpio button changes
 function buttonPoll() {
-  buttonDevice.read(function (err, buttonValue) {
+  buttonDevice.read(function(err, buttonValue) {
     var timeoutOffset = 0;
     if (buttonValue) {
-      direction = direction ? 0 : 1; //reverse on button push
-      log('switching to: ' + (direction ? 'ON': 'OFF'));
+      direction = direction ? 0 : 1; // reverse on button push
+      log('switching to: ' + (direction ? 'ON' : 'OFF'));
       timeoutOffset = 500; // offset the time for next check to prevent errors
-                           // of mechanical buttons
+      // of mechanical buttons
     }
     setTimeout(buttonPoll, 100 + timeoutOffset);
   });
@@ -82,7 +82,7 @@ function mainLoop() {
     value = LOW;
   }
 
-  pwmDevice.setDutyCycle(value, function (err) {
+  pwmDevice.setDutyCycle(value, function(err) {
     if (err) {
       log('could not set device duty cycle');
     }
@@ -95,7 +95,7 @@ buttonDevice = gpio.open({
   pin: buttonPin,
   direction: gpio.DIRECTION.IN,
   mode: gpio.MODE.NONE
-}, function (err) {
+}, function(err) {
   if (err) {
     log('error when opening gpio device: ' + err);
   } else {
@@ -104,12 +104,12 @@ buttonDevice = gpio.open({
       pin: pwmPin,
       period: 0.0001,
       dutyCycle: value
-    }, function (err) {
+    }, function(err) {
       if (err) {
         log('error when opening pwm device: ' + err);
         buttonDevice.close();
       } else {
-        pwmDevice.setEnable(true, function (err) {
+        pwmDevice.setEnable(true, function(err) {
           if (err) {
             log('error when enabling pwm: ' + err);
             buttonDevice.close();

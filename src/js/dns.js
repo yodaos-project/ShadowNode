@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var util = require('util');
 
@@ -21,13 +22,13 @@ exports.lookup = function lookup(hostname, options, callback) {
 
   // Parse arguments
   if (!util.isString(hostname)) {
-    throw TypeError('invalid argument: hostname must be a string');
+    throw new TypeError('invalid argument: hostname must be a string');
   }
   if (util.isFunction(options)) {
     callback = options;
     family = 0;
   } else if (!util.isFunction(callback)) {
-    throw TypeError('invalid argument: callback must be passed');
+    throw new TypeError('invalid argument: callback must be passed');
   } else if (util.isObject(options)) {
     hints = options.hints >>> 0;
     family = options.family >>> 0;
@@ -38,14 +39,14 @@ exports.lookup = function lookup(hostname, options, callback) {
   } else if (util.isNumber(options)) {
     family = ~~options;
   } else {
-    throw TypeError(
-        'invalid argument: options must be either an object or number');
+    throw new TypeError(
+      'invalid argument: options must be either an object or number');
   }
 
   if (family !== 0 && family !== 4 && family !== 6)
     throw new TypeError('invalid argument: family must be 4 or 6');
 
-  if (process.platform != 'nuttx' && process.platform != 'tizenrt') {
+  if (process.platform !== 'nuttx' && process.platform !== 'tizenrt') {
     native.getaddrinfo(hostname, family, hints, callback);
   } else {
     // native.getaddrinfo is synchronous on these platforms.

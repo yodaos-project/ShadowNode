@@ -12,7 +12,7 @@ static void iotjs_pipe_on_connection(uv_stream_t* handle, int status) {
 static iotjs_pipewrap_t* iotjs_pipewrap_create(const jerry_value_t value) {
   iotjs_pipewrap_t* pipewrap = IOTJS_ALLOC(iotjs_pipewrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_pipewrap_t, pipewrap);
-  iotjs_handlewrap_initialize(&_this->handlewrap, 
+  iotjs_handlewrap_initialize(&_this->handlewrap,
                               value,
                               (uv_handle_t*)(&_this->handle),
                               &this_module_native_info);
@@ -99,7 +99,8 @@ JS_FUNCTION(PipeListen) {
   return jerry_create_number(r);
 }
 
-void iotjs_pipe_allocator(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
+void iotjs_pipe_allocator(uv_handle_t* handle, size_t suggested_size,
+                          uv_buf_t* buf) {
   if (suggested_size > IOTJS_MAX_READ_BUFFER_SIZE) {
     suggested_size = IOTJS_MAX_READ_BUFFER_SIZE;
   }
@@ -107,10 +108,12 @@ void iotjs_pipe_allocator(uv_handle_t* handle, size_t suggested_size, uv_buf_t* 
   buf->len = suggested_size;
 }
 
-void iotjs_pipe_onread(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
+void iotjs_pipe_onread(uv_stream_t* stream, ssize_t nread,
+                       const uv_buf_t* buf) {
   iotjs_pipewrap_t* wrap = iotjs_pipewrap_from_handle((uv_pipe_t*)stream);
   jerry_value_t jthis = iotjs_pipewrap_get_jobject(wrap);
-  jerry_value_t jsocket = iotjs_jval_get_property(jthis, IOTJS_MAGIC_STRING_OWNER);
+  jerry_value_t jsocket = iotjs_jval_get_property(jthis,
+                                                  IOTJS_MAGIC_STRING_OWNER);
   jerry_value_t fn = iotjs_jval_get_property(jthis, "onread");
 
   iotjs_jargs_t jargs = iotjs_jargs_create(4);
@@ -147,8 +150,10 @@ void iotjs_pipe_onread(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) 
 JS_FUNCTION(PipeReadStart) {
   JS_DECLARE_THIS_PTR(pipewrap, pipewrap);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pipewrap_t, pipewrap);
-  
-  uv_read_start((uv_stream_t*)&_this->handle, iotjs_pipe_allocator, iotjs_pipe_onread);
+
+  uv_read_start((uv_stream_t*)&_this->handle,
+                iotjs_pipe_allocator,
+                iotjs_pipe_onread);
   return jerry_create_undefined();
 }
 
@@ -167,7 +172,7 @@ JS_FUNCTION(WriteUtf8String) {
 
   iotjs_string_t data = JS_GET_ARG(0, string);
   uv_buf_t buf;
-  buf = uv_buf_init((char*)iotjs_string_data(&data), 
+  buf = uv_buf_init((char*)iotjs_string_data(&data),
                     iotjs_string_size(&data));
   int r = uv_try_write((uv_stream_t*)&_this->handle, &buf, 1);
   if (r < 0) {
@@ -185,7 +190,7 @@ void iotjs_pipewrap_after_close(uv_handle_t* handle) {
   jerry_value_t jcallback =
       iotjs_jval_get_property(jthis, "onclose");
   if (jerry_value_is_function(jcallback)) {
-    iotjs_make_callback(jcallback, 
+    iotjs_make_callback(jcallback,
                         jerry_create_undefined(),
                         iotjs_jargs_get_empty());
   }

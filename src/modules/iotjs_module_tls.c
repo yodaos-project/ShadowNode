@@ -47,7 +47,7 @@ typedef struct {
 } IOTJS_VALIDATED_STRUCT(iotjs_tlswrap_t);
 
 static void iotjs_tlswrap_destroy(iotjs_tlswrap_t* tlswrap);
-static JNativeInfoType this_module_native_info = { 
+static JNativeInfoType this_module_native_info = {
   .free_cb = (void*)iotjs_tlswrap_destroy
 };
 
@@ -56,7 +56,7 @@ static JNativeInfoType this_module_native_info = {
  *
  * To add more than one root, just concatenate them.
  */
-const char SSL_CA_PEM[] = 
+const char SSL_CA_PEM[] =
   "-----BEGIN CERTIFICATE-----\n"
   "MIIDujCCAqKgAwIBAgILBAAAAAABD4Ym5g0wDQYJKoZIhvcNAQEFBQAwTDEgMB4GA1UECxMX\n"
   "R2xvYmFsU2lnbiBSb290IENBIC0gUjIxEzARBgNVBAoTCkdsb2JhbFNpZ24xEzARBgNVBAMT\n"
@@ -92,7 +92,7 @@ static void print_mbedtls_error(const char *name, int err) {
 static iotjs_tlswrap_t* iotjs_tlswrap_create(const jerry_value_t value) {
   iotjs_tlswrap_t* tlswrap = IOTJS_ALLOC(iotjs_tlswrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_tlswrap_t, tlswrap);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, 
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap,
                                value,
                                &this_module_native_info);
 
@@ -129,12 +129,13 @@ JS_FUNCTION(TlsConstructor) {
   jerry_value_t jca_txt = iotjs_jval_get_property(opts, "ca");
   if (jerry_value_is_string(jca_txt)) {
     iotjs_string_t ca_txt = iotjs_jval_as_string(jca_txt);
-    ret = mbedtls_x509_crt_parse(&_this->ca_,
-                                 (const unsigned char*)iotjs_string_data(&ca_txt),
-                                 (size_t)iotjs_string_size(&ca_txt) + 1);
+    ret = mbedtls_x509_crt_parse(
+      &_this->ca_,
+      (const unsigned char*)iotjs_string_data(&ca_txt),
+      (size_t)iotjs_string_size(&ca_txt) + 1);
     iotjs_string_destroy(&ca_txt);
   } else {
-    ret = mbedtls_x509_crt_parse(&_this->ca_, 
+    ret = mbedtls_x509_crt_parse(&_this->ca_,
                                  (const unsigned char*)SSL_CA_PEM,
                                  sizeof(SSL_CA_PEM));
   }
@@ -154,55 +155,14 @@ JS_FUNCTION(TlsConstructor) {
   }
 
   /**
-   * options.cert
-   * options.key
-   */
-  // jerry_value_t jcert_txt = iotjs_jval_get_property(opts, "cert");
-  // jerry_value_t jkey_txt = iotjs_jval_get_property(opts, "key");
-  // if (jerry_value_is_string(jcert_txt) && jerry_value_is_string(jkey_txt)) {
-  //   iotjs_string_t cert_txt = iotjs_jval_as_string(jcert_txt);
-  //   iotjs_string_t key_txt = iotjs_jval_as_string(jkey_txt);
-
-  //   mbedtls_x509_crt cert_chain;
-  //   mbedtls_x509_crt_init(&cert_chain);
-  //   if (0 != mbedtls_x509_crt_parse(&cert_chain, 
-  //                                   (const unsigned char*)iotjs_string_data(&cert_txt),
-  //                                   iotjs_string_size(&cert_txt) + 1)) {
-  //     // TODO free tokens
-  //     return JS_CREATE_ERROR(COMMON, "failed to parse cert");
-  //   }
-
-  //   mbedtls_pk_context key_ctx;
-  //   mbedtls_pk_init(&key_ctx);
-  //   if (0 != mbedtls_pk_parse_key(&key_ctx,
-  //                                 (const unsigned char*)iotjs_string_data(&key_txt),
-  //                                 iotjs_string_size(&key_txt) + 1,
-  //                                 NULL, 0)) {
-  //     // TODO free tokens
-  //     return JS_CREATE_ERROR(COMMON, "failed to parse key pem");
-  //   }
-
-  //   if (0 != mbedtls_ssl_set_hs_own_cert(&_this->ssl_, 
-  //                                        &cert_chain, 
-  //                                        &key_ctx)) {
-  //     // TODO free tokens
-  //     return JS_CREATE_ERROR(COMMON, "failed to set cert/key");
-  //   }
-
-  //   iotjs_string_destroy(&cert_txt);
-  //   iotjs_string_destroy(&key_txt);
-  // }
-  // jerry_release_value(jcert_txt);
-  // jerry_release_value(jkey_txt);
-
-  /**
    * options.rejectUnauthorized
    */
-  jerry_value_t jrejectUnauthorized = iotjs_jval_get_property(opts, "rejectUnauthorized");
+  jerry_value_t jrejectUnauthorized =
+    iotjs_jval_get_property(opts, "rejectUnauthorized");
   bool rejectUnauthorized = iotjs_jval_as_boolean(jrejectUnauthorized);
-  mbedtls_ssl_conf_authmode(&_this->config_, 
-                            rejectUnauthorized ? 
-                              MBEDTLS_SSL_VERIFY_REQUIRED : 
+  mbedtls_ssl_conf_authmode(&_this->config_,
+                            rejectUnauthorized ?
+                              MBEDTLS_SSL_VERIFY_REQUIRED :
                               MBEDTLS_SSL_VERIFY_NONE);
   jerry_release_value(jrejectUnauthorized);
 
@@ -234,26 +194,26 @@ JS_FUNCTION(TlsConstructor) {
   _this->ssl_bio_ = iotjs_ssl_bio_new(BIO_BIO);
   _this->app_bio_ = iotjs_ssl_bio_new(BIO_BIO);
   iotjs_bio_make_bio_pair(_this->ssl_bio_, _this->app_bio_);
-  mbedtls_ssl_set_bio(&_this->ssl_, 
-                      _this->ssl_bio_, 
-                      iotjs_bio_net_send, 
-                      iotjs_bio_net_recv, 
+  mbedtls_ssl_set_bio(&_this->ssl_,
+                      _this->ssl_bio_,
+                      iotjs_bio_net_send,
+                      iotjs_bio_net_recv,
                       NULL);
   return jerry_create_undefined();
 }
 
-jerry_value_t iotjs_tlswrap_encode_data(iotjs_tlswrap_t_impl_t* _this, 
+jerry_value_t iotjs_tlswrap_encode_data(iotjs_tlswrap_t_impl_t* _this,
                                         iotjs_bufferwrap_t* inbuf) {
   /**
-   * inbuf length should less equal than MBEDTLS_SSL_MAX_CONTENT_LEN which is 16384 bytes
+   * inbuf length should less equal than MBEDTLS_SSL_MAX_CONTENT_LEN
+   * which is 16384 bytes.
    */
   size_t inbuf_len = iotjs_bufferwrap_length(inbuf);
   if (inbuf_len > MBEDTLS_SSL_MAX_CONTENT_LEN) {
     return JS_CREATE_ERROR(COMMON, "tls encode data is too large");
   }
-  size_t rv = (size_t)mbedtls_ssl_write(&_this->ssl_, 
-                                        (const unsigned char*)iotjs_bufferwrap_buffer(inbuf),
-                                        inbuf_len);
+  size_t rv = (size_t)mbedtls_ssl_write(&_this->ssl_,
+    (const unsigned char*)iotjs_bufferwrap_buffer(inbuf), inbuf_len);
   size_t pending = 0;
   if ((pending = iotjs_bio_ctrl_pending(_this->app_bio_)) > 0) {
     const char tmpbuf[pending];
@@ -292,7 +252,7 @@ void iotjs_tlswrap_stay_update(iotjs_tlswrap_t_impl_t* _this) {
 }
 
 int iotjs_tlswrap_error_handler(iotjs_tlswrap_t_impl_t* _this, const int code) {
-  if (code == MBEDTLS_ERR_SSL_WANT_WRITE || 
+  if (code == MBEDTLS_ERR_SSL_WANT_WRITE ||
     code == MBEDTLS_ERR_SSL_WANT_READ) {
     iotjs_tlswrap_stay_update(_this);
   } else if (code == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
@@ -320,7 +280,7 @@ JS_FUNCTION(TlsHandshake) {
     return jerry_create_number(SSL_HANDSHAKE_DONE);
   }
   _this->handshake_state = SSL_HANDSHAKING;
-  
+
   int rv = 0;
   rv = mbedtls_ssl_handshake(&_this->ssl_);
   rv = iotjs_tlswrap_error_handler(_this, rv);
@@ -330,7 +290,9 @@ JS_FUNCTION(TlsHandshake) {
     int verify_status = (int)mbedtls_ssl_get_verify_result(&_this->ssl_);
     if (verify_status) {
       char buf[512];
-      mbedtls_x509_crt_verify_info(buf, sizeof(buf), "::", (uint32_t)verify_status);
+      mbedtls_x509_crt_verify_info(buf,
+                                   sizeof(buf), "::",
+                                   (uint32_t)verify_status);
       mbedtls_printf("%s\n", buf);
     }
 

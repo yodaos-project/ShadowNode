@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var util = require('util');
 var INSPECT_MAX_BYTES = 50;
@@ -57,12 +58,14 @@ function Buffer(subject, encoding) {
     if (encoding !== undefined && util.isString(encoding)) {
       switch (encoding) {
         case 'hex':
-          if (this._builtin.hexWrite(subject, 0, this.length) != this.length) {
+          if (this._builtin.hexWrite(
+            subject, 0, this.length) !== this.length) {
             throw new TypeError('Invalid hex string');
           }
           break;
         case 'base64':
-          if (this._builtin.base64Write(subject, 0, this.length) != this.length) {
+          if (this._builtin.base64Write(
+            subject, 0, this.length) !== this.length) {
             throw new TypeError('Invalid base64 string');
           }
           break;
@@ -111,9 +114,9 @@ Buffer.concat = function(list) {
 
   var buffer = new Buffer(length);
   var pos = 0;
-  for (var i = 0; i < list.length; ++i) {
-    list[i].copy(buffer, pos);
-    pos += list[i].length;
+  for (var i0 = 0; i0 < list.length; ++i0) {
+    list[i0].copy(buffer, pos);
+    pos += list[i0].length;
   }
 
   return buffer;
@@ -132,7 +135,7 @@ Buffer.prototype.equals = function(otherBuffer) {
     throw new TypeError('Bad arguments: buffer.equals(Buffer)');
   }
 
-  return this._builtin.compare(otherBuffer._builtin) == 0;
+  return this._builtin.compare(otherBuffer._builtin) === 0;
 };
 
 
@@ -161,7 +164,7 @@ Buffer.prototype.copy = function(target, targetStart, sourceStart, sourceEnd) {
 
   targetStart = targetStart === undefined ? 0 : ~~targetStart;
   sourceStart = sourceStart === undefined ? 0 : ~~sourceStart;
-  sourceEnd = sourceEnd === undefined ? this.length : ~~ sourceEnd;
+  sourceEnd = sourceEnd === undefined ? this.length : ~~sourceEnd;
 
   if ((sourceEnd > sourceStart) && (targetStart < 0)) {
     throw new RangeError('Attempt to write outside buffer bounds');
@@ -342,7 +345,7 @@ Buffer.prototype.readInt16LE = function(offset, noAssert) {
   if (!noAssert)
     checkOffset(offset, 2, this.length);
 
-  var val = this._builtin.readUInt8(offset) | 
+  var val = this._builtin.readUInt8(offset) |
     (this._builtin.readUInt8(offset + 1) << 8);
   return (val & 0x8000) ? val | 0xFFFF0000 : val;
 };
@@ -396,14 +399,14 @@ Buffer.prototype.valid = function(encoding) {
 };
 
 
-Buffer.from = function (arg, encodingOrOffset, length) {
+Buffer.from = function(arg, encodingOrOffset, length) {
   if (typeof arg === 'number') {
     throw new TypeError('Argument must not be a number');
   }
   return new Buffer(arg, encodingOrOffset, length);
-}
+};
 
-Buffer.alloc = function (size, fill, encoding) {
+Buffer.alloc = function(size, fill, encoding) {
   if (typeof size !== 'number') {
     throw new TypeError('Argument must be a number');
   }
@@ -418,21 +421,21 @@ Buffer.alloc = function (size, fill, encoding) {
     buf.fill(0);
   }
   return buf;
-}
+};
 
-Buffer.allocUnsafe = function (size) {
+Buffer.allocUnsafe = function(size) {
   if (typeof size !== 'number') {
-    throw new TypeError('Argument must be a number')
+    throw new TypeError('Argument must be a number');
   }
   return new Buffer(size);
-}
+};
 
-Buffer.allocUnsafeSlow = function (size) {
+Buffer.allocUnsafeSlow = function(size) {
   if (typeof size !== 'number') {
-    throw new TypeError('Argument must be a number')
+    throw new TypeError('Argument must be a number');
   }
   return new Buffer(size);
-}
+};
 
 
 Object.defineProperty(Buffer.prototype, 'byteLength', {

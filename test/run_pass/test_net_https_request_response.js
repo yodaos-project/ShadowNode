@@ -24,10 +24,10 @@ var message = 'Hello IoT.js';
 // Options for further requests.
 var options = {
   method: 'POST',
-  host: "httpbin.org",
+  host: 'httpbin.org',
   path: '/post',
-  headers: {'Content-Length': message.length,
-    'Content-Type': 'application/json'}
+  headers: { 'Content-Length': message.length,
+             'Content-Type': 'application/json' }
 };
 
 // Simple request with valid utf-8 message.
@@ -41,7 +41,7 @@ var request1 = https.request(options, function(response) {
 
   response.on('end', function() {
     var response = JSON.parse(str);
-    assert.equal(message, response['data']);
+    assert.equal(message, response.data);
     isRequest1Finished = true;
   });
 });
@@ -59,7 +59,7 @@ var request2 = https.request(options, function(response) {
 
   response.on('end', function() {
     var response = JSON.parse(str);
-    assert.equal(message, response['data']);
+    assert.equal(message, response.data);
   });
 });
 
@@ -85,7 +85,7 @@ var request3 = https.request(options, function(response) {
 
   response.on('end', function() {
     var response = JSON.parse(str);
-    assert.equal(message, response['data']);
+    assert.equal(message, response.data);
     isRequest3Finished = true;
   });
 });
@@ -96,7 +96,7 @@ request3.end(new Buffer(message));
 var isRequest4Finished = false;
 var readRequest = https.request({
   method: 'GET',
-  host: "httpbin.org",
+  host: 'httpbin.org',
   path: '/get'
 });
 

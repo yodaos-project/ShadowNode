@@ -12,11 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var EventEmitter = require('events').EventEmitter;
 var Pipe = require('pipe_wrap').Pipe;
-var constants = require('constants');
 var stream = require('stream');
 var util = require('util');
 var assert = require('assert');
@@ -360,7 +359,7 @@ protoGetter('localPort', function localPort() {
 
 
 function connect(socket, ip, port) {
-  var afterConnect = function(status) {
+  function afterConnect(status) {
     var state = socket._socketState;
     state.connecting = false;
 
@@ -368,7 +367,7 @@ function connect(socket, ip, port) {
       return;
     }
 
-    if (status == 0) {
+    if (status === 0) {
       onSocketConnect(socket);
       socket.emit('connect');
     } else {
@@ -376,7 +375,7 @@ function connect(socket, ip, port) {
       emitError(socket, new Error('connect failed - status: ' +
         tcp.errname(status)));
     }
-  };
+  }
 
   var err = socket._handle.connect(ip, port, afterConnect);
   if (err) {
@@ -476,7 +475,7 @@ function onread(socket, nread, isEOF, buffer) {
     // pushing readable stream null means EOF.
     stream.Readable.prototype.push.call(socket, null);
 
-    if (socket._readableState.length == 0) {
+    if (socket._readableState.length === 0) {
       // this socket is no longer readable.
       state.readable = false;
       // destroy if this socket is not writable.
@@ -495,13 +494,13 @@ function onread(socket, nread, isEOF, buffer) {
 
     var str = buffer.toString();
     var eofNeeded = false;
-    if (str.length >= 6
-      && str.substr(str.length - 6, str.length) == '\\e\\n\\d') {
+    if (str.length >= 6 &&
+      str.substr(str.length - 6, str.length) === '\\e\\n\\d') {
       eofNeeded = true;
       buffer = buffer.slice(0, str.length - 6);
     }
 
-    if (str.length == 6 && eofNeeded) {
+    if (str.length === 6 && eofNeeded) {
       // Socket.prototype.end with no argument
     } else {
       stream.Readable.prototype.push.call(socket, buffer);
@@ -524,7 +523,7 @@ function onSocketFinish() {
     return self.destroy();
   } else {
     // Readable stream alive, shutdown only outgoing stream.
-    var err = self._handle.shutdown(function() {
+    self._handle.shutdown(function() {
       if (self._readableState.ended) {
         self.destroy();
       }
@@ -612,7 +611,7 @@ Server.prototype.listen = function() {
   self._handle.createTCP = createTCP;
   self._handle.owner = self;
 
-  var err = self._handle.listen(backlog);
+  err = self._handle.listen(backlog);
   if (err) {
     var e = process._createUVException(err, 'listen');
     Object.assign(e, {
