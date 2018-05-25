@@ -29,8 +29,7 @@ iotjs_processwrap_t* iotjs_processwrap_create(const jerry_value_t value) {
   iotjs_processwrap_t* wrap = IOTJS_ALLOC(iotjs_processwrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_processwrap_t, wrap);
 
-  iotjs_handlewrap_initialize(&_this->handlewrap,
-                              value,
+  iotjs_handlewrap_initialize(&_this->handlewrap, value,
                               (uv_handle_t*)(&_this->handle),
                               &this_module_native_info);
   return wrap;
@@ -61,9 +60,8 @@ iotjs_processwrap_t* iotjs_processwrap_from_handle(uv_process_t* process) {
   return wrap;
 }
 
-static void iotjs_processwrap_onexit(uv_process_t* handle,
-                                 int64_t exit_status,
-                                 int term_signal) {
+static void iotjs_processwrap_onexit(uv_process_t* handle, int64_t exit_status,
+                                     int term_signal) {
   iotjs_processwrap_t* wrap = iotjs_processwrap_from_handle(handle);
   jerry_value_t jthis = iotjs_processwrap_get_jobject(wrap);
   IOTJS_ASSERT(wrap != NULL);
@@ -92,7 +90,7 @@ JS_FUNCTION(ProcessConstructor) {
 }
 
 static void iotjs_processwrap_parse_args_opts(jerry_value_t js_options,
-                                   uv_process_options_t* options) {
+                                              uv_process_options_t* options) {
   jerry_value_t jarr = iotjs_jval_get_property(js_options, "args");
   uint32_t len = jerry_get_array_length(jarr);
   if (len > 0) {
@@ -110,7 +108,7 @@ static void iotjs_processwrap_parse_args_opts(jerry_value_t js_options,
 }
 
 static void iotjs_processwrap_parse_envs_opts(jerry_value_t js_options,
-                                   uv_process_options_t* options) {
+                                              uv_process_options_t* options) {
   jerry_value_t jarr = iotjs_jval_get_property(js_options, "envPairs");
   uint32_t len = jerry_get_array_length(jarr);
   if (len > 0) {
@@ -128,12 +126,12 @@ static void iotjs_processwrap_parse_envs_opts(jerry_value_t js_options,
 }
 
 static void iotjs_processwrap_parse_stdio_opts(jerry_value_t js_options,
-                                           uv_process_options_t* options) {
+                                               uv_process_options_t* options) {
   jerry_value_t stdios = iotjs_jval_get_property(js_options, "stdio");
   uint32_t len = jerry_get_array_length(stdios);
 
   options->stdio =
-    (uv_stdio_container_t*)malloc(sizeof(uv_stdio_container_t) * len);
+      (uv_stdio_container_t*)malloc(sizeof(uv_stdio_container_t) * len);
   // TODO(Yorkie): check if malloc succeed.
   options->stdio_count = (int)len;
 
@@ -149,9 +147,9 @@ static void iotjs_processwrap_parse_stdio_opts(jerry_value_t js_options,
       jerry_value_t jhandle = iotjs_jval_get_property(stdio, "handle");
       iotjs_pipewrap_t* wrap = iotjs_pipewrap_from_jobject(jhandle);
       options->stdio[i].data.stream =
-        (uv_stream_t*)iotjs_pipewrap_get_handle(wrap);
+          (uv_stream_t*)iotjs_pipewrap_get_handle(wrap);
       options->stdio[i].flags = (uv_stdio_flags)(
-        UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
+          UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
       jerry_release_value(jhandle);
     } else if (!strcmp(type, "wrap")) {
       // TODO(Yorkie): to be done
@@ -178,23 +176,25 @@ JS_FUNCTION(ProcessSpawn) {
   memset(&options, 0, sizeof(uv_process_options_t));
   options.exit_cb = iotjs_processwrap_onexit;
 
-#define IOTJS_PROCESS_SET_XID(name, type) do {                                \
-  jerry_value_t val = iotjs_jval_get_property(js_options, #name);             \
-  if (!jerry_value_is_undefined(val) && !jerry_value_is_null(val)) {          \
-    options.flags |= type;                                                    \
-    options.name = (uv_##name##_t)jerry_get_number_value(val);                \
-  }                                                                           \
-  jerry_release_value(val);                                                   \
-} while (0)
+#define IOTJS_PROCESS_SET_XID(name, type)                              \
+  do {                                                                 \
+    jerry_value_t val = iotjs_jval_get_property(js_options, #name);    \
+    if (!jerry_value_is_undefined(val) && !jerry_value_is_null(val)) { \
+      options.flags |= type;                                           \
+      options.name = (uv_##name##_t)jerry_get_number_value(val);       \
+    }                                                                  \
+    jerry_release_value(val);                                          \
+  } while (0)
 
-#define IOTJS_PROCESS_SET_STRING(name) do {                                   \
-  jerry_value_t val = iotjs_jval_get_property(js_options, #name);             \
-  if (!jerry_value_is_undefined(val) && !jerry_value_is_null(val)) {          \
-    iotjs_string_t str = iotjs_jval_as_string(val);                           \
-    options.name = iotjs_string_data(&str);                                   \
-  }                                                                           \
-  jerry_release_value(val);                                                   \
-} while (0)
+#define IOTJS_PROCESS_SET_STRING(name)                                 \
+  do {                                                                 \
+    jerry_value_t val = iotjs_jval_get_property(js_options, #name);    \
+    if (!jerry_value_is_undefined(val) && !jerry_value_is_null(val)) { \
+      iotjs_string_t str = iotjs_jval_as_string(val);                  \
+      options.name = iotjs_string_data(&str);                          \
+    }                                                                  \
+    jerry_release_value(val);                                          \
+  } while (0)
 
   IOTJS_PROCESS_SET_XID(uid, UV_PROCESS_SETUID);
   IOTJS_PROCESS_SET_XID(gid, UV_PROCESS_SETGID);
@@ -246,11 +246,9 @@ void iotjs_processwrap_after_close(uv_handle_t* handle) {
   jerry_value_t jthis = iotjs_handlewrap_jobject(wrap);
 
   // callback function.
-  jerry_value_t jcallback =
-      iotjs_jval_get_property(jthis, "onclose");
+  jerry_value_t jcallback = iotjs_jval_get_property(jthis, "onclose");
   if (jerry_value_is_function(jcallback)) {
-    iotjs_make_callback(jcallback,
-                        jerry_create_undefined(),
+    iotjs_make_callback(jcallback, jerry_create_undefined(),
                         iotjs_jargs_get_empty());
   }
   jerry_release_value(jcallback);

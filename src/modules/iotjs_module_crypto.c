@@ -1,6 +1,6 @@
 #include "iotjs_def.h"
-#include "iotjs_objectwrap.h"
 #include "iotjs_module_crypto.h"
+#include "iotjs_objectwrap.h"
 
 #define CRYPTO_DRGB_PERSONAL_KEY "0d8958fffc9ac7845e9ef1e38f606edd"
 
@@ -28,9 +28,7 @@ JS_FUNCTION(RandomBytesSync) {
 jerry_value_t InitCrypto() {
   mbedtls_entropy_init(&entropy);
   mbedtls_ctr_drbg_init(&drgb_ctx);
-  mbedtls_ctr_drbg_seed(&drgb_ctx,
-                        mbedtls_entropy_func,
-                        &entropy,
+  mbedtls_ctr_drbg_seed(&drgb_ctx, mbedtls_entropy_func, &entropy,
                         (const unsigned char *)CRYPTO_DRGB_PERSONAL_KEY,
                         strlen(CRYPTO_DRGB_PERSONAL_KEY));
 

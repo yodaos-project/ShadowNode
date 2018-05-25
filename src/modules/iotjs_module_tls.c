@@ -1,16 +1,16 @@
-#include "mbedtls/net.h"
-#include "mbedtls/ssl.h"
-#include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/debug.h"
+#include "mbedtls/entropy.h"
 #include "mbedtls/error.h"
+#include "mbedtls/net.h"
 #include "mbedtls/platform.h"
+#include "mbedtls/ssl.h"
 
 #include "iotjs_def.h"
-#include "iotjs_objectwrap.h"
-#include "iotjs_module_crypto.h"
 #include "iotjs_module_buffer.h"
+#include "iotjs_module_crypto.h"
 #include "iotjs_module_tls_bio.h"
+#include "iotjs_objectwrap.h"
 
 #define DEBUG_LEVEL 1
 #define DESTROYED_TRUE 0x3096
@@ -18,31 +18,31 @@
 
 enum {
   SSL_HANDSHAKE_READY = 0,
-  SSL_HANDSHAKING     = 1,
-  SSL_HANDSHAKE_DONE  = 2,
+  SSL_HANDSHAKING = 1,
+  SSL_HANDSHAKE_DONE = 2,
 };
 
 typedef struct {
-  iotjs_jobjectwrap_t   jobjectwrap;
+  iotjs_jobjectwrap_t jobjectwrap;
 
   /**
    * SSL common structure
    */
-  mbedtls_x509_crt      ca_;
-  mbedtls_ssl_context   ssl_;
-  mbedtls_ssl_config    config_;
-  int                   handshake_state;
+  mbedtls_x509_crt ca_;
+  mbedtls_ssl_context ssl_;
+  mbedtls_ssl_config config_;
+  int handshake_state;
 
   /**
    * BIO buffer
    */
-  BIO*                  ssl_bio_;
-  BIO*                  app_bio_;
+  BIO* ssl_bio_;
+  BIO* app_bio_;
 
   /**
    * status
    */
-  unsigned int          destroyed;
+  unsigned int destroyed;
 
 } IOTJS_VALIDATED_STRUCT(iotjs_tlswrap_t);
 
@@ -57,29 +57,29 @@ static JNativeInfoType this_module_native_info = {
  * To add more than one root, just concatenate them.
  */
 const char SSL_CA_PEM[] =
-  "-----BEGIN CERTIFICATE-----\n"
-  "MIIDujCCAqKgAwIBAgILBAAAAAABD4Ym5g0wDQYJKoZIhvcNAQEFBQAwTDEgMB4GA1UECxMX\n"
-  "R2xvYmFsU2lnbiBSb290IENBIC0gUjIxEzARBgNVBAoTCkdsb2JhbFNpZ24xEzARBgNVBAMT\n"
-  "Ckdsb2JhbFNpZ24wHhcNMDYxMjE1MDgwMDAwWhcNMjExMjE1MDgwMDAwWjBMMSAwHgYDVQQL\n"
-  "ExdHbG9iYWxTaWduIFJvb3QgQ0EgLSBSMjETMBEGA1UEChMKR2xvYmFsU2lnbjETMBEGA1UE\n"
-  "AxMKR2xvYmFsU2lnbjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKbPJA6+Lm8o\n"
-  "mUVCxKs+IVSbC9N/hHD6ErPLv4dfxn+G07IwXNb9rfF73OX4YJYJkhD10FPe+3t+c4isUoh7\n"
-  "SqbKSaZeqKeMWhG8eoLrvozps6yWJQeXSpkqBy+0Hne/ig+1AnwblrjFuTosvNYSuetZfeLQ\n"
-  "BoZfXklqtTleiDTsvHgMCJiEbKjNS7SgfQx5TfC4LcshytVsW33hoCmEofnTlEnLJGKRILzd\n"
-  "C9XZzPnqJworc5HGnRusyMvo4KD0L5CLTfuwNhv2GXqF4G3yYROIXJ/gkwpRl4pazq+r1feq\n"
-  "CapgvdzZX99yqWATXgAByUr6P6TqBwMhAo6CygPCm48CAwEAAaOBnDCBmTAOBgNVHQ8BAf8E\n"
-  "BAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUm+IHV2ccHsBqBt5ZtJot39wZhi4w\n"
-  "NgYDVR0fBC8wLTAroCmgJ4YlaHR0cDovL2NybC5nbG9iYWxzaWduLm5ldC9yb290LXIyLmNy\n"
-  "bDAfBgNVHSMEGDAWgBSb4gdXZxwewGoG3lm0mi3f3BmGLjANBgkqhkiG9w0BAQUFAAOCAQEA\n"
-  "mYFThxxol4aR7OBKuEQLq4GsJ0/WwbgcQ3izDJr86iw8bmEbTUsp9Z8FHSbBuOmDAGJFtqkI\n"
-  "k7mpM0sYmsL4h4hO291xNBrBVNpGP+DTKqttVCL1OmLNIG+6KYnX3ZHu01yiPqFbQfXf5WRD\n"
-  "LenVOavSot+3i9DAgBkcRcAtjOj4LaR0VknFBbVPFd5uRHg5h6h+u/N5GJG79G+dwfCMNYxd\n"
-  "AfvDbbnvRG15RjF+Cv6pgsH/76tuIMRQyV+dTZsXjAzlAcmgQWpzU/qlULRuJQ/7TBj0/VLZ\n"
-  "jmmx6BEP3ojY+x1J96relc8geMJgEtslQIxq/H5COEBkEveegeGTLg==\n"
-  "-----END CERTIFICATE-----\n";
+    "-----BEGIN CERTIFICATE-----\n"
+    "MIIDujCCAqKgAwIBAgILBAAAAAABD4Ym5g0wDQYJKoZIhvcNAQEFBQAwTDEgMB4GA1UECxMX\n"
+    "R2xvYmFsU2lnbiBSb290IENBIC0gUjIxEzARBgNVBAoTCkdsb2JhbFNpZ24xEzARBgNVBAMT\n"
+    "Ckdsb2JhbFNpZ24wHhcNMDYxMjE1MDgwMDAwWhcNMjExMjE1MDgwMDAwWjBMMSAwHgYDVQQL\n"
+    "ExdHbG9iYWxTaWduIFJvb3QgQ0EgLSBSMjETMBEGA1UEChMKR2xvYmFsU2lnbjETMBEGA1UE\n"
+    "AxMKR2xvYmFsU2lnbjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKbPJA6+Lm8o\n"
+    "mUVCxKs+IVSbC9N/hHD6ErPLv4dfxn+G07IwXNb9rfF73OX4YJYJkhD10FPe+3t+c4isUoh7\n"
+    "SqbKSaZeqKeMWhG8eoLrvozps6yWJQeXSpkqBy+0Hne/ig+1AnwblrjFuTosvNYSuetZfeLQ\n"
+    "BoZfXklqtTleiDTsvHgMCJiEbKjNS7SgfQx5TfC4LcshytVsW33hoCmEofnTlEnLJGKRILzd\n"
+    "C9XZzPnqJworc5HGnRusyMvo4KD0L5CLTfuwNhv2GXqF4G3yYROIXJ/gkwpRl4pazq+r1feq\n"
+    "CapgvdzZX99yqWATXgAByUr6P6TqBwMhAo6CygPCm48CAwEAAaOBnDCBmTAOBgNVHQ8BAf8E\n"
+    "BAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUm+IHV2ccHsBqBt5ZtJot39wZhi4w\n"
+    "NgYDVR0fBC8wLTAroCmgJ4YlaHR0cDovL2NybC5nbG9iYWxzaWduLm5ldC9yb290LXIyLmNy\n"
+    "bDAfBgNVHSMEGDAWgBSb4gdXZxwewGoG3lm0mi3f3BmGLjANBgkqhkiG9w0BAQUFAAOCAQEA\n"
+    "mYFThxxol4aR7OBKuEQLq4GsJ0/WwbgcQ3izDJr86iw8bmEbTUsp9Z8FHSbBuOmDAGJFtqkI\n"
+    "k7mpM0sYmsL4h4hO291xNBrBVNpGP+DTKqttVCL1OmLNIG+6KYnX3ZHu01yiPqFbQfXf5WRD\n"
+    "LenVOavSot+3i9DAgBkcRcAtjOj4LaR0VknFBbVPFd5uRHg5h6h+u/N5GJG79G+dwfCMNYxd\n"
+    "AfvDbbnvRG15RjF+Cv6pgsH/76tuIMRQyV+dTZsXjAzlAcmgQWpzU/qlULRuJQ/7TBj0/VLZ\n"
+    "jmmx6BEP3ojY+x1J96relc8geMJgEtslQIxq/H5COEBkEveegeGTLg==\n"
+    "-----END CERTIFICATE-----\n";
 
 
-static void print_mbedtls_error(const char *name, int err) {
+static void print_mbedtls_error(const char* name, int err) {
   if (err > 0) {
     return;
   }
@@ -92,8 +92,7 @@ static void print_mbedtls_error(const char *name, int err) {
 static iotjs_tlswrap_t* iotjs_tlswrap_create(const jerry_value_t value) {
   iotjs_tlswrap_t* tlswrap = IOTJS_ALLOC(iotjs_tlswrap_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_tlswrap_t, tlswrap);
-  iotjs_jobjectwrap_initialize(&_this->jobjectwrap,
-                               value,
+  iotjs_jobjectwrap_initialize(&_this->jobjectwrap, value,
                                &this_module_native_info);
 
   _this->destroyed = DESTROYED_INIT;
@@ -129,14 +128,13 @@ JS_FUNCTION(TlsConstructor) {
   jerry_value_t jca_txt = iotjs_jval_get_property(opts, "ca");
   if (jerry_value_is_string(jca_txt)) {
     iotjs_string_t ca_txt = iotjs_jval_as_string(jca_txt);
-    ret = mbedtls_x509_crt_parse(
-      &_this->ca_,
-      (const unsigned char*)iotjs_string_data(&ca_txt),
-      (size_t)iotjs_string_size(&ca_txt) + 1);
+    ret =
+        mbedtls_x509_crt_parse(&_this->ca_,
+                               (const unsigned char*)iotjs_string_data(&ca_txt),
+                               (size_t)iotjs_string_size(&ca_txt) + 1);
     iotjs_string_destroy(&ca_txt);
   } else {
-    ret = mbedtls_x509_crt_parse(&_this->ca_,
-                                 (const unsigned char*)SSL_CA_PEM,
+    ret = mbedtls_x509_crt_parse(&_this->ca_, (const unsigned char*)SSL_CA_PEM,
                                  sizeof(SSL_CA_PEM));
   }
   if (ret != 0) {
@@ -147,8 +145,7 @@ JS_FUNCTION(TlsConstructor) {
   mbedtls_ssl_conf_rng(&_this->config_, mbedtls_ctr_drbg_random, &drgb_ctx);
   jerry_release_value(jca_txt);
 
-  if ((ret = mbedtls_ssl_config_defaults(&_this->config_,
-                                         MBEDTLS_SSL_IS_CLIENT,
+  if ((ret = mbedtls_ssl_config_defaults(&_this->config_, MBEDTLS_SSL_IS_CLIENT,
                                          MBEDTLS_SSL_TRANSPORT_STREAM,
                                          MBEDTLS_SSL_PRESET_DEFAULT)) != 0) {
     return JS_CREATE_ERROR(COMMON, "SSL configuration failed.");
@@ -158,12 +155,11 @@ JS_FUNCTION(TlsConstructor) {
    * options.rejectUnauthorized
    */
   jerry_value_t jrejectUnauthorized =
-    iotjs_jval_get_property(opts, "rejectUnauthorized");
+      iotjs_jval_get_property(opts, "rejectUnauthorized");
   bool rejectUnauthorized = iotjs_jval_as_boolean(jrejectUnauthorized);
-  mbedtls_ssl_conf_authmode(&_this->config_,
-                            rejectUnauthorized ?
-                              MBEDTLS_SSL_VERIFY_REQUIRED :
-                              MBEDTLS_SSL_VERIFY_NONE);
+  mbedtls_ssl_conf_authmode(&_this->config_, rejectUnauthorized
+                                                 ? MBEDTLS_SSL_VERIFY_REQUIRED
+                                                 : MBEDTLS_SSL_VERIFY_NONE);
   jerry_release_value(jrejectUnauthorized);
 
   /**
@@ -194,11 +190,8 @@ JS_FUNCTION(TlsConstructor) {
   _this->ssl_bio_ = iotjs_ssl_bio_new(BIO_BIO);
   _this->app_bio_ = iotjs_ssl_bio_new(BIO_BIO);
   iotjs_bio_make_bio_pair(_this->ssl_bio_, _this->app_bio_);
-  mbedtls_ssl_set_bio(&_this->ssl_,
-                      _this->ssl_bio_,
-                      iotjs_bio_net_send,
-                      iotjs_bio_net_recv,
-                      NULL);
+  mbedtls_ssl_set_bio(&_this->ssl_, _this->ssl_bio_, iotjs_bio_net_send,
+                      iotjs_bio_net_recv, NULL);
   return jerry_create_undefined();
 }
 
@@ -212,8 +205,11 @@ jerry_value_t iotjs_tlswrap_encode_data(iotjs_tlswrap_t_impl_t* _this,
   if (inbuf_len > MBEDTLS_SSL_MAX_CONTENT_LEN) {
     return JS_CREATE_ERROR(COMMON, "tls encode data is too large");
   }
-  size_t rv = (size_t)mbedtls_ssl_write(&_this->ssl_,
-    (const unsigned char*)iotjs_bufferwrap_buffer(inbuf), inbuf_len);
+  size_t rv =
+      (size_t)mbedtls_ssl_write(&_this->ssl_,
+                                (const unsigned char*)iotjs_bufferwrap_buffer(
+                                    inbuf),
+                                inbuf_len);
   size_t pending = 0;
   if ((pending = iotjs_bio_ctrl_pending(_this->app_bio_)) > 0) {
     const char tmpbuf[pending];
@@ -252,8 +248,7 @@ void iotjs_tlswrap_stay_update(iotjs_tlswrap_t_impl_t* _this) {
 }
 
 int iotjs_tlswrap_error_handler(iotjs_tlswrap_t_impl_t* _this, const int code) {
-  if (code == MBEDTLS_ERR_SSL_WANT_WRITE ||
-    code == MBEDTLS_ERR_SSL_WANT_READ) {
+  if (code == MBEDTLS_ERR_SSL_WANT_WRITE || code == MBEDTLS_ERR_SSL_WANT_READ) {
     iotjs_tlswrap_stay_update(_this);
   } else if (code == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
     return code;
@@ -290,9 +285,8 @@ JS_FUNCTION(TlsHandshake) {
     int verify_status = (int)mbedtls_ssl_get_verify_result(&_this->ssl_);
     if (verify_status) {
       char buf[512];
-      mbedtls_x509_crt_verify_info(buf,
-                                   sizeof(buf), "::",
-                                   (uint32_t)verify_status);
+      mbedtls_x509_crt_verify_info(buf, sizeof(buf),
+                                   "::", (uint32_t)verify_status);
       mbedtls_printf("%s\n", buf);
     }
 
@@ -321,8 +315,8 @@ JS_FUNCTION(TlsRead) {
   iotjs_bio_write(_this->app_bio_, iotjs_bufferwrap_buffer(bufwrap), size);
 
   jerry_value_t checker = iotjs_jval_get_property(jthis, "handshake");
-  jerry_value_t res = iotjs_make_callback_with_result(checker, jthis,
-                                                      iotjs_jargs_get_empty());
+  jerry_value_t res =
+      iotjs_make_callback_with_result(checker, jthis, iotjs_jargs_get_empty());
 
   int res_ = iotjs_jval_as_number(res);
   jerry_release_value(checker);
@@ -364,7 +358,7 @@ JS_FUNCTION(TlsRead) {
       jerry_release_value(fn);
       break;
     } else if (rv == MBEDTLS_ERR_SSL_WANT_READ ||
-      rv == MBEDTLS_ERR_SSL_WANT_WRITE) {
+               rv == MBEDTLS_ERR_SSL_WANT_WRITE) {
       break;
     } else {
       // print_mbedtls_error("tls_read", rv);
@@ -383,8 +377,7 @@ JS_FUNCTION(TlsEnd) {
 
 jerry_value_t InitTls() {
   jerry_value_t tls = jerry_create_object();
-  jerry_value_t tlsConstructor =
-      jerry_create_external_function(TlsConstructor);
+  jerry_value_t tlsConstructor = jerry_create_external_function(TlsConstructor);
   iotjs_jval_set_property_jval(tls, "TlsWrap", tlsConstructor);
 
   jerry_value_t proto = jerry_create_object();

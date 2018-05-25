@@ -1,9 +1,9 @@
 #include "iotjs_def.h"
-#include "iotjs_objectwrap.h"
 #include "iotjs_module_buffer.h"
-#include "zlib.h"
-#include <sys/types.h>
+#include "iotjs_objectwrap.h"
 #include <stdlib.h>
+#include <sys/types.h>
+#include "zlib.h"
 
 // Custom constants used by both node_constants.cc and node_zlib.cc
 #define Z_MIN_WINDOWBITS 8
@@ -116,15 +116,13 @@ static void iotjs_zlib_set_dir(iotjs_zlib_t_impl_t* _this) {
   switch (_this->mode_) {
     case DEFLATE:
     case DEFLATERAW:
-      _this->err_ = deflateSetDictionary(&_this->strm_,
-                                         _this->dictionary_,
+      _this->err_ = deflateSetDictionary(&_this->strm_, _this->dictionary_,
                                          _this->dictionary_len_);
       break;
     case INFLATERAW:
       // The other inflate cases will have the dictionary set when inflate()
       // returns Z_NEED_DICT in Process()
-      _this->err_ = inflateSetDictionary(&_this->strm_,
-                                         _this->dictionary_,
+      _this->err_ = inflateSetDictionary(&_this->strm_, _this->dictionary_,
                                          _this->dictionary_len_);
       break;
     default:
@@ -204,13 +202,11 @@ static void iotjs_zlib_process(uv_work_t* work_req) {
 
       // If data was encoded with dictionary (INFLATERAW will have it set in
       // SetDictionary, don't repeat that here)
-      if (_this->mode_ != INFLATERAW &&
-          _this->err_ == Z_NEED_DICT &&
+      if (_this->mode_ != INFLATERAW && _this->err_ == Z_NEED_DICT &&
           _this->dictionary_ != NULL) {
         // Load it
-        _this->err_ = inflateSetDictionary(&_this->strm_,
-                                         _this->dictionary_,
-                                         _this->dictionary_len_);
+        _this->err_ = inflateSetDictionary(&_this->strm_, _this->dictionary_,
+                                           _this->dictionary_len_);
         if (_this->err_ == Z_OK) {
           // And try to decode again
           _this->err_ = inflate(&_this->strm_, _this->flush_);
@@ -222,10 +218,8 @@ static void iotjs_zlib_process(uv_work_t* work_req) {
         }
       }
 
-      while (_this->strm_.avail_in > 0 &&
-             _this->mode_ == GUNZIP &&
-             _this->err_ == Z_STREAM_END &&
-             _this->strm_.next_in[0] != 0x00) {
+      while (_this->strm_.avail_in > 0 && _this->mode_ == GUNZIP &&
+             _this->err_ == Z_STREAM_END && _this->strm_.next_in[0] != 0x00) {
         // Bytes remain in input buffer. Perhaps this is another compressed
         // member in the same archive, or just trailing garbage.
         // Trailing zero bytes are okay, though, since they are frequently
@@ -258,9 +252,9 @@ static void iotjs_zlib_after_process(uv_work_t* work_req, int status) {
     free(_this->out_);
 
   jerry_set_property_by_index(_this->write_result_, 0,
-    jerry_create_number(_this->strm_.avail_out));
+                              jerry_create_number(_this->strm_.avail_out));
   jerry_set_property_by_index(_this->write_result_, 1,
-    jerry_create_number(_this->strm_.avail_in));
+                              jerry_create_number(_this->strm_.avail_in));
   _this->write_in_progress_ = false;
 
   iotjs_jargs_t jargs = iotjs_jargs_create(0);
@@ -280,11 +274,11 @@ JS_FUNCTION(ZlibInit) {
 
   if (jargc == 5) {
     fprintf(stderr,
-      "WARNING: You are likely using a version of node-tar or npm that "
-      "is incompatible with this version of Node.js.\nPlease use "
-      "either the version of npm that is bundled with Node.js, or "
-      "a version of npm (> 5.5.1 or < 5.4.0) or node-tar (> 4.0.1) "
-      "that is compatible with Node.js 9 and above.\n");
+            "WARNING: You are likely using a version of node-tar or npm that "
+            "is incompatible with this version of Node.js.\nPlease use "
+            "either the version of npm that is bundled with Node.js, or "
+            "a version of npm (> 5.5.1 or < 5.4.0) or node-tar (> 4.0.1) "
+            "that is compatible with Node.js 9 and above.\n");
   }
 
   int windowBits = jerry_get_number_value(jargv[0]);
@@ -303,11 +297,9 @@ JS_FUNCTION(ZlibInit) {
   }
 
   int strategy = jerry_get_number_value(jargv[3]);
-  if (strategy != Z_FILTERED &&
-    strategy != Z_HUFFMAN_ONLY &&
-    strategy != Z_RLE &&
-    strategy != Z_FIXED &&
-    strategy != Z_DEFAULT_STRATEGY) {
+  if (strategy != Z_FILTERED && strategy != Z_HUFFMAN_ONLY &&
+      strategy != Z_RLE && strategy != Z_FIXED &&
+      strategy != Z_DEFAULT_STRATEGY) {
     return JS_CREATE_ERROR(COMMON, "invalid strategy");
   }
 
@@ -340,12 +332,9 @@ JS_FUNCTION(ZlibInit) {
     case DEFLATE:
     case GZIP:
     case DEFLATERAW:
-      _this->err_ = deflateInit2(&_this->strm_,
-                                 _this->level_,
-                                 Z_DEFLATED,
-                                 _this->windowBits_,
-                                 _this->memLevel_,
-                                 _this->strategy_);
+      _this->err_ =
+          deflateInit2(&_this->strm_, _this->level_, Z_DEFLATED,
+                       _this->windowBits_, _this->memLevel_, _this->strategy_);
       break;
     case INFLATE:
     case GUNZIP:
@@ -375,11 +364,8 @@ JS_FUNCTION(ZlibWrite) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_zlib_t, zlib);
 
   int flush = jerry_get_number_value(jargv[0]);
-  if (flush != Z_NO_FLUSH &&
-      flush != Z_PARTIAL_FLUSH &&
-      flush != Z_SYNC_FLUSH &&
-      flush != Z_FULL_FLUSH &&
-      flush != Z_FINISH &&
+  if (flush != Z_NO_FLUSH && flush != Z_PARTIAL_FLUSH &&
+      flush != Z_SYNC_FLUSH && flush != Z_FULL_FLUSH && flush != Z_FINISH &&
       flush != Z_BLOCK) {
     return JS_CREATE_ERROR(COMMON, "Invalid flush value");
   }
@@ -480,20 +466,16 @@ JS_FUNCTION(ZlibClose) {
 
   _this->pending_close_ = false;
   int status = Z_OK;
-  if (_this->mode_ == DEFLATE ||
-      _this->mode_ == GZIP ||
+  if (_this->mode_ == DEFLATE || _this->mode_ == GZIP ||
       _this->mode_ == DEFLATERAW) {
     status = deflateEnd(&_this->strm_);
-  } else if (_this->mode_ == INFLATE ||
-             _this->mode_ == GUNZIP ||
-             _this->mode_ == INFLATERAW ||
-             _this->mode_ == UNZIP) {
+  } else if (_this->mode_ == INFLATE || _this->mode_ == GUNZIP ||
+             _this->mode_ == INFLATERAW || _this->mode_ == UNZIP) {
     status = inflateEnd(&_this->strm_);
   }
 
   if (status != Z_OK && status != Z_DATA_ERROR) {
-    return JS_CREATE_ERROR(COMMON,
-      "`status` should be Z_OK or Z_DATA_ERROR");
+    return JS_CREATE_ERROR(COMMON, "`status` should be Z_OK or Z_DATA_ERROR");
   }
   _this->mode_ = NONE;
 
@@ -506,9 +488,10 @@ JS_FUNCTION(ZlibClose) {
 
 jerry_value_t InitZlib() {
   jerry_value_t exports = jerry_create_object();
-#define IOTJS_DEFINE_ZLIB_CONSTANTS(name) do {            \
-  iotjs_jval_set_property_number(exports, #name, name);   \
-} while (0)
+#define IOTJS_DEFINE_ZLIB_CONSTANTS(name)                 \
+  do {                                                    \
+    iotjs_jval_set_property_number(exports, #name, name); \
+  } while (0)
 
   // states
   IOTJS_DEFINE_ZLIB_CONSTANTS(Z_NO_FLUSH);

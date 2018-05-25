@@ -14,9 +14,9 @@ before_install:
   - npm install
 
 script:
-  - tools/check_tidy.py # check clang/shell/python/cmake syntax rules
-  - npx eslint .        # check JavaScript rules
-  - tools/build.py --tests --no-check-valgrind
+  - tools/check_tidy.py && \
+    npx eslint . && \
+    tools/build.py --tests --no-check-valgrind
 
 env:
   matrix:

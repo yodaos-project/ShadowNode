@@ -21,9 +21,9 @@
 #include <string.h>
 
 
-static iotjs_jargs_t jargs_empty = {.unsafe = { 0, 0, NULL },
+static iotjs_jargs_t jargs_empty = { .unsafe = { 0, 0, NULL },
 #ifndef NDEBUG
-                                    .flag_create = IOTJS_VALID_MAGIC_SEQUENCE
+                                     .flag_create = IOTJS_VALID_MAGIC_SEQUENCE
 #endif /* !NDEBUG */
 };
 

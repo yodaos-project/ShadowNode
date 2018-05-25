@@ -1,6 +1,6 @@
 #include "iotjs_def.h"
-#include "iotjs_objectwrap.h"
 #include "iotjs_module_buffer.h"
+#include "iotjs_objectwrap.h"
 #include <mbedtls/md.h>
 
 typedef struct {
@@ -59,7 +59,7 @@ JS_FUNCTION(HashUpdate) {
   jerry_size_t size = jerry_get_string_size(value);
   jerry_char_t buf[size];
   jerry_string_to_char_buffer(value, buf, size);
-  mbedtls_md_update(&_this->ctx, (const unsigned char *)buf, size);
+  mbedtls_md_update(&_this->ctx, (const unsigned char*)buf, size);
   return jerry_create_null();
 }
 

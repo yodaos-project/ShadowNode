@@ -16,8 +16,8 @@
 #ifndef IOTJS_BINDING_H
 #define IOTJS_BINDING_H
 
-#include "iotjs_util.h"
 #include "iotjs_string.h"
+#include "iotjs_util.h"
 #include "jerryscript.h"
 
 #include <stdio.h>
