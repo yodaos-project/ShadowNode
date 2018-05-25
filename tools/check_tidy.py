@@ -95,7 +95,7 @@ class ClangFormat(object):
         self._extensions = extensions
         self._skip_files = skip_files
         self._options = options
-        self._check_clang_format("clang-format-3.8")
+        self._check_clang_format("clang-format-7.0")
 
     def _check_clang_format(self, base):
         clang_format = spawn.find_executable(base)
