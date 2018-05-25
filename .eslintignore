@@ -5,3 +5,4 @@
 /test/**
 /node_modules/**
 /src/js/ble*
+/src/js/iotjs.js

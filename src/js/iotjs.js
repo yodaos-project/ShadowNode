@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
 (function() {
   this.global = this;
@@ -22,9 +21,7 @@
     this.exports = {};
   }
 
-
   Module.cache = {};
-
   Module.require = function(id) {
     if (id === 'native') {
       return Module;
@@ -124,7 +121,7 @@
   if (typeof Object.assign != 'function') {
     // Must be writable: true, enumerable: false, configurable: true
     Object.defineProperty(Object, 'assign', {
-      value: function value(target, varArgs) { // .length of function is 2
+      value: function(target, varArgs) { // .length of function is 2
         if (target == null) { // TypeError if undefined or null
           throw new TypeError('Cannot convert undefined or null to object');
         }
@@ -383,11 +380,11 @@
         prototypeOk = false;
       }
       if (handler.get || !prototypeOk) {
-        for (var k0 in target) {
-          if (propertyMap[k0]) {
+        for (var _k in target) {
+          if (propertyMap[_k]) {
             continue;
           }
-          Object.defineProperty(proxy, k0, { get: getter.bind(target, k0) });
+          Object.defineProperty(proxy, _k, { get: getter.bind(target, _k) });
         }
       }
 

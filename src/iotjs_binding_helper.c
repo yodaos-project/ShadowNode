@@ -35,7 +35,7 @@ void iotjs_uncaught_exception(jerry_value_t jexception) {
   }
 
   jerry_value_t jonuncaughtexception =
-      iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONUNCAUGHTEXCEPTION);
+    iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONUNCAUGHTEXCEPTION);
   IOTJS_ASSERT(jerry_value_is_function(jonuncaughtexception));
 
   iotjs_jargs_t args = iotjs_jargs_create(3);
