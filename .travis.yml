@@ -14,6 +14,7 @@ before_install:
   - npm install
 
 script:
+  - clang-format --version
   - tools/check_tidy.py && \
     npx eslint . && \
     tools/build.py --tests --no-check-valgrind

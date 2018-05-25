@@ -109,8 +109,7 @@ class ClangFormat(object):
                 print("%sNo %s found, skipping checks!%s"
                       % (ex._TERM_RED, base, ex._TERM_EMPTY))
 
-        # self._clang_format = clang_format
-        self._clang_format = False
+        self._clang_format = clang_format
 
     @property
     def error_count(self):
