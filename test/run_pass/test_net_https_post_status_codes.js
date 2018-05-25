@@ -20,17 +20,17 @@ var https = require('https');
 var isRequest1Finished = false;
 // 1. POST req
 var data = JSON.stringify({ data: { temp: 50, onFire: false },
-  sdid: '170e5221612b4bc38dce53fd4395174a',
-  type: 'message' });
+                            sdid: '170e5221612b4bc38dce53fd4395174a',
+                            type: 'message' });
 
 var options = {
-  "method": "POST",
-  "hostname": "api.artik.cloud",
-  "path": "/v1.1/messages",
-  "headers": {
-    "content-type": "application/json",
-    "content-length": data.length,
-    "authorization": "Bearer 1718113118564ad495ad03f04116f379"
+  'method': 'POST',
+  'hostname': 'api.artik.cloud',
+  'path': '/v1.1/messages',
+  'headers': {
+    'content-type': 'application/json',
+    'content-length': data.length,
+    'authorization': 'Bearer 1718113118564ad495ad03f04116f379'
   }
 };
 
@@ -41,7 +41,7 @@ var getResponseHandler = function(res) {
 
   var endHandler = function() {
     var response = JSON.parse(res_body);
-    assert.assert(response['data'], 'Recieved incorrect response from server');
+    assert.assert(response.data, 'Recieved incorrect response from server');
     isRequest1Finished = true;
   };
   res.on('end', endHandler);

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var Native = require('native');
 var fs = Native.require('fs');
@@ -90,12 +90,12 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
     }
 
     if (process.platform === 'tizenrt' &&
-        (modulePath.indexOf('../') != -1 || modulePath.indexOf('./') != -1)) {
+        (modulePath.indexOf('../') !== -1 || modulePath.indexOf('./') !== -1)) {
       modulePath = iotjs_module_t.normalizePath(modulePath);
     }
 
-    var filepath,
-        ext = '.js';
+    var filepath;
+    var ext = '.js';
 
     // id[.ext]
     if (filepath = tryPath(modulePath, ext)) {
@@ -261,16 +261,15 @@ iotjs_module_t.prototype.compile = function(snapshot) {
   ]);
 };
 
-
-function makeSnapshot(id) {
-  var filename = iotjs_module_t.resolveModPath(id, null);
-  if (!filename) {
-    throw new Error('Module not found: ' + id);
-  }
-  var source = process.readSource(filename);
-  return process.makeSnapshot(filename, source);
-}
-
+// FIXME(Yorkie): dont use it
+// function makeSnapshot(id) {
+//   var filename = iotjs_module_t.resolveModPath(id, null);
+//   if (!filename) {
+//     throw new Error('Module not found: ' + id);
+//   }
+//   var source = process.readSource(filename);
+//   return process.makeSnapshot(filename, source);
+// }
 
 iotjs_module_t.runMain = function() {
   if (process.debuggerWaitSource) {

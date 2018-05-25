@@ -16,14 +16,14 @@
 /* Just for the testrunner to get runtime information about the build. */
 var builtins = process.builtin_modules;
 
-if (process.env.IOTJS_ENV.indexOf("experimental") > -1)
-    stability = "experimental"
+if (process.env.IOTJS_ENV.indexOf('experimental') > -1)
+  stability = 'experimental';
 else
-    stability = "stable"
+  stability = 'stable';
 
 result = {
-    'builtins': builtins,
-    'stability': stability
-}
+  'builtins': builtins,
+  'stability': stability
+};
 
-console.log(JSON.stringify(result))
+console.log(JSON.stringify(result));

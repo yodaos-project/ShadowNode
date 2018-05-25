@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var util = require('util');
 
@@ -36,7 +36,7 @@ EventEmitter.prototype.emit = function(type) {
     if (err instanceof Error) {
       throw err;
     } else {
-      throw Error('Uncaught \'error\' event');
+      throw new Error('Uncaught \'error\' event');
     }
   }
 
@@ -80,6 +80,7 @@ EventEmitter.prototype.once = function(type, listener) {
     throw new TypeError('listener must be a function');
   }
 
+  // eslint-disable-next-line func-style
   var f = function() {
     // here `this` is this not global, because EventEmitter binds event object
     // for this when it calls back the handler.
@@ -104,8 +105,8 @@ EventEmitter.prototype.removeListener = function(type, listener) {
   var list = this._events[type];
   if (Array.isArray(list)) {
     for (var i = list.length - 1; i >= 0; --i) {
-      if (list[i] == listener ||
-          (list[i].listener && list[i].listener == listener)) {
+      if (list[i] === listener ||
+          (list[i].listener && list[i].listener === listener)) {
         list.splice(i, 1);
         if (!list.length) {
           delete this._events[type];
@@ -141,7 +142,7 @@ EventEmitter.prototype.listeners = function(type) {
 
   if (typeof evlistener === 'function')
     return [evlistener.listener || evlistener];
-  
+
   return unwrapListeners(evlistener);
 };
 

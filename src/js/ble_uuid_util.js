@@ -33,6 +33,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+'use strict';
 
 module.exports.removeDashes = function(uuid) {
   if (uuid) {
@@ -57,4 +58,4 @@ module.exports.reverseByteOrder = function(str, joint) {
   else if (joint !== '') uuid = uuid.substring(1, uuid.length);
 
   return uuid;
-}
+};

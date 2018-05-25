@@ -16,14 +16,14 @@
 var http = require('http');
 var port = 8080;
 
-http.createServer(function (req, res) {
+http.createServer(function(req, res) {
   if (req.method == 'GET') {
     status(res, 'Hello, IoT.JS!');
 
   } else if (req.method == 'POST') {
-    receive(req, function (data) {
+    receive(req, function(data) {
       var obj = JSON.parse(data);
-      obj.answer = 'Hello, There!'
+      obj.answer = 'Hello, There!';
       status(res, obj);
     });
   }
@@ -32,11 +32,11 @@ http.createServer(function (req, res) {
 function receive(incoming, callback) {
   var data = '';
 
-  incoming.on('data', function (chunk) {
+  incoming.on('data', function(chunk) {
     data += chunk;
   });
 
-  incoming.on('end', function () {
+  incoming.on('end', function() {
     callback ? callback(data) : '';
   });
 }
@@ -57,4 +57,4 @@ function status(res, data) {
 
   res.writeHead(200, headers);
   res.end(data);
-};
+}

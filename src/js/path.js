@@ -18,84 +18,12 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
+'use strict';
 
 function assertPath(path) {
   if (typeof path !== 'string') {
     throw new TypeError('Path must be a string. Received ' + path);
   }
-}
-
-// Resolves . and .. elements in a path with directory names
-function normalizeStringWin32(path, allowAboveRoot) {
-  var res = '';
-  var lastSegmentLength = 0;
-  var lastSlash = -1;
-  var dots = 0;
-  var code;
-  for (var i = 0; i <= path.length; ++i) {
-    if (i < path.length)
-      code = path.charCodeAt(i);
-    else if (code === 47/*/*/ || code === 92/*\*/)
-      break;
-    else
-      code = 47/*/*/;
-    if (code === 47/*/*/ || code === 92/*\*/) {
-      if (lastSlash === i - 1 || dots === 1) {
-        // NOOP
-      } else if (lastSlash !== i - 1 && dots === 2) {
-        if (res.length < 2 || lastSegmentLength !== 2 ||
-            res.charCodeAt(res.length - 1) !== 46/*.*/ ||
-            res.charCodeAt(res.length - 2) !== 46/*.*/) {
-          if (res.length > 2) {
-            var start = res.length - 1;
-            var j = start;
-            for (; j >= 0; --j) {
-              if (res.charCodeAt(j) === 92/*\*/)
-                break;
-            }
-            if (j !== start) {
-              if (j === -1) {
-                res = '';
-                lastSegmentLength = 0;
-              } else {
-                res = res.slice(0, j);
-                lastSegmentLength = j;
-              }
-              lastSlash = i;
-              dots = 0;
-              continue;
-            }
-          } else if (res.length === 2 || res.length === 1) {
-            res = '';
-            lastSegmentLength = 0;
-            lastSlash = i;
-            dots = 0;
-            continue;
-          }
-        }
-        if (allowAboveRoot) {
-          if (res.length > 0)
-            res += '\\..';
-          else
-            res = '..';
-          lastSegmentLength = 2;
-        }
-      } else {
-        if (res.length > 0)
-          res += '\\' + path.slice(lastSlash + 1, i);
-        else
-          res = path.slice(lastSlash + 1, i);
-        lastSegmentLength = i - lastSlash - 1;
-      }
-      lastSlash = i;
-      dots = 0;
-    } else if (code === 46/*.*/ && dots !== -1) {
-      ++dots;
-    } else {
-      dots = -1;
-    }
-  }
-  return res;
 }
 
 // Resolves . and .. elements in a path with directory names
@@ -108,22 +36,22 @@ function normalizeStringPosix(path, allowAboveRoot) {
   for (var i = 0; i <= path.length; ++i) {
     if (i < path.length)
       code = path.charCodeAt(i);
-    else if (code === 47/*/*/)
+    else if (code === 47/* / */)
       break;
     else
-      code = 47/*/*/;
-    if (code === 47/*/*/) {
+      code = 47/* / */;
+    if (code === 47/* / */) {
       if (lastSlash === i - 1 || dots === 1) {
         // NOOP
       } else if (lastSlash !== i - 1 && dots === 2) {
         if (res.length < 2 || lastSegmentLength !== 2 ||
-            res.charCodeAt(res.length - 1) !== 46/*.*/ ||
-            res.charCodeAt(res.length - 2) !== 46/*.*/) {
+            res.charCodeAt(res.length - 1) !== 46/* . */ ||
+            res.charCodeAt(res.length - 2) !== 46/* . */) {
           if (res.length > 2) {
             var start = res.length - 1;
             var j = start;
             for (; j >= 0; --j) {
-              if (res.charCodeAt(j) === 47/*/*/)
+              if (res.charCodeAt(j) === 47/* / */)
                 break;
             }
             if (j !== start) {
@@ -162,7 +90,7 @@ function normalizeStringPosix(path, allowAboveRoot) {
       }
       lastSlash = i;
       dots = 0;
-    } else if (code === 46/*.*/ && dots !== -1) {
+    } else if (code === 46/* . */ && dots !== -1) {
       ++dots;
     } else {
       dots = -1;
@@ -209,7 +137,7 @@ var posix = {
       }
 
       resolvedPath = path + '/' + resolvedPath;
-      resolvedAbsolute = path.charCodeAt(0) === 47/*/*/;
+      resolvedAbsolute = path.charCodeAt(0) === 47/* / */;
     }
 
     // At this point the path should be resolved to a full absolute path, but
@@ -237,8 +165,8 @@ var posix = {
     if (path.length === 0)
       return '.';
 
-    var isAbsolute = path.charCodeAt(0) === 47/*/*/;
-    var trailingSeparator = path.charCodeAt(path.length - 1) === 47/*/*/;
+    var isAbsolute = path.charCodeAt(0) === 47/* / */;
+    var trailingSeparator = path.charCodeAt(path.length - 1) === 47/* / */;
 
     // Normalize the path
     path = normalizeStringPosix(path, !isAbsolute);
@@ -256,7 +184,7 @@ var posix = {
 
   isAbsolute: function isAbsolute(path) {
     assertPath(path);
-    return path.length > 0 && path.charCodeAt(0) === 47/*/*/;
+    return path.length > 0 && path.charCodeAt(0) === 47/* / */;
   },
 
 
@@ -296,7 +224,7 @@ var posix = {
     // Trim any leading backslashes
     var fromStart = 1;
     for (; fromStart < from.length; ++fromStart) {
-      if (from.charCodeAt(fromStart) !== 47/*/*/)
+      if (from.charCodeAt(fromStart) !== 47/* / */)
         break;
     }
     var fromEnd = from.length;
@@ -305,7 +233,7 @@ var posix = {
     // Trim any leading backslashes
     var toStart = 1;
     for (; toStart < to.length; ++toStart) {
-      if (to.charCodeAt(toStart) !== 47/*/*/)
+      if (to.charCodeAt(toStart) !== 47/* / */)
         break;
     }
     var toEnd = to.length;
@@ -318,7 +246,7 @@ var posix = {
     for (; i <= length; ++i) {
       if (i === length) {
         if (toLen > length) {
-          if (to.charCodeAt(toStart + i) === 47/*/*/) {
+          if (to.charCodeAt(toStart + i) === 47/* / */) {
             // We get here if `from` is the exact base path for `to`.
             // For example: from='/foo/bar'; to='/foo/bar/baz'
             return to.slice(toStart + i + 1);
@@ -328,7 +256,7 @@ var posix = {
             return to.slice(toStart + i);
           }
         } else if (fromLen > length) {
-          if (from.charCodeAt(fromStart + i) === 47/*/*/) {
+          if (from.charCodeAt(fromStart + i) === 47/* / */) {
             // We get here if `to` is the exact base path for `from`.
             // For example: from='/foo/bar/baz'; to='/foo/bar'
             lastCommonSep = i;
@@ -344,7 +272,7 @@ var posix = {
       var toCode = to.charCodeAt(toStart + i);
       if (fromCode !== toCode)
         break;
-      else if (fromCode === 47/*/*/)
+      else if (fromCode === 47/* / */)
         lastCommonSep = i;
     }
 
@@ -352,7 +280,7 @@ var posix = {
     // Generate the relative path based on the path difference between `to`
     // and `from`
     for (i = fromStart + lastCommonSep + 1; i <= fromEnd; ++i) {
-      if (i === fromEnd || from.charCodeAt(i) === 47/*/*/) {
+      if (i === fromEnd || from.charCodeAt(i) === 47/* / */) {
         if (out.length === 0)
           out += '..';
         else
@@ -366,7 +294,7 @@ var posix = {
       return out + to.slice(toStart + lastCommonSep);
     else {
       toStart += lastCommonSep;
-      if (to.charCodeAt(toStart) === 47/*/*/)
+      if (to.charCodeAt(toStart) === 47/* / */)
         ++toStart;
       return to.slice(toStart);
     }
@@ -383,12 +311,12 @@ var posix = {
     if (path.length === 0)
       return '.';
     var code = path.charCodeAt(0);
-    var hasRoot = (code === 47/*/*/);
+    var hasRoot = (code === 47/* / */);
     var end = -1;
     var matchedSlash = true;
     for (var i = path.length - 1; i >= 1; --i) {
       code = path.charCodeAt(i);
-      if (code === 47/*/*/) {
+      if (code === 47/* / */) {
         if (!matchedSlash) {
           end = i;
           break;
@@ -424,7 +352,7 @@ var posix = {
       var firstNonSlashEnd = -1;
       for (i = path.length - 1; i >= 0; --i) {
         var code = path.charCodeAt(i);
-        if (code === 47/*/*/) {
+        if (code === 47/* / */) {
           // If we reached a path separator that was not part of a set of path
           // separators at the end of the string, stop now
           if (!matchedSlash) {
@@ -463,7 +391,7 @@ var posix = {
       return path.slice(start, end);
     } else {
       for (i = path.length - 1; i >= 0; --i) {
-        if (path.charCodeAt(i) === 47/*/*/) {
+        if (path.charCodeAt(i) === 47/* / */) {
           // If we reached a path separator that was not part of a set of path
           // separators at the end of the string, stop now
           if (!matchedSlash) {
@@ -496,7 +424,7 @@ var posix = {
     var preDotState = 0;
     for (var i = path.length - 1; i >= 0; --i) {
       var code = path.charCodeAt(i);
-      if (code === 47/*/*/) {
+      if (code === 47/* / */) {
         // If we reached a path separator that was not part of a set of path
         // separators at the end of the string, stop now
         if (!matchedSlash) {
@@ -511,7 +439,7 @@ var posix = {
         matchedSlash = false;
         end = i + 1;
       }
-      if (code === 46/*.*/) {
+      if (code === 46/* . */) {
         // If this is our first dot, mark it as the start of our extension
         if (startDot === -1)
           startDot = i;
@@ -540,7 +468,8 @@ var posix = {
 
   format: function format(pathObject) {
     if (pathObject === null || typeof pathObject !== 'object') {
-      throw new TypeError('Parameter "pathObject" must be an object, not ' + (typeof pathObject));
+      throw new TypeError(
+        'Parameter "pathObject" must be an object, not ' + (typeof pathObject));
     }
     return _format('/', pathObject);
   },
@@ -553,7 +482,7 @@ var posix = {
     if (path.length === 0)
       return ret;
     var code = path.charCodeAt(0);
-    var isAbsolute = (code === 47/*/*/);
+    var isAbsolute = (code === 47/* / */);
     var start;
     if (isAbsolute) {
       ret.root = '/';
@@ -574,7 +503,7 @@ var posix = {
     // Get non-dir info
     for (; i >= start; --i) {
       code = path.charCodeAt(i);
-      if (code === 47/*/*/) {
+      if (code === 47/* / */) {
         // If we reached a path separator that was not part of a set of path
         // separators at the end of the string, stop now
         if (!matchedSlash) {
@@ -589,7 +518,7 @@ var posix = {
         matchedSlash = false;
         end = i + 1;
       }
-      if (code === 46/*.*/) {
+      if (code === 46/* . */) {
         // If this is our first dot, mark it as the start of our extension
         if (startDot === -1)
           startDot = i;

@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include "modules/iotjs_module_i2c.h"
 #include <peripheral_io.h>
 #include <stdint.h>
+#include "modules/iotjs_module_i2c.h"
 
 
 #define I2C_WORKER_INIT_TEMPLATE                                            \

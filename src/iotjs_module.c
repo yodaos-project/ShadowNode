@@ -16,7 +16,9 @@
 #include "iotjs_def.h"
 #include "iotjs_module.h"
 
-typedef struct { jerry_value_t jmodule; } iotjs_module_objects_t;
+typedef struct {
+  jerry_value_t jmodule;
+} iotjs_module_objects_t;
 
 #include "iotjs_module_inl.h"
 

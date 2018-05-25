@@ -56,4 +56,3 @@ client.on('message', function(data, rinfo) {
 process.on('exit', function(code) {
   assert.equal(code, 0);
 });
-

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var util = require('util');
 
@@ -24,11 +24,11 @@ function Console() {
     configurable: true
   };
   Object.defineProperty(this, '_stdout',
-    Object.assign({}, prop, { value: stdout }));
+                        Object.assign({}, prop, { value: stdout }));
   Object.defineProperty(this, '_stderr',
-    Object.assign({}, prop, { value: stderr }));
+                        Object.assign({}, prop, { value: stderr }));
   Object.defineProperty(this, '_times',
-    Object.assign({}, prop, { value: {} }));
+                        Object.assign({}, prop, { value: {} }));
 
   var keys = Object.keys(Console.prototype);
   for (var v = 0; v < keys.length; v++) {
@@ -72,6 +72,9 @@ Console.prototype.timeEnd = function(label) {
   var duration = process.hrtime(time);
   var ms = duration[0] * 1000 + duration[1] / 1e6;
   this._times[label] = undefined;
+
+  // TODO(Yorkie): how to use ms correctly?
+  return ms;
 };
 
 var console = new Console();

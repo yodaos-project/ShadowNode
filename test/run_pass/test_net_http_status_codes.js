@@ -16,20 +16,20 @@
 var assert = require('assert');
 var http = require('http');
 
-var codes = ["150", "199", "200", "204", "304", "404", "510"];
+var codes = ['150', '199', '200', '204', '304', '404', '510'];
 var queue = codes.slice(0);
 var responses = [];
 var options = {
   method: 'POST',
   port: 3008,
-  headers: {'Content-Length': 3}
+  headers: { 'Content-Length': 3 }
 };
 
-var server = http.createServer(function (request, response) {
+var server = http.createServer(function(request, response) {
   var str = '';
 
-  request.on('data', function (chunk) {
-      str += chunk;
+  request.on('data', function(chunk) {
+    str += chunk;
   });
 
   request.on('end', function() {
@@ -45,21 +45,19 @@ requestOnQueue(queue.shift());
 
 function requestOnQueue(code) {
   var request = http.request(options, function(res) {
-      responses.push(res.statusCode);
+    responses.push(res.statusCode);
 
-      if (responses.length == codes.length) {
-        // Done with downloads.
-        for (var j = 0; j < codes.length; j++) {
-          assert(responses.indexOf(parseInt(codes[j])) > -1);
-        }
-
-        server.close();
-      } else {
-        if(queue.length) {
-          process.nextTick(function() {
-            requestOnQueue(queue.shift());
-          });
-        }
+    if (responses.length == codes.length) {
+      // Done with downloads.
+      for (var j = 0; j < codes.length; j++) {
+        assert(responses.indexOf(parseInt(codes[j])) > -1);
       }
-    }).end(code);
+
+      server.close();
+    } else if (queue.length) {
+      process.nextTick(function() {
+        requestOnQueue(queue.shift());
+      });
+    }
+  }).end(code);
 }

@@ -32,11 +32,11 @@
 static bool iotjs_spi_open(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-  struct iotbus_spi_config_s cfg = {.bits_per_word = _this->bits_per_word,
-                                    .chip_select =
-                                        _this->chip_select == kSpiCsNone ? 0
-                                                                         : 1,
-                                    .frequency = _this->max_speed };
+  struct iotbus_spi_config_s cfg = { .bits_per_word = _this->bits_per_word,
+                                     .chip_select =
+                                         _this->chip_select == kSpiCsNone ? 0
+                                                                          : 1,
+                                     .frequency = _this->max_speed };
 
   switch (_this->mode) {
     case kSpiMode_0:

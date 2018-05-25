@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var util = require('util');
 
@@ -81,7 +82,7 @@ function pwmPinOpen(configuration, callback) {
 
   PwmPin.prototype._validatePeriod = function(period) {
     if (!util.isNumber(period)) {
-      throw new TypeError('Period is not a number(' + typeof(period) + ')');
+      throw new TypeError('Period is not a number(' + typeof (period) + ')');
     } else if (period < 0) {
       throw new RangeError('Period(' + period + ') is negative');
     }
@@ -91,18 +92,20 @@ function pwmPinOpen(configuration, callback) {
   PwmPin.prototype._validateFrequency = function(frequency) {
     if (!util.isNumber(frequency)) {
       throw new TypeError('Frequency is not a number(' +
-        typeof(frequency) + ')');
+        typeof (frequency) + ')');
     } else if (frequency <= 0) {
-      throw RangeError('Nonpositivie frequency of ' + frequency);
+      throw new RangeError('Nonpositivie frequency of ' + frequency);
     }
     return true;
   };
 
   PwmPin.prototype._validateDutyCycle = function(dutyCycle) {
     if (!util.isNumber(dutyCycle)) {
-      throw TypeError('DutyCycle is not a number(' + typeof(dutyCycle) + ')');
+      throw new TypeError(
+        'DutyCycle is not a number(' + typeof (dutyCycle) + ')');
     } else if (dutyCycle < 0.0 || dutyCycle > 1.0) {
-      throw RangeError('DutyCycle of ' + dutyCycle + ' out of bounds [0..1]');
+      throw new RangeError(
+        'DutyCycle of ' + dutyCycle + ' out of bounds [0..1]');
     }
     return true;
   };
@@ -190,7 +193,7 @@ function pwmPinOpen(configuration, callback) {
 
     // Check arguments.
     if (!util.isNumber(enable) && !util.isBoolean(enable)) {
-      throw new TypeError('enable is of type ' + typeof(enable));
+      throw new TypeError('enable is of type ' + typeof (enable));
     }
 
     _binding.setEnable(!!enable, function(err) {
@@ -205,7 +208,7 @@ function pwmPinOpen(configuration, callback) {
 
     // Check arguments.
     if (!util.isNumber(enable) && !util.isBoolean(enable)) {
-      throw new TypeError('enable is of type ' + typeof(enable));
+      throw new TypeError('enable is of type ' + typeof (enable));
     }
 
     _binding.setEnable(!!enable);

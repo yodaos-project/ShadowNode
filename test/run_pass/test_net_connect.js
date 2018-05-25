@@ -20,8 +20,8 @@ var port = 5696;
 var msg = 'Hello IoT.js';
 
 var server = net.createServer({
-    allowHalfOpen: true
-  }
+  allowHalfOpen: true
+}
 ).listen(port);
 
 server.on('connection', function(socket) {

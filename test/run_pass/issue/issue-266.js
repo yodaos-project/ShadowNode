@@ -25,7 +25,7 @@ server.listen(port);
 
 server.on('connection', function(socket) {
   socket.on('data', function(data) {
-    server.close()
+    server.close();
   });
   socket.on('finish', function() {
     socket.destroy();
@@ -35,7 +35,7 @@ server.on('connection', function(socket) {
 });
 
 var socket = new net.Socket();
-socket.connect(port, "127.0.0.1");
+socket.connect(port, '127.0.0.1');
 socket.end('test');
 
 process.on('exit', function() {

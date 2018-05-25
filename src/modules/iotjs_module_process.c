@@ -14,11 +14,11 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_js.h"
 #include "iotjs_exception.h"
+#include "iotjs_js.h"
 #include "jerryscript-debugger.h"
-#include <stdlib.h>
 #include <dlfcn.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -26,13 +26,14 @@
 #include <crt_externs.h>
 #define environ (*_NSGetEnviron())
 #else
-extern char **environ;
+extern char** environ;
 #endif
 
 
 static jerry_value_t WrapEval(const char* name, size_t name_len,
                               const char* source, size_t length) {
-  static const char* args = "exports, require, module, native, __filename, __dirname";
+  static const char* args =
+      "exports, require, module, native, __filename, __dirname";
   jerry_value_t res =
       jerry_parse_function((const jerry_char_t*)name, name_len,
                            (const jerry_char_t*)args, strlen(args),
@@ -55,9 +56,9 @@ JS_FUNCTION(Compile) {
     jerry_debugger_stop();
   }
 
-  jerry_value_t jres = WrapEval(filename, strlen(filename),
-                                iotjs_string_data(&source),
-                                iotjs_string_size(&source));
+  jerry_value_t jres =
+      WrapEval(filename, strlen(filename), iotjs_string_data(&source),
+               iotjs_string_size(&source));
 
   iotjs_string_destroy(&file);
   iotjs_string_destroy(&source);
@@ -336,10 +337,7 @@ JS_FUNCTION(SetEnviron) {
   iotjs_string_t key = JS_GET_ARG(0, string);
   iotjs_string_t val = JS_GET_ARG(1, string);
 
-  setenv(
-    iotjs_string_data(&key),
-    iotjs_string_data(&val),
-    1);
+  setenv(iotjs_string_data(&key), iotjs_string_data(&val), 1);
 
   iotjs_string_destroy(&key);
   iotjs_string_destroy(&val);
@@ -350,7 +348,8 @@ JS_FUNCTION(CreateUVException) {
   int uv_errno = JS_GET_ARG(0, number);
   iotjs_string_t syscall = JS_GET_ARG(1, string);
 
-  jerry_value_t err = iotjs_create_uv_exception(uv_errno, iotjs_string_data(&syscall));
+  jerry_value_t err =
+      iotjs_create_uv_exception(uv_errno, iotjs_string_data(&syscall));
   iotjs_string_destroy(&syscall);
   return err;
 }
@@ -368,10 +367,10 @@ JS_FUNCTION(DLOpen) {
   if (handle == NULL) {
     return jerry_create_number(-1);
   }
-  dlerror();  // for clear dl errors.
+  dlerror(); // for clear dl errors.
 
   initfn = dlsym(handle, "iotjs_module_register");
-  //check for dlsym
+  // check for dlsym
   char* error = dlerror();
   if (error != NULL) {
     fprintf(stderr, "dlsym: error(%s)\n", error);
@@ -396,7 +395,8 @@ JS_FUNCTION(MemoryUsage) {
   jerry_get_memory_stats(&stats);
   jerry_value_t ret = jerry_create_object();
   iotjs_jval_set_property_number(ret, "rss", rss);
-  iotjs_jval_set_property_number(ret, "peakHeapTotal", stats.peak_allocated_bytes);
+  iotjs_jval_set_property_number(ret, "peakHeapTotal",
+                                 stats.peak_allocated_bytes);
   iotjs_jval_set_property_number(ret, "heapTotal", stats.size);
   iotjs_jval_set_property_number(ret, "heapUsed", stats.allocated_bytes);
   // FIXME external memory usage is not implement yet

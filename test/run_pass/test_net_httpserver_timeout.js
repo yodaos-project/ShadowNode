@@ -14,7 +14,6 @@
  */
 
 
-
 var assert = require('assert');
 var http = require('http');
 
@@ -35,8 +34,8 @@ server.setTimeout(100, function(socket) {
 
 // client will connect to server, and do nothing.
 var options = {
-  method : 'GET',
-  port : 3003
+  method: 'GET',
+  port: 3003
 };
 
 

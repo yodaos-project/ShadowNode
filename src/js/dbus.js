@@ -12,7 +12,8 @@ var DBUS_TYPES = {
 
 function initEnv() {
   try {
-    var lines = fs.readFileSync('/var/run/dbus/session').toString('utf8').split('\n');
+    var lines = fs.readFileSync(
+      '/var/run/dbus/session').toString('utf8').split('\n');
     lines.forEach(function(line) {
       var rBusAddress = /^DBUS_SESSION_BUS_ADDRESS=/;
       if (rBusAddress.test(line)) {
@@ -51,7 +52,8 @@ util.inherits(Bus, EventEmitter);
 /**
  * @method getInterface
  */
-Bus.prototype.getInterface = function(serviceName, objectPath, interfaceName, callback) {
+Bus.prototype.getInterface = function(serviceName,
+                                      objectPath, interfaceName, callback) {
   var self = this;
   self.introspect(serviceName, objectPath, function(err) {
     var iface = self._object.interfaces[interfaceName];
@@ -77,17 +79,26 @@ Bus.prototype.getInterface = function(serviceName, objectPath, interfaceName, ca
  * @param {Array} args
  * @param {Function} callback
  */
-Bus.prototype.callMethod = function(serviceName, objectPath, 
-                                    interfaceName, member, signature, args, callback) {
-  this.dbus.callMethod(serviceName, objectPath, interfaceName, member, signature, args, function(data) {
+Bus.prototype.callMethod = function(serviceName, objectPath,
+                                    interfaceName, member,
+                                    signature, args, callback) {
+  function cb(data) {
     callback.apply(null, [null].concat(convertData2Array(data)));
-  });
+  }
+  this.dbus.callMethod(serviceName,
+                       objectPath,
+                       interfaceName,
+                       member,
+                       signature,
+                       args,
+                       cb);
 };
 
 /**
  * @method handleSignal
  */
-Bus.prototype.handleSignal = function(sender, objectPath, interfaceName, signal, data) {
+Bus.prototype.handleSignal = function(sender, objectPath,
+                                      interfaceName, signal, data) {
   if (objectPath === '/org/freedesktop/DBus/Local' &&
     interfaceName === 'org.freedesktop.DBus.Local' &&
     signal === 'Disconnected') {
@@ -106,7 +117,7 @@ Bus.prototype.handleSignal = function(sender, objectPath, interfaceName, signal,
  */
 Bus.prototype.getUniqueServiceName = function(serviceName, callback) {
   this.callMethod(
-    'org.freedesktop.DBus', 
+    'org.freedesktop.DBus',
     '/',
     'org.freedesktop.DBus',
     'GetNameOwner',
@@ -119,8 +130,12 @@ Bus.prototype.getUniqueServiceName = function(serviceName, callback) {
 /**
  * @method addSignalFilter
  */
-Bus.prototype.addSignalFilter = function(sender, objectPath, interfaceName, callback) {
-  var rule = 'type=\'signal\',sender=\'' + sender + '\',interface=\'' + interfaceName + '\',path=\'' + objectPath + '\'';
+Bus.prototype.addSignalFilter = function(sender, objectPath,
+                                         interfaceName, callback) {
+  var rule = 'type=\'signal\',sender=\'' +
+    sender + '\',interface=\'' +
+    interfaceName + '\',path=\'' +
+    objectPath + '\'';
   this.dbus.addSignalFilter(rule);
   process.nextTick(function() {
     if (typeof callback === 'function') callback();
@@ -142,7 +157,6 @@ function xml2js(buf) {
   var json = {};
   var curr = json;
   var history = [];
-  var parent = null;
   var parser = sax.parser(true);
   parser.onopentag = function(node) {
     if (!Array.isArray(curr)) {
@@ -197,13 +211,13 @@ Bus.prototype.introspect = function(serviceName, objectPath, callback) {
     function readMethod(data, iface) {
       var name = data.attributes.name;
       var argsIn = [];
-      var argOut = null;
+      // var argOut = null;
       for (var i = 0; i < data.children.length; i++) {
         var arg = data.children[i];
         if (arg.attributes.direction === 'in') {
           argsIn.push(arg.attributes.type || 's');
         } else if (arg.attributes.direction === 'out') {
-          argOut = arg.attributes.type || 's';
+          // argOut = arg.attributes.type || 's';
         }
       }
       iface[name] = function() {
@@ -228,12 +242,12 @@ Bus.prototype.introspect = function(serviceName, objectPath, callback) {
     callback(null);
   }
   this.callMethod(
-    serviceName, 
-    objectPath, 
-    'org.freedesktop.DBus.Introspectable', 
-    'Introspect', 
-    '', 
-    [], 
+    serviceName,
+    objectPath,
+    'org.freedesktop.DBus.Introspectable',
+    'Introspect',
+    '',
+    [],
     ondata);
 };
 
@@ -269,9 +283,11 @@ Service.prototype._initIntrospectable = function() {
   var iface = self.createInterface('org.freedesktop.DBus.Introspectable');
   iface.addMethod('Introspect', { out: ['s'] }, function(cb) {
     // TODO
-    var header = '<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">';
-    var contents = 
-      '<node name="' + self._objectPath + '">' + self.getInterfacesMarkup() + '</node>';
+    var header = '<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object' +
+      ' Introspection 1.0//EN"' +
+      ' "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">';
+    var contents = '<node name="' + self._objectPath + '">' +
+      self.getInterfacesMarkup() + '</node>';
     cb(null, header + contents);
   });
 };
@@ -281,12 +297,23 @@ Service.prototype._initIntrospectable = function() {
  */
 Service.prototype._initProperties = function() {
   var iface = this.createInterface('org.freedesktop.DBus.Properties');
-  iface.addMethod('Get', { in: ['s', 's'], out: ['v'] }, function(iface, prop, cb) {
+  var args = {
+    getter: {
+      in: ['s', 's'],
+      out: ['v']
+    },
+    setter: {
+      in: ['s', 's', 'v']
+    }
+  };
+  function getter(iface, prop, cb) {
     // TODO
-  });
-  iface.addMethod('Set', { in: ['s', 's', 'v'] }, function(iface, prop, value, cb) {
+  }
+  function setter(iface, prop, value, cb) {
     // TODO
-  });
+  }
+  iface.addMethod('Get', args.getter, getter);
+  iface.addMethod('Set', args.setter, setter);
 };
 
 /**
@@ -296,7 +323,7 @@ Service.prototype.getInterfacesMarkup = function() {
   var str = '';
   for (var name in this._interfaces) {
     var iface = this._interfaces[name];
-    str += '<interface name="' + name + '">' + 
+    str += '<interface name="' + name + '">' +
       iface.getMethodsMarkup() +
       iface.getSignalsMarkup() +
     '</interface>';
@@ -312,7 +339,8 @@ Service.prototype.getInterfacesMarkup = function() {
  * @param {String} member
  * @param {Object} data
  */
-Service.prototype.handleMessage = function(sender, objectPath, iface, member, data) {
+Service.prototype.handleMessage = function(sender, objectPath,
+                                           iface, member, data) {
   this._interfaces[iface].makeCall(member, data);
 };
 
@@ -452,8 +480,8 @@ ServiceInterface.prototype.emit = function(name, val) {
   }
   var types = signal.opts.types || [];
   // TODO(Yorkie): only support 1 argument for signal
-  this._dbus.emitSignal(objectPath, 
-    iface, signal.name, types.join(''), val);
+  this._dbus.emitSignal(objectPath,
+                        iface, signal.name, types.join(''), val);
 };
 
 /**

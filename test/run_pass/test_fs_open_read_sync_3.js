@@ -16,9 +16,9 @@
 var fs = require('fs');
 var assert = require('assert');
 
-var fileName = process.cwd() + "/resources/greeting.txt";
-var expectedContents = "Hello IoT.js!!";
-var flags = "r";
+var fileName = process.cwd() + '/resources/greeting.txt';
+var expectedContents = 'Hello IoT.js!!';
+var flags = 'r';
 
 
 // test the position argument of fs.readSync()

@@ -14,49 +14,48 @@
  */
 
 
-
 var assert = require('assert');
 
 
-var buff1 = new Buffer("test");
-assert.equal(buff1._builtin.toString(0, 0), "");
-assert.equal(buff1._builtin.toString(0, 1), "t");
-assert.equal(buff1._builtin.toString(0, 2), "te");
-assert.equal(buff1._builtin.toString(0, 3), "tes");
-assert.equal(buff1._builtin.toString(0, 4), "test");
-assert.equal(buff1._builtin.toString(1, 4), "est");
-assert.equal(buff1._builtin.toString(2, 4), "st");
-assert.equal(buff1._builtin.toString(3, 4), "t");
-assert.equal(buff1._builtin.toString(4, 4), "");
+var buff1 = new Buffer('test');
+assert.equal(buff1._builtin.toString(0, 0), '');
+assert.equal(buff1._builtin.toString(0, 1), 't');
+assert.equal(buff1._builtin.toString(0, 2), 'te');
+assert.equal(buff1._builtin.toString(0, 3), 'tes');
+assert.equal(buff1._builtin.toString(0, 4), 'test');
+assert.equal(buff1._builtin.toString(1, 4), 'est');
+assert.equal(buff1._builtin.toString(2, 4), 'st');
+assert.equal(buff1._builtin.toString(3, 4), 't');
+assert.equal(buff1._builtin.toString(4, 4), '');
 
-assert.equal(buff1._builtin.toString(-1, 5), "test");
-assert.equal(buff1._builtin.toString(-1, 2), "te");
-assert.equal(buff1._builtin.toString(2, 5), "st");
+assert.equal(buff1._builtin.toString(-1, 5), 'test');
+assert.equal(buff1._builtin.toString(-1, 2), 'te');
+assert.equal(buff1._builtin.toString(2, 5), 'st');
 
 
 var buff2 = new Buffer(10);
-buff2._builtin.write("abcde", 0, 5);
-assert.equal(buff2.toString(), "abcde");
+buff2._builtin.write('abcde', 0, 5);
+assert.equal(buff2.toString(), 'abcde');
 assert.equal(buff2.length, 10);
 
-buff2._builtin.write("fgh", 5, 3);
-assert.equal(buff2.toString(), "abcdefgh");
+buff2._builtin.write('fgh', 5, 3);
+assert.equal(buff2.toString(), 'abcdefgh');
 assert.equal(buff2.length, 10);
 
-buff2._builtin.write("AB", 0, 10);
-assert.equal(buff2.toString(), "ABcdefgh");
+buff2._builtin.write('AB', 0, 10);
+assert.equal(buff2.toString(), 'ABcdefgh');
 assert.equal(buff2.length, 10);
 
-buff2._builtin.write("ab", -1, 11);
-assert.equal(buff2.toString(), "abcdefgh");
+buff2._builtin.write('ab', -1, 11);
+assert.equal(buff2.toString(), 'abcdefgh');
 assert.equal(buff2.length, 10);
 
-buff2._builtin.write("ijklmnopqrstu", 8, 5);
-assert.equal(buff2.toString(), "abcdefghij");
+buff2._builtin.write('ijklmnopqrstu', 8, 5);
+assert.equal(buff2.toString(), 'abcdefghij');
 assert.equal(buff2.length, 10);
 
-buff2._builtin.write("\0\0", 8, 2);
-assert.equal(buff2.toString(), "abcdefgh");
+buff2._builtin.write('\0\0', 8, 2);
+assert.equal(buff2.toString(), 'abcdefgh');
 assert.equal(buff2.length, 10);
 
 

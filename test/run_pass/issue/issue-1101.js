@@ -26,10 +26,10 @@ var res = uart.open({
     console.log('opened');
     res.close(function(err) {
       if (err) {
-      console.error(err);
-    } else {
-      console.log('closed');
-    }
+        console.error(err);
+      } else {
+        console.log('closed');
+      }
     });
     var c = 0;
     var p = function() {

@@ -20,12 +20,15 @@ var port = 41237;
 var broadcast_address = '255.255.255.255';
 var interval = 100;
 
-var msg_count = 0, msg_count2 = 0, msg_count3 = 0, send_count = 0;
+var msg_count = 0,
+  msg_count2 = 0,
+  msg_count3 = 0,
+  send_count = 0;
 
 var msg = 'Hello IoT.js';
-var socket = dgram.createSocket({type: 'udp4', reuseAddr: true});
-var socket2 = dgram.createSocket({type: 'udp4', reuseAddr: true});
-var socket3 = dgram.createSocket({type: 'udp4', reuseAddr: true});
+var socket = dgram.createSocket({ type: 'udp4', reuseAddr: true });
+var socket2 = dgram.createSocket({ type: 'udp4', reuseAddr: true });
+var socket3 = dgram.createSocket({ type: 'udp4', reuseAddr: true });
 
 socket.on('error', function(err) {
   assert.fail();
@@ -68,7 +71,7 @@ socket3.on('message', function(data, rinfo) {
 
 socket.bind(port, function() {
   socket.setBroadcast(true);
-  var timer = setInterval(function () {
+  var timer = setInterval(function() {
     send_count++;
     socket.send(msg, port, broadcast_address);
     if (send_count == 3) {

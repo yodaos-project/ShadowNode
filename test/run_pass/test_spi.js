@@ -53,13 +53,13 @@ var spi1 = spi.open(configuration, function(err) {
   assert.assert(err === null, 'spi.open failed: ' + err);
 
   assert.equal(typeof spi1.transfer, 'function',
-              'spibus does not provide \'transfer\' function');
+               'spibus does not provide \'transfer\' function');
   assert.equal(typeof spi1.transferSync, 'function',
-              'spibus does not provide \'transferSync\' function');
+               'spibus does not provide \'transferSync\' function');
   assert.equal(typeof spi1.close, 'function',
-              'spibus does not provide \'close\' function');
+               'spibus does not provide \'close\' function');
   assert.equal(typeof spi1.closeSync, 'function',
-              'spibus does not provide \'closeSync\' function');
+               'spibus does not provide \'closeSync\' function');
 
   spi1.transfer(tx, rx, function(err) {
     assert.assert(err === null, 'spibus.transfer failed: ' + err);

@@ -31,7 +31,7 @@ server.on('message', function(data, rinfo) {
   console.log('server got data : ' + data);
   msg += data;
 
-  server.send(data, rinfo.port, 'localhost', function (err, len) {
+  server.send(data, rinfo.port, 'localhost', function(err, len) {
     sendcount++;
     if (sendcount >= sockcount) {
       server.close();
@@ -66,9 +66,9 @@ for (var i = 0; i < sockcount; i++) {
 process.on('exit', function(code) {
   assert.equal(msg.length, sockcount);
   for (var i = 0; i < sockcount; i++) {
-      if (msg.indexOf(i.toString()) === -1) {
-        assert.fail();
-      }
+    if (msg.indexOf(i.toString()) === -1) {
+      assert.fail();
+    }
   }
   assert.equal(code, 0);
 });

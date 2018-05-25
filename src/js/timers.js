@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var util = require('util');
-
 var TIMEOUT_MAX = 2147483647; // 2^31-1
 
 
@@ -96,7 +96,7 @@ function clearTimeoutBase(timeoutType, timeout) {
     if (timeout instanceof Timeout) {
       timeout.unref();
     } else {
-       throw new Error(timeoutType + '() - invalid timeout');
+      throw new Error(timeoutType + '() - invalid timeout');
     }
   }
 }

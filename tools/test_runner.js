@@ -34,11 +34,11 @@ function Runner(driver) {
     // console = console_wrapper;
   }
 
-  this.timeout = this.test['timeout'];
+  this.timeout = this.test.timeout;
   if (!this.timeout) {
     this.timeout = driver.options['default-timeout'];
   }
-  assert.assert(util.isNumber(this.timeout), "Timeout is not a number.");
+  assert.assert(util.isNumber(this.timeout), 'Timeout is not a number.');
 
   return this;
 }
@@ -63,24 +63,22 @@ Runner.prototype.cleanup = function() {
 Runner.prototype.spin = function() {
   var that = this;
   this.timer_spin = setTimeout(function() {
-      var timerOnlyAlive = !testdriver.isAliveExceptFor(that.timer);
-      if (timerOnlyAlive) {
-        timerOnlyAlive = !process._onNextTick();
-      }
+    var timerOnlyAlive = !testdriver.isAliveExceptFor(that.timer);
+    if (timerOnlyAlive) {
+      timerOnlyAlive = !process._onNextTick();
+    }
 
-      if (timerOnlyAlive) {
-        process.exit(0);
-      } else {
-        if (!that.finished) {
-          that.spin();
-        }
-      }
+    if (timerOnlyAlive) {
+      process.exit(0);
+    } else if (!that.finished) {
+      that.spin();
+    }
   }, 0);
 };
 
 Runner.prototype.checkSkipModule = function() {
   for (var i = 0; i < this.skipModuleLength; i++) {
-    if (this.test['name'].indexOf(this.skipModule[i]) >= 0) {
+    if (this.test.name.indexOf(this.skipModule[i]) >= 0) {
       return true;
     }
   }
@@ -90,7 +88,7 @@ Runner.prototype.checkSkipModule = function() {
 
 Runner.prototype.checkSupportedModule = function() {
   // Cut off the '.js' ending
-  var name = this.test['name'].slice(0, -3);
+  var name = this.test.name.slice(0, -3);
 
   // test_mod_smt -> [test, mod, smt]
   // test_modsmt -> [test, modsmt]
@@ -115,7 +113,7 @@ Runner.prototype.checkSupportedModule = function() {
 
   // In any other case we do not support this js file.
   return false;
-}
+};
 
 Runner.prototype.run = function() {
   if (!this.checkSupportedModule()) {
@@ -124,10 +122,10 @@ Runner.prototype.run = function() {
     return;
   }
 
-  var skip = this.test['skip'];
+  var skip = this.test.skip;
   if (skip) {
-    if ((skip.indexOf('all') >= 0) || (skip.indexOf(this.driver.os) >= 0)
-      || (skip.indexOf(this.driver.stability) >= 0)) {
+    if ((skip.indexOf('all') >= 0) || (skip.indexOf(this.driver.os) >= 0) ||
+      (skip.indexOf(this.driver.stability) >= 0)) {
       this.finish('skip');
       return;
     }
@@ -142,17 +140,17 @@ Runner.prototype.run = function() {
   this.timer = null;
 
   var that = this;
-  this.timer = setTimeout(function () {
+  this.timer = setTimeout(function() {
     that.finish('timeout');
   }, this.timeout * 1000);
 
   try {
     var source = this.driver.test();
     eval(source);
-  } catch(e) {
+  } catch (e) {
     if (this.test['expected-failure']) {
       this.finish('pass');
-    } else if (this.test['uncaught']) {
+    } else if (this.test.uncaught) {
       throw e;
     } else {
       console.error(e);

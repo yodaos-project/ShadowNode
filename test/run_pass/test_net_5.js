@@ -43,7 +43,7 @@ server.on('connection', function(socket) {
 
 var socket = new net.Socket();
 
-socket.connect(port, "127.0.0.1");
+socket.connect(port, '127.0.0.1');
 
 socket.on('end', function() {
   socket.end();

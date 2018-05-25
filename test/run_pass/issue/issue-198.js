@@ -18,7 +18,7 @@ var assert = require('assert');
 
 assert.throws(
   function() {
-    process.binding("builtin not exist");
+    process.binding('builtin not exist');
   }
   , Error
 );

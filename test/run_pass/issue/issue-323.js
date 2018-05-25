@@ -16,13 +16,13 @@
 var fs = require('fs');
 var assert = require('assert');
 
-var fileName = "";
+var fileName = '';
 
 assert.throws(
-    function() {
-      var stats1 = fs.statSync(fileName);
-    },
-    Error
+  function() {
+    var stats1 = fs.statSync(fileName);
+  },
+  Error
 );
 
 assert.throws(

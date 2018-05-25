@@ -16,4 +16,4 @@
 var Buffer = require('buffer');
 var assert = require('assert');
 
-assert.equal(Buffer("").readUInt16LE(10, true), 0);
+assert.equal(Buffer('').readUInt16LE(10, true), 0);

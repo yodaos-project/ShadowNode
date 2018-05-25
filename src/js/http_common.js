@@ -12,12 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var util = require('util');
 var IncomingMessage = require('http_incoming').IncomingMessage;
 var HTTPParser = require('httpparser').HTTPParser;
 
-var createHTTPParser = function() {
+function createHTTPParser() {
   // REQUEST is the default type.
   // For RESPONSE, use HTTPParser.reinitialize(HTTPParser.RESPONSE)
   var parser = new HTTPParser(HTTPParser.REQUEST);
@@ -27,7 +28,7 @@ var createHTTPParser = function() {
   parser.OnBody = parserOnBody;
   parser.OnMessageComplete = parserOnMessageComplete;
   return parser;
-};
+}
 
 exports.createHTTPParser = createHTTPParser;
 
@@ -105,7 +106,7 @@ function parserOnBody(buf, start, len) {
   }
 
   // Push body part into incoming stream, which will emit 'data' event
-  var body = buf.slice(start, start+len);
+  var body = buf.slice(start, start + len);
   stream.push(body);
 }
 

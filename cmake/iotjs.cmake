@@ -416,7 +416,7 @@ set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   PUBLIC_HEADER "${IOTJS_PUBLIC_HEADERS}"
 )
-target_include_directories(${TARGET_LIB_IOTJS} 
+target_include_directories(${TARGET_LIB_IOTJS}
   PRIVATE ${IOTJS_INCLUDE_DIRS} ${DBUS_INCLUDE_DIRS})
 target_link_libraries(${TARGET_LIB_IOTJS}
   ${CMAKE_DL_LIBS}

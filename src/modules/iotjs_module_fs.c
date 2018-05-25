@@ -339,10 +339,11 @@ jerry_value_t MakeStatObject(uv_stat_t* statbuf) {
 
 #undef X
 
-#define XX(statobj, name) do {                                        \
-    double ms = ((unsigned long)(statbuf->st_##name.tv_sec) * 1e3) +  \
-                ((unsigned long)(statbuf->st_##name.tv_nsec) / 1e6);  \
-    iotjs_jval_set_property_number(jstat, "" #name "eMs", ms);  \
+#define XX(statobj, name)                                            \
+  do {                                                               \
+    double ms = ((unsigned long)(statbuf->st_##name.tv_sec) * 1e3) + \
+                ((unsigned long)(statbuf->st_##name.tv_nsec) / 1e6); \
+    iotjs_jval_set_property_number(jstat, "" #name "eMs", ms);       \
   } while (0);
 
   XX(jstat, atim)

@@ -14,14 +14,13 @@
  */
 
 
-
 var fs = require('fs');
 var assert = require('assert');
 
 
-var fileName = process.cwd() + "/resources/greeting.txt";
-var expectedContents = "Hello IoT.js!!";
-var flags = "r";
+var fileName = process.cwd() + '/resources/greeting.txt';
+var expectedContents = 'Hello IoT.js!!';
+var flags = 'r';
 var mode = 438;
 
 
@@ -45,7 +44,7 @@ fs.open(fileName, flags, mode, function(err, fd) {
 // error test
 assert.throws(
   function() {
-    fs.openSync("non_exist_file", flags, mode);
+    fs.openSync('non_exist_file', flags, mode);
   },
   Error
 );

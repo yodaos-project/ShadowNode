@@ -15,13 +15,13 @@
 
 var assert = require('assert');
 
-var json_file = process.cwd() + "/resources/process/package.json";
+var json_file = process.cwd() + '/resources/process/package.json';
 
 // Load a JSON file.
 var str = process.readSource(json_file);
 var json = JSON.parse(str);
 
-assert.equal(json.version, "2.9.1");
-assert.equal(json.name, "npm");
-assert.equal(json.main, "./lib/npm.js");
-assert.equal(json.repository.type, "git");
+assert.equal(json.version, '2.9.1');
+assert.equal(json.name, 'npm');
+assert.equal(json.main, './lib/npm.js');
+assert.equal(json.repository.type, 'git');

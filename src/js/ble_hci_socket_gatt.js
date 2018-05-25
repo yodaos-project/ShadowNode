@@ -34,7 +34,7 @@
  * SOFTWARE.
  */
 
-/*jshint loopfunc: true */
+/* jshint loopfunc: true */
 
 var debug = console.log; // require('debug')('ble_hci_socket_gatt');
 
@@ -42,60 +42,60 @@ var events = require('events');
 var util = require('util');
 var uuidUtil = require('ble_uuid_util');
 
-var ATT_OP_ERROR                    = 0x01;
-var ATT_OP_MTU_REQ                  = 0x02;
-var ATT_OP_MTU_RESP                 = 0x03;
-var ATT_OP_FIND_INFO_REQ            = 0x04;
-var ATT_OP_FIND_INFO_RESP           = 0x05;
-var ATT_OP_FIND_BY_TYPE_REQ         = 0x06;
-var ATT_OP_FIND_BY_TYPE_RESP        = 0x07;
-var ATT_OP_READ_BY_TYPE_REQ         = 0x08;
-var ATT_OP_READ_BY_TYPE_RESP        = 0x09;
-var ATT_OP_READ_REQ                 = 0x0a;
-var ATT_OP_READ_RESP                = 0x0b;
-var ATT_OP_READ_BLOB_REQ            = 0x0c;
-var ATT_OP_READ_BLOB_RESP           = 0x0d;
-var ATT_OP_READ_MULTI_REQ           = 0x0e;
-var ATT_OP_READ_MULTI_RESP          = 0x0f;
-var ATT_OP_READ_BY_GROUP_REQ        = 0x10;
-var ATT_OP_READ_BY_GROUP_RESP       = 0x11;
-var ATT_OP_WRITE_REQ                = 0x12;
-var ATT_OP_WRITE_RESP               = 0x13;
-var ATT_OP_WRITE_CMD                = 0x52;
-var ATT_OP_PREP_WRITE_REQ           = 0x16;
-var ATT_OP_PREP_WRITE_RESP          = 0x17;
-var ATT_OP_EXEC_WRITE_REQ           = 0x18;
-var ATT_OP_EXEC_WRITE_RESP          = 0x19;
-var ATT_OP_HANDLE_NOTIFY            = 0x1b;
-var ATT_OP_HANDLE_IND               = 0x1d;
-var ATT_OP_HANDLE_CNF               = 0x1e;
-var ATT_OP_SIGNED_WRITE_CMD         = 0xd2;
+var ATT_OP_ERROR = 0x01;
+var ATT_OP_MTU_REQ = 0x02;
+var ATT_OP_MTU_RESP = 0x03;
+var ATT_OP_FIND_INFO_REQ = 0x04;
+var ATT_OP_FIND_INFO_RESP = 0x05;
+var ATT_OP_FIND_BY_TYPE_REQ = 0x06;
+var ATT_OP_FIND_BY_TYPE_RESP = 0x07;
+var ATT_OP_READ_BY_TYPE_REQ = 0x08;
+var ATT_OP_READ_BY_TYPE_RESP = 0x09;
+var ATT_OP_READ_REQ = 0x0a;
+var ATT_OP_READ_RESP = 0x0b;
+var ATT_OP_READ_BLOB_REQ = 0x0c;
+var ATT_OP_READ_BLOB_RESP = 0x0d;
+var ATT_OP_READ_MULTI_REQ = 0x0e;
+var ATT_OP_READ_MULTI_RESP = 0x0f;
+var ATT_OP_READ_BY_GROUP_REQ = 0x10;
+var ATT_OP_READ_BY_GROUP_RESP = 0x11;
+var ATT_OP_WRITE_REQ = 0x12;
+var ATT_OP_WRITE_RESP = 0x13;
+var ATT_OP_WRITE_CMD = 0x52;
+var ATT_OP_PREP_WRITE_REQ = 0x16;
+var ATT_OP_PREP_WRITE_RESP = 0x17;
+var ATT_OP_EXEC_WRITE_REQ = 0x18;
+var ATT_OP_EXEC_WRITE_RESP = 0x19;
+var ATT_OP_HANDLE_NOTIFY = 0x1b;
+var ATT_OP_HANDLE_IND = 0x1d;
+var ATT_OP_HANDLE_CNF = 0x1e;
+var ATT_OP_SIGNED_WRITE_CMD = 0xd2;
 
-var GATT_PRIM_SVC_UUID              = 0x2800;
-var GATT_INCLUDE_UUID               = 0x2802;
-var GATT_CHARAC_UUID                = 0x2803;
+var GATT_PRIM_SVC_UUID = 0x2800;
+var GATT_INCLUDE_UUID = 0x2802;
+var GATT_CHARAC_UUID = 0x2803;
 
-var GATT_CLIENT_CHARAC_CFG_UUID     = 0x2902;
-var GATT_SERVER_CHARAC_CFG_UUID     = 0x2903;
+var GATT_CLIENT_CHARAC_CFG_UUID = 0x2902;
+var GATT_SERVER_CHARAC_CFG_UUID = 0x2903;
 
-var ATT_ECODE_SUCCESS               = 0x00;
-var ATT_ECODE_INVALID_HANDLE        = 0x01;
-var ATT_ECODE_READ_NOT_PERM         = 0x02;
-var ATT_ECODE_WRITE_NOT_PERM        = 0x03;
-var ATT_ECODE_INVALID_PDU           = 0x04;
-var ATT_ECODE_AUTHENTICATION        = 0x05;
-var ATT_ECODE_REQ_NOT_SUPP          = 0x06;
-var ATT_ECODE_INVALID_OFFSET        = 0x07;
-var ATT_ECODE_AUTHORIZATION         = 0x08;
-var ATT_ECODE_PREP_QUEUE_FULL       = 0x09;
-var ATT_ECODE_ATTR_NOT_FOUND        = 0x0a;
-var ATT_ECODE_ATTR_NOT_LONG         = 0x0b;
-var ATT_ECODE_INSUFF_ENCR_KEY_SIZE  = 0x0c;
-var ATT_ECODE_INVAL_ATTR_VALUE_LEN  = 0x0d;
-var ATT_ECODE_UNLIKELY              = 0x0e;
-var ATT_ECODE_INSUFF_ENC            = 0x0f;
-var ATT_ECODE_UNSUPP_GRP_TYPE       = 0x10;
-var ATT_ECODE_INSUFF_RESOURCES      = 0x11;
+var ATT_ECODE_SUCCESS = 0x00;
+var ATT_ECODE_INVALID_HANDLE = 0x01;
+var ATT_ECODE_READ_NOT_PERM = 0x02;
+var ATT_ECODE_WRITE_NOT_PERM = 0x03;
+var ATT_ECODE_INVALID_PDU = 0x04;
+var ATT_ECODE_AUTHENTICATION = 0x05;
+var ATT_ECODE_REQ_NOT_SUPP = 0x06;
+var ATT_ECODE_INVALID_OFFSET = 0x07;
+var ATT_ECODE_AUTHORIZATION = 0x08;
+var ATT_ECODE_PREP_QUEUE_FULL = 0x09;
+var ATT_ECODE_ATTR_NOT_FOUND = 0x0a;
+var ATT_ECODE_ATTR_NOT_LONG = 0x0b;
+var ATT_ECODE_INSUFF_ENCR_KEY_SIZE = 0x0c;
+var ATT_ECODE_INVAL_ATTR_VALUE_LEN = 0x0d;
+var ATT_ECODE_UNLIKELY = 0x0e;
+var ATT_ECODE_INSUFF_ENC = 0x0f;
+var ATT_ECODE_UNSUPP_GRP_TYPE = 0x10;
+var ATT_ECODE_INSUFF_RESOURCES = 0x11;
 
 var ATT_CID = 0x0004;
 
@@ -280,7 +280,7 @@ Gatt.prototype.setServices = function(services) {
     handle = this._handles[i];
 
     debugHandles[i] = {};
-    for(j in handle) {
+    for (j in handle) {
       if (Buffer.isBuffer(handle[j])) {
         debugHandles[i][j] = handle[j] ? 'Buffer(\'' + handle[j].toString('hex') + '\', \'hex\')' : null;
       } else if (j !== 'attribute') {
@@ -334,10 +334,10 @@ Gatt.prototype.errorResponse = function(opcode, handle, status) {
 Gatt.prototype.handleRequest = function(request) {
   debug('handing request: ' + request.toString('hex'));
 
-  var requestType = request.readUInt8(0); //buf[0];
+  var requestType = request.readUInt8(0); // buf[0];
   var response = null;
 
-  switch(requestType) {
+  switch (requestType) {
     case ATT_OP_MTU_REQ:
       response = this.handleMtuRequest(request);
       break;
@@ -470,8 +470,8 @@ Gatt.prototype.handleFindInfoRequest = function(request) {
 
     response = new Buffer(2 + numInfo * lengthPerInfo);
 
-    //response[0] = ATT_OP_FIND_INFO_RESP;
-    //response[1] = (uuidSize === 2) ? 0x01 : 0x2;
+    // response[0] = ATT_OP_FIND_INFO_RESP;
+    // response[1] = (uuidSize === 2) ? 0x01 : 0x2;
     response.writeUInt8(ATT_OP_FIND_INFO_RESP, 0);
     response.writeUInt8((uuidSize === 2) ? 0x01 : 0x2, 1);
 
@@ -482,7 +482,7 @@ Gatt.prototype.handleFindInfoRequest = function(request) {
 
       uuid = new Buffer(uuidUtil.reverseByteOrder(info.uuid, ''), 'hex');
       for (var j = 0; j < uuid.length; j++) {
-        //response[2 + i * lengthPerInfo + 2 + j] = uuid[j];
+        // response[2 + i * lengthPerInfo + 2 + j] = uuid[j];
         response.writeUInt8(uuid[j], 2 + i * lengthPerInfo + 2 + j);
       }
     }
@@ -528,7 +528,7 @@ Gatt.prototype.handleFindByTypeRequest = function(request) {
 
     response = new Buffer(1 + numHandles * lengthPerHandle);
 
-    //response[0] = ATT_OP_FIND_BY_TYPE_RESP;
+    // response[0] = ATT_OP_FIND_BY_TYPE_RESP;
     response.writeUInt8(ATT_OP_FIND_BY_TYPE_RESP, 0);
 
     for (i = 0; i < numHandles; i++) {
@@ -587,8 +587,8 @@ Gatt.prototype.handleReadByGroupRequest = function(request) {
 
       response = new Buffer(2 + numServices * lengthPerService);
 
-      //response[0] = ATT_OP_READ_BY_GROUP_RESP;
-      //response[1] = lengthPerService;
+      // response[0] = ATT_OP_READ_BY_GROUP_RESP;
+      // response[1] = lengthPerService;
       response.writeUInt8(ATT_OP_READ_BY_GROUP_RESP, 0);
       response.writeUInt8(lengthPerService, 1);
 
@@ -600,7 +600,7 @@ Gatt.prototype.handleReadByGroupRequest = function(request) {
 
         var serviceUuid = new Buffer(uuidUtil.reverseByteOrder(service.uuid, ''), 'hex');
         for (var j = 0; j < serviceUuid.length; j++) {
-          //response[2 + i * lengthPerService + 4 + j] = serviceUuid[j];
+          // response[2 + i * lengthPerService + 4 + j] = serviceUuid[j];
           response.writeUInt8(serviceUuid.readUInt8(j), 2 + i * lengthPerService + 4 + j);
         }
       }
@@ -657,8 +657,8 @@ Gatt.prototype.handleReadByTypeRequest = function(request) {
 
       response = new Buffer(2 + numCharacteristics * lengthPerCharacteristic);
 
-      //response[0] = ATT_OP_READ_BY_TYPE_RESP;
-      //response[1] = lengthPerCharacteristic;
+      // response[0] = ATT_OP_READ_BY_TYPE_RESP;
+      // response[1] = lengthPerCharacteristic;
       response.writeUInt8(ATT_OP_READ_BY_TYPE_RESP, 0);
       response.writeUInt8(lengthPerCharacteristic, 1);
 
@@ -671,7 +671,7 @@ Gatt.prototype.handleReadByTypeRequest = function(request) {
 
         var characteristicUuid = new Buffer(uuidUtil.reverseByteOrder(characteristic.uuid, ''), 'hex');
         for (var j = 0; j < characteristicUuid.length; j++) {
-          //response[2 + i * lengthPerCharacteristic + 5 + j] = characteristicUuid[j];
+          // response[2 + i * lengthPerCharacteristic + 5 + j] = characteristicUuid[j];
           response.writeUInt8(characteristicUuid.readUInt8(j), 2 + i * lengthPerCharacteristic + 5 + j);
         }
       }
@@ -713,13 +713,13 @@ Gatt.prototype.handleReadByTypeRequest = function(request) {
             var dataLength = Math.min(data.length, this._mtu - 4);
             callbackResponse = new Buffer(4 + dataLength);
 
-            //callbackResponse[0] = ATT_OP_READ_BY_TYPE_RESP;
-            //callbackResponse[1] = dataLength + 2;
+            // callbackResponse[0] = ATT_OP_READ_BY_TYPE_RESP;
+            // callbackResponse[1] = dataLength + 2;
             callbackResponse.writeUInt8(ATT_OP_READ_BY_TYPE_RESP, 0);
             callbackResponse.writeUInt8(dataLength + 2, 1);
             callbackResponse.writeUInt16LE(valueHandle, 2);
             for (i = 0; i < dataLength; i++) {
-              //callbackResponse[4 + i] = data[i];
+              // callbackResponse[4 + i] = data[i];
               callbackResponse.writeUInt8(data.readUInt8(i), 4 + i);
             }
           } else {
@@ -752,7 +752,7 @@ Gatt.prototype.handleReadByTypeRequest = function(request) {
 Gatt.prototype.handleReadOrReadBlobRequest = function(request) {
   var response = null;
 
-  //var requestType = request[0];
+  // var requestType = request[0];
   var requestType = request.readUInt8(0);
   var valueHandle = request.readUInt16LE(1);
   var offset = (requestType === ATT_OP_READ_BLOB_REQ) ? request.readUInt16LE(3) : 0;
@@ -772,10 +772,10 @@ Gatt.prototype.handleReadOrReadBlobRequest = function(request) {
           var dataLength = Math.min(data.length, this._mtu - 1);
           callbackResponse = new Buffer(1 + dataLength);
 
-          //callbackResponse[0] = (requestType === ATT_OP_READ_BLOB_REQ) ? ATT_OP_READ_BLOB_RESP : ATT_OP_READ_RESP;
+          // callbackResponse[0] = (requestType === ATT_OP_READ_BLOB_REQ) ? ATT_OP_READ_BLOB_RESP : ATT_OP_READ_RESP;
           callbackResponse.writeUInt8((requestType === ATT_OP_READ_BLOB_REQ) ? ATT_OP_READ_BLOB_RESP : ATT_OP_READ_RESP, 0);
           for (i = 0; i < dataLength; i++) {
-            //callbackResponse[1 + i] = data[i];
+            // callbackResponse[1 + i] = data[i];
             callbackResponse.writeUInt8(data.readUInt8(i), 1 + i);
           }
         } else {
@@ -800,7 +800,7 @@ Gatt.prototype.handleReadOrReadBlobRequest = function(request) {
       data.writeUInt16LE(handle.valueHandle, 1);
 
       for (i = 0; i < uuid.length; i++) {
-        //data[i + 3] = uuid[i];
+        // data[i + 3] = uuid[i];
         data.writeUInt8(uuid.readUInt8(i), i + 3);
       }
     } else if (handleType === 'characteristicValue' || handleType === 'descriptor') {
@@ -856,7 +856,7 @@ Gatt.prototype.handleReadOrReadBlobRequest = function(request) {
 Gatt.prototype.handleWriteRequestOrCommand = function(request) {
   var response = null;
 
-  //var requestType = request[0];
+  // var requestType = request[0];
   var requestType = request.readUInt8(0);
   var withoutResponse = (requestType === ATT_OP_WRITE_CMD);
   var valueHandle = request.readUInt16LE(1);
@@ -921,7 +921,7 @@ Gatt.prototype.handleWriteRequestOrCommand = function(request) {
                   notifyMessage.writeUInt16LE(valueHandle, 1);
 
                   for (i = 0; i < dataLength; i++) {
-                    //notifyMessage[3 + i] = data[i];
+                    // notifyMessage[3 + i] = data[i];
                     notifyMessage.writeUInt8(data.readUInt8(i), 3 + i);
                   }
 
@@ -936,7 +936,7 @@ Gatt.prototype.handleWriteRequestOrCommand = function(request) {
                   indicateMessage.writeUInt16LE(valueHandle, 1);
 
                   for (i = 0; i < dataLength; i++) {
-                    //indicateMessage[3 + i] = data[i];
+                    // indicateMessage[3 + i] = data[i];
                     indicateMessage.writeUInt8(data.readUInt8(i), 3 + i);
                   }
 
@@ -975,7 +975,7 @@ Gatt.prototype.handleWriteRequestOrCommand = function(request) {
 Gatt.prototype.handlePrepareWriteRequest = function(request) {
   var response = null;
 
-  //var requestType = request[0];
+  // var requestType = request[0];
   var requestType = request.readUInt8(0);
   var valueHandle = request.readUInt16LE(1);
   var offset = request.readUInt16LE(3);
@@ -1004,7 +1004,7 @@ Gatt.prototype.handlePrepareWriteRequest = function(request) {
 
             response = new Buffer(request.length);
             request.copy(response);
-            //response[0] = ATT_OP_PREP_WRITE_RESP;
+            // response[0] = ATT_OP_PREP_WRITE_RESP;
             response.writeUInt8(ATT_OP_PREP_WRITE_RESP, 0);
           } else {
             response = this.errorResponse(requestType, valueHandle, ATT_ECODE_INVALID_OFFSET);
@@ -1038,8 +1038,8 @@ Gatt.prototype.handlePrepareWriteRequest = function(request) {
 Gatt.prototype.handleExecuteWriteRequest = function(request) {
   var response = null;
 
-  //var requestType = request[0];
-  //var flag = request[1];
+  // var requestType = request[0];
+  // var flag = request[1];
   var requestType = request.readUInt8(0);
   var flag = request.readUInt8(1);
 

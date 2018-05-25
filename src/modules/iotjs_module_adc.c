@@ -18,7 +18,7 @@
 #include "iotjs_objectwrap.h"
 
 
-static JNativeInfoType this_module_native_info = {.free_cb = NULL };
+static JNativeInfoType this_module_native_info = { .free_cb = NULL };
 
 
 static iotjs_adc_t* iotjs_adc_instance_from_jval(const jerry_value_t jadc);

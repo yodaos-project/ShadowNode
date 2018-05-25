@@ -39,7 +39,7 @@ function Driver() {
     if (driver.runner) {
       driver.runner.cleanup();
     }
-    var filename = test['name'];
+    var filename = test.name;
 
     if (status == 'pass') {
       driver.results.pass++;
@@ -50,7 +50,7 @@ function Driver() {
     } else if (status == 'skip') {
       driver.results.skip++;
       driver.logger.message('SKIP : ' + filename +
-                   '   (reason : ' + test.reason + ")", status);
+                   '   (reason : ' + test.reason + ')', status);
     } else if (status == 'timeout') {
       driver.results.timeout++;
       driver.logger.message('TIMEOUT : ' + filename + elapsedTime, status);
@@ -71,21 +71,21 @@ function Driver() {
 Driver.prototype.config = function() {
   var parser = new OptionParser();
 
-  parser.addOption('start-from', "", "",
-    "a test case file name where the driver starts.");
-  parser.addOption('quiet', "yes|no", "yes",
-    "a flag that indicates if the driver suppresses " +
-    "console outputs of test case");
-  parser.addOption('output-file', "", "",
-    "a file name where the driver leaves output");
-  parser.addOption('skip-module', "", "",
-    "a module list to skip test of specific modules");
-  parser.addOption('output-coverage', "yes|no", "no",
-    "output coverage information");
-  parser.addOption('experimental', "yes|no", "no",
-    "a flag that indicates if tests for experimental are needed");
-  parser.addOption('default-timeout', "", 240,
-    "the default timeout in seconds");
+  parser.addOption('start-from', '', '',
+                   'a test case file name where the driver starts.');
+  parser.addOption('quiet', 'yes|no', 'yes',
+                   'a flag that indicates if the driver suppresses ' +
+    'console outputs of test case');
+  parser.addOption('output-file', '', '',
+                   'a file name where the driver leaves output');
+  parser.addOption('skip-module', '', '',
+                   'a module list to skip test of specific modules');
+  parser.addOption('output-coverage', 'yes|no', 'no',
+                   'output coverage information');
+  parser.addOption('experimental', 'yes|no', 'no',
+                   'a flag that indicates if tests for experimental are needed');
+  parser.addOption('default-timeout', '', 240,
+                   'the default timeout in seconds');
 
   var options = parser.parse();
 
@@ -108,7 +108,7 @@ Driver.prototype.config = function() {
     this.skipModule = skipModule.split(',');
   }
 
-  var experimental = options['experimental'];
+  var experimental = options.experimental;
   if (experimental == 'no') {
     this.stability = 'stable';
   } else {
@@ -136,19 +136,17 @@ Driver.prototype.config = function() {
 Driver.prototype.runNextTest = function() {
   if (this.dIdx == this.dLength) {
     this.finish();
-  } else {
-    if (this.fIdx == this.fLength) {
-      this.dIdx++;
-      if (this.dIdx == this.dLength) {
-        this.finish();
-      } else {
-        this.nextTestSet();
-        this.runNextTest();
-      }
+  } else if (this.fIdx == this.fLength) {
+    this.dIdx++;
+    if (this.dIdx == this.dLength) {
+      this.finish();
     } else {
-      this.runner = new Runner(this);
-      this.runner.run();
+      this.nextTestSet();
+      this.runNextTest();
     }
+  } else {
+    this.runner = new Runner(this);
+    this.runner.run();
   }
 };
 
@@ -162,7 +160,7 @@ Driver.prototype.skipTestSet = function(filename) {
     var dir = this.tests[dirname];
     var fLength = dir.length;
     for (var fIdx = 0; fIdx < fLength; fIdx++) {
-      if (dir[fIdx]['name'] == filename) {
+      if (dir[fIdx].name == filename) {
         this.fIdx = fIdx;
         this.dIdx = dIdx;
         return true;
@@ -180,12 +178,12 @@ Driver.prototype.nextTestSet = function(skipped) {
 
   var dirname = this.dirname();
   this.fLength = this.tests[dirname].length;
-  this.logger.message("\n");
-  this.logger.message(">>>> " + dirname, "summary");
+  this.logger.message('\n');
+  this.logger.message('>>>> ' + dirname, 'summary');
 };
 
 Driver.prototype.dirname = function() {
-  return Object.keys(this.tests)[this.dIdx]
+  return Object.keys(this.tests)[this.dIdx];
 };
 
 Driver.prototype.currentTest = function() {
@@ -196,7 +194,7 @@ Driver.prototype.currentTest = function() {
 Driver.prototype.test = function() {
   var test = this.currentTest();
   var dirname = this.dirname();
-  var testfile = util.absolutePath(util.join(dirname, test['name']));
+  var testfile = util.absolutePath(util.join(dirname, test.name));
 
   return fs.readFileSync(testfile).toString();
 };
@@ -210,17 +208,16 @@ Driver.prototype.finish = function() {
     this.results.timeout, this.logger.status.timeout);
   this.logger.message('SKIP : ' + this.results.skip, this.logger.status.skip);
 
-  if (this.options["output-coverage"] == "yes"
-      && typeof __coverage__ !== "undefined") {
+  if (this.options['output-coverage'] == 'yes' &&
+      typeof __coverage__ !== 'undefined') {
     data = JSON.stringify(__coverage__);
 
-    if (!fs.existsSync("../.coverage_output/")) {
-        fs.mkdirSync("../.coverage_output/");
+    if (!fs.existsSync('../.coverage_output/')) {
+      fs.mkdirSync('../.coverage_output/');
     }
 
-    fs.writeFileSync("../.coverage_output/js_coverage.data", Buffer(data));
-  }
-  else if (this.results.fail > 0 || this.results.timeout > 0) {
+    fs.writeFileSync('../.coverage_output/js_coverage.data', Buffer(data));
+  } else if (this.results.fail > 0 || this.results.timeout > 0) {
     originalExit(1);
   }
 
@@ -237,7 +234,7 @@ process.exit = function(code) {
   var should_fail = driver.runner.test['expected-failure'];
   try {
     process.emitExit(code);
-  } catch(e) {
+  } catch (e) {
     // when assertion inside the process.on('exit', function { ... }) is failed,
     // this procedure is executed.
     process.removeAllListeners('exit');

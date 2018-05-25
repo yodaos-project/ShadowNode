@@ -21,11 +21,9 @@
     this.exports = {};
   }
 
-
   Module.cache = {};
-
   Module.require = function(id) {
-    if (id == 'native') {
+    if (id === 'native') {
       return Module;
     }
 
@@ -87,7 +85,10 @@
         }
         return accu;
       }, [])
-      .map(info => `    at ${info.name} (${info.source}:${info.line}:${info.column})`)
+      .map((info) => {
+        return '    ' +
+          `at ${info.name} (${info.source}:${info.line}:${info.column})`;
+      })
       .join('\n');
   }
 
@@ -119,9 +120,8 @@
 
   if (typeof Object.assign != 'function') {
     // Must be writable: true, enumerable: false, configurable: true
-    Object.defineProperty(Object, "assign", {
-      value: function assign(target, varArgs) { // .length of function is 2
-        'use strict';
+    Object.defineProperty(Object, 'assign', {
+      value: function(target, varArgs) { // .length of function is 2
         if (target == null) { // TypeError if undefined or null
           throw new TypeError('Cannot convert undefined or null to object');
         }
@@ -239,7 +239,7 @@
 
   // Proxy
   (function(scope) {
-    if (scope['Proxy']) {
+    if (scope.Proxy) {
       return;
     }
     var lastRevokeFn = null;
@@ -259,23 +259,27 @@
      */
     scope.Proxy = function(target, handler) {
       if (!isObject(target) || !isObject(handler)) {
-        throw new TypeError('Cannot create proxy with a non-object as target or handler');
+        throw new TypeError(
+          'Cannot create proxy with a non-object as target or handler');
       }
 
-      // Construct revoke function, and set lastRevokeFn so that Proxy.revocable can steal it.
-      // The caller might get the wrong revoke function if a user replaces or wraps scope.Proxy
-      // to call itself, but that seems unlikely especially when using the polyfill.
-      var throwRevoked = function() {};
+      // Construct revoke function, and set lastRevokeFn so that Proxy.revocable
+      // can steal it. The caller might get the wrong revoke function if a user
+      // replaces or wraps scope.Proxy to call itself, but that seems unlikely
+      // especially when using the polyfill.
+      var throwRevoked = () => false;
       lastRevokeFn = function() {
         throwRevoked = function(trap) {
-          throw new TypeError(`Cannot perform '${trap}' on a proxy that has been revoked`);
+          throw new TypeError(
+            `Cannot perform '${trap}' on a proxy that has been revoked`);
         };
       };
 
-      // Fail on unsupported traps: Chrome doesn't do this, but ensure that users of the polyfill
-      // are a bit more careful. Copy the internal parts of handler to prevent user changes.
+      // Fail on unsupported traps: Chrome doesn't do this, but ensure that
+      // users of the polyfill are a bit more careful. Copy the internal parts
+      // of handler to prevent user changes.
       var unsafeHandler = handler;
-      handler = {'get': null, 'set': null, 'apply': null, 'construct': null};
+      handler = { 'get': null, 'set': null, 'apply': null, 'construct': null };
       for (var k in unsafeHandler) {
         if (!(k in handler)) {
           throw new TypeError(`Proxy polyfill does not support trap '${k}'`);
@@ -283,23 +287,26 @@
         handler[k] = unsafeHandler[k];
       }
       if (typeof unsafeHandler === 'function') {
-        // Allow handler to be a function (which has an 'apply' method). This matches what is
-        // probably a bug in native versions. It treats the apply call as a trap to be configured.
+        // Allow handler to be a function (which has an 'apply' method). This
+        // matches what is probably a bug in native versions. It treats the
+        // apply call as a trap to be configured.
         handler.apply = unsafeHandler.apply.bind(unsafeHandler);
       }
 
-      // Define proxy as this, or a Function (if either it's callable, or apply is set).
-      // TODO(samthor): Closure compiler doesn't know about 'construct', attempts to rename it.
+      // Define proxy as this, or a Function (if either it's callable, or apply
+      // is set).
+      // TODO(samthor): Closure compiler doesn't know about 'construct',
+      // attempts to rename it.
       var proxy = this;
       var isMethod = false;
       if (typeof target === 'function') {
-        proxy = function Proxy() {
+        function Proxy() {
           var usingNew = (this && this.constructor === proxy);
           var args = Array.prototype.slice.call(arguments);
           throwRevoked(usingNew ? 'construct' : 'apply');
 
-          if (usingNew && handler['construct']) {
-            return handler['construct'].call(this, target, args);
+          if (usingNew && handler.construct) {
+            return handler.construct.call(this, target, args);
           } else if (!usingNew && handler.apply) {
             return handler.apply(target, this, args);
           }
@@ -307,18 +314,19 @@
           // since the target was a function, fallback to calling it directly.
           if (usingNew) {
             // inspired by answers to https://stackoverflow.com/q/1606797
-            args.unshift(target);  // pass class as first arg to constructor, although irrelevant
+            args.unshift(target);
             // nb. cast to convince Closure compiler that this is a constructor
             var f = /** @type {!Function} */ (target.bind.apply(target, args));
             return new f();
           }
           return target.apply(this, args);
-        };
+        }
+        proxy = Proxy;
         isMethod = true;
       }
 
-      // Create default getters/setters. Create different code paths as handler.get/handler.set can't
-      // change after creation.
+      // Create default getters/setters. Create different code paths
+      // as handler.get/handler.set can't change after creation.
       var getter = handler.get ? function(prop) {
         throwRevoked('get');
         return handler.get(this, prop, proxy);
@@ -330,9 +338,12 @@
         throwRevoked('set');
         var status = handler.set(this, prop, value, proxy);
         if (!status) {
-          // TODO(samthor): If the calling code is in strict mode, throw TypeError.
-          // It's (sometimes) possible to work this out, if this code isn't strict- try to load the
-          // callee, and if it's available, that code is non-strict. However, this isn't exhaustive.
+          // TODO(samthor): If the calling code is in strict mode,
+          // throw TypeError.
+          // It's (sometimes) possible to work this out, if this
+          // code isn't strict- try to load the callee, and if
+          // it's available, that code is non-strict. However,
+          // this isn't exhaustive.
         }
       } : function(prop, value) {
         throwRevoked('set');
@@ -344,7 +355,7 @@
       var propertyMap = {};
       propertyNames.forEach(function(prop) {
         if (isMethod && prop in proxy) {
-          return;  // ignore properties already here, e.g. 'bind', 'prototype' etc
+          return;  // ignore properties already here.
         }
         var real = Object.getOwnPropertyDescriptor(target, prop);
         var desc = {
@@ -356,9 +367,12 @@
         propertyMap[prop] = true;
       });
 
-      // Set the prototype, or clone all prototype methods (always required if a getter is provided).
-      // TODO(samthor): We don't allow prototype methods to be set. It's (even more) awkward.
-      // An alternative here would be to _just_ clone methods to keep behavior consistent.
+      // Set the prototype, or clone all prototype methods
+      // (always required if a getter is provided).
+      // TODO(samthor): We don't allow prototype methods to
+      // be set. It's (even more) awkward. An alternative
+      // here would be to _just_ clone methods to keep
+      // behavior consistent.
       var prototypeOk = true;
       if (Object.setPrototypeOf) {
         Object.setPrototypeOf(proxy, Object.getPrototypeOf(target));
@@ -366,15 +380,16 @@
         prototypeOk = false;
       }
       if (handler.get || !prototypeOk) {
-        for (var k in target) {
-          if (propertyMap[k]) {
+        for (var _k in target) {
+          if (propertyMap[_k]) {
             continue;
           }
-          Object.defineProperty(proxy, k, {get: getter.bind(target, k)});
+          Object.defineProperty(proxy, _k, { get: getter.bind(target, _k) });
         }
       }
 
-      // The Proxy polyfill cannot handle adding new properties. Seal the target and proxy.
+      // The Proxy polyfill cannot handle adding new properties. Seal
+      // the target and proxy.
       Object.seal(target);
       Object.seal(proxy);
 
@@ -383,11 +398,11 @@
 
     scope.Proxy.revocable = function(target, handler) {
       var p = new scope.Proxy(target, handler);
-      return {'proxy': p, 'revoke': lastRevokeFn};
+      return { 'proxy': p, 'revoke': lastRevokeFn };
     };
 
-    scope.Proxy['revocable'] = scope.Proxy.revocable;
-    scope['Proxy'] = scope.Proxy;
+    scope.Proxy.revocable = scope.Proxy.revocable;
+    scope.Proxy = scope.Proxy;
   })(global);
 
   /**
@@ -397,14 +412,13 @@
   global.console = Module.require('console');
   global.Buffer = Module.require('buffer');
 
-  var timers = undefined;
-
-  var _timeoutHandler = function(mode) {
-    if (timers == undefined) {
+  var timers;
+  function _timeoutHandler(mode) {
+    if (timers === undefined) {
       timers = Module.require('timers');
     }
     return timers[mode].apply(this, Array.prototype.slice.call(arguments, 1));
-  };
+  }
 
   global.setTimeout = _timeoutHandler.bind(this, 'setTimeout');
   global.setInterval = _timeoutHandler.bind(this, 'setInterval');
@@ -476,7 +490,7 @@
   process.emitExit = function(code) {
     if (!process._exiting) {
       process._exiting = true;
-      if (code || code == 0) {
+      if (code || code === 0) {
         process.exitCode = code;
       }
       process.emit('exit', process.exitCode || 0);
@@ -506,11 +520,12 @@
     write: console._stderr,
   };
 
-  // FIXME(Yorkie): the NamedPropertyHandlerConfiguration is not implemented at IoT.js
+  // FIXME(Yorkie): the NamedPropertyHandlerConfiguration is
+  // not implemented at IoT.js
   process.set = function(key, val) {
     if (key === 'env' || key === 'environ') {
-      for (var key in val) {
-        process._setEnviron(key, val[key]);
+      for (var item in val) {
+        process._setEnviron(item, val[item]);
       }
       updateEnviron();
     } else {
@@ -537,7 +552,7 @@
 
   var _hrtime = process.hrtime;
   var NANOSECOND_PER_SECONDS = 1e9;
-  process.hrtime = function hrtime (time) {
+  process.hrtime = function hrtime(time) {
     var curr = _hrtime();
     if (time === null || time === undefined) {
       return curr;
@@ -550,7 +565,7 @@
       throw error;
     }
     if (time.length !== 2) {
-      var error = new TypeError('[ERR_INVALID_ARRAY_LENGTH]: ' +
+      error = new TypeError('[ERR_INVALID_ARRAY_LENGTH]: ' +
         'The array "time" (length ' + String(time.length) + ') ' +
         'must be of length 2.');
       error.code = 'ERR_INVALID_ARRAY_LENGTH';
@@ -563,7 +578,7 @@
       right += NANOSECOND_PER_SECONDS;
     }
     return [left, right];
-  }
+  };
 
   function setupChannel() {
     // If we were spawned with env NODE_CHANNEL_FD then load that up and
@@ -579,6 +594,6 @@
   }
   setupChannel();
 
-  var module = Module.require('module');
-  module.runMain();
+  var m = Module.require('module');
+  m.runMain();
 })();

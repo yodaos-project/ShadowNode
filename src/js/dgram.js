@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
@@ -38,7 +39,7 @@ function lookup4(address, callback) {
 
 
 function newHandle(type) {
-  if (type == 'udp4') {
+  if (type === 'udp4') {
     var handle = new udp();
     handle.lookup = lookup4;
     return handle;
@@ -50,7 +51,7 @@ function newHandle(type) {
 
 function Socket(type, listener) {
   EventEmitter.call(this);
-  var options = undefined;
+  var options;
 
   if (util.isObject(type)) {
     options = type;
@@ -97,12 +98,10 @@ Socket.prototype.bind = function(port, address, callback) {
 
   self._healthCheck();
 
-  if (this._bindState != BIND_STATE_UNBOUND)
+  if (this._bindState !== BIND_STATE_UNBOUND)
     throw new Error('Socket is already bound');
 
   this._bindState = BIND_STATE_BINDING;
-
-  var address;
 
   if (util.isFunction(port)) {
     callback = port;
@@ -138,7 +137,7 @@ Socket.prototype.bind = function(port, address, callback) {
 
     self._handle._reuseAddr = self._reuseAddr;
 
-    var err = self._handle.bind(ip, port | 0);
+    err = self._handle.bind(ip, port | 0);
     if (err) {
       var ex = util.exceptionWithHostPort(err, 'bind', ip, port);
       self.emit('error', ex);
@@ -205,7 +204,7 @@ function enqueue(self, toEnqueue) {
     self.once('listening', clearQueue);
   }
   self._queue.push(toEnqueue);
-  return;
+
 }
 
 
@@ -311,8 +310,8 @@ function doSend(ex, self, ip, list, address, port, callback) {
 
   if (err && callback) {
     // don't emit as error, dgram_legacy.js compatibility
-    var ex = exceptionWithHostPort(err, 'send', address, port);
-    process.nextTick(callback, ex);
+    var exception = util.exceptionWithHostPort(err, 'send', address, port);
+    process.nextTick(callback, exception);
   }
 }
 
@@ -447,7 +446,7 @@ Socket.prototype._stopReceiving = function() {
 function onMessage(nread, handle, buf, rinfo) {
   var self = handle.owner;
   if (nread < 0) {
-    return self.emit('error', errnoException(nread, 'recvmsg'));
+    return self.emit('error', util.errnoException(nread, 'recvmsg'));
   }
 
   rinfo.size = buf.length; // compatibility

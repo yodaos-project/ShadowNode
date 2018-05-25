@@ -15,4 +15,4 @@
 
 
 // FIX: issue #133.
-console.log("");
+console.log('');

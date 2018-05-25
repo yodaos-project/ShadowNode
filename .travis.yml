@@ -4,12 +4,18 @@ os: linux
 dist: trusty
 sudo: required
 
+cache:
+  directories:
+    - node_modules/
+
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tools/apt-get-install-deps.sh; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tools/brew-install-deps.sh; fi
+  - npm install
+  - ls node_modules/.bin
 
 script:
-  - tools/build.py --tests --no-check-valgrind
+  - npm run lint && tools/build.py --tests --no-check-valgrind
 
 env:
   matrix:

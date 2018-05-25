@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var util = require('util');
 var net = require('net');
@@ -148,7 +149,7 @@ function Server(requestListener) {
     return new Server(requestListener);
   }
 
-  net.Server.call(this, {allowHalfOpen: true});
+  net.Server.call(this, { allowHalfOpen: true });
 
   if (util.isFunction(requestListener)) {
     this.addListener('request', requestListener);

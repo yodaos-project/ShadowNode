@@ -12,15 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var stream = require('stream');
 var util = require('util');
+
 var Stream = stream.Stream;
-var Duplex = stream.Duplex;
-
 var defaultHighWaterMark = 128;
-
 
 function WriteReq(chunk, callback) {
   this.chunk = chunk;
@@ -197,7 +195,7 @@ function writeOrBuffer(stream, chunk, callback) {
 function writeBuffered(stream) {
   var state = stream._writableState;
   if (!state.writing) {
-    if (state.buffer.length == 0) {
+    if (state.buffer.length === 0) {
       onEmptyBuffer(stream);
     } else {
       var req = state.buffer.shift();
@@ -243,7 +241,7 @@ function endWritable(stream, callback) {
   }
 
   // If nothing left, emit finish event at next tick.
-  if (!state.writing && state.buffer.length == 0) {
+  if (!state.writing && state.buffer.length === 0) {
     process.nextTick(emitFinish.bind(undefined, stream));
   }
 }

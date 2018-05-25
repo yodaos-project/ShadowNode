@@ -43,6 +43,6 @@ testGpioInfo.forEach(function(info) {
   });
 });
 
-setTimeout(function(){
+setTimeout(function() {
   console.log('finish test');
 }, 10000);

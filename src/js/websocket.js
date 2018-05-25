@@ -111,7 +111,7 @@ WebSocketConnection.prototype.onsocketdata = function(chunk) {
       var err = new Error(`unhandled message type ${decoded.type}`);
       this.emit('error', err);
     }
-  } while (false)
+  } while (false);
   if (leftChunk) {
     this.onsocketdata(leftChunk);
   }

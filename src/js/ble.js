@@ -33,6 +33,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+'use strict';
 
 var debug = console.log; // require('debug')('ble');
 
@@ -51,7 +52,9 @@ var platform = process.platform;
 
 if (platform === 'darwin') {
   // bindings = require('./mac/bindings');
-} else if (platform === 'linux' || platform === 'win32' || platform === 'android') {
+} else if (platform === 'linux' ||
+  platform === 'win32' ||
+  platform === 'android') {
   bindings = require('ble_hci_socket_bindings');
 } else {
   throw new Error('Unsupported platform');
@@ -127,7 +130,9 @@ Bleno.prototype.onDisconnect = function(clientAddress) {
 
 Bleno.prototype.startAdvertising = function(name, serviceUuids, callback) {
   if (this.state !== 'poweredOn') {
-    var error = new Error('Could not start advertising, state is ' + this.state + ' (not poweredOn)');
+    var error = new Error(
+      'Could not start advertising, state is ' +
+       this.state + ' (not poweredOn)');
 
     if (typeof callback === 'function') {
       callback(error);
@@ -151,9 +156,14 @@ Bleno.prototype.startAdvertising = function(name, serviceUuids, callback) {
   }
 };
 
-Bleno.prototype.startAdvertisingIBeacon = function(uuid, major, minor, measuredPower, callback) {
+Bleno.prototype.startAdvertisingIBeacon = function(uuid,
+                                                   major,
+                                                   minor,
+                                                   measuredPower, callback) {
   if (this.state !== 'poweredOn') {
-    var error = new Error('Could not start advertising, state is ' + this.state + ' (not poweredOn)');
+    var error = new Error(
+      'Could not start advertising, state is ' +
+      this.state + ' (not poweredOn)');
 
     if (typeof callback === 'function') {
       callback(error);
@@ -161,7 +171,7 @@ Bleno.prototype.startAdvertisingIBeacon = function(uuid, major, minor, measuredP
       throw error;
     }
   } else {
-    var undashedUuid =  uuidUtil.removeDashes(uuid);
+    var undashedUuid = uuidUtil.removeDashes(uuid);
     var uuidData = new Buffer(undashedUuid, 'hex');
     var uuidDataLength = uuidData.length;
     var iBeaconData = new Buffer(uuidData.length + 5);
@@ -194,14 +204,16 @@ Bleno.prototype.onAdvertisingStart = function(error) {
   this.emit('advertisingStart', error);
 };
 
-Bleno.prototype.startAdvertisingWithEIRData = function(advertisementData, scanData, callback) {
+Bleno.prototype.startAdvertisingWithEIRData = function(advertisementData,
+                                                       scanData, callback) {
   if (typeof scanData === 'function') {
     callback = scanData;
     scanData = null;
   }
 
   if (this.state !== 'poweredOn') {
-    var error = new Error('Could not advertising scanning, state is ' + this.state + ' (not poweredOn)');
+    var error = new Error('Could not advertising scanning, state is ' +
+      this.state + ' (not poweredOn)');
 
     if (typeof callback === 'function') {
       callback(error);

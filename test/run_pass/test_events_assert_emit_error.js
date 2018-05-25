@@ -22,5 +22,5 @@ var ee = new EventEmitter();
 
 assert.throws(
   function() {
-   ee.emit('error');
- }, Error);
+    ee.emit('error');
+  }, Error);

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var Stream = require('stream').Stream;
 var util = require('util');
@@ -75,7 +75,7 @@ Readable.prototype.read = function(n) {
     res = null;
   }
 
-  if (state.ended && state.length == 0) {
+  if (state.ended && state.length === 0) {
     emitEnd(this);
   }
 
@@ -184,7 +184,7 @@ function readBuffer(stream, n) {
   var state = stream._readableState;
   var res;
 
-  if (n == 0 || util.isNullOrUndefined(n)) {
+  if (n === 0 || util.isNullOrUndefined(n)) {
     n = state.length;
   }
 
@@ -221,10 +221,10 @@ function emitEnd(stream) {
 function emitData(stream, data) {
   var state = stream._readableState;
 
-  assert.equal(readBuffer(stream), null);
+  assert.strictEqual(readBuffer(stream), null);
   stream.emit('data', data);
 
-  if (state.ended && state.length == 0) {
+  if (state.ended && state.length === 0) {
     emitEnd(stream);
   }
 }

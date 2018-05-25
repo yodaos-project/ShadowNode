@@ -40,7 +40,7 @@ server.on('listening', function() {
   var address = server.address();
   server_address = address.address;
   server_port = address.port;
-})
+});
 
 server.bind(port);
 

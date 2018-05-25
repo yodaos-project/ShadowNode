@@ -14,5 +14,5 @@
  */
 var assert = require('assert');
 var s1 = Buffer('737263', 'hex').toString();
-var s2 = new Buffer('737263', 'hex').toString()
+var s2 = new Buffer('737263', 'hex').toString();
 assert(s1 === s2);

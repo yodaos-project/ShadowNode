@@ -33,15 +33,15 @@ server.on('connection', function(socket) {
 
 
 var socket = new net.Socket();
-var msg = "";
+var msg = '';
 var lookupHandled = false;
 
 socket.on('lookup', function(err, ip, family) {
   lookupHandled = true;
 });
 
-socket.connect(port, "localhost");  // connect with hostname
-socket.write("Hello IoT.js");
+socket.connect(port, 'localhost');  // connect with hostname
+socket.write('Hello IoT.js');
 
 socket.on('data', function(data) {
   msg += data;
@@ -53,6 +53,6 @@ socket.on('end', function() {
 
 process.on('exit', function(code) {
   assert.equal(code, 0);
-  assert.equal(msg, "Hello IoT.js");
+  assert.equal(msg, 'Hello IoT.js');
   assert.equal(lookupHandled, true);
 });

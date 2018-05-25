@@ -18,7 +18,7 @@ var assert = require('assert');
 var sequence = '';
 
 process.nextTick(function() {
-  sequence += '2'
+  sequence += '2';
 });
 
 sequence = '1';

@@ -21,4 +21,4 @@ assert.equal(json.author, 'Samsung Electronics Co., Ltd.');
 assert.equal(json.license, 'Apache-2.0');
 assert.equal(json.number, 123);
 assert.equal(Array.isArray(json.array), true);
-assert.equal(json.array.toString(), [1,2,3,4].toString());
+assert.equal(json.array.toString(), [1, 2, 3, 4].toString());
