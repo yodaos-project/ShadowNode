@@ -365,9 +365,9 @@ JS_FUNCTION(DLOpen) {
 
   void* handle = dlopen(iotjs_string_data(&location), RTLD_LAZY);
   if (handle == NULL) {
+    fprintf(stderr, "dlopen: error(%s)\n", error);
     return jerry_create_number(-1);
   }
-  dlerror(); // for clear dl errors.
 
   initfn = dlsym(handle, "iotjs_module_register");
   // check for dlsym
