@@ -160,6 +160,18 @@ ecma_op_create_function_object (ecma_object_t *scope_p, /**< function's scope */
 
   /* 10., 11., 12. */
 
+  /* Add function name which is not in spec */
+  if (bytecode_data_p->name != ECMA_VALUE_EMPTY)
+  {
+    ecma_string_t *name_str_p = ecma_get_magic_string (LIT_MAGIC_STRING_NAME);
+    ecma_ref_ecma_string (name_str_p);
+    ecma_property_value_t *prop_value_p;
+    prop_value_p = ecma_create_named_data_property (func_p, name_str_p, ECMA_PROPERTY_FIXED, NULL);
+    ecma_string_t *function_name_str_p = ecma_get_string_from_value (bytecode_data_p->name);
+    ecma_ref_ecma_string (function_name_str_p);
+    prop_value_p->value = bytecode_data_p->name;
+  }
+
 #ifdef JERRY_ENABLE_SNAPSHOT_EXEC
   if (!(bytecode_data_p->status_flags & CBC_CODE_FLAGS_STATIC_FUNCTION))
   {
