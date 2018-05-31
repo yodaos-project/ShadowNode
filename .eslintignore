@@ -3,6 +3,7 @@
 /samples/**
 /tools/**
 /test/**
+/benchmark/**
 /node_modules/**
 /src/js/ble*
 /src/js/iotjs.js
