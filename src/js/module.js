@@ -33,6 +33,12 @@ iotjs_module_t.wrapper = Native.wrapper;
 iotjs_module_t.wrap = Native.wrap;
 iotjs_module_t.curr = null;
 
+var mainModule = {
+  id: '.',
+  exports: {},
+  parent: null,
+  filename: '',
+};
 
 var cwd;
 try {
@@ -251,9 +257,12 @@ iotjs_module_t.prototype.compile = function(snapshot) {
       throw new TypeError('Invalid snapshot file.');
   }
 
+  var _require = this.require.bind(this);
+  _require.main = mainModule;
+
   fn.apply(this.exports, [
     this.exports,             // exports
-    this.require.bind(this),  // require
+    _require,                 // require
     this,                     // module
     undefined,                // native
     __filename,               // __filename
@@ -276,7 +285,8 @@ iotjs_module_t.runMain = function() {
     var fn = process.debuggerSourceCompile();
     fn.call();
   } else {
-    iotjs_module_t.load(process.argv[1], null);
+    var filename = mainModule.filename = process.argv[1];
+    mainModule.exports = iotjs_module_t.load(filename, null);
   }
   while (process._onNextTick());
 };
