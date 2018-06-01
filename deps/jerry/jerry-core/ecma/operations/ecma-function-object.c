@@ -160,6 +160,7 @@ ecma_op_create_function_object (ecma_object_t *scope_p, /**< function's scope */
 
   /* 10., 11., 12. */
 
+#ifdef JERRY_FUNCTION_NAME
   /* Add function name which is not in spec */
   if (bytecode_data_p->name != ECMA_VALUE_EMPTY)
   {
@@ -171,6 +172,7 @@ ecma_op_create_function_object (ecma_object_t *scope_p, /**< function's scope */
     ecma_ref_ecma_string (function_name_str_p);
     prop_value_p->value = bytecode_data_p->name;
   }
+#endif /* JERRY_FUNCTION_NAME */
 
 #ifdef JERRY_ENABLE_SNAPSHOT_EXEC
   if (!(bytecode_data_p->status_flags & CBC_CODE_FLAGS_STATIC_FUNCTION))
