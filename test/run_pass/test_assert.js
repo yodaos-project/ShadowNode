@@ -23,8 +23,9 @@ assert.notEqual(1, 2);
 
 assert.strictEqual(0, 0);
 assert.throws(function() {
-  assert.strictEqual(1, 0); },
-  assert.AssertionError);
+  assert.strictEqual(1, 0);
+},
+              assert.AssertionError);
 
 assert.throws(function() {
   assert.notStrictEqual(true, true);
@@ -32,7 +33,7 @@ assert.throws(function() {
 
 assert.throws(function() {
   assert.notStrictEqual(true, true);
-}, assert.AssertionError, "something");
+}, assert.AssertionError, 'something');
 
 assert.throws(function() {
   assert.throws(function() {});
@@ -46,11 +47,11 @@ assert.throws(function() {
 
 assert.doesNotThrow(function() {
   assert.strictEqual(1, 1);
-}, "something");
+}, 'something');
 
 assert.throws(function() {
   assert.strictEqual(1, 0);
-}, assert.AssertionError, assert.AssertionError.name="something");
+}, assert.AssertionError, assert.AssertionError.name = 'something');
 
 assert.equal(0, false);
 assert.notStrictEqual(0, false);

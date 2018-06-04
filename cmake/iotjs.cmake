@@ -378,6 +378,7 @@ message(STATUS "IOTJS_PROFILE            ${IOTJS_PROFILE}")
 message(STATUS "JERRY_DEBUGGER           ${FEATURE_DEBUGGER}")
 message(STATUS "JERRY_HEAP_SIZE_KB       ${MEM_HEAP_SIZE_KB}")
 message(STATUS "JERRY_MEM_STATS          ${FEATURE_MEM_STATS}")
+message(STATUS "JERRY_FUNCTION_NAME      ${FEATURE_FUNCTION_NAME}")
 message(STATUS "JERRY_PROFILE            ${FEATURE_PROFILE}")
 message(STATUS "PLATFORM_DESCRIPTOR      ${PLATFORM_DESCRIPTOR}")
 message(STATUS "TARGET_ARCH              ${TARGET_ARCH}")
@@ -416,7 +417,7 @@ set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   PUBLIC_HEADER "${IOTJS_PUBLIC_HEADERS}"
 )
-target_include_directories(${TARGET_LIB_IOTJS} 
+target_include_directories(${TARGET_LIB_IOTJS}
   PRIVATE ${IOTJS_INCLUDE_DIRS} ${DBUS_INCLUDE_DIRS})
 target_link_libraries(${TARGET_LIB_IOTJS}
   ${CMAKE_DL_LIBS}
@@ -440,6 +441,10 @@ endif()
 # Configure the iotjs executable
 if(NOT BUILD_LIB_ONLY)
   set(TARGET_IOTJS iotjs)
+  message(STATUS "CMAKE_BINARY_DIR        ${CMAKE_BINARY_DIR}")
+  message(STATUS "BINARY_INSTALL_DIR      ${INSTALL_PREFIX}/bin")
+  message(STATUS "LIBRARY_INSTALL_DIR     ${INSTALL_PREFIX}/lib")
+
   add_executable(${TARGET_IOTJS} ${ROOT_DIR}/src/platform/linux/iotjs_linux.c)
   set_target_properties(${TARGET_IOTJS} PROPERTIES
     LINK_FLAGS "${IOTJS_LINKER_FLAGS}"

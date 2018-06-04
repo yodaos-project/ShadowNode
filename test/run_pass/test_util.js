@@ -32,7 +32,7 @@ assert.equal(util.isNumber(3.14), true);
 assert.equal(util.isNumber(-5001), true);
 assert.equal(util.isNumber('5000'), false);
 assert.equal(util.isNumber(null), false);
-assert.equal(util.isNumber([0,1,2,3,4,5]), false);
+assert.equal(util.isNumber([0, 1, 2, 3, 4, 5]), false);
 
 
 assert.equal(util.isFinite(5001), true);
@@ -66,8 +66,8 @@ var object = {
   value5: 'Hello IoT.js'
 };
 assert.equal(util.isObject(object), true);
-assert.equal(util.isObject({obj: 5001}), true);
-assert.equal(util.isObject({obj: object}), true);
+assert.equal(util.isObject({ obj: 5001 }), true);
+assert.equal(util.isObject({ obj: object }), true);
 assert.equal(util.isObject({}), true);
 assert.equal(util.isObject([5001]), true);
 assert.equal(util.isObject(['Hello IoT.js']), true);
@@ -78,7 +78,7 @@ assert.equal(util.isObject('Hello IoT.js'), false);
 
 var func1 = function() {};
 assert.equal(util.isFunction(func1), true);
-assert.equal(util.isFunction(function(arg) {/*do nothing*/}), true);
+assert.equal(util.isFunction(function(arg) { /* do nothing */ }), true);
 assert.equal(util.isFunction(null), false);
 assert.equal(util.isFunction(5001), false);
 assert.equal(util.isFunction([5001]), false);
@@ -95,7 +95,7 @@ assert.equal(util.isBuffer({}), false);
 assert.equal(util.isBuffer('5001'), false);
 assert.equal(util.isBuffer([5001]), false);
 assert.equal(util.isBuffer([buff]), false);
-assert.equal(util.isBuffer({obj: buff}), false);
+assert.equal(util.isBuffer({ obj: buff }), false);
 
 
 function Parent() {}
@@ -123,8 +123,8 @@ assert.equal(
 assert.equal(util.format('%d%%', 5001), '5001%');
 
 var json = {
-  "first":"1st",
-  "second":"2nd"
+  'first': '1st',
+  'second': '2nd'
 };
 assert.equal(
   util.format('%s: %j', 'Object', json),
@@ -142,7 +142,7 @@ assert.equal(util.format('%j', '5001'), '"5001"');
 assert.equal(util.format('%d%d', 5001), '5001%d');
 assert.equal(util.format('%s%d%s%d', 'IoT.js ', 5001), 'IoT.js 5001%s%d');
 assert.equal(util.format('%d%% %s', 100, 'IoT.js'), '100% IoT.js');
-assert.equal(util.format(new Error('format')), 'Error: format');
+assert(util.format(new Error('format')).match(/^Error: format/));
 
 var err1 = util.errnoException(3008, 'syscall', 'original message');
 assert.equal(err1 instanceof Error, true);

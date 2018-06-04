@@ -38,7 +38,7 @@ function writeTest() {
     assert.equal(err, null);
     console.log('open done');
 
-    serial.writeSync("Hello IoT.js.\n\r");
+    serial.writeSync('Hello IoT.js.\n\r');
     serial.closeSync();
     console.log('close done');
     writeReadTest();
@@ -63,7 +63,7 @@ function writeReadTest() {
       }
     });
 
-    serial.write("Hello there?\n\r", function(err) {
+    serial.write('Hello there?\n\r', function(err) {
       assert.equal(err, null);
       console.log('write done');
       write = 1;

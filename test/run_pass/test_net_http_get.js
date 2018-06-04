@@ -18,23 +18,23 @@ var assert = require('assert');
 var http = require('http');
 
 
-var server = http.createServer(function (req, res) {
+var server = http.createServer(function(req, res) {
 
   var body = '';
   var url = req.url;
 
-  req.on('data', function (chunk) {
+  req.on('data', function(chunk) {
     body += chunk;
   });
 
-  var endHandler = function () {
+  var endHandler = function() {
 
-    res.writeHead(200, { 'Connection' : 'close',
-                         'Content-Length' : body.length
-                       });
+    res.writeHead(200, { 'Connection': 'close',
+                         'Content-Length': body.length
+    });
     res.write(body);
-    res.end(function(){
-      if(body == 'close server') server.close();
+    res.end(function() {
+      if (body == 'close server') server.close();
     });
   };
 
@@ -42,27 +42,27 @@ var server = http.createServer(function (req, res) {
 
 });
 
-server.listen(3005,5);
+server.listen(3005, 5);
 
 
 // 1. GET req
 options = {
-  method : 'GET',
-  port : 3005
+  method: 'GET',
+  port: 3005
 };
 
-var getResponseHandler = function (res) {
+var getResponseHandler = function(res) {
   var res_body = '';
 
   assert.equal(200, res.statusCode);
 
-  var endHandler = function(){
+  var endHandler = function() {
     // GET msg, no received body
     assert.equal('', res_body);
   };
   res.on('end', endHandler);
 
-  res.on('data', function(chunk){
+  res.on('data', function(chunk) {
     res_body += chunk.toString();
   });
 };
@@ -73,22 +73,22 @@ http.get(options, getResponseHandler);
 // 2. close server req
 var finalMsg = 'close server';
 var finalOptions = {
-  method : 'POST',
-  port : 3005,
-  headers : {'Content-Length': finalMsg.length}
+  method: 'POST',
+  port: 3005,
+  headers: { 'Content-Length': finalMsg.length }
 };
 
-var finalResponseHandler = function (res) {
+var finalResponseHandler = function(res) {
   var res_body = '';
 
   assert.equal(200, res.statusCode);
 
-  var endHandler = function(){
+  var endHandler = function() {
     assert.equal(finalMsg, res_body);
   };
   res.on('end', endHandler);
 
-  res.on('data', function(chunk){
+  res.on('data', function(chunk) {
     res_body += chunk.toString();
   });
 };

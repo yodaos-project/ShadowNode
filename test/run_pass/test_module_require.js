@@ -15,24 +15,24 @@
 
 var assert = require('assert');
 
-var dir = process.cwd() + "/run_pass/require1/";
+var dir = process.cwd() + '/run_pass/require1/';
 
 // Load a JS file.
-var x = require(dir + "require_add");
-assert.equal(x.add(1,4), 5);
+var x = require(dir + 'require_add');
+assert.equal(x.add(1, 4), 5);
 
 // Load a package.
-var pkg1 = require(dir + "test_pkg");
+var pkg1 = require(dir + 'test_pkg');
 assert.equal(pkg1.add(22, 44), 66);
 assert.equal(pkg1.multi(22, 44), 968);
 assert.equal(pkg1.add2(22, 44), 66);
 
-var pkg2 = require(dir + "test_index");
+var pkg2 = require(dir + 'test_index');
 assert.equal(pkg2.add(22, 44), 66);
 assert.equal(pkg2.multi(22, 44), 968);
 assert.equal(pkg2.add2(22, 44), 66);
 
-var pkg3 = require(dir + "test_index2");
+var pkg3 = require(dir + 'test_index2');
 assert.equal(pkg3.add(22, 44), 66);
 assert.equal(pkg3.multi(22, 44), 968);
 assert.equal(pkg3.add2(22, 44), 66);

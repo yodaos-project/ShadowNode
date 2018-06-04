@@ -26,8 +26,7 @@ fs.stat(process.cwd() + '/run_pass/test_fs_stat.js', function(err, stats) {
   if (!err) {
     assert.equal(stats.isFile(), true);
     assert.equal(stats.isDirectory(), false);
-  }
-  else {
+  } else {
     throw err;
   }
 });
@@ -41,9 +40,8 @@ fs.stat(process.cwd() + '/resources', function(err, stats) {
   if (!err) {
     assert.equal(stats.isDirectory(), true);
     assert.equal(stats.isFile(), false);
-  }
-  else {
-    throw err
+  } else {
+    throw err;
   }
 });
 
@@ -51,7 +49,7 @@ fs.stat(process.cwd() + '/resources', function(err, stats) {
 try {
   var stats3 = fs.statSync(process.cwd() + '/non_existing.js');
   assert.assert(false);
-} catch(e) {
+} catch (e) {
   assert.equal(e instanceof Error, true);
   assert.equal(e instanceof assert.AssertionError, false);
 }

@@ -104,7 +104,7 @@ def init_options():
         help='Specify the module profile file for IoT.js')
 
     parser.add_argument('--target-arch',
-        choices=['aarch64', 'arm', 'x86', 'i686', 'x86_64', 'x64'],
+        choices=['aarch64', 'arm', 'openwrt', 'x86', 'i686', 'x86_64', 'x64'],
         default=platform.arch(),
         help='Specify the target architecture: '
              '%(choices)s (default: %(default)s)')
@@ -172,6 +172,10 @@ def init_options():
     parser.add_argument('--jerry-memstat',
         action='store_true', default=False,
         help='Enable JerryScript heap statistics')
+
+    parser.add_argument('--jerry-function-name',
+        action='store_true', default=False,
+        help='Enable saving Javascript function name')
 
     parser.add_argument('--jerry-profile',
         choices=['es5.1', 'es2015-subset'], default='es5.1',
@@ -324,6 +328,8 @@ def build_iotjs(options):
         '-DINSTALL_PREFIX=%s' % options.install_prefix,
         # --jerry-memstat
         '-DFEATURE_MEM_STATS=%s' % get_on_off(options.jerry_memstat),
+        # --jerry-funcname
+        '-DFEATURE_FUNCTION_NAME=%s' % get_on_off(options.jerry_function_name),
         # --external-modules
         "-DEXTERNAL_MODULES='%s'" % ';'.join(options.external_modules),
         # --jerry-profile

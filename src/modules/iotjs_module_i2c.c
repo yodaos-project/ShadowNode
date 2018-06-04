@@ -21,7 +21,7 @@
 
 #define THIS iotjs_i2c_reqwrap_t* i2c_reqwrap
 
-static JNativeInfoType this_module_native_info = {.free_cb = NULL };
+static JNativeInfoType this_module_native_info = { .free_cb = NULL };
 
 static void i2c_destroy_data(iotjs_i2c_t* i2c) {
   IOTJS_DECLARE_THIS(iotjs_i2c_t, i2c);

@@ -16,9 +16,9 @@
 var fs = require('fs');
 var assert = require('assert');
 
-var testfile = process.cwd() + "/run_pass/test_fs_fstat.js";
-var testdir = process.cwd() + "/resources";
-var flags = "r";
+var testfile = process.cwd() + '/run_pass/test_fs_fstat.js';
+var testdir = process.cwd() + '/resources';
+var flags = 'r';
 
 
 // fstat - file

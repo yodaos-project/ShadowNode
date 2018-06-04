@@ -556,4 +556,4 @@ exports.expectWarning = function(name, expected) {
 
 assert.ok = function(value, message) {
   assert.equal(!!value, true, message);
-}
+};

@@ -15,6 +15,10 @@
 
 #include "js-parser-internal.h"
 
+#ifdef JERRY_FUNCTION_NAME
+#include "ecma-literal-storage.h"
+#endif /* JERRY_FUNCTION_NAME */
+
 #ifndef JERRY_DISABLE_JS_PARSER
 
 #ifdef JERRY_DEBUGGER
@@ -439,6 +443,11 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
       compiled_code_p = parser_parse_function (context_p, status_flags);
       util_free_literal (literal_p);
 
+#ifdef JERRY_FUNCTION_NAME
+      /* record function name in bytecode */
+      compiled_code_p->name = ecma_find_or_create_literal_string (name_p->u.char_p, name_p->prop.length);
+#endif /* JERRY_FUNCTION_NAME */
+
       literal_p->u.bytecode_p = compiled_code_p;
       lexer_next_token (context_p);
       return;
@@ -448,7 +457,19 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
   {
     /* The most common case: the literal is the last literal. */
     name_p->status_flags |= LEXER_FLAG_VAR | LEXER_FLAG_INITIALIZED;
+
+#ifdef JERRY_FUNCTION_NAME
+    uint16_t index =
+#endif /* JERRY_FUNCTION_NAME */
     lexer_construct_function_object (context_p, status_flags);
+
+#ifdef JERRY_FUNCTION_NAME
+    /* record function name in bytecode */
+    lexer_literal_t *func_literal = (lexer_literal_t *) parser_list_get (&context_p->literal_pool, index);
+    ecma_value_t name = ecma_find_or_create_literal_string (name_p->u.char_p, name_p->prop.length);
+    func_literal->u.bytecode_p->name = name;
+#endif /* JERRY_FUNCTION_NAME */
+
     lexer_next_token (context_p);
     return;
   }
@@ -472,7 +493,18 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
 
   context_p->literal_count++;
 
+#ifdef JERRY_FUNCTION_NAME
+  uint16_t index =
+#endif /* JERRY_FUNCTION_NAME */
   lexer_construct_function_object (context_p, status_flags);
+
+#ifdef JERRY_FUNCTION_NAME
+  /* record function name in bytecode */
+  lexer_literal_t *func_literal = (lexer_literal_t *) parser_list_get (&context_p->literal_pool, index);
+  ecma_value_t name = ecma_find_or_create_literal_string (name_p->u.char_p, name_p->prop.length);
+  func_literal->u.bytecode_p->name = name;
+#endif /* JERRY_FUNCTION_NAME */
+
   lexer_next_token (context_p);
 } /* parser_parse_function_statement */
 

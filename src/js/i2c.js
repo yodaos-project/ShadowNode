@@ -42,6 +42,7 @@
 /* This file includes all APIs in 'node-i2c'(https://github.com/kelly/node-i2c).
  * Some functions are translated from coffee script(i2c.coffee) in 'node-i2c'.
  */
+'use strict';
 
 var util = require('util');
 

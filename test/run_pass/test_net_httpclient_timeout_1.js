@@ -14,7 +14,6 @@
  */
 
 
-
 var assert = require('assert');
 var http = require('http');
 var IncomingMessage = require('http_incoming').IncomingMessage;
@@ -55,15 +54,15 @@ server.listen(options.port, function() {
   var destroyer = function() {
     timeouted = true;
     req.socket.destroy();
-  }
+  };
   req.setTimeout(100, destroyer);
-  req.on('error', function(){});
+  req.on('error', function() {});
   req.end();
 });
 
 
 process.on('exit', function(code) {
-  assert.equal(code,0);
+  assert.equal(code, 0);
   assert.equal(timeouted, true);
   assert.equal(incTimeout, 1);
   assert.equal(outTimeout, 1);

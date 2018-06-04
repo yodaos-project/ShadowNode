@@ -21,7 +21,7 @@ var checkError = require('tools/systemio_common').checkError;
 var pwm = new Pwm();
 
 var dutyCycles = [0.25, 0.5, 0.75],
-    frequencies = [1, 10, 30];
+  frequencies = [1, 10, 30];
 
 var configuration = {
   period: 0.001,  // 1kHz
@@ -35,7 +35,7 @@ function initPwm(pwm) {
 }
 
 var pwm0 = null;
-pwm0 = pwm.open(configuration, function (err) {
+pwm0 = pwm.open(configuration, function(err) {
   console.log('PWM initialized');
   checkError(err);
 
@@ -58,7 +58,7 @@ function dutyCycleTest() {
       frequencyTest();
       return;
     }
-    console.log("dutycycle(%d)", dutyCycles[loopCnt]);
+    console.log('dutycycle(%d)', dutyCycles[loopCnt]);
     pwm0.setDutyCycleSync(dutyCycles[loopCnt++]);
   }, 1000);
 }
@@ -74,7 +74,7 @@ function frequencyTest() {
       console.log('PWM frequency test complete');
       return;
     }
-    console.log("frequency(%d)", frequencies[loopCnt]);
+    console.log('frequency(%d)', frequencies[loopCnt]);
     pwm0.setFrequencySync(frequencies[loopCnt++]);
   }, 2000);
 }

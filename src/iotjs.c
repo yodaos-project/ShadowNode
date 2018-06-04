@@ -250,6 +250,7 @@ int iotjs_entry(int argc, char** argv) {
 
   // Release JerryScript engine.
   iotjs_jerry_release(env);
+  remove(dump_path);
 
 terminate:;
   bool context_reset = false;

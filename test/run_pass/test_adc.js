@@ -74,7 +74,7 @@ function syncTestst() {
     }
 
     var loopCnt = 5,
-        value = -1;
+      value = -1;
 
     console.log('test2 start(read sync test)');
     var test2Loop = setInterval(function() {

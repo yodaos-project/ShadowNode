@@ -1,5 +1,3 @@
-// Query String Utilities
-
 'use strict';
 
 var QueryString = exports;
@@ -40,14 +38,14 @@ QueryString.unescapeBuffer = function(s, decodeSpaces) {
 
       case 1: // First hex digit
         hexchar = c;
-        if (c >= 48/*0*/ && c <= 57/*9*/) {
-          n = c - 48/*0*/;
-        } else if (c >= 65/*A*/ && c <= 70/*F*/) {
-          n = c - 65/*A*/ + 10;
-        } else if (c >= 97/*a*/ && c <= 102/*f*/) {
-          n = c - 97/*a*/ + 10;
+        if (c >= 48/* 0 */ && c <= 57/* 9 */) {
+          n = c - 48/* 0 */;
+        } else if (c >= 65/* A */ && c <= 70/* F */) {
+          n = c - 65/* A */ + 10;
+        } else if (c >= 97/* a */ && c <= 102/* f */) {
+          n = c - 97/* a */ + 10;
         } else {
-          out[outIndex++] = 37/*%*/;
+          out[outIndex++] = 37/* % */;
           out[outIndex++] = c;
           state = 0;
           break;
@@ -57,14 +55,14 @@ QueryString.unescapeBuffer = function(s, decodeSpaces) {
 
       case 2: // Second hex digit
         state = 0;
-        if (c >= 48/*0*/ && c <= 57/*9*/) {
-          m = c - 48/*0*/;
-        } else if (c >= 65/*A*/ && c <= 70/*F*/) {
-          m = c - 65/*A*/ + 10;
-        } else if (c >= 97/*a*/ && c <= 102/*f*/) {
-          m = c - 97/*a*/ + 10;
+        if (c >= 48/* 0 */ && c <= 57/* 9 */) {
+          m = c - 48/* 0 */;
+        } else if (c >= 65/* A */ && c <= 70/* F */) {
+          m = c - 65/* A */ + 10;
+        } else if (c >= 97/* a */ && c <= 102/* f */) {
+          m = c - 97/* a */ + 10;
         } else {
-          out[outIndex++] = 37/*%*/;
+          out[outIndex++] = 37/* % */;
           out[outIndex++] = hexchar;
           out[outIndex++] = c;
           break;
@@ -166,7 +164,7 @@ QueryString.escape = function(str) {
   return out;
 };
 
-var stringifyPrimitive = function(v) {
+function stringifyPrimitive(v) {
   if (typeof v === 'string')
     return v;
   if (typeof v === 'number' && isFinite(v))
@@ -174,7 +172,7 @@ var stringifyPrimitive = function(v) {
   if (typeof v === 'boolean')
     return v ? 'true' : 'false';
   return '';
-};
+}
 
 
 QueryString.stringify = QueryString.encode = function(obj, sep, eq, options) {
@@ -306,12 +304,12 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
       if (!valEncoded) {
         // Try to match an (valid) encoded byte (once) to minimize unnecessary
         // calls to string decoding functions
-        if (code === 37/*%*/) {
+        if (code === 37/* % */) {
           encodeCheck = 1;
         } else if (encodeCheck > 0 &&
-                   ((code >= 48/*0*/ && code <= 57/*9*/) ||
-                    (code >= 65/*A*/ && code <= 70/*F*/) ||
-                    (code >= 97/*a*/ && code <= 102/*f*/))) {
+                   ((code >= 48/* 0 */ && code <= 57/* 9 */) ||
+                    (code >= 65/* A */ && code <= 70/* F */) ||
+                    (code >= 97/* a */ && code <= 102/* f */))) {
           if (++encodeCheck === 3)
             valEncoded = true;
         } else {
@@ -325,9 +323,9 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
       if (code === eq.charCodeAt(eqIdx)) {
         if (++eqIdx === eqLen) {
           // Key/value separator match!
-          var end = i - eqIdx + 1;
-          if (lastPos < end)
-            key += qs.slice(lastPos, end);
+          var end0 = i - eqIdx + 1;
+          if (lastPos < end0)
+            key += qs.slice(lastPos, end0);
           encodeCheck = 0;
           lastPos = i + 1;
         }
@@ -337,12 +335,12 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
         if (!keyEncoded) {
           // Try to match an (valid) encoded byte once to minimize unnecessary
           // calls to string decoding functions
-          if (code === 37/*%*/) {
+          if (code === 37/* % */) {
             encodeCheck = 1;
           } else if (encodeCheck > 0 &&
-                     ((code >= 48/*0*/ && code <= 57/*9*/) ||
-                      (code >= 65/*A*/ && code <= 70/*F*/) ||
-                      (code >= 97/*a*/ && code <= 102/*f*/))) {
+                     ((code >= 48/* 0 */ && code <= 57/* 9 */) ||
+                      (code >= 65/* A */ && code <= 70/* F */) ||
+                      (code >= 97/* a */ && code <= 102/* f */))) {
             if (++encodeCheck === 3)
               keyEncoded = true;
           } else {
@@ -352,7 +350,7 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
       }
     }
 
-    if (code === 43/*+*/) {
+    if (code === 43/* + */) {
       if (eqIdx < eqLen) {
         if (i - lastPos > 0)
           key += qs.slice(lastPos, i);
@@ -386,14 +384,14 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq, options) {
       obj[key] = value;
       keys[keys.length] = key;
     } else {
-      var curValue = obj[key];
+      var curValue0 = obj[key];
       // `instanceof Array` is used instead of Array.isArray() because it
       // is ~15-20% faster with v8 4.7 and is safe to use because we are
       // using it with values being created within this function
-      if (curValue instanceof Array)
-        curValue[curValue.length] = value;
+      if (curValue0 instanceof Array)
+        curValue0[curValue0.length] = value;
       else
-        obj[key] = [curValue, value];
+        obj[key] = [curValue0, value];
     }
   }
 

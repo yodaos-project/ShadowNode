@@ -1,9 +1,9 @@
-#include <limits.h>        // PATH_MAX on Solaris.
-#include <netdb.h>         // MAXHOSTNAMELEN on Solaris.
-#include <unistd.h>        // gethostname, sysconf
-#include <sys/param.h>     // MAXHOSTNAMELEN on Linux and the BSDs.
-#include <sys/utsname.h>
 #include "iotjs_def.h"
+#include <limits.h>    // PATH_MAX on Solaris.
+#include <netdb.h>     // MAXHOSTNAMELEN on Solaris.
+#include <sys/param.h> // MAXHOSTNAMELEN on Linux and the BSDs.
+#include <sys/utsname.h>
+#include <unistd.h> // gethostname, sysconf
 
 JS_FUNCTION(GetHostname) {
   char buf[MAXHOSTNAMELEN + 1];
@@ -53,9 +53,7 @@ JS_FUNCTION(GetInterfaceAddresses) {
   for (i = 0; i < count; i++) {
     jerry_value_t family;
     const char* const raw_name = interfaces[i].name;
-    snprintf(mac,
-             18,
-             "%02x:%02x:%02x:%02x:%02x:%02x",
+    snprintf(mac, 18, "%02x:%02x:%02x:%02x:%02x:%02x",
              (unsigned char)interfaces[i].phys_addr[0],
              (unsigned char)interfaces[i].phys_addr[1],
              (unsigned char)interfaces[i].phys_addr[2],
@@ -79,13 +77,17 @@ JS_FUNCTION(GetInterfaceAddresses) {
     jerry_value_t addr = jerry_create_object();
     jerry_value_t name_key = jerry_create_string((const jerry_char_t*)"name");
     jerry_value_t ip_name = jerry_create_string((const jerry_char_t*)"address");
-    jerry_value_t netmask_name = jerry_create_string((const jerry_char_t*)"netmask");
-    jerry_value_t family_name = jerry_create_string((const jerry_char_t*)"family");
+    jerry_value_t netmask_name =
+        jerry_create_string((const jerry_char_t*)"netmask");
+    jerry_value_t family_name =
+        jerry_create_string((const jerry_char_t*)"family");
     jerry_value_t mac_name = jerry_create_string((const jerry_char_t*)"mac");
 
-    jerry_value_t name_data = jerry_create_string((const jerry_char_t*)raw_name);
+    jerry_value_t name_data =
+        jerry_create_string((const jerry_char_t*)raw_name);
     jerry_value_t ip_data = jerry_create_string((const jerry_char_t*)ip);
-    jerry_value_t netmask_data = jerry_create_string((const jerry_char_t*)netmask);
+    jerry_value_t netmask_data =
+        jerry_create_string((const jerry_char_t*)netmask);
     jerry_value_t mac_data = jerry_create_string((const jerry_char_t*)mac);
 
     jerry_set_property(addr, name_key, name_data);
@@ -118,15 +120,14 @@ JS_FUNCTION(GetOSRelease) {
   if (uname(&info) < 0) {
     return JS_CREATE_ERROR(COMMON, "get os release failed");
   }
-# ifdef _AIX
+#ifdef _AIX
   char release[256];
-  snprintf(release, sizeof(release),
-           "%s.%s", info.version, info.release);
+  snprintf(release, sizeof(release), "%s.%s", info.version, info.release);
   rval = release;
-# else
+#else
   rval = info.release;
-# endif
-  return jerry_create_string((const jerry_char_t *)rval);
+#endif
+  return jerry_create_string((const jerry_char_t*)rval);
 }
 
 jerry_value_t InitOs() {

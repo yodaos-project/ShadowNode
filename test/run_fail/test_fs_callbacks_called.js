@@ -14,27 +14,27 @@
  */
 
 
-var assert = require('assert')
+var assert = require('assert');
 var invocation_count = 0;
 var callback_count = 13;
 
-var callback = function () {
-    if (++invocation_count == callback_count) {
-        assert.fail("pass") // All the callbacks were called
-    }
-}
+var callback = function() {
+  if (++invocation_count == callback_count) {
+    assert.fail('pass'); // All the callbacks were called
+  }
+};
 
 var fs = require('fs');
-fs.open("", "r", callback);
+fs.open('', 'r', callback);
 fs.close(0, callback);
 fs.read(0, Buffer(1), 0, 0, 0, callback);
 fs.write(0, Buffer(1), 0, 0, 0, callback);
-fs.readFile("", callback);
-fs.writeFile("", Buffer(1), callback);
-fs.rename("", "", callback);
-fs.stat("", callback);
-fs.exists("", callback);
-fs.unlink("", callback);
-fs.mkdir("", callback);
-fs.rmdir("", callback);
-fs.readdir("", callback);
+fs.readFile('', callback);
+fs.writeFile('', Buffer(1), callback);
+fs.rename('', '', callback);
+fs.stat('', callback);
+fs.exists('', callback);
+fs.unlink('', callback);
+fs.mkdir('', callback);
+fs.rmdir('', callback);
+fs.readdir('', callback);

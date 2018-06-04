@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
- /*
+/*
   @STDOUT=Pass
  */
 
@@ -29,26 +29,26 @@ if (process.platform === 'tizenrt') {
   file = '/mnt/test';
 }
 
-fs.writeFile(file, buff1, function (err) {
+fs.writeFile(file, buff1, function(err) {
   assert.equal(err, null);
-  fs.readFile(file, function (err, buff2) {
+  fs.readFile(file, function(err, buff2) {
     assert.equal(err, null);
-      assert.equal(buff2.equals(buff1), true);
-      fs.writeFile(file, str, function (err) {
+    assert.equal(buff2.equals(buff1), true);
+    fs.writeFile(file, str, function(err) {
+      assert.equal(err, null);
+      fs.readFile(file, function(err, buff2) {
         assert.equal(err, null);
-        fs.readFile(file, function (err, buff2) {
+        assert.equal(str.valueOf(), buff2.toString('utf8'));
+        fs.writeFile(file, num, function(err) {
           assert.equal(err, null);
-          assert.equal(str.valueOf(), buff2.toString('utf8'));
-            fs.writeFile(file, num, function (err) {
+          fs.readFile(file, function(err, buff2) {
             assert.equal(err, null);
-              fs.readFile(file, function (err, buff2) {
-                assert.equal(err, null);
-                assert.equal(num, parseInt(buff2.toString('utf8'), 10));
-                console.log('Pass');
-                fs.unlinkSync(file);
-              });
-            });
+            assert.equal(num, parseInt(buff2.toString('utf8'), 10));
+            console.log('Pass');
+            fs.unlinkSync(file);
+          });
         });
       });
     });
+  });
 });

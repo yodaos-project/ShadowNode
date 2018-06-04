@@ -43,17 +43,17 @@ server.on('connection', function(socket) {
 
 
 var socket = new net.Socket();
-var msg = "";
+var msg = '';
 
-socket.connect(port, "127.0.0.1");
+socket.connect(port, '127.0.0.1');
 socket.on('connect', function() {
   // client writes "1" first, but server is paused for 2 secs
   // server gets "1" after 2 secs
-  socket.write("1");
+  socket.write('1');
 
   // "2" is appended to msg before "1"
   timers.setTimeout(function() {
-    msg += "2";
+    msg += '2';
   }, 1000);
 });
 
@@ -63,5 +63,5 @@ socket.on('end', function() {
 
 process.on('exit', function(code) {
   assert.equal(code, 0);
-  assert.equal(msg, "21");
+  assert.equal(msg, '21');
 });

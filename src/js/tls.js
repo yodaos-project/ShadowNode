@@ -94,7 +94,7 @@ TLSSocket.prototype.write = function(data, cb) {
     if (chunkLeft > TLS_CHUNK_MAX_SIZE) {
       sourceLength = TLS_CHUNK_MAX_SIZE;
     } else {
-      sourceLength = chunkLeft
+      sourceLength = chunkLeft;
     }
     var chunk = data.slice(sourceStart, sourceStart + sourceLength);
     sourceStart += sourceLength;

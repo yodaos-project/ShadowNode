@@ -17,8 +17,8 @@ cmake_minimum_required(VERSION 2.8)
 project(IOTJS C)
 
 set(IOTJS_VERSION_MAJOR 0)
-set(IOTJS_VERSION_MINOR 7)
-set(IOTJS_VERSION_PATCH 13)
+set(IOTJS_VERSION_MINOR 8)
+set(IOTJS_VERSION_PATCH 0)
 
 # Do a few default checks
 if(NOT DEFINED PLATFORM_DESCRIPTOR)
@@ -80,7 +80,7 @@ endif()
 # Add arch-dependant flags
 if("${TARGET_ARCH}" STREQUAL "aarch64")
   iotjs_add_compile_flags(-DARM64 -fno-short-enums -mlittle-endian)
-elseif("${TARGET_ARCH}" STREQUAL "arm")
+elseif("${TARGET_ARCH}" STREQUAL "arm" OR "${TARGET_ARCH}" STREQUAL "openwrt")
   iotjs_add_compile_flags(-D__arm__ -mthumb -fno-short-enums -mlittle-endian)
 elseif("${TARGET_ARCH}" STREQUAL "i686")
   iotjs_add_compile_flags(-D__i686__ -D__x86__ -march=i686 -m32)

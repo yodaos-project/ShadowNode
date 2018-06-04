@@ -15,7 +15,7 @@
 
 
 var assert = require('assert');
-var net = require("net");
+var net = require('net');
 
 
 assert.throws(

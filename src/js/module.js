@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var Native = require('native');
 var fs = Native.require('fs');
@@ -33,6 +33,12 @@ iotjs_module_t.wrapper = Native.wrapper;
 iotjs_module_t.wrap = Native.wrap;
 iotjs_module_t.curr = null;
 
+var mainModule = {
+  id: '.',
+  exports: {},
+  parent: null,
+  filename: '',
+};
 
 var cwd;
 try {
@@ -90,12 +96,12 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
     }
 
     if (process.platform === 'tizenrt' &&
-        (modulePath.indexOf('../') != -1 || modulePath.indexOf('./') != -1)) {
+        (modulePath.indexOf('../') !== -1 || modulePath.indexOf('./') !== -1)) {
       modulePath = iotjs_module_t.normalizePath(modulePath);
     }
 
-    var filepath,
-        ext = '.js';
+    var filepath;
+    var ext = '.js';
 
     // id[.ext]
     if (filepath = tryPath(modulePath, ext)) {
@@ -251,9 +257,12 @@ iotjs_module_t.prototype.compile = function(snapshot) {
       throw new TypeError('Invalid snapshot file.');
   }
 
+  var _require = this.require.bind(this);
+  _require.main = mainModule;
+
   fn.apply(this.exports, [
     this.exports,             // exports
-    this.require.bind(this),  // require
+    _require,                 // require
     this,                     // module
     undefined,                // native
     __filename,               // __filename
@@ -261,23 +270,23 @@ iotjs_module_t.prototype.compile = function(snapshot) {
   ]);
 };
 
-
-function makeSnapshot(id) {
-  var filename = iotjs_module_t.resolveModPath(id, null);
-  if (!filename) {
-    throw new Error('Module not found: ' + id);
-  }
-  var source = process.readSource(filename);
-  return process.makeSnapshot(filename, source);
-}
-
+// FIXME(Yorkie): dont use it
+// function makeSnapshot(id) {
+//   var filename = iotjs_module_t.resolveModPath(id, null);
+//   if (!filename) {
+//     throw new Error('Module not found: ' + id);
+//   }
+//   var source = process.readSource(filename);
+//   return process.makeSnapshot(filename, source);
+// }
 
 iotjs_module_t.runMain = function() {
   if (process.debuggerWaitSource) {
     var fn = process.debuggerSourceCompile();
     fn.call();
   } else {
-    iotjs_module_t.load(process.argv[1], null);
+    var filename = mainModule.filename = process.argv[1];
+    mainModule.exports = iotjs_module_t.load(filename, null);
   }
   while (process._onNextTick());
 };

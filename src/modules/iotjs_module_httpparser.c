@@ -269,9 +269,9 @@ static int iotjs_httpparserwrap_on_headers_complete(http_parser* parser) {
   _this->n_fields = _this->n_values = 0;
 
   // Version
-  iotjs_jval_set_property_number(info, "versionMajor", 
+  iotjs_jval_set_property_number(info, "versionMajor",
                                  (unsigned int)_this->parser.http_major);
-  iotjs_jval_set_property_number(info, "versionMinor", 
+  iotjs_jval_set_property_number(info, "versionMinor",
                                  (unsigned int)_this->parser.http_minor);
 
   // Method

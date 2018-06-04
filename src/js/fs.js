@@ -12,10 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var fs = exports;
 var constants = require('constants');
+var url = require('url');
 var util = require('util');
 var stream = require('stream');
 
@@ -80,7 +81,7 @@ function getPathFromURL(path) {
   if (path.protocol !== 'file:') {
     return new TypeError('ERR_INVALID_URL_SCHEME');
   }
-  
+
   if (url.hostname !== '') {
     return new TypeError('ERR_INVALID_FILE_URL_HOST');
   }
@@ -104,9 +105,9 @@ fs.exists = function(path, callback) {
     return;
   }
 
-  var cb = function(err, stat) {
+  function cb(err, stat) {
     if (callback) callback(err ? false : true);
-  };
+  }
 
   fsBuiltin.stat(checkArgString(path, 'path'),
                  checkArgFunction(cb, 'callback'));
@@ -229,9 +230,9 @@ fs.read = function(fd, buffer, offset, length, position, callback) {
 
   callback = checkArgFunction(callback, 'callback');
 
-  var cb = function(err, bytesRead) {
+  function cb(err, bytesRead) {
     callback(err, bytesRead || 0, buffer);
-  };
+  }
 
   return fsBuiltin.read(checkArgNumber(fd, 'fd'),
                         checkArgBuffer(buffer, 'buffer'),
@@ -265,9 +266,9 @@ fs.write = function(fd, buffer, offset, length, position, callback) {
 
   callback = checkArgFunction(callback, 'callback');
 
-  var cb = function(err, written) {
+  function cb(err, written) {
     callback(err, written, buffer);
-  };
+  }
 
   return fsBuiltin.write(checkArgNumber(fd, 'fd'),
                          checkArgBuffer(buffer, 'buffer'),
@@ -314,13 +315,13 @@ fs.readFile = function(path, options, callback) {
     read();
   });
 
-  var read = function() {
+  function read() {
     // Read segment of data.
     var buffer = new Buffer(1023);
     fs.read(fd, buffer, 0, 1023, -1, afterRead);
-  };
+  }
 
-  var afterRead = function(err, bytesRead, buffer) {
+  function afterRead(err, bytesRead, buffer) {
     if (err) {
       fs.close(fd, function(err) {
         return callback(err);
@@ -335,9 +336,9 @@ fs.readFile = function(path, options, callback) {
       buffers.push(buffer.slice(0, bytesRead));
       read();
     }
-  };
+  }
 
-  var close = function() {
+  function close() {
     fs.close(fd, function(err) {
       var buf = Buffer.concat(buffers);
       if (options) {
@@ -352,7 +353,7 @@ fs.readFile = function(path, options, callback) {
       }
       return callback(err, buf);
     });
-  };
+  }
 };
 
 
@@ -409,19 +410,19 @@ fs.writeFile = function(path, data, options, callback) {
     write();
   });
 
-  var write = function() {
+  function write() {
     var tryN = (len - bytesWritten) >= 1024 ? 1023 : (len - bytesWritten);
     fs.write(fd, buffer, bytesWritten, tryN, bytesWritten, afterWrite);
-  };
+  }
 
-  var afterWrite = function(err, n) {
+  function afterWrite(err, n) {
     if (err) {
       fs.close(fd, function(err) {
         return callback(err);
       });
     }
 
-    if (n <= 0 || bytesWritten + n == len) {
+    if (n <= 0 || bytesWritten + n === len) {
       // End of buffer
       fs.close(fd, function(err) {
         callback(err);
@@ -431,7 +432,7 @@ fs.writeFile = function(path, data, options, callback) {
       bytesWritten += n;
       write();
     }
-  };
+  }
 };
 
 
@@ -448,7 +449,7 @@ fs.writeFileSync = function(path, data) {
       var tryN = (len - bytesWritten) >= 1024 ? 1023 : (len - bytesWritten);
       var n = fs.writeSync(fd, buffer, bytesWritten, tryN, bytesWritten);
       bytesWritten += n;
-      if (bytesWritten == len) {
+      if (bytesWritten === len) {
         break;
       }
     } catch (e) {
@@ -704,7 +705,8 @@ ReadStream.prototype._read = function(n) {
   // in the thread pool another read() finishes up the pool, and
   // allocates a new one.
   var thisPool = pool;
-  var toRead = Math.min(pool.length - pool.used, n || this.readableHighWaterMark);
+  var toRead = Math.min(
+    pool.length - pool.used, n || this.readableHighWaterMark);
   var start = pool.used;
 
   if (this.pos !== undefined)
@@ -802,7 +804,7 @@ function WriteStream(path, options) {
       throw new TypeError('ERR_INVALID_ARG_TYPE');
     }
     if (this.start < 0) {
-      throw new errors.RangeError('ERR_OUT_OF_RANGE');
+      throw new RangeError('ERR_OUT_OF_RANGE');
     }
     this.pos = this.start;
   }

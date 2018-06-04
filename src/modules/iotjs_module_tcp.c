@@ -683,8 +683,7 @@ jerry_value_t InitTcp() {
                         SetKeepAlive);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_GETSOCKNAME,
                         GetSockeName);
-  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_GETPEERNAME,
-                        GetPeerName);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_GETPEERNAME, GetPeerName);
 
   jerry_release_value(prototype);
 

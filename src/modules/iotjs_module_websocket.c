@@ -1,12 +1,12 @@
 
-#include <stdlib.h>
-#include <time.h>
 #include "iotjs_def.h"
 #include "iotjs_module_buffer.h"
+#include <stdlib.h>
+#include <time.h>
 
-#define WS_FINAL_FRAME    0x1
-#define WS_NEXT_FRAME     0x2
-#define WS_MASKED_FRAME   0x4
+#define WS_FINAL_FRAME 0x1
+#define WS_NEXT_FRAME 0x2
+#define WS_MASKED_FRAME 0x4
 
 #define WS_FIXED_BYTES 2
 
@@ -35,18 +35,18 @@ typedef struct ws_frame {
   uint8_t opcode;
   uint8_t mask; // always 0 at client
   uint64_t payload_len;
-  uint64_t ext_len; // extended payload length
+  uint64_t ext_len;    // extended payload length
   int32_t masking_key; // useless at client
-  uint8_t *payload;
+  uint8_t* payload;
   enum ws_frame_type type;
 } ws_frame;
 
 typedef struct ws_packet {
-  uint8_t *data;
+  uint8_t* data;
   uint64_t len;
 } ws_packet;
 
-void w64to8(uint8_t *dstbuffer, uint64_t value, size_t length) {
+void w64to8(uint8_t* dstbuffer, uint64_t value, size_t length) {
   if (dstbuffer == NULL) {
     return;
   }
@@ -57,7 +57,7 @@ void w64to8(uint8_t *dstbuffer, uint64_t value, size_t length) {
   }
 }
 
-void iotjs_ws_parse_frame_type(struct ws_frame *frame) {
+void iotjs_ws_parse_frame_type(struct ws_frame* frame) {
   uint8_t opcode = frame->opcode;
   if (opcode == 0x01) {
     frame->type = WS_TEXT_FRAME;
@@ -76,7 +76,7 @@ void iotjs_ws_parse_frame_type(struct ws_frame *frame) {
   }
 }
 
-uint64_t f_uint_parse(uint8_t *value, int offset) {
+uint64_t f_uint_parse(uint8_t* value, int offset) {
   uint64_t length = 0;
   for (int i = 0; i < offset; i++) {
     length = (length << 8) | value[i];
@@ -84,7 +84,7 @@ uint64_t f_uint_parse(uint8_t *value, int offset) {
   return length;
 }
 
-int iotjs_ws_parse_payload_length(ws_packet *packet, struct ws_frame *frame) {
+int iotjs_ws_parse_payload_length(ws_packet* packet, struct ws_frame* frame) {
   int length = packet->data[1] & 0x7f;
   if (length < 126) {
     frame->payload_len = (uint64_t)length;
@@ -98,7 +98,8 @@ int iotjs_ws_parse_payload_length(ws_packet *packet, struct ws_frame *frame) {
   return 0;
 }
 
-void iotjs_ws_parse_masking_key(uint8_t* packet, int offset, struct ws_frame *frame) {
+void iotjs_ws_parse_masking_key(uint8_t* packet, int offset,
+                                struct ws_frame* frame) {
   int j = 0;
 
   uint8_t* masking_key = (uint8_t*)&frame->masking_key;
@@ -109,15 +110,15 @@ void iotjs_ws_parse_masking_key(uint8_t* packet, int offset, struct ws_frame *fr
   }
 }
 
-void iotjs_ws_decode_payload(uint8_t* packet, struct ws_frame *frame) {
-  uint8_t *masking_key = (uint8_t*)&frame->masking_key;
+void iotjs_ws_decode_payload(uint8_t* packet, struct ws_frame* frame) {
+  uint8_t* masking_key = (uint8_t*)&frame->masking_key;
   for (uint64_t i = 0; i < frame->payload_len; i++) {
     packet[i] ^= masking_key[i % 4];
   }
   frame->payload = packet;
 }
 
-int iotjs_ws_parse_payload(ws_packet *packet, struct ws_frame *frame) {
+int iotjs_ws_parse_payload(ws_packet* packet, struct ws_frame* frame) {
   int r = iotjs_ws_parse_payload_length(packet, frame);
   if (r != WS_ERROR_OK) {
     return r;
@@ -134,7 +135,7 @@ int iotjs_ws_parse_payload(ws_packet *packet, struct ws_frame *frame) {
   return 0;
 }
 
-int iotjs_ws_parse_input(ws_packet* packet, struct ws_frame *frame) {
+int iotjs_ws_parse_input(ws_packet* packet, struct ws_frame* frame) {
   if (packet->data == NULL)
     return WS_PARSE_ERROR_INVALID;
   if (packet->len < WS_FIXED_BYTES)
@@ -154,10 +155,9 @@ int iotjs_ws_parse_input(ws_packet* packet, struct ws_frame *frame) {
   }
 }
 
-uint8_t* iotjs_ws_make_header(size_t data_len, 
-                              enum ws_frame_type frame_type, 
+uint8_t* iotjs_ws_make_header(size_t data_len, enum ws_frame_type frame_type,
                               size_t* header_len, int options) {
-  uint8_t *header;
+  uint8_t* header;
   uint8_t end_byte;
   uint8_t masked = 0x80;
 
@@ -177,26 +177,26 @@ uint8_t* iotjs_ws_make_header(size_t data_len,
   if (data_len < 126) {
     header = malloc(sizeof(uint8_t) * 2);
     header[0] = end_byte | frame_type;
-    header[1] = (uint8_t) (masked | data_len);
+    header[1] = (uint8_t)(masked | data_len);
     *header_len = 2;
   } else if (data_len > 126 && data_len < 65536) {
     header = malloc(sizeof(uint8_t) * 4);
     header[0] = end_byte | frame_type;
-    header[1] = (uint8_t) (masked | 0x7e);
-    header[2] = (uint8_t) (data_len >> 8);
-    header[3] = (uint8_t) data_len & 0xff;
+    header[1] = (uint8_t)(masked | 0x7e);
+    header[2] = (uint8_t)(data_len >> 8);
+    header[3] = (uint8_t)data_len & 0xff;
     *header_len = 4;
   } else if (data_len >= 65536) {
     header = malloc(sizeof(uint8_t) * 10);
     header[0] = end_byte | frame_type;
-    header[1] = (uint8_t) (masked | 0x7f);
+    header[1] = (uint8_t)(masked | 0x7f);
     w64to8(&header[2], data_len, 8);
     *header_len = 10;
   } else {
     return NULL;
   }
 
-  int offset = *header_len;
+  int offset = (int)*header_len;
   header[offset + 0] = rand() / (RAND_MAX / 0xff);
   header[offset + 1] = rand() / (RAND_MAX / 0xff);
   header[offset + 2] = rand() / (RAND_MAX / 0xff);
@@ -214,7 +214,8 @@ JS_FUNCTION(EncodeFrame) {
   uint8_t* header;
   size_t header_len;
   size_t data_len = iotjs_bufferwrap_length(data);
-  header = iotjs_ws_make_header(data_len, (enum ws_frame_type)type, &header_len, WS_FINAL_FRAME);
+  header = iotjs_ws_make_header(data_len, (enum ws_frame_type)type, &header_len,
+                                WS_FINAL_FRAME);
 
   size_t out_len = data_len + header_len;
   uint8_t out_frame[out_len + 1];
@@ -226,12 +227,12 @@ JS_FUNCTION(EncodeFrame) {
   char* masked = iotjs_bufferwrap_buffer(data);
 
   for (size_t i = 0; i < data_len; ++i) {
-    out_frame[header_len + i] = (uint8_t) (masked[i] ^ mask[i % 4]);
+    out_frame[header_len + i] = (uint8_t)(masked[i] ^ mask[i % 4]);
   }
   jerry_value_t jframe = iotjs_bufferwrap_create_buffer(data_len + header_len);
   iotjs_bufferwrap_t* frame_wrap = iotjs_bufferwrap_from_jbuffer(jframe);
   iotjs_bufferwrap_copy(frame_wrap, (const char*)out_frame, out_len);
-  
+
   free(header);
   return jframe;
 }
@@ -256,23 +257,29 @@ JS_FUNCTION(DecodeFrame) {
 
   jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer(frame.payload_len);
   iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
-  iotjs_bufferwrap_copy(buffer_wrap, (const char*)frame.payload, frame.payload_len);
+  iotjs_bufferwrap_copy(buffer_wrap, (const char*)frame.payload,
+                        frame.payload_len);
 
-  iotjs_jval_set_property_jval(ret, "type", jerry_create_number((int)frame.type));
+  iotjs_jval_set_property_jval(ret, "type",
+                               jerry_create_number((int)frame.type));
   iotjs_jval_set_property_jval(ret, "fin", jerry_create_number(frame.fin));
-  iotjs_jval_set_property_jval(ret, "opcode", jerry_create_number(frame.opcode));
+  iotjs_jval_set_property_jval(ret, "opcode",
+                               jerry_create_number(frame.opcode));
   iotjs_jval_set_property_jval(ret, "mask", jerry_create_number(frame.mask));
-  iotjs_jval_set_property_jval(ret, "masking_key", jerry_create_number(frame.masking_key));
-  iotjs_jval_set_property_jval(ret, "total_len", jerry_create_number(total_len));
+  iotjs_jval_set_property_jval(ret, "masking_key",
+                               jerry_create_number(frame.masking_key));
+  iotjs_jval_set_property_jval(ret, "total_len",
+                               jerry_create_number(total_len));
   iotjs_jval_set_property_jval(ret, "buffer", jbuffer);
-  iotjs_jval_set_property_jval(ret, "err_code", jerry_create_number((int)WS_ERROR_OK));
+  iotjs_jval_set_property_jval(ret, "err_code",
+                               jerry_create_number((int)WS_ERROR_OK));
   jerry_release_value(jbuffer);
 
   return ret;
 }
 
 jerry_value_t InitWebSocket() {
-  srand(time(NULL));
+  srand((unsigned int)time(NULL));
 
   jerry_value_t exports = jerry_create_object();
   iotjs_jval_set_method(exports, "encodeFrame", EncodeFrame);

@@ -48,11 +48,10 @@ noble.on('stateChange', function(state) {
     //
     console.log('scanning...');
     noble.startScanning([echoServiceUuid], false);
-  }
-  else {
+  } else {
     noble.stopScanning();
   }
-})
+});
 
 var echoService = null;
 var echoCharacteristic = null;
@@ -70,7 +69,7 @@ noble.on('discover', function(peripheral) {
   //
   // Once the peripheral has been discovered, then connect to it.
   // It can also be constructed if the uuid is already known.
-  ///
+  // /
   peripheral.connect(function(err) {
     //
     // Once the peripheral has been connected, then discover the
@@ -98,35 +97,33 @@ noble.on('discover', function(peripheral) {
             if (echoCharacteristicUuid == characteristic.uuid) {
               echoCharacteristic = characteristic;
             }
-          })
+          });
 
           //
           // Check to see if we found all of our characteristics.
           //
           if (echoCharacteristic) {
             bakePizza();
-          }
-          else {
+          } else {
             console.log('missing characteristics');
           }
-        })
-      })
-    })
-  })
-})
+        });
+      });
+    });
+  });
+});
 
 function bakePizza() {
-  var crust = new Buffer("Hello BLE Service.");
+  var crust = new Buffer('Hello BLE Service.');
   echoCharacteristic.write(crust, false, function(err) {
     if (!err) {
-      echoCharacteristic.read(function (err, buffer) {
+      echoCharacteristic.read(function(err, buffer) {
         if (!err) {
           console.log('BLE says' + buffer.toString());
         }
       });
-    }
-    else {
+    } else {
       console.log('crust error');
     }
-  })
+  });
 }

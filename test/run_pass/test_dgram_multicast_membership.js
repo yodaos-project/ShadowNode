@@ -61,7 +61,7 @@ if (MODE !== SERVER) { // for client and echo
   var send_count = 0;
   var client = dgram.createSocket('udp4');
 
-  var timer = setInterval(function () {
+  var timer = setInterval(function() {
     send_count++;
 
     console.log('client send data : ' + msg);

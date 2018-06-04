@@ -77,9 +77,10 @@ class StyleChecker(object):
                 self.report_error('line exceeds %d characters'
                                   % StyleChecker.column_limit)
 
-            if fileinput.isfirstline():
-                if not CheckLicenser.check(fileinput.filename()):
-                    self.report_error('incorrect license')
+            # disable check license
+            # if fileinput.isfirstline():
+            #     if not CheckLicenser.check(fileinput.filename()):
+            #         self.report_error('incorrect license')
 
 
             self.count_lines += 1
@@ -94,7 +95,7 @@ class ClangFormat(object):
         self._extensions = extensions
         self._skip_files = skip_files
         self._options = options
-        self._check_clang_format("clang-format-3.8")
+        self._check_clang_format("clang-format-7.0")
 
     def _check_clang_format(self, base):
         clang_format = spawn.find_executable(base)
@@ -165,10 +166,10 @@ class FileFilter(object):
 
 
 def check_tidy(src_dir, options=None):
-    allowed_exts = ['.c', '.h', '.js', '.py', '.sh', '.cmake']
+    allowed_exts = ['.c', '.h', '.py', '.sh', '.cmake']
     allowed_files = ['CMakeLists.txt']
     clang_format_exts = ['.c', '.h']
-    skip_dirs = ['deps', 'build', '.git', 'node_modules', 'coverage']
+    skip_dirs = ['deps', 'build', '.git', 'node_modules', 'coverage', 'samples']
     skip_files = ['check_signed_off.sh', '__init__.py',
                   'iotjs_js.c', 'iotjs_js.h', 'iotjs_string_ext.inl.h',
                   "iotjs_module_inl.h",
@@ -221,4 +222,6 @@ def check_tidy(src_dir, options=None):
 if __name__ == '__main__':
     from common_py import path
     options = parse_option()
-    check_tidy(path.PROJECT_ROOT, options)
+    no_error = check_tidy(path.PROJECT_ROOT, options)
+    if not no_error:
+        exit(1)

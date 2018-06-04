@@ -288,6 +288,8 @@ extern jerry_hash_table_t jerry_global_hash_table;
 
 #endif /* JERRY_ENABLE_EXTERNAL_CONTEXT */
 
+void jcontext_get_backtrace_depth (uint32_t *frames, uint32_t depth);
+
 /**
  * @}
  */

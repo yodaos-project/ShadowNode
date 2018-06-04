@@ -1,16 +1,16 @@
 {
   "name": "ShadowNode",
-  "version": "0.7.13",
+  "version": "0.8.0",
   "description": "Use Node.js in your embeddable devices",
   "scripts": {
-    "lint": "eslint src ./*.js -f table --ext .js > eslint.log",
-    "lint-autofix": "eslint src ./*.js -f table --ext .js --fix > eslint.log",
-    "lint-server": "nodemon --watch .eslintrc.js --watch ./src --ext js --exec \"npm run lint\""
+    "lint": "tools/check_tidy.py && eslint ."
   },
   "author": "Yazhong Liu <yazhong.liu@rokid.com>",
   "license": "Apache-2.0",
   "devDependencies": {
+    "babel-eslint": "^8.2.3",
     "eslint": "^4.7.2",
+    "eslint-plugin-markdown": "^1.0.0-beta.6",
     "nodemon": "^1.12.1"
   }
 }

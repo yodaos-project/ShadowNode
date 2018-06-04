@@ -29,7 +29,7 @@ duplex._write = function(chunk, callback) {
   assert.equal(chunk == msg1, true);
   duplex.push(msg2);
   duplex.end();
-}
+};
 duplex._readyToWrite();
 duplex.write(msg1);
 

@@ -99,7 +99,9 @@ struct hci_dev_list_req {
 
 typedef struct hci_dev_list_req hci_dev_list_req_type;
 
-typedef struct { uint8_t b[6]; } __attribute__((packed)) bdaddr_t;
+typedef struct {
+  uint8_t b[6];
+} __attribute__((packed)) bdaddr_t;
 
 struct hci_dev_info {
   uint16_t dev_id;

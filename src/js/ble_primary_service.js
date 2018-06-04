@@ -33,12 +33,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+'use strict';
 
 var events = require('events');
 var util = require('util');
-
-var debug = console.log; // require('debug')('ble_primary_service');
-
 var uuidUtil = require('ble_uuid_util');
 
 function PrimaryService(options) {

@@ -12,19 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var eventEmitter = require('events').EventEmitter;
 var util = require('util');
-
 
 function Stream() {
   eventEmitter.call(this);
 }
 
-
 util.inherits(Stream, eventEmitter);
-
 module.exports = Stream;
 
 Stream.Stream = Stream;

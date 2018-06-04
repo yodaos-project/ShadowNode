@@ -16,18 +16,18 @@
 var assert = require('assert');
 
 
-var tickTrace = "";
+var tickTrace = '';
 
 process.nextTick(function() {
-  tickTrace += "1";
+  tickTrace += '1';
   process.nextTick(function() {
-    tickTrace += "2";
+    tickTrace += '2';
     process.nextTick(function() {
-      tickTrace += "3";
+      tickTrace += '3';
       process.nextTick(function() {
-        tickTrace += "4";
+        tickTrace += '4';
         process.nextTick(function() {
-          tickTrace += "5";
+          tickTrace += '5';
         });
       });
     });
@@ -37,5 +37,5 @@ process.nextTick(function() {
 
 process.on('exit', function(code) {
   assert.equal(code, 0);
-  assert.equal(tickTrace, "12345");
+  assert.equal(tickTrace, '12345');
 });

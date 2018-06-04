@@ -97,12 +97,12 @@ static bool iotjs_spi_set_configuration(iotjs_spi_t* spi) {
 bool iotjs_spi_transfer(iotjs_spi_t* spi) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_spi_t, spi);
 
-  struct spi_ioc_transfer data = {.tx_buf = (unsigned long)_this->tx_buf_data,
-                                  .rx_buf = (unsigned long)_this->rx_buf_data,
-                                  .len = _this->buf_len,
-                                  .speed_hz = _this->max_speed,
-                                  .bits_per_word = _this->bits_per_word,
-                                  .delay_usecs = 0 };
+  struct spi_ioc_transfer data = { .tx_buf = (unsigned long)_this->tx_buf_data,
+                                   .rx_buf = (unsigned long)_this->rx_buf_data,
+                                   .len = _this->buf_len,
+                                   .speed_hz = _this->max_speed,
+                                   .bits_per_word = _this->bits_per_word,
+                                   .delay_usecs = 0 };
 
   // Transfer data
   int err = ioctl(_this->device_fd, SPI_IOC_MESSAGE(1), &data);

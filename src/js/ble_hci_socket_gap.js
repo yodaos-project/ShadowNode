@@ -44,7 +44,7 @@ var uuidUtil = require('ble_uuid_util');
 
 var isLinux = (process.platform === 'linux');
 var isIntelEdison = false; // isLinux && (os.release().indexOf('edison') !== -1);
-var isYocto = false; //TODO isLinux && (os.release().indexOf('yocto') !== -1);
+var isYocto = false; // TODO isLinux && (os.release().indexOf('yocto') !== -1);
 
 function Gap(hci) {
   this._hci = hci;

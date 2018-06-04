@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
- /*
+/*
   @STDOUT=Pass
  */
 
@@ -40,7 +40,7 @@ fs.readFile(file1, function(err, buf1) {
           assert.equal(err, null);
           fs.exists(file2, function(exists) {
             assert.equal(exists, false);
-            console.log("Pass");
+            console.log('Pass');
           });
         });
       });

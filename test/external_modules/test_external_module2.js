@@ -16,4 +16,4 @@
 var assert = require('assert');
 var mymodule = require('mymodule2');
 
-assert.equal(mymodule.message, "Hello world!");
+assert.equal(mymodule.message, 'Hello world!');

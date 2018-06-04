@@ -67,9 +67,9 @@ function connectServer(i) {
   connectionCount++;
 
   var socket = new net.Socket();
-  var msg = "";
+  var msg = '';
 
-  socket.connect(port, "localhost");
+  socket.connect(port, 'localhost');
   socket.on('connect', function() {
     socket.end(i.toString(), function() {
       connectionCount--;

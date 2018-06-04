@@ -34,11 +34,9 @@
  * SOFTWARE.
  */
 
+'use strict';
+
 var debug = console.log; // require('debug')('ble_mgmt');
-
-var events = require('events');
-var util = require('util');
-
 var BluetoothHciSocket = require('ble_hci_socket');
 
 var LTK_INFO_SIZE = 36;
@@ -64,11 +62,16 @@ Mgmt.prototype.onSocketError = function(error) {
   debug('on error ->' + error.message);
 };
 
-Mgmt.prototype.addLongTermKey = function(address, addressType, authenticated, master, ediv, rand, key) {
+Mgmt.prototype.addLongTermKey = function(address,
+                                         addressType,
+                                         authenticated,
+                                         master,
+                                         ediv, rand, key) {
   var ltkInfo = new Buffer(LTK_INFO_SIZE);
 
   address.copy(ltkInfo, 0);
-  ltkInfo.writeUInt8(addressType.readUInt8(0) + 1, 6); // BDADDR_LE_PUBLIC = 0x01, BDADDR_LE_RANDOM 0x02, so add one
+  ltkInfo.writeUInt8(addressType.readUInt8(0) + 1, 6);
+  // BDADDR_LE_PUBLIC = 0x01, BDADDR_LE_RANDOM 0x02, so add one
 
   ltkInfo.writeUInt8(authenticated, 7);
   ltkInfo.writeUInt8(master, 8);

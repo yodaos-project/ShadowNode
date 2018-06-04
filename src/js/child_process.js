@@ -29,12 +29,12 @@ var SIGNAL_NO = {
 function signalName(code) {
   if (!code)
     return null;
-  var name = undefined;
+  var name;
   var names = Object.keys(SIGNAL_NO);
   for (var i = 0; i < names.length; i++) {
     var curr = names[i];
     if (SIGNAL_NO[curr] === code) {
-      name = curr
+      name = curr;
       break;
     }
   }
@@ -81,7 +81,7 @@ function ChildProcess() {
       this.emit('exit', this.exitCode, signalName(this.signalCode));
     }
     process.nextTick(flushStdio, this);
-    
+
     // FIXME(Yorkie): use maybeClose later
     // maybeClose(this);
     this.emit('close', this.exitCode, signalName(this.signalCode));
@@ -196,9 +196,9 @@ ChildProcess.prototype.spawn = function(options) {
   this.pid = this._handle.pid;
   for (i = 0; i < stdio.length; i++) {
     var stream = stdio[i];
-    if (stream.type === 'ignore') 
+    if (stream.type === 'ignore')
       continue;
-    
+
     if (stream.ipc) {
       this._closesNeeded++;
       continue;
@@ -341,12 +341,12 @@ function _validateStdio(stdio, sync) {
     } else {
       // Cleanup
       cleanup();
-      throw new errors.TypeError('ERR_INVALID_OPT_VALUE');
+      throw new TypeError('ERR_INVALID_OPT_VALUE');
     }
     return acc;
   }, []);
 
-  return { 
+  return {
     stdio: stdio,
     ipc: ipc,
     ipcFd: ipcFd,
@@ -498,8 +498,6 @@ function isInternal(message) {
           message.cmd.slice(0, INTERNAL_PREFIX.length) === INTERNAL_PREFIX);
 }
 
-function nop() { }
-
 function setupChannel(target, channel) {
   target.channel = channel;
 
@@ -509,7 +507,7 @@ function setupChannel(target, channel) {
       return target.channel;
     },
     set: function(val) {
-      target.channel = val;      
+      target.channel = val;
     },
     enumerable: true
   });
@@ -630,8 +628,7 @@ function setupChannel(target, channel) {
         return this._handleQueue.length === 1;
       }
 
-      var obj = handleConversion[message.type];
-
+      // var obj = handleConversion[message.type];
       // convert TCP object to native handle object
       handle = handleConversion[message.type].send.call(target,
                                                         message,
@@ -697,8 +694,10 @@ function setupChannel(target, channel) {
     // This marks the fact that the channel is actually disconnected.
     this.channel = null;
 
-    if (this._pendingMessage)
-      closePendingHandle(this);
+    if (this._pendingMessage) {
+      // TODO(Yorkie): implement the following function
+      // closePendingHandle(this);
+    }
 
     var fired = false;
     function finish() {
@@ -735,7 +734,7 @@ function setupChannel(target, channel) {
   return control;
 }
 
-var spawn = exports.spawn = function(/*file, args, options*/) {
+var spawn = exports.spawn = function(/* file, args, options */) {
   var opts = normalizeSpawnArguments.apply(null, arguments);
   var options = opts.options;
   var child = new ChildProcess();
@@ -765,7 +764,7 @@ function stdioStringToArray(option) {
   }
 }
 
-exports.fork = function(modulePath /*, args, options*/) {
+exports.fork = function(modulePath /* , args, options */) {
   // Get options and args arguments.
   var execArgv;
   var options = {};
@@ -830,14 +829,14 @@ function normalizeExecArgs(command, options, callback) {
   };
 }
 
-exports.exec = function(command /*, options, callback*/) {
+exports.exec = function(command /* , options, callback */) {
   var opts = normalizeExecArgs.apply(null, arguments);
   return exports.execFile(opts.file,
                           opts.options,
                           opts.callback);
 };
 
-exports.execFile = function(file /*, args, options, callback*/) {
+exports.execFile = function(file /* , args, options, callback */) {
   var args = [];
   var callback;
   var options = {
@@ -942,7 +941,9 @@ exports.execFile = function(file /*, args, options, callback*/) {
     if (!ex) {
       ex = new Error('Command failed: ' + cmd + '\n' + stderr);
       ex.killed = child.killed || killed;
-      ex.code = code < 0 ? errname(code) : code;
+      // TODO(Yorkie): implement errname()
+      // ex.code = code < 0 ? errname(code) : code;
+      ex.code = code;
       ex.signal = signal;
     }
 
@@ -995,12 +996,10 @@ exports.execFile = function(file /*, args, options, callback*/) {
       if (stdoutLen > options.maxBuffer) {
         ex = new Error('stdout maxBuffer exceeded');
         kill();
-      } else {
-        if (encoding)
-          _stdout += chunk;
-        else
-          _stdout.push(chunk);
-      }
+      } else if (encoding)
+        _stdout += chunk;
+      else
+        _stdout.push(chunk);
     });
   }
 
@@ -1014,12 +1013,10 @@ exports.execFile = function(file /*, args, options, callback*/) {
       if (stderrLen > options.maxBuffer) {
         ex = new Error('stderr maxBuffer exceeded');
         kill();
-      } else {
-        if (encoding)
-          _stderr += chunk;
-        else
-          _stderr.push(chunk);
-      }
+      } else if (encoding)
+        _stderr += chunk;
+      else
+        _stderr.push(chunk);
     });
   }
 

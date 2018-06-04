@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var util = require('util');
 var spi = native;
@@ -72,8 +73,8 @@ function spiBusOpen(configuration, callback) {
     // validate chip-select
     var chipSelect = configuration.chipSelect;
     if (chipSelect !== undefined) {
-      if (chipSelect != spi.CHIPSELECT.NONE &&
-          chipSelect != spi.CHIPSELECT.HIGH) {
+      if (chipSelect !== spi.CHIPSELECT.NONE &&
+          chipSelect !== spi.CHIPSELECT.HIGH) {
         throw new TypeError(
           'Bad arguments - chipSelect should be CHIPSELECT.NONE or HIGH');
       }
@@ -93,7 +94,7 @@ function spiBusOpen(configuration, callback) {
     // validate bits per word
     var bitsPerWord = configuration.bitsPerWord;
     if (bitsPerWord !== undefined) {
-      if (bitsPerWord != 8 && bitsPerWord != 9) {
+      if (bitsPerWord !== 8 && bitsPerWord !== 9) {
         throw new TypeError('Bad arguments - bitsPerWord should be 8 or 9');
       }
     } else {
@@ -103,7 +104,7 @@ function spiBusOpen(configuration, callback) {
     // validate bit order
     var bitOrder = configuration.bitOrder;
     if (bitOrder !== undefined) {
-      if (bitOrder != spi.BITORDER.MSB && bitOrder != spi.BITORDER.LSB) {
+      if (bitOrder !== spi.BITORDER.MSB && bitOrder !== spi.BITORDER.LSB) {
         throw new TypeError(
           'Bad arguments - bitOrder should be BITORDER.MSB or LSB');
       }
@@ -126,11 +127,11 @@ function spiBusOpen(configuration, callback) {
     });
 
     process.on('exit', (function(self) {
-    return function() {
-      if (_binding !== null) {
-        self.closeSync();
-      }
-    };
+      return function() {
+        if (_binding !== null) {
+          self.closeSync();
+        }
+      };
     })(this));
   }
 
@@ -141,20 +142,20 @@ function spiBusOpen(configuration, callback) {
       throw new Error('SPI bus is not opened');
     }
 
-    if (txBuffer.length === undefined || rxBuffer.length === undefined
-        || txBuffer.length <= 0 || rxBuffer.length <= 0
-        || txBuffer.length != rxBuffer.length) {
+    if (txBuffer.length === undefined || rxBuffer.length === undefined ||
+        txBuffer.length <= 0 || rxBuffer.length <= 0 ||
+        txBuffer.length !== rxBuffer.length) {
       throw new Error('Bad arguments - buffer length');
     }
 
     var rxLength = rxBuffer.length;
-    var afterCallback = function(err, buffer) {
+    function afterCallback(err, buffer) {
       for (var i = 0; i < rxLength; i++) {
         rxBuffer[i] = buffer[i];
       }
 
       util.isFunction(callback) && callback.call(self, err);
-    };
+    }
 
     if (util.isArray(txBuffer) && util.isArray(rxBuffer)) {
       _binding.transferArray(txBuffer, rxBuffer, afterCallback);
@@ -170,9 +171,9 @@ function spiBusOpen(configuration, callback) {
       throw new Error('SPI bus is not opened');
     }
 
-    if (txBuffer.length === undefined || rxBuffer.length === undefined
-      || txBuffer.length <= 0 || rxBuffer.length <= 0
-      || txBuffer.length != rxBuffer.length) {
+    if (txBuffer.length === undefined || rxBuffer.length === undefined ||
+      txBuffer.length <= 0 || rxBuffer.length <= 0 ||
+      txBuffer.length !== rxBuffer.length) {
       throw new Error('Bad arguments - buffer length');
     }
 

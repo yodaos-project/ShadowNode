@@ -14,6 +14,8 @@
  */
 
 #include <stdarg.h>
+#include <stdlib.h>
+#include "ecma-array-object.h"
 #include "ecma-builtins.h"
 #include "ecma-conversion.h"
 #include "ecma-exceptions.h"
@@ -133,6 +135,45 @@ ecma_new_standard_error (ecma_standard_error_t error_type) /**< native error typ
   ecma_deref_object (prototype_obj_p);
 
   ((ecma_extended_object_t *) new_error_obj_p)->u.class_prop.class_id = LIT_MAGIC_STRING_ERROR_UL;
+
+  const char *frames_id_p = "__frames__";
+
+  ecma_string_t *frames_str_p = ecma_new_ecma_string_from_utf8 ((const lit_utf8_byte_t *) frames_id_p, 10);
+
+  ecma_property_value_t *prop_value_p = ecma_create_named_data_property (new_error_obj_p,
+                                                                         frames_str_p,
+                                                                         ECMA_PROPERTY_CONFIGURABLE_WRITABLE,
+                                                                         NULL);
+  ecma_deref_ecma_string (frames_str_p);
+
+  uint32_t depth = 10;
+  // create frames
+  size_t frames_mem_size = sizeof (uint32_t) * depth;
+  uint32_t *frames = malloc (frames_mem_size);
+  JERRY_ASSERT (frames != NULL);
+  memset (frames, 0, frames_mem_size);
+  jcontext_get_backtrace_depth (frames, depth);
+
+  ecma_value_t frames_array_length_val = ecma_make_uint32_value (depth);
+  ecma_value_t frames_array = ecma_op_create_array_object (&frames_array_length_val, 1, true);
+  ecma_free_value (frames_array_length_val);
+  ecma_object_t *array_p = ecma_get_object_from_value (frames_array);
+
+  for (uint32_t i = 0; i < depth; ++i)
+  {
+    ecma_string_t *str_idx_p = ecma_new_ecma_string_from_uint32 ((uint32_t) i);
+    ecma_property_value_t *index_prop_value_p = ecma_create_named_data_property (array_p,
+                                                                                 str_idx_p,
+                                                                                 ECMA_PROPERTY_CONFIGURABLE_WRITABLE,
+                                                                                 NULL);
+    ecma_deref_ecma_string (str_idx_p);
+    index_prop_value_p->value = ecma_make_uint32_value (frames[i]);
+  }
+
+  free (frames);
+
+  prop_value_p->value = frames_array;
+  ecma_deref_object (array_p);
 
   return new_error_obj_p;
 } /* ecma_new_standard_error */

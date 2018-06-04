@@ -20,8 +20,8 @@ var options = {
   path: '/'
 };
 
-http.request(options, function (res) {
-  receive(res, function (data) {
+http.request(options, function(res) {
+  receive(res, function(data) {
     console.log(data);
   });
 }).end();
@@ -29,11 +29,11 @@ http.request(options, function (res) {
 function receive(incoming, callback) {
   var data = '';
 
-  incoming.on('data', function (chunk) {
+  incoming.on('data', function(chunk) {
     data += chunk;
   });
 
-  incoming.on('end', function () {
+  incoming.on('end', function() {
     callback ? callback(data) : '';
   });
 }

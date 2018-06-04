@@ -14,7 +14,6 @@
  */
 
 
-
 var assert = require('assert');
 var https = require('https');
 
@@ -26,7 +25,7 @@ options = {
 
 var getReq = https.get(options);
 
-getReq.on('error', function(){});
+getReq.on('error', function() {});
 
 var timeouted = false;
 getReq.setTimeout(5000, function() {

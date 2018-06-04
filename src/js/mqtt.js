@@ -5,22 +5,24 @@ var URL = require('url');
 var net = require('net');
 var EventEmitter = require('events').EventEmitter;
 
-var MQTT_CONNECT      = 1;
-var MQTT_CONNACK      = 2;
-var MQTT_PUBLISH      = 3;
-var MQTT_PUBACK       = 4;
-var MQTT_PUBREC       = 5;
-var MQTT_PUBREL       = 6;
-var MQTT_PUBCOMP      = 7;
-var MQTT_SUBSCRIBE    = 8;
-var MQTT_SUBACK       = 9;
-var MQTT_UNSUBSCRIBE  = 10;
-var MQTT_UNSUBACK     = 11;
-var MQTT_PINGREQ      = 12;
-var MQTT_PINGRESP     = 13;
-var MQTT_DISCONNECT   = 14;
+/*eslint-disable */
+var MQTT_CONNECT = 1;
+var MQTT_CONNACK = 2;
+var MQTT_PUBLISH = 3;
+var MQTT_PUBACK = 4;
+var MQTT_PUBREC = 5;
+var MQTT_PUBREL = 6;
+var MQTT_PUBCOMP = 7;
+var MQTT_SUBSCRIBE = 8;
+var MQTT_SUBACK = 9;
+var MQTT_UNSUBSCRIBE = 10;
+var MQTT_UNSUBACK = 11;
+var MQTT_PINGREQ = 12;
+var MQTT_PINGRESP = 13;
+var MQTT_DISCONNECT = 14;
+/* eslint-enable */
 
-var noop = function() {};
+function noop() {}
 
 /**
  * @class MqttClient

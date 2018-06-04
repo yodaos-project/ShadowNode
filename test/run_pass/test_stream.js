@@ -19,12 +19,12 @@ var assert = require('assert');
 
 
 var readable1 = new Readable();
-var d = "";
-var e = "";
+var d = '';
+var e = '';
 
 
 readable1.on('error', function(err) {
-  e += ".";
+  e += '.';
 });
 
 readable1.on('data', function(data) {
@@ -84,7 +84,7 @@ assert.equal(e, 'e.');
 
 
 // Create a readable stream without the new keyword.
-var readable2 = Readable({encoding: 'utf8'});
+var readable2 = Readable({ encoding: 'utf8' });
 
 // Push an invalid chunk into it.
 assert.throws(function() {
@@ -112,7 +112,7 @@ assert.throws(function() {
 }, TypeError);
 
 assert.throws(function() {
-  readable2.push({obj: 'string', second: 5001});
+  readable2.push({ obj: 'string', second: 5001 });
 }, TypeError);
 
 // Read with irregular parameters from an empty stream.

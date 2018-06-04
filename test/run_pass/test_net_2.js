@@ -49,5 +49,5 @@ socket.on('data', function(data) {
 });
 
 socket.on('end', function() {
-  assert.equal(echo_msg, "Hello IoT.js");
+  assert.equal(echo_msg, 'Hello IoT.js');
 });

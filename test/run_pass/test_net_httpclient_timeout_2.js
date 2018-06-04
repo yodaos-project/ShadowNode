@@ -14,7 +14,6 @@
  */
 
 
-
 var assert = require('assert');
 var http = require('http');
 
@@ -26,7 +25,7 @@ var options = {
 };
 
 var server = http.createServer(function(req, res) {
-  res.write(".");
+  res.write('.');
 });
 
 
@@ -36,7 +35,7 @@ server.listen(options.port, function() {
       timeouted = true;
       req.socket.destroy();
       server.close();
-    }
+    };
 
     res.on('data', function() {
       // after connection established
@@ -48,12 +47,12 @@ server.listen(options.port, function() {
     server.close();
   });
 
-  var before = function(){
+  var before = function() {
     /* this handler must not be called  */
   };
   req.setTimeout(1000, before);
 
-  req.on('error', function(){});
+  req.on('error', function() {});
   req.end();
 });
 
