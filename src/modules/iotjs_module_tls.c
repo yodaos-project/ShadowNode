@@ -295,7 +295,7 @@ JS_FUNCTION(TlsHandshake) {
     iotjs_make_callback(fn, jthis, iotjs_jargs_get_empty());
     jerry_release_value(fn);
   }
-  return jerry_create_number(_this->handshake_state);
+  return jerry_create_number(rv);
 }
 
 JS_FUNCTION(TlsWrite) {
@@ -340,14 +340,17 @@ JS_FUNCTION(TlsRead) {
 
     if (rv > 0) {
       jerry_value_t fn = iotjs_jval_get_property(jthis, "onread");
-      iotjs_jargs_t jargv = iotjs_jargs_create(1);
+      iotjs_jargs_t jargv = iotjs_jargs_create(2);
+      jerry_value_t jbuffer_len = jerry_create_number(rv);
       jerry_value_t jbuffer = iotjs_bufferwrap_create_buffer((size_t)(rv));
       iotjs_bufferwrap_t* buffer_wrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
 
       iotjs_bufferwrap_copy(buffer_wrap, (const char*)decrypted, (size_t)(rv));
+      iotjs_jargs_append_jval(&jargv, jbuffer_len);
       iotjs_jargs_append_jval(&jargv, jbuffer);
       iotjs_make_callback(fn, jthis, &jargv);
 
+      jerry_release_value(jbuffer_len);
       jerry_release_value(jbuffer);
       jerry_release_value(fn);
       iotjs_jargs_destroy(&jargv);
@@ -375,10 +378,21 @@ JS_FUNCTION(TlsEnd) {
   return jerry_create_undefined();
 }
 
+JS_FUNCTION(ErrName) {
+  DJS_CHECK_ARGS(1, number);
+
+  int errorcode = JS_GET_ARG(0, number);
+  char* err = malloc(sizeof(u_char) * 50);
+
+  mbedtls_strerror(errorcode, err, 50);
+  return jerry_create_string_from_utf8((const jerry_char_t*)err);
+}
+
 jerry_value_t InitTls() {
   jerry_value_t tls = jerry_create_object();
   jerry_value_t tlsConstructor = jerry_create_external_function(TlsConstructor);
   iotjs_jval_set_property_jval(tls, "TlsWrap", tlsConstructor);
+  iotjs_jval_set_method(tlsConstructor, IOTJS_MAGIC_STRING_ERRNAME, ErrName);
 
   jerry_value_t proto = jerry_create_object();
   iotjs_jval_set_method(proto, "handshake", TlsHandshake);

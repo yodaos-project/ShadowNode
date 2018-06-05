@@ -2,14 +2,14 @@
   "modules": {
     "iotjs_basic_modules": {
       "require": [
-        "assert", 
-        "crypto", 
-        "child_process", 
+        "assert",
+        "crypto",
+        "child_process",
         "dbus",
-        "dns", 
+        "dns",
         "dgram",
-        "http", 
-        "https", 
+        "http",
+        "https",
         "mqtt",
         "net",
         "os",
@@ -361,8 +361,8 @@
     },
     "stream": {
       "js_file": "js/stream.js",
-      "require": ["events", "stream_duplex", "stream_transform", 
-                  "stream_passthrough", "stream_readable", 
+      "require": ["events", "stream_duplex", "stream_transform",
+                  "stream_passthrough", "stream_readable",
                   "stream_writable", "util"]
     },
     "stream_duplex": {
@@ -404,7 +404,7 @@
       "native_files": ["modules/iotjs_module_tls.c", "modules/iotjs_module_tls_bio.c"],
       "init": "InitTls",
       "js_file": "js/tls.js",
-      "require": ["util", "net"]
+      "require": ["util", "net", "tcp"]
     },
     "tty": {
       "js_file": "js/tty.js"

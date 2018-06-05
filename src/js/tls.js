@@ -3,85 +3,106 @@
 require('crypto');
 
 var net = require('net');
+var tcp = require('tcp');
 var util = require('util');
-var EventEmitter = require('events').EventEmitter;
+/** @type tls.TlsWrap */
 var TlsWrap = native.TlsWrap;
 var TLS_CHUNK_MAX_SIZE = require('constants').TLS_CHUNK_MAX_SIZE;
 
-function TLSSocket(socket, opts) {
-  if (!(this instanceof TLSSocket))
-    return new TLSSocket(socket, opts);
-  EventEmitter.call(this);
-
-  var tlsOptions = Object.assign({
-    servername: socket.host || socket.hostname,
-    // rejectUnauthorized: false,
-  }, opts);
-
-  // TODO: currently certification is disabled
-  tlsOptions.rejectUnauthorized = false;
-
-  // handle the [ca1,ca2,...]
-  if (Array.isArray(tlsOptions.ca)) {
-    tlsOptions.ca = tlsOptions.ca.join('\n');
-  }
-
-  this.servername = tlsOptions.servername;
-  this.authorized = false;
-  this.authorizationError = null;
-  this._socket = new net.Socket(socket);
-  this._writev = [];
-  this._ended = false;
-
-  // Just a documented property to make secure sockets
-  // distinguishable from regular ones.
-  this.encrypted = false;
-  this._socket.on('error', this._tlsError.bind(this));
-  this._socket.on('connect', this.onsocket.bind(this));
-  this._socket.on('data', this.onsocketdata.bind(this));
-
-  function onsocketclose() {
-    this.emit('close');
-  }
-
-  function onsocketfinish() {
-    this.emit('finish');
-  }
-
-  function onsocketend() {
-    this.emit('end');
-  }
-
-  // bypass event emits
-  this._socket.on('close', onsocketclose.bind(this));
-  this._socket.on('finish', onsocketfinish.bind(this));
-  this._socket.on('end', onsocketend.bind(this));
-
-  // init the handle
-  this._tls = new TlsWrap(tlsOptions);
-  this._tls.jsref = this;
-  this._tls.onread = this.onread;
-  this._tls.onwrite = this.onwrite;
-  this._tls.onclose = this.onclose;
-  this._tls.onhandshakedone = this.onhandshakedone;
-  this._tls.ondata = this.ondata;
+function delegates(proto, target) {
+  if (!(this instanceof delegates)) return new delegates(proto, target);
+  this.proto = proto;
+  this.target = target;
 }
-util.inherits(TLSSocket, EventEmitter);
 
-TLSSocket.prototype.connect = function(opts, callback) {
-  if (typeof callback === 'function') {
-    this.once('connect', callback);
-  }
-  this._socket.connect(opts);
+delegates.prototype.method = function method(name) {
+  var proto = this.proto;
+  var target = this.target;
+
+  proto[name] = function delegation() {
+    return this[target][name].apply(this[target], arguments);
+  };
+
   return this;
 };
 
-TLSSocket.prototype.write = function(data, cb) {
+function TLSHandle(options) {
+  var self = this;
+  this.tcpHandle = new tcp();
+  this.tlsWrap = new TlsWrap(options);
+  this.tlsWrap.onwrite = function onwrite(chunk) {
+    self.tcpHandle.write(chunk, function afterWrite(status) {
+    });
+  };
+  this.tlsWrap.onread = function onread(nread, buffer) {
+    if (self.onread) {
+      return self.onread(self.tlsWrap.jsref, nread, self._EOF === true, buffer);
+    }
+  };
+  this.tlsWrap.onclose = function onclose() {};
+
+  Object.defineProperty(this, 'owner', {
+    get: function get() {
+      return self.tcpHandle.owner;
+    },
+    set: function set(val) {
+      self.tlsWrap.jsref = val;
+      self.tcpHandle.owner = val;
+    }
+  });
+
+  this.tcpHandle.onread = function onread(socket, nread, isEOF, buffer) {
+
+    if (isEOF) {
+      self._EOF = true;
+      return;
+    } else if (nread < 0 && self.onread) {
+      return self.onread(socket, nread, isEOF, buffer);
+    }
+    self.tlsWrap.read(buffer);
+  };
+}
+
+delegates(TLSHandle.prototype, 'tcpHandle')
+  .method('shutdown')
+  .method('setKeepAlive')
+  .method('getpeername')
+  .method('getsockname');
+
+TLSHandle.prototype.connect = function connect(ip, port, afterConnect) {
+  var self = this;
+  this.tcpHandle.connect(ip, port, function tlsAfterConnect(status) {
+    if (status !== 0) {
+      return afterConnect(status);
+    }
+    self.tlsWrap.onhandshakedone = function onhandshakedone() {
+      self.authorized = true;
+      self.encrypted = true;
+
+      afterConnect(0);
+    };
+
+    self.tcpHandle.readStart();
+    var err = self.tlsWrap.handshake();
+    if (err < 0) {
+      throw TlsWrap.errname(err);
+    }
+  });
+};
+
+TLSHandle.prototype.close = function close() {
+  this.tcpHandle.close();
+  this.tlsWrap.end();
+};
+
+TLSHandle.prototype.readStart = function readStart() {};
+
+TLSHandle.prototype.write = function write(data, callback) {
   if (!Buffer.isBuffer(data))
     data = new Buffer(data);
 
   if (!this.encrypted) {
-    this._writev.push([data, cb]);
+    this._writev.push([data, callback]);
     return;
   }
 
@@ -100,78 +121,51 @@ TLSSocket.prototype.write = function(data, cb) {
     sourceStart += sourceLength;
     try {
       /* XXX: tls.write may throw error if iotjs_tlswrap_encode_data failure */
-      var encodedChunk = this._tls.write(chunk);
+      var encodedChunk = this.tlsWrap.write(chunk);
       chunks.push(encodedChunk);
     } catch (err) {
-      cb(err);
+      callback(err);
       return false;
     }
   }
   var encodedData = Buffer.concat(chunks);
-  return this._socket.write(encodedData, cb);
+  this.tcpHandle.write(encodedData, callback);
 };
 
-TLSSocket.prototype.onsocket = function() {
-  this.emit('socket', this._socket);
-  if (this._ended) return;
-  this._tls.handshake();
-};
+function TLSSocket(socket, opts) {
+  if (!(this instanceof TLSSocket))
+    return new TLSSocket(socket, opts);
 
-TLSSocket.prototype.onsocketdata = function(chunk) {
-  if (this._ended) return;
-  this._tls.read(chunk);
-};
+  // init the handle
+  var tlsOptions = Object.assign({
+    servername: socket.host || socket.hostname,
+    // rejectUnauthorized: false,
+  }, opts);
 
-TLSSocket.prototype.onwrite = function(chunk) {
-  var self = this.jsref;
-  var bytes = self._socket.write(chunk);
-  return bytes;
-};
+  // TODO: currently certification is disabled
+  tlsOptions.rejectUnauthorized = false;
 
-TLSSocket.prototype.onread = function(chunk) {
-  var self = this.jsref;
-  self.emit('data', chunk);
-};
-
-TLSSocket.prototype.onclose = function() {
-  var self = this.jsref;
-  self.end();
-};
-
-TLSSocket.prototype.onhandshakedone = function(status) {
-  var self = this.jsref;
-  self.authorized = true;
-  self.encrypted = true;
-
-  for (var i = 0; i < self._writev.length; i++) {
-    self.write.apply(self, self._writev[i]);
+  // handle the [ca1,ca2,...]
+  if (Array.isArray(tlsOptions.ca)) {
+    tlsOptions.ca = tlsOptions.ca.join('\n');
   }
-  self._writev.length = [];
-  self.emit('connect', this);
-};
 
-TLSSocket.prototype._tlsError = function(err) {
-  this.emit('error', err);
-};
+  /** @type tls.TlsWrap */
+  var handle = new TLSHandle(tlsOptions);
 
-TLSSocket.prototype.pause = function() {
-  this._socket.pause();
-};
+  net.Socket.call(this, Object.assign(socket, { handle: handle }));
 
-TLSSocket.prototype.resume = function() {
-  this._socket.resume();
-};
+  this.servername = tlsOptions.servername;
+  this.authorized = false;
+  this.authorizationError = null;
+  this._writev = [];
 
-TLSSocket.prototype.end = function() {
-  this._ended = true;
-  this._socket.end(null, () => {
-    this._tls.end();
-  });
-};
+  // Just a documented property to make secure sockets
+  // distinguishable from regular ones.
+  this.encrypted = false;
+}
 
-TLSSocket.prototype.destroy = function() {
-  this._socket.destroy();
-};
+util.inherits(TLSSocket, net.Socket);
 
 function connect(options, callback) {
   return TLSSocket({
