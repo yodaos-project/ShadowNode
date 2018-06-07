@@ -31,8 +31,7 @@ $ cd ShadowNode
 ### Build
 
 ```sh
-$ tools/build.py
-$ tools/build.py --install # install the binary/library/headers to prefix, default /usr/local
+$ npm run build
 ```
 
 To get supported options, run:
@@ -41,10 +40,16 @@ To get supported options, run:
 $ tools/build.py --help
 ```
 
+### Install
+
+```sh
+$ npm install
+```
+
 ### Test
 
 ```sh
-$ tools/build.py --tests
+$ npm test
 ```
 
 For Additional information see [Getting Started](docs/Getting-Started.md).

@@ -2497,12 +2497,12 @@ parser_parse_function (parser_context_t *context_p, /**< context */
     lexer_next_token (context_p);
   }
 
+#ifdef JERRY_DEBUGGER
   if (JERRY_CONTEXT (parser_dump_fd) != NULL)
   {
     fprintf (JERRY_CONTEXT (parser_dump_fd), " [%d,%d]", debugger_line, debugger_column);
   }
 
-#ifdef JERRY_DEBUGGER
   if ((JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
       && jerry_debugger_send_parse_function (debugger_line, debugger_column))
   {
