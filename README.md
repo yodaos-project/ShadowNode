@@ -43,7 +43,7 @@ $ tools/build.py --help
 ### Install
 
 ```sh
-$ npm install
+$ tools/build.py --install
 ```
 
 ### Test

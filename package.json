@@ -8,8 +8,7 @@
     "test-jerry": "deps/jerry/tools/run-tests.py --unittests",
     "test-iotjs": "tools/build.py --tests --no-check-valgrind",
     "build": "tools/build.py",
-    "rebuild": "tools/build.py --clean",
-    "install": "tools/build.py --clean --install"
+    "rebuild": "tools/build.py --clean"
   },
   "author": "Yazhong Liu <yazhong.liu@rokid.com>",
   "license": "Apache-2.0",
