@@ -43,8 +43,8 @@ set(JERRY_CMDLINE_TEST      OFF CACHE BOOL "Build jerry test command line tool?"
 set(JERRY_CMDLINE_SNAPSHOT  OFF CACHE BOOL "Build jerry snapshot command line tool?")
 set(JERRY_PORT_DEFAULT      ON  CACHE BOOL "Build default jerry port implementation?")
 set(JERRY_EXT               ON  CACHE BOOL "Build jerry-ext?")
-set(JERRY_LIBC              ON  CACHE BOOL "Build and use jerry-libc?")
-set(JERRY_LIBM              ON  CACHE BOOL "Build and use jerry-libm?")
+set(JERRY_LIBC              OFF CACHE BOOL "Build and use jerry-libc?")
+set(JERRY_LIBM              OFF CACHE BOOL "Build and use jerry-libm?")
 set(UNITTESTS               OFF CACHE BOOL "Build unit tests?")
 set(DOCTESTS                OFF CACHE BOOL "Build doc tests?")
 
