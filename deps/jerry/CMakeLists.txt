@@ -199,6 +199,10 @@ if(JERRY_LIBC)
   jerry_add_link_flags(-nostdlib)
 endif()
 
+if(NOT JERRY_LIBM)
+  jerry_add_link_flags(-lm)
+endif()
+
 # Turn off stack protector
 if (USING_GCC OR USING_CLANG)
 jerry_add_compile_flags(-fno-stack-protector)
@@ -254,8 +258,6 @@ endif()
 # Jerry's libm
 if(JERRY_LIBM)
   add_subdirectory(jerry-libm)
-else()
-  jerry_add_link_flags(-lm)
 endif()
 
 # Jerry's core
