@@ -254,6 +254,8 @@ endif()
 # Jerry's libm
 if(JERRY_LIBM)
   add_subdirectory(jerry-libm)
+else()
+  jerry_add_link_flags(-lm)
 endif()
 
 # Jerry's core
