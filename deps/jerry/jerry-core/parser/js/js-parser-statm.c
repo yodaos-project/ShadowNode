@@ -415,15 +415,15 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
     context_p->token.line = debugger_line;
     context_p->token.column = debugger_column;
   }
-#endif /* JERRY_DEBUGGER */
 
   if (JERRY_CONTEXT (parser_dump_fd) != NULL)
   {
     char func_name[name_p->prop.length + 1];
-    memset(func_name, 0, name_p->prop.length + 1);
+    memset(func_name, 0, (size_t) name_p->prop.length + 1);
     memcpy(func_name, name_p->u.char_p, name_p->prop.length);
     fprintf (JERRY_CONTEXT (parser_dump_fd), "+ %s", func_name);
   }
+#endif /* JERRY_DEBUGGER */
 
   if (name_p->status_flags & LEXER_FLAG_INITIALIZED)
   {

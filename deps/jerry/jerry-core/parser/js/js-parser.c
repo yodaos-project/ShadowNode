@@ -2467,18 +2467,18 @@ parser_parse_function (parser_context_t *context_p, /**< context */
                                   context_p->lit_object.literal_p->u.char_p,
                                   context_p->lit_object.literal_p->prop.length);
     }
-#endif /* JERRY_DEBUGGER */
 
     if (JERRY_CONTEXT (parser_dump_fd) != NULL)
     {
       char func_name[context_p->lit_object.literal_p->prop.length + 1];
       memset (func_name, 0, 
-              context_p->lit_object.literal_p->prop.length + 1);
+              (size_t) context_p->lit_object.literal_p->prop.length + 1);
       memcpy (func_name, 
               context_p->lit_object.literal_p->u.char_p, 
               context_p->lit_object.literal_p->prop.length);
       fprintf (JERRY_CONTEXT (parser_dump_fd), "+ %s", func_name);
     }
+#endif /* JERRY_DEBUGGER */
 
     /* The arguments object is created later than the binding to the
      * function expression name, so there is no need to assign special flags. */
