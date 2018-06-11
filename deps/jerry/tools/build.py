@@ -80,7 +80,7 @@ def get_arguments():
                         help='build jerry-ext (default: %(default)s)')
     parser.add_argument('--jerry-libc', metavar='X', choices=['ON', 'OFF'], default='OFF', type=str.upper,
                         help='build and use jerry-libc (%(choices)s; default: %(default)s)')
-    parser.add_argument('--jerry-libm', metavar='X', choices=['ON', 'OFF'], default='OFF', type=str.upper,
+    parser.add_argument('--jerry-libm', metavar='X', choices=['ON', 'OFF'], default='ON', type=str.upper,
                         help='build and use jerry-libm (%(choices)s; default: %(default)s)')
     parser.add_argument('--jerry-port-default', metavar='X', choices=['ON', 'OFF'], default='ON', type=str.upper,
                         help='build default jerry port implementation (%(choices)s; default: %(default)s)')
