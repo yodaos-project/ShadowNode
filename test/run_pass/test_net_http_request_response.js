@@ -194,10 +194,59 @@ readRequest.on('response', function(incomingMessage) {
 });
 
 
+// Test the content length
+var server7 = http.createServer(function(request, response) {
+  request.on('end', function() {
+    response.end('ok');
+    server7.close();
+  });
+}).listen(3010);
+
+var isRequest7Finished = false;
+var readRequest = http.request({
+  host: '127.0.0.1',
+  port: 3010,
+  path: '/',
+  method: 'POST'
+});
+readRequest.end('foobar');
+readRequest.on('response', function(incomingMessage) {
+  assert.equal(incomingMessage.statusCode, 200);
+  assert.equal(readRequest.getHeader('content-length'), 6);
+  isRequest7Finished = true;
+});
+
+
+// Test the content length if set content-length
+var server8 = http.createServer(function(request, response) {
+  request.on('end', function() {
+    response.end('ok');
+    server8.close();
+  });
+}).listen(3011);
+
+var isRequest8Finished = false;
+var request8 = http.request({
+  host: '127.0.0.1',
+  port: 3011,
+  path: '/',
+  method: 'POST'
+});
+request8.setHeader('Content-Length', 10);
+request8.end('foobar');
+request8.on('response', function(incomingMessage) {
+  assert.equal(incomingMessage.statusCode, 200);
+  assert.equal(request8.getHeader('content-length'), 10);
+  isRequest8Finished = true;
+});
+
+
 process.on('exit', function() {
   assert.equal(isRequest1Finished, true);
   assert.equal(isRequest2Finished, true);
   assert.equal(isRequest3Finished, true);
   assert.equal(isRequest4Finished, true);
   assert.equal(isRequest5Finished, true);
+  assert.equal(isRequest7Finished, true);
+  assert.equal(isRequest8Finished, true);
 });

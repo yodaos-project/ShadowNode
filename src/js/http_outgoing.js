@@ -24,6 +24,7 @@ function OutgoingMessage() {
   this.writable = true;
 
   this._hasBody = true;
+  this._bodyLength = 0;
 
   this.finished = false;
   this._sentHeader = false;
@@ -106,6 +107,10 @@ OutgoingMessage.prototype._send = function(chunk, encoding, callback) {
   if (util.isBuffer(chunk)) {
     chunk = chunk.toString();
   }
+  this._bodyLength += chunk.length;
+  if (!this.getHeader('Content-Length') && this._bodyLength) {
+    this.setHeader('Content-Length', this._bodyLength);
+  }
 
   if (!this._sentHeader) {
     chunk = this._header + '\r\n' + chunk;
@@ -177,7 +182,12 @@ OutgoingMessage.prototype.removeHeader = function(name) {
 
 
 OutgoingMessage.prototype.getHeader = function(name) {
-  return this._headers[name];
+  return this._headers[name.toLowerCase()];
+};
+
+
+OutgoingMessage.prototype.getHeaders = function() {
+  return this._headers;
 };
 
 
