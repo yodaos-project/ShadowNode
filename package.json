@@ -3,7 +3,12 @@
   "version": "0.8.0",
   "description": "Use Node.js in your embeddable devices",
   "scripts": {
-    "lint": "tools/check_tidy.py && eslint ."
+    "lint": "tools/check_tidy.py && eslint .",
+    "test": "npm run lint && npm run test-jerry && npm run test-iotjs",
+    "test-jerry": "deps/jerry/tools/run-tests.py --unittests",
+    "test-iotjs": "tools/build.py --tests --no-check-valgrind",
+    "build": "tools/build.py",
+    "rebuild": "tools/build.py --clean"
   },
   "author": "Yazhong Liu <yazhong.liu@rokid.com>",
   "license": "Apache-2.0",

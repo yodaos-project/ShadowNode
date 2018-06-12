@@ -1793,6 +1793,30 @@ jerry_has_property (const jerry_value_t obj_val, /**< object value */
 } /* jerry_has_property */
 
 /**
+ * Checks whether the object or it's prototype objects have the given property index.
+ *
+ * @return true  - if the property exists
+ *         false - otherwise
+ */
+jerry_value_t
+jerry_has_property_by_index (const jerry_value_t obj_val, /**< object value */
+                             uint32_t index) /**< index to be written */
+{
+  jerry_assert_api_available ();
+
+  jerry_value_t obj_value = jerry_get_arg_value (obj_val);
+  if (!ecma_is_value_object (obj_value))
+  {
+    return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG (wrong_args_msg_p)));
+  }
+
+  ecma_string_t *str_idx_p = ecma_new_ecma_string_from_uint32 (index);
+  bool has_property = ecma_op_object_has_property (ecma_get_object_from_value (obj_value), str_idx_p);
+
+  return ecma_make_boolean_value (has_property);
+} /* jerry_has_property_by_index */
+
+/**
  * Checks whether the object has the given property.
  *
  * @return true  - if the property exists
@@ -1818,6 +1842,32 @@ jerry_has_own_property (const jerry_value_t obj_val, /**< object value */
 
   return ecma_make_boolean_value (has_property);
 } /* jerry_has_own_property */
+
+/**
+ * Checks whether the object has the given property index.
+ *
+ * @return true  - if the property exists
+ *         false - otherwise
+ */
+jerry_value_t
+jerry_has_own_property_by_index (const jerry_value_t obj_val, /**< object value */
+                                 uint32_t index) /**< index to be written */
+{
+  jerry_assert_api_available ();
+
+  jerry_value_t obj_value = jerry_get_arg_value (obj_val);
+
+  if (!ecma_is_value_object (obj_value))
+  {
+    return ecma_make_boolean_value (false);
+  }
+
+  ecma_string_t *str_idx_p = ecma_new_ecma_string_from_uint32 (index);
+  bool has_property = ecma_op_object_has_own_property (ecma_get_object_from_value (obj_value),
+                                                       str_idx_p);
+
+  return ecma_make_boolean_value (has_property);
+} /* jerry_has_own_property_by_index */
 
 /**
  * Delete a property from an object.
