@@ -15,7 +15,7 @@ before_install:
   - ls node_modules/.bin
 
 script:
-  - npm run lint && tools/build.py --tests --no-check-valgrind
+  - npm test
 
 env:
   matrix:
