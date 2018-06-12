@@ -28,6 +28,7 @@
 #include "jerryscript.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -191,6 +192,9 @@ static jerry_value_t dummy_wait_for_client_source_cb() {
 int iotjs_entry(int argc, char** argv) {
   // Initialize debug print.
   init_debug_settings();
+
+  // Initialize seed of random
+  srand((unsigned)jerry_port_get_current_time());
 
   // Create environment.
   iotjs_environment_t* env = (iotjs_environment_t*)iotjs_environment_get();
