@@ -241,6 +241,30 @@ request8.on('response', function(incomingMessage) {
 });
 
 
+// Test the content-length not set if chunked
+var server9 = http.createServer(function(request, response) {
+  request.on('end', function() {
+    response.end('ok');
+    server9.close();
+  });
+}).listen(3012);
+
+var isRequest9Finished = false;
+var request9 = http.request({
+  host: '127.0.0.1',
+  port: 3012,
+  path: '/',
+  method: 'POST'
+});
+request9.setHeader('Transfer-Encoding', 'chunked');
+request9.end('foobar');
+request9.on('response', function(incomingMessage) {
+  assert.equal(incomingMessage.statusCode, 200);
+  assert.equal(request9.getHeader('content-length'), undefined);
+  isRequest9Finished = true;
+});
+
+
 process.on('exit', function() {
   assert.equal(isRequest1Finished, true);
   assert.equal(isRequest2Finished, true);
@@ -249,4 +273,5 @@ process.on('exit', function() {
   assert.equal(isRequest5Finished, true);
   assert.equal(isRequest7Finished, true);
   assert.equal(isRequest8Finished, true);
+  assert.equal(isRequest9Finished, true);
 });

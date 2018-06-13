@@ -108,7 +108,10 @@ OutgoingMessage.prototype._send = function(chunk, encoding, callback) {
     chunk = chunk.toString();
   }
   this._bodyLength += chunk.length;
-  if (!this.getHeader('Content-Length') && this._bodyLength) {
+  if (!this.getHeader('Content-Length') &&
+    // 'chunked' transfer-encoding should not set content-length
+    this.getHeader('Transfer-Encoding') !== 'chunked' &&
+    this._bodyLength) {
     this.setHeader('Content-Length', this._bodyLength);
   }
 
