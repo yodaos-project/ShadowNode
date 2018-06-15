@@ -444,6 +444,14 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
                 && !ecma_is_lexical_environment (func_obj_p));
   JERRY_ASSERT (ecma_op_is_callable (ecma_make_object_value (func_obj_p)));
 
+#ifdef JERRY_CPU_PROFILER
+  //JERRY_CONTEXT (cpu_profiling) = true;
+  //JERRY_CONTEXT (cpu_profiling_fp) = stdout;
+  double time = jerry_port_get_current_time();
+  ecma_string_t * name_p = NULL;
+  FILE *fp = JERRY_CONTEXT (cpu_profiling_fp);
+#endif /* JERRY_CPU_PROFILER */
+
   ecma_value_t ret_value = ECMA_VALUE_EMPTY;
 
   if (ecma_get_object_type (func_obj_p) == ECMA_OBJECT_TYPE_FUNCTION)
@@ -469,6 +477,13 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
       bool is_no_lex_env;
 
       const ecma_compiled_code_t *bytecode_data_p = ecma_op_function_get_compiled_code (ext_func_p);
+
+#if defined(JERRY_CPU_PROFILER) && defined(JERRY_FUNCTION_NAME)
+      if (bytecode_data_p->name != ECMA_VALUE_EMPTY)
+      {
+        name_p = ecma_get_string_from_value (bytecode_data_p->name);
+      }
+#endif /* JERRY_CPU_PROFILER */
 
       is_strict = (bytecode_data_p->status_flags & CBC_CODE_FLAGS_STRICT_MODE) ? true : false;
       is_no_lex_env = (bytecode_data_p->status_flags & CBC_CODE_FLAGS_LEXICAL_ENV_NOT_NEEDED) ? true : false;
@@ -642,6 +657,26 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
   }
 
   JERRY_ASSERT (!ecma_is_value_empty (ret_value));
+
+#ifdef JERRY_CPU_PROFILER
+  if (JERRY_CONTEXT (cpu_profiling) && fp)
+  {
+    time = jerry_port_get_current_time () - time;
+    if (name_p == NULL)
+    {
+      lit_magic_string_id_t id = ecma_object_get_class_name (func_obj_p);
+      name_p = ecma_get_magic_string (id);
+    }
+
+    lit_utf8_size_t sz = ecma_string_get_utf8_size (name_p);
+    lit_utf8_byte_t buffer_p[sz+1];
+    ecma_string_to_utf8_bytes (name_p, buffer_p, sz);
+    buffer_p[sz] = '\0';
+    fprintf (fp, "CPU_PROFILER:%s:cost:%g\n",
+             buffer_p,
+             time);
+  }
+#endif /* JERRY_CPU_PROFILER */
 
   return ret_value;
 } /* ecma_op_function_call */

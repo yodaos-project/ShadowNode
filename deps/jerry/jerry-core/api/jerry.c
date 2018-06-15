@@ -3452,6 +3452,42 @@ jerry_get_backtrace_max_depth (void)
   return 10;
 }
 
+#ifdef JERRY_CPU_PROFILER
+bool
+jerry_start_cpu_profiler (const char *path)
+{
+  if (JERRY_CONTEXT (cpu_profiling))
+  {
+    return false;
+  }
+
+  FILE *fp = fopen (path, "w");
+  if (fp == NULL)
+  {
+    return false;
+  }
+
+  JERRY_CONTEXT (cpu_profiling) = true;
+  JERRY_CONTEXT (cpu_profiling_fp) = fp;
+  return true;
+}
+
+void jerry_stop_cpu_profiler (void)
+{
+  if (!JERRY_CONTEXT (cpu_profiling))
+  {
+    return;
+  }
+
+  if (JERRY_CONTEXT (cpu_profiling_fp))
+  {
+    fclose (JERRY_CONTEXT (cpu_profiling_fp));
+  }
+
+  JERRY_CONTEXT (cpu_profiling) = false;
+}
+#endif /* JERRY_CPU_PROFILER */
+
 /**
  * @}
  */

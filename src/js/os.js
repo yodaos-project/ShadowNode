@@ -24,6 +24,14 @@ exports.release = function() {
   return native._getOSRelease();
 };
 
+exports.startCPUProfiler = function () {
+  return native.startCPUProfiler();
+};
+
+exports.stopCPUProfiler = function () {
+  return native.stopCPUProfiler();
+};
+
 exports.networkInterfaces = function() {
   var list = native.getInterfaceAddresses();
   var interfaces = {};

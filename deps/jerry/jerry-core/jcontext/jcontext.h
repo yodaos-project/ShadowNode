@@ -133,6 +133,11 @@ typedef struct
   uint8_t valgrind_freya_mempool_request; /**< Tells whether a pool manager
                                            *   allocator request is in progress */
 #endif /* JERRY_VALGRIND_FREYA */
+
+#ifdef JERRY_CPU_PROFILER
+  bool cpu_profiling;
+  FILE *cpu_profiling_fp;
+#endif /* JERRY_CPU_PROFILER */
 } jerry_context_t;
 
 #ifndef CONFIG_ECMA_LCACHE_DISABLE
