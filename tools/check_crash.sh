@@ -7,13 +7,15 @@ trap ':' SEGV
 for file in $(ls ./test/crash/*.js)
 do
   echo "running $file"
-  $IOTJS_BIN $file > /dev/null 2>&1
+  pids="$(sh -c "echo \$\$; exec $IOTJS_BIN $file > /dev/null 2>&1") $pids"
 done
 
-IOTJS_DUMP_FILES=$(ls /tmp/iotjs.*)
-for file in $IOTJS_DUMP_FILES
+for pid in $pids
 do
-  echo "iotjs dump files are not cleanup" $file
-  exit 1
+  if [ -f "/tmp/iotjs.$pid" ]
+  then
+    echo "iotjs dump file($pid) are not cleanup"
+    exit 1
+  fi
 done
 echo "successfully test done"
