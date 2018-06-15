@@ -237,7 +237,6 @@ JS_FUNCTION(GetStackFrames) {
 JS_FUNCTION(FlushParserDumpFile) {
   // flush dump file
   jerry_flush_parser_dump_file();
-
   return jerry_create_undefined();
 }
 
@@ -298,6 +297,12 @@ JS_FUNCTION(DoExit) {
   return jerry_create_undefined();
 }
 
+JS_FUNCTION(Kill) {
+  DJS_CHECK_ARGS(1, number);
+  int signal = JS_GET_ARG(0, number);
+  kill(getpid(), signal);
+  return jerry_create_undefined();
+}
 
 #define NANOS_PER_SEC 1000000000
 JS_FUNCTION(Hrtime) {
@@ -382,6 +387,7 @@ JS_FUNCTION(DLOpen) {
   (*initfn)(exports);
   return exports;
 }
+
 JS_FUNCTION(MemoryUsage) {
   size_t rss;
   jerry_heap_stats_t stats;
@@ -525,6 +531,7 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DEBUGGERSOURCECOMPILE,
                         DebuggerSourceCompile);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_KILL, Kill);
   iotjs_jval_set_method(process, "hrtime", Hrtime);
 
   // env

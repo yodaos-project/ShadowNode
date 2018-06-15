@@ -113,6 +113,7 @@
 #define IOTJS_MAGIC_STRING_ISDIRECTORY "isDirectory"
 #define IOTJS_MAGIC_STRING_ISFILE "isFile"
 #define IOTJS_MAGIC_STRING_KEY "key"
+#define IOTJS_MAGIC_STRING_KILL "kill"
 #define IOTJS_MAGIC_STRING_LENGTH "length"
 #define IOTJS_MAGIC_STRING_LISTEN "listen"
 #define IOTJS_MAGIC_STRING_LOOPBACK "loopback"
