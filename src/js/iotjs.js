@@ -50,9 +50,12 @@
   function loadDumpIfExists() {
     var lines = [];
     try {
+      process._flushParserDumpFile();
       var loc = '/tmp/iotjs.' + process.pid;
       lines = fs.readFileSync(loc).toString().split('\n');
-    } catch (err) {}
+    } catch (err) {
+      console.error(`occurrs unkwnown error when loading dump: ${err.message}`);
+    }
     return lines;
   }
 
@@ -109,7 +112,7 @@
       }
     } else {
       // Exit if there are no handler for uncaught exception.
-      console.error(error);
+      console.error(error && error.stack);
       process.exit(1);
     }
   }
@@ -203,8 +206,8 @@
       enumerable: false,
       get: function() {
         if (this.__stack__ === undefined) {
-          process._flushParserDumpFile();
-          this.__stack__ = makeStackTraceFromDump(this.__frames__ || []);
+          this.__stack__ = `Error: ${this.message}\n`
+            + makeStackTraceFromDump(this.__frames__ || []);
         }
         return this.__stack__;
       },

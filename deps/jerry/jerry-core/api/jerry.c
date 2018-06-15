@@ -3404,7 +3404,7 @@ bool
 jerry_set_parser_dump_file (char *path)
 {
   jerry_assert_api_available ();
-  JERRY_CONTEXT (parser_dump_fd) = fopen(path, "a+");
+  JERRY_CONTEXT (parser_dump_fd) = fopen (path, "a+");
   return true;
 }
 
