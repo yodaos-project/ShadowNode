@@ -394,6 +394,11 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
 
   name_p = context_p->lit_object.literal_p;
 
+  prop_length_t func_name_len = name_p->prop.length;
+  uint8_t func_name[func_name_len + 1];
+  memset (func_name, 0, (size_t) (func_name_len + 1));
+  memcpy (func_name, name_p->u.char_p, func_name_len);
+
   status_flags = PARSER_IS_FUNCTION | PARSER_IS_CLOSURE;
   if (context_p->lit_object.type != LEXER_LITERAL_OBJECT_ANY)
   {
@@ -417,9 +422,6 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
 
   if (JERRY_CONTEXT (parser_dump_fd) != NULL)
   {
-    char func_name[name_p->prop.length + 1];
-    memset(func_name, 0, (size_t) name_p->prop.length + 1);
-    memcpy(func_name, name_p->u.char_p, name_p->prop.length);
     fprintf (JERRY_CONTEXT (parser_dump_fd), "+ %s", func_name);
   }
 #endif /* JERRY_DEBUGGER */
@@ -439,6 +441,11 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
       compiled_code_p = parser_parse_function (context_p, status_flags);
       util_free_literal (literal_p);
 
+#ifdef JERRY_FUNCTION_NAME
+      /* record function name in bytecode */
+      compiled_code_p->name = ecma_find_or_create_literal_string (func_name, func_name_len);
+#endif /* JERRY_FUNCTION_NAME */
+
       literal_p->u.bytecode_p = compiled_code_p;
       lexer_next_token (context_p);
       return;
@@ -448,7 +455,19 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
   {
     /* The most common case: the literal is the last literal. */
     name_p->status_flags |= LEXER_FLAG_VAR | LEXER_FLAG_INITIALIZED;
+
+#ifdef JERRY_FUNCTION_NAME
+    uint16_t index =
+#endif /* JERRY_FUNCTION_NAME */
     lexer_construct_function_object (context_p, status_flags);
+
+#ifdef JERRY_FUNCTION_NAME
+    /* record function name in bytecode */
+    lexer_literal_t *func_literal = (lexer_literal_t *) parser_list_get (&context_p->literal_pool, index);
+    ecma_value_t name = ecma_find_or_create_literal_string (func_name, func_name_len);
+    func_literal->u.bytecode_p->name = name;
+#endif /* JERRY_FUNCTION_NAME */
+
     lexer_next_token (context_p);
     return;
   }
@@ -472,7 +491,18 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
 
   context_p->literal_count++;
 
+#ifdef JERRY_FUNCTION_NAME
+  uint16_t index =
+#endif /* JERRY_FUNCTION_NAME */
   lexer_construct_function_object (context_p, status_flags);
+
+#ifdef JERRY_FUNCTION_NAME
+  /* record function name in bytecode */
+  lexer_literal_t *func_literal = (lexer_literal_t *) parser_list_get (&context_p->literal_pool, index);
+  ecma_value_t name = ecma_find_or_create_literal_string (func_name, func_name_len);
+  func_literal->u.bytecode_p->name = name;
+#endif /* JERRY_FUNCTION_NAME */
+
   lexer_next_token (context_p);
 } /* parser_parse_function_statement */
 
