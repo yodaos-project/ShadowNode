@@ -206,7 +206,7 @@
       enumerable: false,
       get: function() {
         if (this.__stack__ === undefined) {
-          this.__stack__ = `Error: ${this.message}\n`
+          this.__stack__ = `${this.name || 'Error'}: ${this.message}\n`
             + makeStackTraceFromDump(this.__frames__ || []);
         }
         return this.__stack__;
