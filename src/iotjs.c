@@ -194,22 +194,22 @@ static void iotjs_onexit(void) {
   remove(JS_DUMP_PATHNAME);
 }
 
-static void iotjs_onsegv(int signum) {
+static void iotjs_onsignal(int signum) {
   remove(JS_DUMP_PATHNAME);
   signal(signum, SIG_DFL);
   kill(getpid(), signum);
 }
 
 static void atsignal() {
-  struct sigaction sa_segfault;
-  sa_segfault.sa_flags = 0;
-  sa_segfault.sa_handler = iotjs_onsegv;
-  sigaction(SIGQUIT, &sa_segfault, NULL);
-  sigaction(SIGILL, &sa_segfault, NULL);
-  sigaction(SIGABRT, &sa_segfault, NULL);
-  sigaction(SIGFPE, &sa_segfault, NULL);
-  sigaction(SIGSEGV, &sa_segfault, NULL);
-  sigaction(SIGINT, &sa_segfault, NULL);
+  struct sigaction sa;
+  sa.sa_flags = 0;
+  sa.sa_handler = iotjs_onsignal;
+  sigaction(SIGQUIT, &sa, NULL);
+  sigaction(SIGILL, &sa, NULL);
+  sigaction(SIGABRT, &sa, NULL);
+  sigaction(SIGFPE, &sa, NULL);
+  sigaction(SIGSEGV, &sa, NULL);
+  sigaction(SIGINT, &sa, NULL);
 }
 
 int iotjs_entry(int argc, char** argv) {
