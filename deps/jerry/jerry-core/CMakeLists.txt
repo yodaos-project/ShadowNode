@@ -16,6 +16,11 @@ cmake_minimum_required (VERSION 2.8.12)
 set(JERRY_CORE_NAME jerry-core)
 project (${JERRY_CORE_NAME} C)
 
+if(FEATURE_CPU_PROFILER)
+  message("CPU Profiler requires function name is enabled.")
+  set(FEATURE_FUNCTION_NAME ON)
+endif()
+
 # Optional features
 set(FEATURE_CPOINTER_32_BIT    ON       CACHE BOOL   "Enable 32 bit compressed pointers?")
 set(FEATURE_DEBUGGER           ON       CACHE BOOL   "Enable JerryScript debugger?")
@@ -24,6 +29,7 @@ set(FEATURE_EXTERNAL_CONTEXT   OFF      CACHE BOOL   "Enable external context?")
 set(FEATURE_JS_PARSER          ON       CACHE BOOL   "Enable js-parser?")
 set(FEATURE_MEM_STATS          OFF      CACHE BOOL   "Enable memory statistics?")
 set(FEATURE_MEM_STRESS_TEST    OFF      CACHE BOOL   "Enable mem-stress test?")
+set(FEATURE_CPU_PROFILER       OFF      CACHE BOOL   "Enable Cpu profiler?")
 set(FEATURE_FUNCTION_NAME      OFF      CACHE BOOL   "Enable saving Javascript function name?")
 set(FEATURE_PARSER_DUMP        OFF      CACHE BOOL   "Enable parser byte-code dumps?")
 set(FEATURE_PROFILE            "es5.1"  CACHE STRING "Use default or other profile?")
@@ -40,21 +46,18 @@ set(MEM_HEAP_SIZE_KB           "5120"   CACHE STRING "Size of memory heap, in ki
 # Option overrides
 if(FEATURE_SYSTEM_ALLOCATOR)
   set(FEATURE_CPOINTER_32_BIT ON)
-
   set(FEATURE_CPOINTER_32_BIT_MESSAGE " (FORCED BY SYSTEM ALLOCATOR)")
 endif()
 
 if(NOT FEATURE_JS_PARSER)
   set(FEATURE_SNAPSHOT_EXEC ON)
   set(FEATURE_PARSER_DUMP   OFF)
-
   set(FEATURE_SNAPSHOT_EXEC_MESSAGE " (FORCED BY DISABLED JS PARSER)")
   set(FEATURE_PARSER_DUMP_MESSAGE   " (FORCED BY DISABLED JS PARSER)")
 endif()
 
 if(JERRY_CMDLINE_SNAPSHOT)
   set(FEATURE_SNAPSHOT_SAVE ON)
-
   set(FEATURE_SNAPSHOT_SAVE_MESSAGE " (FORCED BY SNAPSHOT TOOL)")
 endif()
 
@@ -66,7 +69,7 @@ message(STATUS "FEATURE_EXTERNAL_CONTEXT    " ${FEATURE_EXTERNAL_CONTEXT})
 message(STATUS "FEATURE_JS_PARSER           " ${FEATURE_JS_PARSER})
 message(STATUS "FEATURE_MEM_STATS           " ${FEATURE_MEM_STATS})
 message(STATUS "FEATURE_MEM_STRESS_TEST     " ${FEATURE_MEM_STRESS_TEST})
-message(STATUS "FEATURE_FUNCTION_NAME       " ${FEATURE_FUNCTIN_NAME})
+message(STATUS "FEATURE_FUNCTION_NAME       " ${FEATURE_FUNCTION_NAME})
 message(STATUS "FEATURE_PARSER_DUMP         " ${FEATURE_PARSER_DUMP} ${FEATURE_PARSER_DUMP_MESSAGE})
 message(STATUS "FEATURE_PROFILE             " ${FEATURE_PROFILE})
 message(STATUS "FEATURE_REGEXP_STRICT_MODE  " ${FEATURE_REGEXP_STRICT_MODE})
@@ -278,8 +281,7 @@ endif()
 # Size of heap
 math(EXPR MEM_HEAP_AREA_SIZE "${MEM_HEAP_SIZE_KB} * 1024")
 set(DEFINES_JERRY ${DEFINES_JERRY} CONFIG_MEM_HEAP_AREA_SIZE=${MEM_HEAP_AREA_SIZE})
-
-set(DEFINES_JERRY ${DEFINES_JERRY} JERRY_CPU_PROFILER)
+set(DEFINES_JERRY ${DEFINES_JERRY} JERRY_CPU_PROFILER=${FEATURE_CPU_PROFILER})
 
 add_library(${JERRY_CORE_NAME} STATIC ${SOURCE_CORE_FILES})
 

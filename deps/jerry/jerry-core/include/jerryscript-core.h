@@ -533,10 +533,9 @@ uint32_t *jerry_get_backtrace (void);
 void jerry_get_backtrace_depth (uint32_t *stack_frames, uint32_t depth);
 uint32_t jerry_get_backtrace_max_depth (void);
 
-#if 1 //def JERRY_CPU_PROFILER
-bool jerry_start_cpu_profiler (const char *path);
-void jerry_stop_cpu_profiler (void);
-#endif /* JERRY_CPU_PROFILER */
+bool jerry_enable_cpu_profiling (void);
+bool jerry_start_cpu_profiling (const char *path);
+bool jerry_stop_cpu_profiling (void);
 
 /**
  * @}

@@ -49,11 +49,6 @@ if(NOT DEFINED ENABLE_SNAPSHOT)
   set(ENABLE_SNAPSHOT ON)
 endif()
 
-if(NOT DEFINED JERRY_FUNCTION_NAME)
-  message("jerruy function name enabled")
-  set(JERRY_FUNCTION_NAME ON)
-endif()
-
 if(NOT DEFINED ENABLE_LTO)
   message("LTO force disabled")
   set(ENABLE_LTO OFF)

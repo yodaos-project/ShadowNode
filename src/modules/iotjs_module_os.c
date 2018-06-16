@@ -4,7 +4,6 @@
 #include <sys/param.h> // MAXHOSTNAMELEN on Linux and the BSDs.
 #include <sys/utsname.h>
 #include <unistd.h> // gethostname, sysconf
-#include "jerry-api.h"
 
 JS_FUNCTION(GetHostname) {
   char buf[MAXHOSTNAMELEN + 1];
@@ -131,16 +130,6 @@ JS_FUNCTION(GetOSRelease) {
   return jerry_create_string((const jerry_char_t*)rval);
 }
 
-JS_FUNCTION(StartCPUProfiling) {
-  jerry_start_cpu_profiler ("/data/alba/cpu.log");
-  return jerry_create_undefined ();
-}
-
-JS_FUNCTION(StopCPUProfiling) {
-  jerry_stop_cpu_profiler ();
-  return jerry_create_undefined ();
-}
-
 jerry_value_t InitOs() {
   jerry_value_t os = jerry_create_object();
   iotjs_jval_set_method(os, "getHostname", GetHostname);
@@ -149,8 +138,6 @@ jerry_value_t InitOs() {
   iotjs_jval_set_method(os, "getFreeMem", GetFreeMemory);
   iotjs_jval_set_method(os, "getInterfaceAddresses", GetInterfaceAddresses);
   iotjs_jval_set_method(os, "_getOSRelease", GetOSRelease);
-  iotjs_jval_set_method(os, "startCPUProfiling", StartCPUProfiling);
-  iotjs_jval_set_method(os, "stopCPUProfiling", StopCPUProfiling);
 
   return os;
 }

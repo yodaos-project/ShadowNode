@@ -172,11 +172,12 @@ def init_options():
     parser.add_argument('--jerry-memstat',
         action='store_true', default=False,
         help='Enable JerryScript heap statistics')
-
+    parser.add_argument('--jerry-cpu-profiler',
+        action='store_true', default=False,
+        help='Enable JerryScript CPU profiler')
     parser.add_argument('--jerry-function-name',
         action='store_true', default=False,
         help='Enable saving Javascript function name')
-
     parser.add_argument('--jerry-profile',
         choices=['es5.1', 'es2015-subset'], default='es5.1',
         help='Specify the profile for JerryScript: %(choices)s'
@@ -328,6 +329,8 @@ def build_iotjs(options):
         '-DINSTALL_PREFIX=%s' % options.install_prefix,
         # --jerry-memstat
         '-DFEATURE_MEM_STATS=%s' % get_on_off(options.jerry_memstat),
+        # --jerry-cpu-profiler
+        '-DFEATURE_CPU_PROFILER=%s' % get_on_off(options.jerry_cpu_profiler),
         # --jerry-funcname
         '-DFEATURE_FUNCTION_NAME=%s' % get_on_off(options.jerry_function_name),
         # --external-modules

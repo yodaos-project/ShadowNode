@@ -445,8 +445,6 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
   JERRY_ASSERT (ecma_op_is_callable (ecma_make_object_value (func_obj_p)));
 
 #ifdef JERRY_CPU_PROFILER
-  //JERRY_CONTEXT (cpu_profiling) = true;
-  //JERRY_CONTEXT (cpu_profiling_fp) = stdout;
   double time = jerry_port_get_current_time();
   ecma_string_t * name_p = NULL;
   FILE *fp = JERRY_CONTEXT (cpu_profiling_fp);
@@ -669,7 +667,7 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
     }
 
     lit_utf8_size_t sz = ecma_string_get_utf8_size (name_p);
-    lit_utf8_byte_t buffer_p[sz+1];
+    lit_utf8_byte_t buffer_p[sz + 1];
     ecma_string_to_utf8_bytes (name_p, buffer_p, sz);
     buffer_p[sz] = '\0';
     fprintf (fp, "CPU_PROFILER:%s:cost:%g\n",
