@@ -248,7 +248,8 @@ int iotjs_entry(int argc, char** argv) {
 
   // set parser dump file
   memset(JS_DUMP_PATHNAME, 0, sizeof(JS_DUMP_PATHNAME));
-  snprintf(JS_DUMP_PATHNAME, sizeof(JS_DUMP_PATHNAME), "/tmp/iotjs.%zu", (size_t)getpid());
+  snprintf(JS_DUMP_PATHNAME, sizeof(JS_DUMP_PATHNAME), "/tmp/iotjs.%zu",
+           (size_t)getpid());
   jerry_set_parser_dump_file(JS_DUMP_PATHNAME);
 
   // handle signal and exit events

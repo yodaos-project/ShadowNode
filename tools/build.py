@@ -415,7 +415,7 @@ def run_checktest(options):
     code = ex.run_cmd(iotjs, [path.CHECKTEST_PATH] + build_args)
     if code != 0:
         ex.fail('Failed to pass unit tests')
-    
+   
 
     if not options.no_check_valgrind:
         code = ex.run_cmd('valgrind', ['--leak-check=full',
