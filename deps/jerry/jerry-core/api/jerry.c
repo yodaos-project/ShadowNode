@@ -212,6 +212,8 @@ jerry_cleanup (void)
 
   jerry_cleanup_parser_dump_file ();
 
+  jerry_stop_cpu_profiling ();
+
   for (jerry_context_data_header_t *this_p = JERRY_CONTEXT (context_data_p), *next_p = NULL;
        this_p != NULL;
        this_p = next_p)
@@ -3470,6 +3472,7 @@ jerry_start_cpu_profiling (const char *path)
   jerry_assert_api_available ();
 
 #ifndef JERRY_CPU_PROFILER
+  JERRY_UNUSED (path);
   return false;
 #else
 
