@@ -7,7 +7,7 @@ JS_FUNCTION(StartProfiling) {
     return JS_CREATE_ERROR(COMMON, "filepath should be required.");
   iotjs_string_t filepath = JS_GET_ARG(0, string);
   bool res =
-      jerry_start_cpu_profiling ((const char*) iotjs_string_data (&filepath));
+      jerry_start_cpu_profiling((const char*)iotjs_string_data(&filepath));
   // iotjs_string_destroy(&filepath);
   return jerry_create_boolean(res);
 }
