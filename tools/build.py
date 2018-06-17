@@ -399,9 +399,17 @@ def run_checktest(options):
         build_args.append('experimental=' + 'yes');
 
     fs.chdir(path.PROJECT_ROOT)
+
+    # Crash tests
+    code = ex.run_cmd('tools/check_crash.sh', [iotjs])
+    if code != 0:
+        ex.fail('Failed to pass crash tests')
+
+    # run unit tests
     code = ex.run_cmd(iotjs, [path.CHECKTEST_PATH] + build_args)
     if code != 0:
         ex.fail('Failed to pass unit tests')
+
     if not options.no_check_valgrind:
         code = ex.run_cmd('valgrind', ['--leak-check=full',
                                        '--error-exitcode=5',
