@@ -16,11 +16,6 @@ cmake_minimum_required (VERSION 2.8.12)
 set(JERRY_CORE_NAME jerry-core)
 project (${JERRY_CORE_NAME} C)
 
-if(FEATURE_CPU_PROFILER)
-  message("CPU Profiler requires function name is enabled.")
-  set(FEATURE_FUNCTION_NAME ON)
-endif()
-
 # Optional features
 set(FEATURE_CPOINTER_32_BIT    ON       CACHE BOOL   "Enable 32 bit compressed pointers?")
 set(FEATURE_DEBUGGER           ON       CACHE BOOL   "Enable JerryScript debugger?")
