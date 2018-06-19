@@ -5,12 +5,11 @@ profiler.startProfiling();
 console.log('cpu profiling starts');
 
 function test() {}
-console.log('test name', test.name);
-test();
-
+for (var i = 0; i < 10; i++) {
+  test();
+}
 
 setTimeout(function foobar() {
-  console.log('foobar test');
   var profile = profiler.stopProfiling();
   console.log(profile);
 }, 1000);
