@@ -15,6 +15,10 @@
 
 #include "js-parser-internal.h"
 
+#ifdef JERRY_FUNCTION_NAME
+#include "ecma-literal-storage.h"
+#endif /* JERRY_FUNCTION_NAME */
+
 #ifndef JERRY_DISABLE_JS_PARSER
 
 #ifdef JERRY_DEBUGGER

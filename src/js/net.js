@@ -123,7 +123,7 @@ Socket.prototype.connect = function() {
   var host = options.host ? options.host : 'localhost';
   var port = Number(options.port);
   var dnsopts = {
-    family: options.family >>> 0,
+    family: (options.family || 4) >>> 0,
     hints: 0,
   };
 

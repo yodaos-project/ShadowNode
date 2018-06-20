@@ -340,6 +340,13 @@ ecma_save_literals_add_compiled_code (const ecma_compiled_code_t *compiled_code_
       ecma_save_literals_append_value (literal_p[i], lit_pool_p);
     }
   }
+
+#ifdef JERRY_FUNCTION_NAME
+  if (compiled_code_p->name != ECMA_VALUE_EMPTY)
+  {
+    ecma_save_literals_append_value (compiled_code_p->name, lit_pool_p);
+  }
+#endif /* JERRY_FUNCTION_NAME */
 } /* ecma_save_literals_add_compiled_code */
 
 /**
