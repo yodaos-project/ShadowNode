@@ -39,7 +39,11 @@ function TLSHandle(options) {
       return self.onread(self.tlsWrap.jsref, nread, self._EOF === true, buffer);
     }
   };
-  this.tlsWrap.onclose = function onclose() {};
+  this.tcpHandle.onclose = this.tlsWrap.onclose = function onclose() {
+    if (self.onclose) {
+      self.onclose();
+    }
+  };
 
   Object.defineProperty(this, 'owner', {
     get: function get() {
