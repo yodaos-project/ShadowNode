@@ -18,7 +18,7 @@ const chartData = [];
 for (let name in list) {
   const item = list[name];
   const value = {
-    name,
+    name: name.replace(/LIT_MAGIC_STRING_/i, ''),
     avg: item.time / item.count,
     total: item.time,
     count: item.count,
