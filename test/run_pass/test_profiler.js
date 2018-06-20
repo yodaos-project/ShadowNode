@@ -4,7 +4,11 @@ var profiler = require('profiler');
 profiler.startProfiling();
 console.log('cpu profiling starts');
 
-function test() {}
+function test() {
+  Array.isArray([]);
+  Array.isArray([]);
+  Object.keys({});
+}
 for (var i = 0; i < 10; i++) {
   test();
 }

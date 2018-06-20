@@ -1,4 +1,3 @@
-'use strict';
 
 const list = data.reduce(function(result, item) {
   const name = item.name;
@@ -18,24 +17,38 @@ const list = data.reduce(function(result, item) {
 const chartData = [];
 for (let name in list) {
   const item = list[name];
-  chartData.push({
+  const value = {
     name,
     avg: item.time / item.count,
     total: item.time,
     count: item.count,
-  });
+  };
+  value.total.__foobar__ = 'foobar';
+
+  chartData.push(value);
 }
 
-console.log(chartData);
 var chart = new G2.Chart({
   container: 'mountNode',
-  // forceFit: true,
-  height: window.innerHeight - 200,
-  width: window.innerWidth - 200,
+  forceFit: true,
 });
 chart.source(chartData);
-chart.interval().position('name*total').color('name', G2.Global.colors_pie_16).style({
-  lineWidth: 1,
-  stroke: '#fff'
+chart.coord().transpose().scale(1, -1);
+chart.legend('name', {
+  itemWidth: 300,
 });
+chart.axis('name', false);
+chart.tooltip(true, {
+  itemTpl: [
+    '<ul class="g2-tooltip-list-item">',
+      '<li>total: {value}</li>',
+    '</ul>',
+  ].join('\n'),
+});
+chart.intervalStack().position('name*total')
+  .color('name', G2.Global.colors_pie_16)
+  .style({
+    lineWidth: 1,
+    stroke: '#fff'
+  });
 chart.render();

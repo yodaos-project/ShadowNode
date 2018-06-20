@@ -446,8 +446,21 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
 
 #ifdef JERRY_CPU_PROFILER
   double time = jerry_port_get_current_time();
-  ecma_string_t * name_p = NULL;
+  ecma_string_t *name_p = NULL;
+  lit_utf8_byte_t buffer_p[64];
+  bool buffer_set = false;
+
   FILE *fp = JERRY_CONTEXT (cpu_profiling_fp);
+  memset (buffer_p, 0, sizeof (buffer_p));
+
+#define set_profiler_buffer(name) do {\
+    buffer_set = true; \
+    memcpy (buffer_p, name, sizeof (name)); \
+  } while (0)
+
+#define get_routine_name(routine_id, name) \
+  ECMA_ROUTINE_LIT_MAGIC_STRING_ ## name ## routine_id
+
 #endif /* JERRY_CPU_PROFILER */
 
   ecma_value_t ret_value = ECMA_VALUE_EMPTY;
@@ -456,6 +469,96 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
   {
     if (unlikely (ecma_get_object_is_builtin (func_obj_p)))
     {
+
+#if defined(JERRY_CPU_PROFILER)
+      ecma_extended_object_t *ext_func_p = (ecma_extended_object_t *) func_obj_p;
+      if (ecma_builtin_function_is_routine (func_obj_p))
+      {
+        if (ext_func_p->u.built_in.id == ECMA_BUILTIN_ID_ARRAY) {
+          switch (ext_func_p->u.built_in.routine_id) {
+#define ROUTINE(name, c_function_name, args_number, length_prop_value) \
+            case ECMA_ROUTINE_ ## name ## c_function_name: \
+              set_profiler_buffer ("@Array." # name); break;
+#include "../builtin-objects/ecma-builtin-array.inc.h"
+#undef ROUTINE
+          }
+        } else if (ext_func_p->u.built_in.id == ECMA_BUILTIN_ID_ARRAY_PROTOTYPE) {
+          switch (ext_func_p->u.built_in.routine_id) {
+#define ROUTINE(name, c_function_name, args_number, length_prop_value) \
+            case ECMA_ROUTINE_ ## name ## c_function_name: \
+              set_profiler_buffer ("@Array.prototype." # name); break;
+#include "../builtin-objects/ecma-builtin-array-prototype.inc.h"
+#undef ROUTINE
+          }
+        } else if (ext_func_p->u.built_in.id == ECMA_BUILTIN_ID_OBJECT) {
+          switch (ext_func_p->u.built_in.routine_id) {
+#define ROUTINE(name, c_function_name, args_number, length_prop_value) \
+            case ECMA_ROUTINE_ ## name ## c_function_name: \
+              set_profiler_buffer ("@Object." # name); break;
+#include "../builtin-objects/ecma-builtin-object.inc.h"
+#undef ROUTINE
+          }
+        } else if (ext_func_p->u.built_in.id == ECMA_BUILTIN_ID_OBJECT_PROTOTYPE) {
+          switch (ext_func_p->u.built_in.routine_id) {
+#define ROUTINE(name, c_function_name, args_number, length_prop_value) \
+            case ECMA_ROUTINE_ ## name ## c_function_name: \
+              set_profiler_buffer ("@Object.prototype." # name); break;
+#include "../builtin-objects/ecma-builtin-object-prototype.inc.h"
+#undef ROUTINE
+          }
+        } else if (ext_func_p->u.built_in.id == ECMA_BUILTIN_ID_BOOLEAN) {
+          switch (ext_func_p->u.built_in.routine_id) {
+#define ROUTINE(name, c_function_name, args_number, length_prop_value) \
+            case ECMA_ROUTINE_ ## name ## c_function_name: \
+              set_profiler_buffer ("@Boolean." # name); break;
+#include "../builtin-objects/ecma-builtin-boolean.inc.h"
+#undef ROUTINE
+          }
+        } else if (ext_func_p->u.built_in.id == ECMA_BUILTIN_ID_FUNCTION) {
+          switch (ext_func_p->u.built_in.routine_id) {
+#define ROUTINE(name, c_function_name, args_number, length_prop_value) \
+            case ECMA_ROUTINE_ ## name ## c_function_name: \
+              set_profiler_buffer ("@Function." # name); break;
+#include "../builtin-objects/ecma-builtin-function.inc.h"
+#undef ROUTINE
+          }
+        } else if (ext_func_p->u.built_in.id == ECMA_BUILTIN_ID_FUNCTION_PROTOTYPE) {
+          switch (ext_func_p->u.built_in.routine_id) {
+#define ROUTINE(name, c_function_name, args_number, length_prop_value) \
+            case ECMA_ROUTINE_ ## name ## c_function_name: \
+              set_profiler_buffer ("@Function.prototype." # name); break;
+#include "../builtin-objects/ecma-builtin-function-prototype.inc.h"
+#undef ROUTINE
+          }
+        } else if (ext_func_p->u.built_in.id == ECMA_BUILTIN_ID_DATE) {
+          switch (ext_func_p->u.built_in.routine_id) {
+#define ROUTINE(name, c_function_name, args_number, length_prop_value) \
+            case ECMA_ROUTINE_ ## name ## c_function_name: \
+              set_profiler_buffer ("@Date." # name); break;
+#include "../builtin-objects/ecma-builtin-date.inc.h"
+#undef ROUTINE
+          }
+        } else if (ext_func_p->u.built_in.id == ECMA_BUILTIN_ID_ERROR) {
+          switch (ext_func_p->u.built_in.routine_id) {
+#define ROUTINE(name, c_function_name, args_number, length_prop_value) \
+            case c_function_name: \
+              set_profiler_buffer ("@Error." # name); break;
+#include "../builtin-objects/ecma-builtin-error.inc.h"
+#undef ROUTINE
+          }
+        } else if (ext_func_p->u.built_in.id == ECMA_BUILTIN_ID_ERROR_PROTOTYPE) {
+          switch (ext_func_p->u.built_in.routine_id) {
+#define ROUTINE(name, c_function_name, args_number, length_prop_value) \
+            case ## c_function_name: \
+              set_profiler_buffer ("@Error.prototype." # name); break;
+#include "../builtin-objects/ecma-builtin-error-prototype.inc.h"
+#undef ROUTINE
+          }
+        } else {
+          set_profiler_buffer ("@BuiltinFunction");
+        }
+      }
+#endif /* JERRY_CPU_PROFILER */
       ret_value = ecma_builtin_dispatch_call (func_obj_p,
                                               this_arg_value,
                                               arguments_list_p,
@@ -480,6 +583,8 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
       if (bytecode_data_p->name != ECMA_VALUE_EMPTY)
       {
         name_p = ecma_get_string_from_value (bytecode_data_p->name);
+      } else {
+        set_profiler_buffer ("@anonymous");
       }
 #endif /* JERRY_CPU_PROFILER */
 
@@ -544,6 +649,10 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
   {
     /* Entering Function Code (ES2015, 9.2.1) */
     ecma_arrow_function_t *arrow_func_p = (ecma_arrow_function_t *) func_obj_p;
+#if defined(JERRY_CPU_PROFILER)
+      set_profiler_buffer ("@ArrowFunction");
+#endif /* JERRY_CPU_PROFILER */
+
 
     ecma_object_t *scope_p = ECMA_GET_NON_NULL_POINTER (ecma_object_t,
                                                         arrow_func_p->scope_cp);
@@ -582,6 +691,9 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
   else if (ecma_get_object_type (func_obj_p) == ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION)
   {
     ecma_extended_object_t *ext_func_obj_p = (ecma_extended_object_t *) func_obj_p;
+#if defined(JERRY_CPU_PROFILER)
+      set_profiler_buffer ("@ExternalFunction");
+#endif /* JERRY_CPU_PROFILER */
 
     ret_value = ext_func_obj_p->u.external_handler_cb (ecma_make_object_value (func_obj_p),
                                                        this_arg_value,
@@ -622,6 +734,10 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
       args_length = (ecma_length_t) ecma_get_integer_from_value (args_len_or_this);
     }
 
+#if defined(JERRY_CPU_PROFILER)
+    set_profiler_buffer ("@BondFunction");
+#endif /* JERRY_CPU_PROFILER */
+
     JERRY_ASSERT (args_length > 0);
 
     if (args_length > 1)
@@ -660,19 +776,21 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
   if (JERRY_CONTEXT (cpu_profiling) && fp)
   {
     time = jerry_port_get_current_time () - time;
-    if (name_p == NULL)
+    if (!buffer_set)
     {
-      lit_magic_string_id_t id = ecma_object_get_class_name (func_obj_p);
-      name_p = ecma_get_magic_string (id);
-    }
-    if (name_p != NULL)
-    {
+      if (name_p == NULL)
+      {
+        lit_magic_string_id_t id = ecma_object_get_class_name (func_obj_p);
+        name_p = ecma_get_magic_string (id);
+      }
+
       lit_utf8_size_t sz = ecma_string_get_utf8_size (name_p);
-      lit_utf8_byte_t buffer_p[sz + 1];
-      ecma_string_to_utf8_bytes (name_p, buffer_p, sz);
+      lit_utf8_byte_t jbuffer_p[sz + 1];
+      ecma_string_to_utf8_bytes (name_p, jbuffer_p, sz);
       buffer_p[sz] = '\0';
-      fprintf (fp, "\"name\":\"%s\",\"cost\":%g\n", buffer_p, time);
+      memcpy (buffer_p, jbuffer_p, sz);
     }
+    fprintf (fp, "\"name\":\"%s\",\"cost\":%g\n", buffer_p, time);
   }
 #endif /* JERRY_CPU_PROFILER */
 
