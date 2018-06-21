@@ -295,7 +295,7 @@ JS_FUNCTION(TlsHandshake) {
     iotjs_make_callback(fn, jthis, iotjs_jargs_get_empty());
     jerry_release_value(fn);
   }
-  return jerry_create_number(rv);
+  return jerry_create_number(_this->handshake_state);
 }
 
 JS_FUNCTION(TlsWrite) {
