@@ -66,6 +66,7 @@
     { "name": "test_net_9.js" },
     { "name": "test_net_10.js" },
     { "name": "test_net_connect.js" },
+    { "name": "test_net_end.js" },
     { "name": "test_net_headers.js" },
     { "name": "test_net_http_get.js" },
     { "name": "test_net_http_response_twice.js" },
