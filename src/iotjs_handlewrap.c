@@ -132,8 +132,14 @@ void iotjs_handlewrap_validate(iotjs_handlewrap_t* handlewrap) {
 
 
 bool iotjs_handlewrap_validate_with_result(iotjs_handlewrap_t* handlewrap) {
+#ifdef NDEBUG
+  if (&handlewrap->unsafe == NULL) {
+    return false;
+  }
+#else
   if (handlewrap->flag_create != IOTJS_VALID_MAGIC_SEQUENCE) {
     return false;
   }
+#endif
   return true;
 }
