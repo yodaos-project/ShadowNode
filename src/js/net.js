@@ -518,7 +518,9 @@ function onSocketFinish() {
   var self = this;
   var state = self._socketState;
 
-  if (!state.readable || self._readableState.ended || !self._handle) {
+  if (!state.readable || self._readableState.ended 
+    || !self._handle
+    || typeof self._handle.shutdown !== 'function') {
     // no readable stream or ended, destroy(close) socket.
     return self.destroy();
   } else {
