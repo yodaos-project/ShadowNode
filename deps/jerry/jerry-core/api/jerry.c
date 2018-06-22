@@ -212,6 +212,8 @@ jerry_cleanup (void)
 
   jerry_cleanup_parser_dump_file ();
 
+  jerry_stop_cpu_profiling ();
+
   for (jerry_context_data_header_t *this_p = JERRY_CONTEXT (context_data_p), *next_p = NULL;
        this_p != NULL;
        this_p = next_p)
@@ -3450,6 +3452,69 @@ jerry_get_backtrace_max_depth (void)
 {
   jerry_assert_api_available ();
   return 10;
+}
+
+bool
+jerry_enable_cpu_profiling (void)
+{
+  jerry_assert_api_available ();
+
+#ifndef JERRY_CPU_PROFILER
+  return false;
+#else
+  return true;
+#endif
+}
+
+bool
+jerry_start_cpu_profiling (const char *path)
+{
+  jerry_assert_api_available ();
+
+#ifndef JERRY_CPU_PROFILER
+  JERRY_UNUSED (path);
+  return false;
+#else
+
+  if (JERRY_CONTEXT (cpu_profiling))
+  {
+    return false;
+  }
+
+  FILE *fp = fopen (path, "w");
+  if (fp == NULL)
+  {
+    return false;
+  }
+
+  JERRY_CONTEXT (cpu_profiling) = true;
+  JERRY_CONTEXT (cpu_profiling_fp) = fp;
+  return true;
+#endif
+}
+
+bool
+jerry_stop_cpu_profiling (void)
+{
+  jerry_assert_api_available ();
+
+#ifndef JERRY_CPU_PROFILER
+  return false;
+#else
+
+  if (!JERRY_CONTEXT (cpu_profiling))
+  {
+    return false;
+  }
+
+  if (JERRY_CONTEXT (cpu_profiling_fp))
+  {
+    fclose (JERRY_CONTEXT (cpu_profiling_fp));
+  }
+
+  JERRY_CONTEXT (cpu_profiling) = false;
+  return true;
+#endif
 }
 
 /**

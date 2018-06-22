@@ -49,3 +49,6 @@ TAGS
 
 # vs sutdio
 .vscode/
+
+Profile-*
+profiler.html
