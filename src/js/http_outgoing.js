@@ -163,7 +163,7 @@ OutgoingMessage.prototype.setHeader = function(name, value) {
     throw new TypeError('Name must be string.');
   }
 
-  if (!value && value !== '') {
+  if (util.isNullOrUndefined(value)) {
     throw new Error('value required in setHeader(' + name + ', value)');
   }
 
