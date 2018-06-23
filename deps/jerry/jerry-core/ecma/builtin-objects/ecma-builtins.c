@@ -125,6 +125,32 @@ static const ecma_builtin_property_list_reference_t ecma_builtin_property_list_r
 #undef BUILTIN
 };
 
+#ifdef JERRY_FUNCTION_NAME
+static const lit_magic_string_id_t *ecma_builtin_routine_magic_string[] =
+{
+#define BUILTIN(a, b, c, d, e)
+#define BUILTIN_ROUTINE(builtin_id, \
+                        object_type, \
+                        object_prototype_builtin_id, \
+                        is_extensible, \
+                        lowercase_name) \
+  ecma_builtin_ ## lowercase_name ## _name_magic_id,
+#include "ecma-builtins.inc.h"
+#undef BUILTIN
+#undef BUILTIN_ROUTINE
+#define BUILTIN_ROUTINE(a, b, c, d, e)
+#define BUILTIN(builtin_id, \
+                object_type, \
+                object_prototype_builtin_id, \
+                is_extensible, \
+                lowercase_name) \
+  ecma_builtin_ ## lowercase_name ## _name_magic_id,
+#include "ecma-builtins.inc.h"
+#undef BUILTIN_ROUTINE
+#undef BUILTIN
+};
+#endif /* JERRY_FUNCTION_NAME */
+
 /**
  * Get the number of properties of a built-in object.
  *
@@ -938,6 +964,19 @@ ecma_builtin_dispatch_construct (ecma_object_t *obj_p, /**< built-in object */
   JERRY_ASSERT (builtin_object_id < sizeof (ecma_builtin_construct_functions) / sizeof (ecma_builtin_dispatch_call_t));
   return ecma_builtin_construct_functions[builtin_object_id] (arguments_list_p, arguments_list_len);
 } /* ecma_builtin_dispatch_construct */
+
+#ifdef JERRY_FUNCTION_NAME
+/**
+ * get magic string id of builtin routine name
+ * @return lit_magic_string_id_t
+ */ 
+lit_magic_string_id_t
+ecma_builtin_routine_get_name (ecma_builtin_id_t id, /**< builtin id */
+                               ecma_builtin_id_t routine_id) /**< builtin routine id */
+{
+  return ecma_builtin_routine_magic_string[id][routine_id - ECMA_BUILTIN_ID__COUNT];
+}
+#endif /* JERRY_FUNCTION_NAME */
 
 /**
  * @}

@@ -39,6 +39,10 @@ STRING_VALUE (LIT_MAGIC_STRING_MESSAGE,
               LIT_MAGIC_STRING__EMPTY,
               ECMA_PROPERTY_CONFIGURABLE_WRITABLE)
 
+#ifdef JERRY_FUNCTION_NAME
+DUMMY_ROUTINE
+#endif /* JERRY_FUNCTION_NAME */
+
 #endif /* !CONFIG_DISABLE_ERROR_BUILTINS */
 
 #include "ecma-builtin-helpers-macro-undefs.inc.h"

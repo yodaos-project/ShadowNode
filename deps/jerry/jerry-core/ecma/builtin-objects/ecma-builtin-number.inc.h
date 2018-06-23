@@ -62,6 +62,10 @@ OBJECT_VALUE (LIT_MAGIC_STRING_PROTOTYPE,
               ECMA_BUILTIN_ID_NUMBER_PROTOTYPE,
               ECMA_PROPERTY_FIXED)
 
+#ifdef JERRY_FUNCTION_NAME
+DUMMY_ROUTINE
+#endif /* JERRY_FUNCTION_NAME */
+
 #endif /* !CONFIG_DISABLE_NUMBER_BUILTIN */
 
 #include "ecma-builtin-helpers-macro-undefs.inc.h"

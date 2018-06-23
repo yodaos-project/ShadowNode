@@ -99,4 +99,7 @@ ecma_builtin_get (ecma_builtin_id_t builtin_id);
 bool
 ecma_builtin_function_is_routine (ecma_object_t *func_obj_p);
 
+lit_magic_string_id_t
+ecma_builtin_routine_get_name (ecma_builtin_id_t id,
+                               ecma_builtin_id_t routine_id);
 #endif /* !ECMA_BUILTINS_H */

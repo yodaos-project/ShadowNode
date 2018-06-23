@@ -31,6 +31,10 @@ NUMBER_VALUE (LIT_MAGIC_STRING_BYTES_PER_ELEMENT_U,
               1,
               ECMA_PROPERTY_FIXED)
 
+#ifdef JERRY_FUNCTION_NAME
+DUMMY_ROUTINE
+#endif /* JERRY_FUNCTION_NAME */
+
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
 
 #include "ecma-builtin-helpers-macro-undefs.inc.h"

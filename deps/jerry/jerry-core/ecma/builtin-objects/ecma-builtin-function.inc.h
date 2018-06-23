@@ -35,4 +35,8 @@ NUMBER_VALUE (LIT_MAGIC_STRING_LENGTH,
               1,
               ECMA_PROPERTY_FIXED)
 
+#ifdef JERRY_FUNCTION_NAME
+DUMMY_ROUTINE
+#endif /* JERRY_FUNCTION_NAME */
+
 #include "ecma-builtin-helpers-macro-undefs.inc.h"

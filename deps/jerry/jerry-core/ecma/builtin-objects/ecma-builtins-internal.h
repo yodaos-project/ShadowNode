@@ -69,6 +69,42 @@ typedef struct
   uint16_t value; /**< value of the property */
 } ecma_builtin_property_descriptor_t;
 
+#ifdef JERRY_FUNCTION_NAME
+#define BUILTIN_ROUTINE(builtin_id, \
+                        object_type, \
+                        object_prototype_builtin_id, \
+                        is_extensible, \
+                        lowercase_name) \
+extern const lit_magic_string_id_t \
+ecma_builtin_ ## lowercase_name ## _name_magic_id[]; \
+extern const ecma_builtin_property_descriptor_t \
+ecma_builtin_ ## lowercase_name ## _property_descriptor_list[]; \
+ecma_value_t \
+ecma_builtin_ ## lowercase_name ## _dispatch_call (const ecma_value_t *, \
+                                                   ecma_length_t); \
+ecma_value_t \
+ecma_builtin_ ## lowercase_name ## _dispatch_construct (const ecma_value_t *, \
+                                                        ecma_length_t); \
+ecma_value_t \
+ecma_builtin_ ## lowercase_name ## _dispatch_routine (uint16_t builtin_routine_id, \
+                                                      ecma_value_t this_arg_value, \
+                                                      const ecma_value_t [], \
+                                                      ecma_length_t);
+#define BUILTIN(builtin_id, \
+                object_type, \
+                object_prototype_builtin_id, \
+                is_extensible, \
+                lowercase_name) \
+extern const lit_magic_string_id_t \
+ecma_builtin_ ## lowercase_name ## _name_magic_id[]; \
+extern const ecma_builtin_property_descriptor_t \
+ecma_builtin_ ## lowercase_name ## _property_descriptor_list[]; \
+ecma_value_t \
+ecma_builtin_ ## lowercase_name ## _dispatch_routine (uint16_t builtin_routine_id, \
+                                                      ecma_value_t this_arg_value, \
+                                                      const ecma_value_t [], \
+                                                      ecma_length_t);
+#else /* !JERRY_FUNCTION_NAME */
 #define BUILTIN_ROUTINE(builtin_id, \
                         object_type, \
                         object_prototype_builtin_id, \
@@ -99,6 +135,7 @@ ecma_builtin_ ## lowercase_name ## _dispatch_routine (uint16_t builtin_routine_i
                                                       ecma_value_t this_arg_value, \
                                                       const ecma_value_t [], \
                                                       ecma_length_t);
+#endif /* JERRY_FUNCTION_NAME */
 #include "ecma-builtins.inc.h"
 
 #undef BUILTIN_ROUTINE
