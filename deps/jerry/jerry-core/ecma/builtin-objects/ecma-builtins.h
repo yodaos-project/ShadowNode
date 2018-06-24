@@ -23,22 +23,24 @@
  */
 typedef enum
 {
-#define BUILTIN(a, b, c, d, e)
+#define BUILTIN(a, b, c, d, e, f)
 #define BUILTIN_ROUTINE(builtin_id, \
                         object_type, \
                         object_prototype_builtin_id, \
                         is_extensible, \
-                        lowercase_name) \
+                        lowercase_name, \
+                        name_magic_id) \
   builtin_id,
 #include "ecma-builtins.inc.h"
 #undef BUILTIN
 #undef BUILTIN_ROUTINE
-#define BUILTIN_ROUTINE(a, b, c, d, e)
+#define BUILTIN_ROUTINE(a, b, c, d, e ,f)
 #define BUILTIN(builtin_id, \
                 object_type, \
                 object_prototype_builtin_id, \
                 is_extensible, \
-                lowercase_name) \
+                lowercase_name, \
+                name_magic_id) \
   builtin_id,
 #include "ecma-builtins.inc.h"
 #undef BUILTIN
@@ -99,7 +101,12 @@ ecma_builtin_get (ecma_builtin_id_t builtin_id);
 bool
 ecma_builtin_function_is_routine (ecma_object_t *func_obj_p);
 
+#ifdef JERRY_FUNCTION_NAME
 lit_magic_string_id_t
 ecma_builtin_routine_get_name (ecma_builtin_id_t id,
                                ecma_builtin_id_t routine_id);
+lit_magic_string_id_t
+ecma_builtin_get_name (ecma_builtin_id_t id);
+#endif /* JERRY_FUNCTION_NAME */
+
 #endif /* !ECMA_BUILTINS_H */

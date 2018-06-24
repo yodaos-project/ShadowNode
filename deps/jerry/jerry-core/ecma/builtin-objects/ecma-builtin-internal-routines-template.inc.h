@@ -29,7 +29,7 @@
 
 #ifdef JERRY_FUNCTION_NAME
 #define ROUTINE_NAME_MAGIC_ID \
-  PASTE (PASTE (ecma_builtin_, BUILTIN_UNDERSCORED_ID), _name_magic_id)
+  PASTE (PASTE (ecma_builtin_, BUILTIN_UNDERSCORED_ID), _name_magic_ids)
 #endif /* JERRY_FUNCTION_NAME */
 #define PROPERTY_DESCRIPTOR_LIST_NAME \
   PASTE (PASTE (ecma_builtin_, BUILTIN_UNDERSCORED_ID), _property_descriptor_list)
