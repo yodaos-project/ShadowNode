@@ -84,8 +84,12 @@ const lit_magic_string_id_t ROUTINE_NAME_MAGIC_ID[] =
 {
 #define ROUTINE(name, c_function_name, args_number, length_prop_value) \
   name,
+#ifdef JERRY_FUNCTION_NAME
 #define DUMMY_ROUTINE \
   LIT_MAGIC_STRING__EMPTY,
+#else
+#define DUMMY_ROUTINE
+#endif
 #include BUILTIN_INC_HEADER_NAME
 #undef DUMMY_ROUTINE
 };
