@@ -101,7 +101,13 @@ TLSHandle.prototype.close = function close() {
   this.tlsWrap.end();
 };
 
-TLSHandle.prototype.readStart = function readStart() {};
+TLSHandle.prototype.readStart = function readStart() {
+  /**
+   * Underlying TcpHandle#readStart is called in TLSHandle#connect
+   * since the handshake has been automatically initiated by TLSHandle
+   * TLSHandle#readStart has nothing to do than a dummy function
+   */
+};
 
 TLSHandle.prototype.write = function write(data, callback) {
   if (!Buffer.isBuffer(data))

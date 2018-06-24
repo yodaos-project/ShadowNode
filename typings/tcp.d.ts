@@ -11,7 +11,7 @@ declare module "tcp" {
     getpeername?: (inout: object) => number
     getsockname?: (inout: object) => number
 
-    owner?: Socket
+    private owner?: Socket
     onclose?: () => void
     onread?: (socket: Socket, nread: number, isEOF: boolean, buffer: Buffer) => void
 

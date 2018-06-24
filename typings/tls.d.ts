@@ -1,5 +1,6 @@
+import { TLSSocket } from "tls";
+
 declare namespace tlsInternal {
-  import { TLSSocket } from "tls";
 
   interface TlsWrapOptions {
     ca?: string
@@ -8,7 +9,7 @@ declare namespace tlsInternal {
   }
 
   class TlsWrap {
-    jsref?: TLSSocket
+    private jsref?: TLSSocket
     onread?: void
     onwrite?: void
     onclose?: void
