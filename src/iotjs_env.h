@@ -31,13 +31,17 @@ typedef struct {
   DebuggerConfig* debugger;
 } Config;
 
+typedef struct {
+  iotjs_handlewrap_t** handles;
+  uint32_t size;
+} HandleQueue;
+
 typedef enum {
   kInitializing,
   kRunningMain,
   kRunningLoop,
   kExiting,
 } State;
-
 
 typedef struct {
   // Number of application arguments including 'iotjs' and app name.
@@ -54,6 +58,10 @@ typedef struct {
 
   // Run config
   Config config;
+
+  // handles
+  HandleQueue handle_queue;
+
 } IOTJS_VALIDATED_STRUCT(iotjs_environment_t);
 
 
