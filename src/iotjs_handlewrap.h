@@ -17,10 +17,10 @@
 #define IOTJS_HANDLEWRAP_H
 
 
-#include <uv.h>
-#include "iotjs_list.h"
 #include "iotjs_binding.h"
+#include "iotjs_list.h"
 #include "iotjs_objectwrap.h"
+#include <uv.h>
 
 
 typedef void (*OnCloseHandler)(uv_handle_t*);

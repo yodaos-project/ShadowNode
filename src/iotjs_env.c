@@ -87,7 +87,7 @@ static void iotjs_environment_destroy(iotjs_environment_t* env) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_environment_t, env);
   if (_this->handlewrap_queue != NULL)
     list_destroy(_this->handlewrap_queue);
-  
+
   if (_this->argv) {
     // release command line argument strings.
     // _argv[0] and _argv[1] refer addresses in static memory space.

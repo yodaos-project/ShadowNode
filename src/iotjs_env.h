@@ -16,8 +16,8 @@
 #ifndef IOTJS_ENV_H
 #define IOTJS_ENV_H
 
-#include "uv.h"
 #include "iotjs_list.h"
+#include "uv.h"
 
 typedef struct {
   bool wait_source;

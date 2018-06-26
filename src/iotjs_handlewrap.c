@@ -14,8 +14,8 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_env.h"
 #include "iotjs_handlewrap.h"
+#include "iotjs_env.h"
 
 
 void iotjs_handlewrap_initialize(iotjs_handlewrap_t* handlewrap,

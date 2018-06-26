@@ -5,13 +5,13 @@
 //
 
 #include "iotjs_def.h"
-#include "iotjs_util.h"
 #include "iotjs_list.h"
+#include "iotjs_util.h"
 
 /*
  * Allocate a new list_t. NULL on failure.
  */
-list_t* list_new() {
+list_t *list_new() {
   list_t *self;
   if (!(self = IOTJS_ALLOC(list_t)))
     return NULL;
@@ -26,7 +26,7 @@ list_t* list_new() {
 /*
  * Allocates a new list_node_t. NULL on failure.
  */
-list_node_t* list_node_new(void *val) {
+list_node_t *list_node_new(void *val) {
   list_node_t *self;
   if (!(self = IOTJS_ALLOC(list_node_t)))
     return NULL;
@@ -46,7 +46,8 @@ void list_destroy(list_t *self) {
 
   while (len--) {
     next = curr->next;
-    if (self->free) self->free(curr->val);
+    if (self->free)
+      self->free(curr->val);
     IOTJS_RELEASE(curr);
     curr = next;
   }
@@ -58,8 +59,9 @@ void list_destroy(list_t *self) {
  * Append the given node to the list
  * and return the node, NULL on failure.
  */
-list_node_t* list_rpush(list_t *self, list_node_t *node) {
-  if (!node) return NULL;
+list_node_t *list_rpush(list_t *self, list_node_t *node) {
+  if (!node)
+    return NULL;
 
   if (self->len) {
     node->prev = self->tail;
@@ -78,8 +80,9 @@ list_node_t* list_rpush(list_t *self, list_node_t *node) {
 /*
  * Return / detach the last node in the list, or NULL.
  */
-list_node_t* list_rpop(list_t *self) {
-  if (!self->len) return NULL;
+list_node_t *list_rpop(list_t *self) {
+  if (!self->len)
+    return NULL;
 
   list_node_t *node = self->tail;
 
@@ -96,8 +99,9 @@ list_node_t* list_rpop(list_t *self) {
 /*
  * Return / detach the first node in the list, or NULL.
  */
-list_node_t* list_lpop(list_t *self) {
-  if (!self->len) return NULL;
+list_node_t *list_lpop(list_t *self) {
+  if (!self->len)
+    return NULL;
 
   list_node_t *node = self->head;
 
@@ -115,8 +119,9 @@ list_node_t* list_lpop(list_t *self) {
  * Prepend the given node to the list
  * and return the node, NULL on failure.
  */
-list_node_t* list_lpush(list_t *self, list_node_t *node) {
-  if (!node) return NULL;
+list_node_t *list_lpush(list_t *self, list_node_t *node) {
+  if (!node)
+    return NULL;
 
   if (self->len) {
     node->next = self->head;
@@ -135,7 +140,7 @@ list_node_t* list_lpush(list_t *self, list_node_t *node) {
 /*
  * Return the node associated to val or NULL.
  */
-list_node_t* list_find(list_t *self, void *val) {
+list_node_t *list_find(list_t *self, void *val) {
   list_iterator_t *it = list_iterator_new(self, LIST_HEAD);
   list_node_t *node;
 
@@ -160,7 +165,7 @@ list_node_t* list_find(list_t *self, void *val) {
 /*
  * Return the node at the given index or NULL.
  */
-list_node_t* list_at(list_t *self, int index) {
+list_node_t *list_at(list_t *self, int index) {
   list_direction_t direction = LIST_HEAD;
 
   if (index < 0) {
@@ -171,7 +176,8 @@ list_node_t* list_at(list_t *self, int index) {
   if ((unsigned)index < self->len) {
     list_iterator_t *it = list_iterator_new(self, direction);
     list_node_t *node = list_iterator_next(it);
-    while (index--) node = list_iterator_next(it);
+    while (index--)
+      node = list_iterator_next(it);
     list_iterator_destroy(it);
     return node;
   }
@@ -183,15 +189,12 @@ list_node_t* list_at(list_t *self, int index) {
  * Remove the given node from the list, freeing it and it's value.
  */
 void list_remove(list_t *self, list_node_t *node) {
-  node->prev
-    ? (node->prev->next = node->next)
-    : (self->head = node->next);
+  node->prev ? (node->prev->next = node->next) : (self->head = node->next);
 
-  node->next
-    ? (node->next->prev = node->prev)
-    : (self->tail = node->prev);
+  node->next ? (node->next->prev = node->prev) : (self->tail = node->prev);
 
-  if (self->free) self->free(node->val);
+  if (self->free)
+    self->free(node->val);
 
   IOTJS_RELEASE(node);
   --self->len;
@@ -201,10 +204,8 @@ void list_remove(list_t *self, list_node_t *node) {
  * Allocate a new list_iterator_t. NULL on failure.
  * Accepts a direction, which may be LIST_HEAD or LIST_TAIL.
  */
-list_iterator_t* list_iterator_new(list_t *list, list_direction_t direction) {
-  list_node_t *node = direction == LIST_HEAD
-    ? list->head
-    : list->tail;
+list_iterator_t *list_iterator_new(list_t *list, list_direction_t direction) {
+  list_node_t *node = direction == LIST_HEAD ? list->head : list->tail;
   return list_iterator_new_from_node(node, direction);
 }
 
@@ -212,7 +213,7 @@ list_iterator_t* list_iterator_new(list_t *list, list_direction_t direction) {
  * Allocate a new list_iterator_t with the given start
  * node. NULL on failure.
  */
-list_iterator_t* list_iterator_new_from_node(list_node_t *node, 
+list_iterator_t *list_iterator_new_from_node(list_node_t *node,
                                              list_direction_t direction) {
   list_iterator_t *self;
   if (!(self = IOTJS_ALLOC(list_iterator_t)))
@@ -226,12 +227,10 @@ list_iterator_t* list_iterator_new_from_node(list_node_t *node,
  * Return the next list_node_t or NULL when no more
  * nodes remain in the list.
  */
-list_node_t* list_iterator_next(list_iterator_t *self) {
+list_node_t *list_iterator_next(list_iterator_t *self) {
   list_node_t *curr = self->next;
   if (curr) {
-    self->next = self->direction == LIST_HEAD
-      ? curr->next
-      : curr->prev;
+    self->next = self->direction == LIST_HEAD ? curr->next : curr->prev;
   }
   return curr;
 }
