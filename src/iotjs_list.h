@@ -7,10 +7,6 @@
 #ifndef IOTJS_LIST_H
 #define IOTJS_LIST_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdlib.h>
 
 /*
@@ -68,9 +64,5 @@ list_iterator_t* list_iterator_new(list_t *list, list_direction_t direction);
 list_iterator_t* list_iterator_new_from_node(list_node_t *node, list_direction_t direction);
 list_node_t* list_iterator_next(list_iterator_t *self);
 void list_iterator_destroy(list_iterator_t *self);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* IOTJS_LIST_H */
