@@ -213,7 +213,8 @@ void iotjs_environment_remove_handlewrap(void* handlewrap) {
   const iotjs_environment_t* env = iotjs_environment_get();
   const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
   list_node_t* node = list_find(_this->handlewrap_queue, handlewrap);
-  list_remove(_this->handlewrap_queue, node);
+  if (node != NULL)
+    list_remove(_this->handlewrap_queue, node);
 }
 
 
@@ -225,8 +226,10 @@ void iotjs_environment_cleanup_handlewrap() {
   list_iterator_t* it = list_iterator_new(_this->handlewrap_queue, LIST_HEAD);
   while ((node = list_iterator_next(it))) {
     iotjs_handlewrap_t* handlewrap = (iotjs_handlewrap_t*)(node->val);
-    iotjs_handlewrap_validate(handlewrap);
-    iotjs_handlewrap_close(handlewrap, NULL);
+    if (handlewrap != NULL) {
+      iotjs_handlewrap_validate(handlewrap);
+      iotjs_handlewrap_close(handlewrap, NULL);
+    }
   }
   list_iterator_destroy(it);
 }
