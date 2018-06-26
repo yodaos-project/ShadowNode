@@ -18,6 +18,7 @@
 
 
 #include <uv.h>
+#include "iotjs_list.h"
 #include "iotjs_binding.h"
 #include "iotjs_objectwrap.h"
 

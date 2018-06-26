@@ -16,15 +16,7 @@
 #ifndef IOTJS_UTIL_H
 #define IOTJS_UTIL_H
 
-
 #include "iotjs_string.h"
-
-typedef struct list_node_s ListNode;
-typedef struct list_head_s ListHead;
-
-struct ListNode {
-  
-}
 
 char* iotjs__file_read(const char* path, size_t* outlen);
 // Return value should be released with iotjs_string_destroy()

@@ -17,6 +17,7 @@
 #define IOTJS_ENV_H
 
 #include "uv.h"
+#include "iotjs_list.h"
 
 typedef struct {
   bool wait_source;
@@ -30,11 +31,6 @@ typedef struct {
   bool show_opcode;
   DebuggerConfig* debugger;
 } Config;
-
-typedef struct {
-  iotjs_handlewrap_t** handles;
-  uint32_t size;
-} HandleQueue;
 
 typedef enum {
   kInitializing,
@@ -53,14 +49,14 @@ typedef struct {
   // I/O event loop.
   uv_loop_t* loop;
 
+  // store all handlewrap objects
+  list_t* handlewrap_queue;
+
   // Running state.
   State state;
 
   // Run config
   Config config;
-
-  // handles
-  HandleQueue handle_queue;
 
 } IOTJS_VALIDATED_STRUCT(iotjs_environment_t);
 
@@ -80,6 +76,10 @@ void iotjs_environment_set_loop(iotjs_environment_t* env, uv_loop_t* loop);
 
 const Config* iotjs_environment_config(const iotjs_environment_t* env);
 const DebuggerConfig* iotjs_environment_dconfig(const iotjs_environment_t* env);
+
+void iotjs_environment_create_handlewrap(void* handlewrap);
+void iotjs_environment_remove_handlewrap(void* handlewrap);
+void iotjs_environment_cleanup_handlewrap();
 
 void iotjs_environment_go_state_running_main(iotjs_environment_t* env);
 void iotjs_environment_go_state_running_loop(iotjs_environment_t* env);

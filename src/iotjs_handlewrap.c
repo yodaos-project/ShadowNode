@@ -14,6 +14,7 @@
  */
 
 #include "iotjs_def.h"
+#include "iotjs_env.h"
 #include "iotjs_handlewrap.h"
 
 
@@ -29,10 +30,10 @@ void iotjs_handlewrap_initialize(iotjs_handlewrap_t* handlewrap,
 
   _this->handle = handle;
   _this->on_close_cb = NULL;
-
   handle->data = handlewrap;
 
   iotjs_handlewrap_validate(handlewrap);
+  iotjs_environment_create_handlewrap(handlewrap);
 }
 
 
@@ -42,6 +43,7 @@ void iotjs_handlewrap_destroy(iotjs_handlewrap_t* handlewrap) {
   // Handle should have been release before this.
   IOTJS_ASSERT(_this->handle == NULL);
 
+  iotjs_environment_remove_handlewrap(handlewrap);
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
 }
 

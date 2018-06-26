@@ -16,7 +16,6 @@
 #ifndef IOTJS_STRING_H
 #define IOTJS_STRING_H
 
-
 typedef struct {
   size_t size;
   char* data;

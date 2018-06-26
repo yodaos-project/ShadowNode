@@ -180,14 +180,8 @@ static int iotjs_start(iotjs_environment_t* env) {
 }
 
 static void iotjs_uv_walk_to_close_callback(uv_handle_t* handle, void* arg) {
-  iotjs_handlewrap_t* handlewrap = iotjs_handlewrap_from_handle_unsafe(handle);
-  if (iotjs_handlewrap_validate_with_result(handlewrap)) {
-    iotjs_handlewrap_validate(handlewrap);
-    IOTJS_ASSERT(handlewrap != NULL);
-    iotjs_handlewrap_close(handlewrap, NULL);
-  } else if (uv_is_closing(handle) == 0) {
+  if (!uv_is_closing(handle))
     uv_close(handle, NULL);
-  }
 }
 
 static jerry_value_t dummy_wait_for_client_source_cb() {
@@ -262,6 +256,9 @@ int iotjs_entry(int argc, char** argv) {
 
   // Start iot.js.
   ret_code = iotjs_start(env);
+
+  // Cleanup handlewraps by handlewrap_queue
+  iotjs_environment_cleanup_handlewrap();
 
   // Close uv loop.
   uv_walk(iotjs_environment_loop(env), iotjs_uv_walk_to_close_callback, NULL);
