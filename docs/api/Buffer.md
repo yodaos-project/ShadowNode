@@ -1,24 +1,5 @@
 ### Platform Support
 
-The following shows Buffer module APIs available for each platform.
-
-|  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
-| :---: | :---: | :---: | :---: | :---: |
-| buf.compare | O | O | O | O |
-| buf.copy | O | O | O | O |
-| buf.equals | O | O | O | O |
-| buf.fill | O | O | O | O |
-| buf.slice | O | O | O | O |
-| buf.toString | O | O | O | O |
-| buf.write | O | O | O | O |
-| buf.writeUInt8 | O | O | O | O |
-| buf.writeUInt16LE | O | O | O | O |
-| buf.writeUInt32LE | O | O | O | O |
-| buf.readInt8 | O | O | O | O |
-| buf.readUInt8 | O | O | O | O |
-| buf.readUInt16LE | O | O | O | O |
-
-
 # Buffer
 
 Buffer class is a global type with various constructors and accessors.
@@ -420,6 +401,18 @@ buffer.write('ABCDEF', 1, 3);
 // prints: .ABC..
 console.log(buffer);
 ```
+
+
+### buf.writeInt32(value, offset[, noAssert])
+* `value` {integer} Number to be written into the buffer.
+* `offset` {integer} Start position of the writing.
+* `noAssert` {boolean} Skip argument validation. **Default:** `false`
+* Returns: {number} Offset plus the number of bytes written.
+
+Writes `value` to `buf` at the specified `offset` with specified endian
+format (`writeInt32BE()` writes big endian, `writeInt32LE()` writes little 
+endian). `value` should be a valid signed 32-bit integer. Behavior is 
+undefined when `value` is anything other than a signed 32-bit integer.
 
 
 ### buf.writeUInt8(value, offset[, noAssert])
