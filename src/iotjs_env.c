@@ -16,6 +16,7 @@
 
 #include "iotjs_def.h"
 #include "iotjs_env.h"
+#include "iotjs_handlewrap.h"
 
 #include <string.h>
 
@@ -72,6 +73,7 @@ static void iotjs_environment_initialize(iotjs_environment_t* env) {
   _this->argv = NULL;
   _this->loop = NULL;
   _this->state = kInitializing;
+  _this->handlewrap_queue = list_new();
   _this->config.memstat = false;
   _this->config.show_opcode = false;
   _this->config.debugger = NULL;
@@ -83,6 +85,9 @@ static void iotjs_environment_initialize(iotjs_environment_t* env) {
  */
 static void iotjs_environment_destroy(iotjs_environment_t* env) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_environment_t, env);
+  if (_this->handlewrap_queue != NULL)
+    list_destroy(_this->handlewrap_queue);
+
   if (_this->argv) {
     // release command line argument strings.
     // _argv[0] and _argv[1] refer addresses in static memory space.
@@ -194,6 +199,39 @@ void iotjs_environment_set_loop(iotjs_environment_t* env, uv_loop_t* loop) {
 const Config* iotjs_environment_config(const iotjs_environment_t* env) {
   const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
   return &_this->config;
+}
+
+
+void iotjs_environment_create_handlewrap(void* handlewrap) {
+  const iotjs_environment_t* env = iotjs_environment_get();
+  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
+  list_rpush(_this->handlewrap_queue, list_node_new(handlewrap));
+}
+
+
+void iotjs_environment_remove_handlewrap(void* handlewrap) {
+  const iotjs_environment_t* env = iotjs_environment_get();
+  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
+  list_node_t* node = list_find(_this->handlewrap_queue, handlewrap);
+  if (node != NULL)
+    list_remove(_this->handlewrap_queue, node);
+}
+
+
+void iotjs_environment_cleanup_handlewrap() {
+  const iotjs_environment_t* env = iotjs_environment_get();
+  const IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
+
+  list_node_t* node;
+  list_iterator_t* it = list_iterator_new(_this->handlewrap_queue, LIST_HEAD);
+  while ((node = list_iterator_next(it))) {
+    iotjs_handlewrap_t* handlewrap = (iotjs_handlewrap_t*)(node->val);
+    if (handlewrap != NULL) {
+      iotjs_handlewrap_validate(handlewrap);
+      iotjs_handlewrap_close(handlewrap, NULL);
+    }
+  }
+  list_iterator_destroy(it);
 }
 
 

@@ -15,6 +15,7 @@
 
 #include "iotjs_def.h"
 #include "iotjs_handlewrap.h"
+#include "iotjs_env.h"
 
 
 void iotjs_handlewrap_initialize(iotjs_handlewrap_t* handlewrap,
@@ -29,10 +30,10 @@ void iotjs_handlewrap_initialize(iotjs_handlewrap_t* handlewrap,
 
   _this->handle = handle;
   _this->on_close_cb = NULL;
-
   handle->data = handlewrap;
 
   iotjs_handlewrap_validate(handlewrap);
+  iotjs_environment_create_handlewrap(handlewrap);
 }
 
 
@@ -42,6 +43,7 @@ void iotjs_handlewrap_destroy(iotjs_handlewrap_t* handlewrap) {
   // Handle should have been release before this.
   IOTJS_ASSERT(_this->handle == NULL);
 
+  iotjs_environment_remove_handlewrap(handlewrap);
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
 }
 
@@ -49,12 +51,6 @@ void iotjs_handlewrap_destroy(iotjs_handlewrap_t* handlewrap) {
 iotjs_handlewrap_t* iotjs_handlewrap_from_handle(uv_handle_t* handle) {
   iotjs_handlewrap_t* handlewrap = (iotjs_handlewrap_t*)(handle->data);
   iotjs_handlewrap_validate(handlewrap);
-  return handlewrap;
-}
-
-
-iotjs_handlewrap_t* iotjs_handlewrap_from_handle_unsafe(uv_handle_t* handle) {
-  iotjs_handlewrap_t* handlewrap = (iotjs_handlewrap_t*)(handle->data);
   return handlewrap;
 }
 
@@ -124,22 +120,10 @@ void iotjs_handlewrap_validate(iotjs_handlewrap_t* handlewrap) {
 
   IOTJS_ASSERT((iotjs_handlewrap_t*)_this == handlewrap);
   IOTJS_ASSERT((iotjs_jobjectwrap_t*)_this == &_this->jobjectwrap);
-  IOTJS_ASSERT((void*)_this == _this->handle->data);
+
+  if (_this->handle != NULL)
+    IOTJS_ASSERT((void*)_this == _this->handle->data);
   IOTJS_ASSERT((uintptr_t)_this ==
                iotjs_jval_get_object_native_handle(
                    iotjs_jobjectwrap_jobject(&_this->jobjectwrap)));
-}
-
-
-bool iotjs_handlewrap_validate_with_result(iotjs_handlewrap_t* handlewrap) {
-#ifdef NDEBUG
-  if (&handlewrap->unsafe == NULL) {
-    return false;
-  }
-#else
-  if (handlewrap->flag_create != IOTJS_VALID_MAGIC_SEQUENCE) {
-    return false;
-  }
-#endif
-  return true;
 }
