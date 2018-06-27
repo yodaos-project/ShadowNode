@@ -75,7 +75,7 @@ typedef struct
                         is_extensible, \
                         lowercase_name, \
                         name_magic_id) \
-extern const lit_magic_string_id_t \
+extern lit_magic_string_id_t \
 ecma_builtin_ ## lowercase_name ## _name_magic_ids[]; \
 extern const ecma_builtin_property_descriptor_t \
 ecma_builtin_ ## lowercase_name ## _property_descriptor_list[]; \
@@ -96,7 +96,7 @@ ecma_builtin_ ## lowercase_name ## _dispatch_routine (uint16_t builtin_routine_i
                 is_extensible, \
                 lowercase_name, \
                 name_magic_id) \
-extern const lit_magic_string_id_t \
+extern lit_magic_string_id_t \
 ecma_builtin_ ## lowercase_name ## _name_magic_ids[]; \
 extern const ecma_builtin_property_descriptor_t \
 ecma_builtin_ ## lowercase_name ## _property_descriptor_list[]; \

@@ -157,7 +157,7 @@ static const lit_magic_string_id_t ecma_builtin_magic_string[] =
 #undef BUILTIN
 };
 
-static const lit_magic_string_id_t *ecma_builtin_routine_magic_string[] =
+static lit_magic_string_id_t *ecma_builtin_routine_magic_string[] =
 {
 #define BUILTIN(a, b, c, d, e, f)
 #define BUILTIN_ROUTINE(builtin_id, \
@@ -487,6 +487,20 @@ ecma_instantiate_builtin (ecma_builtin_id_t id) /**< built-in id */
 } /* ecma_instantiate_builtin */
 
 /**
+ * set magic string id of builtin routine name
+ */
+static void
+ecma_builtin_routine_set_name (ecma_builtin_id_t id, /**< builtin id */
+                               ecma_builtin_id_t routine_id, /**< builtin routine id */
+                               lit_magic_string_id_t magic_id) /**<magic string id */
+{
+  ecma_builtin_id_t index = (routine_id >= ECMA_BUILTIN_ID__COUNT) ?
+                            routine_id - ECMA_BUILTIN_ID__COUNT :
+                            routine_id;
+  ecma_builtin_routine_magic_string[id][index] = magic_id;
+}
+
+/**
  * Finalize ECMA built-in objects
  */
 void
@@ -769,6 +783,18 @@ ecma_builtin_try_to_instantiate_property (ecma_object_t *object_p, /**< object *
       func_obj_p = ecma_builtin_make_function_object_for_routine (builtin_id,
                                                                   ECMA_GET_ROUTINE_ID (curr_property_p->value),
                                                                   ECMA_GET_ROUTINE_LENGTH (curr_property_p->value));
+      lit_magic_string_id_t id = ecma_builtin_routine_get_name (builtin_id, ECMA_GET_ROUTINE_ID (curr_property_p->value));
+      if (id != magic_string_id)
+      {
+        /* These builtins use custom routine dispatcher instead of template.
+         *  So routine id are not consist to declaration in their inc.h.
+         *  Magic string id of name should be set correctly.
+         */
+        JERRY_ASSERT (builtin_id ==ECMA_BUILTIN_ID_DATE_PROTOTYPE || builtin_id == ECMA_BUILTIN_ID_MATH );
+        ecma_builtin_routine_set_name (builtin_id,
+                                                                    ECMA_GET_ROUTINE_ID (curr_property_p->value),
+                                                                    magic_string_id);
+      }
       value = ecma_make_object_value (func_obj_p);
       break;
     }

@@ -80,7 +80,7 @@ enum
 
 #endif /* !BUILTIN_CUSTOM_DISPATCH */
 
-const lit_magic_string_id_t ROUTINE_NAME_MAGIC_ID[] =
+lit_magic_string_id_t ROUTINE_NAME_MAGIC_ID[] =
 {
 #define ROUTINE(name, c_function_name, args_number, length_prop_value) \
   name,
