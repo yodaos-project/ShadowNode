@@ -312,7 +312,7 @@ Buffer.prototype.writeInt16LE = function(value, offset, noAssert) {
     checkInt(this, value, offset, 2, 0x7fff, -0x8000);
   }
   this._builtin.writeUInt8(value & 0xff, offset);
-  this._builtin.writeUInt8(value >>> 8 && 0xff, offset + 1);
+  this._builtin.writeUInt8((value >>> 8) && 0xff, offset + 1);
   return offset + 2;
 };
 
