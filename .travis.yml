@@ -17,6 +17,7 @@ before_install:
   - ls node_modules/.bin
 
 script:
+  - npm run lint
   - tools/travis_script.py
 
 matrix:
