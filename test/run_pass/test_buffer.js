@@ -83,6 +83,7 @@ buff_5.readInt8(3, true);
 buff_5.writeUInt32LE(0, 0, true);
 buff_5.writeUInt8(0, 0, true);
 buff_5.writeUInt16LE(0, 0, true);
+buff_5.writeInt16LE(0, 0, true);
 buff_5.writeInt32LE(0, 0, true);
 
 
@@ -144,6 +145,14 @@ assert.equal(buff13.readUInt8(2), 0xab);
 assert.equal(buff13.readUInt8(3), 0x89);
 assert.equal(buff13.readUInt16LE(0), 0xcdef);
 assert.equal(buff13.readUInt16LE(2), 0x89ab);
+
+buff13.writeUInt16LE(0x0102, 0);
+assert.equal(buff13.readUInt8(0), 0x02);
+assert.equal(buff13.readInt8(0), 2);
+assert.equal(buff13.readUInt8(1), 0x01);
+assert.equal(buff13.readInt8(1), 1);
+assert.equal(buff13.readUInt16LE(0), 0x0102);
+assert.equal(buff13.readInt16LE(0), 258);
 
 buff13.writeInt32LE(0x7fabcdef, 0);
 assert.equal(buff13.readUInt8(0), 0xef);
