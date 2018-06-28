@@ -190,7 +190,6 @@ main (void)
 {
   static uint32_t global_mode_snapshot_buffer[SNAPSHOT_BUFFER_SIZE];
   static uint32_t eval_mode_snapshot_buffer[SNAPSHOT_BUFFER_SIZE];
-
   TEST_INIT ();
 
   /* Dump / execute snapshot */
@@ -224,11 +223,11 @@ main (void)
       0x20, 0x66, 0x72, 0x6F, 0x6D, 0x20, 0x73, 0x6E,
       0x61, 0x70, 0x73, 0x68, 0x6F, 0x74
     };
+    fprintf(stdout, "snapshot size: %d / %d\n", sizeof (expected_data), global_mode_snapshot_size);
     TEST_ASSERT (sizeof (expected_data) == global_mode_snapshot_size);
     TEST_ASSERT (0 == memcmp (expected_data, global_mode_snapshot_buffer, sizeof (expected_data)));
 
     jerry_cleanup ();
-
     jerry_init (JERRY_INIT_EMPTY);
     size_t eval_mode_snapshot_size = jerry_parse_and_save_snapshot ((jerry_char_t *) code_to_snapshot_p,
                                                                     strlen (code_to_snapshot_p),

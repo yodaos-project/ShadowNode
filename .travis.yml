@@ -4,27 +4,40 @@ os: linux
 dist: trusty
 sudo: required
 
+services:
+  - docker
+
 cache:
   directories:
     - node_modules/
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tools/apt-get-install-deps.sh; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tools/brew-install-deps.sh; fi
   - npm install
   - ls node_modules/.bin
 
 script:
-  - npm run lint && tools/build.py --tests --no-check-valgrind
-
-env:
-  matrix:
-    - OPTS="host-linux" TARGET_OS="linux"
-    - OPTS="--test=external-modules"
-    - OPTS="--test=no-snapshot"
+  - npm run lint
+  - tools/travis_script.py
 
 matrix:
   include:
-    - os: osx
-      env: OPTS="--test=host-darwin"
-  fast_finish: true
+    - env:
+      - JOBNAME="Linux/x86-64 Build & Correctness Tests"
+      - OPTS="host-linux"
+      - RUN_DOCKER=yes
+    - env:
+      - JOBNAME="Linux/x86-64 without snapshot Build & Correctness Tests"
+      - OPTS="no-snapshot"
+      - RUN_DOCKER=yes
+    - env:
+      - JOBNAME="Linux/x86-64 without snapshot Build & Correctness Tests"
+      - OPTS="no-snapshot"
+      - RUN_DOCKER=yes
+    - env:
+      - JOBNAME="OSX/x86-64 Build & Correctness Tests"
+      - OPTS="host-darwin"
+      os: osx
+      install: tools/brew-install-deps.sh
+
+fast_finish: true

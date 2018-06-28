@@ -51,6 +51,7 @@ var server = http.createServer(function(req, res) {
     for (var i = 0; i < responseSize; i++) {
       res.setHeader('h' + (5 + i), 'h' + (5 + i));
     }
+    res.setHeader('content-length', 0);
 
     res.end(function() {
       server.close();
@@ -78,6 +79,7 @@ var postResponseHandler = function(res) {
   assert.equal(res.headers.h1, 'h1');
   assert.equal(res.headers.h2, undefined);
   assert.equal(res.headers.h3, 'h3prime');
+  assert.equal(res.headers['content-length'], 0);
 
   var endHandler = function() {
     checkReqFinish = true;

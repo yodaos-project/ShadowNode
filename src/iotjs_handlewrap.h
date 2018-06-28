@@ -17,10 +17,10 @@
 #define IOTJS_HANDLEWRAP_H
 
 
-#include <uv.h>
-
 #include "iotjs_binding.h"
+#include "iotjs_list.h"
 #include "iotjs_objectwrap.h"
+#include <uv.h>
 
 
 typedef void (*OnCloseHandler)(uv_handle_t*);
@@ -66,6 +66,5 @@ uv_handle_t* iotjs_handlewrap_get_uv_handle(iotjs_handlewrap_t* handlewrap);
 jerry_value_t iotjs_handlewrap_jobject(iotjs_handlewrap_t* handlewrap);
 
 void iotjs_handlewrap_validate(iotjs_handlewrap_t* handlewrap);
-
 
 #endif /* IOTJS_HANDLEWRAP_H */

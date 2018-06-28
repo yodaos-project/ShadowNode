@@ -33,6 +33,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+static char JS_DUMP_PATHNAME[50];
+
 /**
  * Initialize JerryScript.
  */
@@ -177,16 +179,35 @@ static int iotjs_start(iotjs_environment_t* env) {
   return exit_code;
 }
 
-
 static void iotjs_uv_walk_to_close_callback(uv_handle_t* handle, void* arg) {
-  iotjs_handlewrap_t* handle_wrap = iotjs_handlewrap_from_handle(handle);
-  IOTJS_ASSERT(handle_wrap != NULL);
-
-  iotjs_handlewrap_close(handle_wrap, NULL);
+  if (!uv_is_closing(handle))
+    uv_close(handle, NULL);
 }
 
 static jerry_value_t dummy_wait_for_client_source_cb() {
   return jerry_create_undefined();
+}
+
+static void iotjs_onexit(void) {
+  remove(JS_DUMP_PATHNAME);
+}
+
+static void iotjs_onsignal(int signum) {
+  remove(JS_DUMP_PATHNAME);
+  signal(signum, SIG_DFL);
+  kill(getpid(), signum);
+}
+
+static void atsignal() {
+  struct sigaction sa;
+  sa.sa_flags = 0;
+  sa.sa_handler = iotjs_onsignal;
+  sigaction(SIGQUIT, &sa, NULL);
+  sigaction(SIGILL, &sa, NULL);
+  sigaction(SIGABRT, &sa, NULL);
+  sigaction(SIGFPE, &sa, NULL);
+  sigaction(SIGSEGV, &sa, NULL);
+  sigaction(SIGINT, &sa, NULL);
 }
 
 int iotjs_entry(int argc, char** argv) {
@@ -224,12 +245,20 @@ int iotjs_entry(int argc, char** argv) {
   iotjs_environment_set_loop(env, uv_default_loop());
 
   // set parser dump file
-  char dump_path[20];
-  snprintf(dump_path, 20, "/tmp/iotjs.%zu", (size_t)getpid());
-  jerry_set_parser_dump_file(dump_path);
+  memset(JS_DUMP_PATHNAME, 0, sizeof(JS_DUMP_PATHNAME));
+  snprintf(JS_DUMP_PATHNAME, sizeof(JS_DUMP_PATHNAME), "/tmp/iotjs.%zu",
+           (size_t)getpid());
+  jerry_set_parser_dump_file(JS_DUMP_PATHNAME);
+
+  // handle signal and exit events
+  atsignal();
+  atexit(iotjs_onexit);
 
   // Start iot.js.
   ret_code = iotjs_start(env);
+
+  // Cleanup handlewraps by handlewrap_queue
+  iotjs_environment_cleanup_handlewrap();
 
   // Close uv loop.
   uv_walk(iotjs_environment_loop(env), iotjs_uv_walk_to_close_callback, NULL);
@@ -254,7 +283,6 @@ int iotjs_entry(int argc, char** argv) {
 
   // Release JerryScript engine.
   iotjs_jerry_release(env);
-  remove(dump_path);
 
 terminate:;
   bool context_reset = false;
