@@ -314,7 +314,7 @@ Buffer.prototype.writeInt16LE = function(value, offset, noAssert) {
   this._builtin.writeUInt8(value & 0xff, offset);
   this._builtin.writeUInt8(value >>> 8 && 0xff, offset + 1);
   return offset + 2;
-}
+};
 
 
 // buff.writeInt32LE(value, offset[,noAssert])
