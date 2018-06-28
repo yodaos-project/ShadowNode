@@ -472,6 +472,35 @@ console.log(buffer);
 ```
 
 
+### buf.writeInt16LE(value, offset[, noAssert])
+* `value` {integer} Number to be written into the buffer.
+* `offset` {integer} Start position of the writing.
+* `noAssert` {boolean} Skip argument validation. **Default:** `false`
+* Returns: {integer} Offset plus the number of bytes written.
+
+Writes `value` into the buffer starting from `offset` position
+with little endian format. The `value` must be a valid 16-bit 
+signed integer.
+
+If `noAssert` is set and the value is outside of the expected range
+or the offset is higher than the size of the buffer the operation
+is undefined.
+
+**Example**
+
+```js
+var Buffer = require('buffer');
+
+var buffer = new Buffer(4);
+
+buffer.writeInt16LE(0x0102, 0);
+buffer.writeInt16LE(0x0304, 2);
+
+console.log(buffer);
+// Prints: <Buffer 02 01 04 03>
+```
+
+
 ### buf.writeUInt32LE(value, offset[, noAssert])
 * `value` {integer} Number to be written into the buffer.
 * `offset` {integer} Start position of the writing.

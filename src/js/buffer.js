@@ -302,6 +302,21 @@ Buffer.prototype.writeUInt32LE = function(value, offset, noAssert) {
 };
 
 
+// buff.writeInt16LE(value, offset[,noAssert])
+// [1] buff.writeInt16LE(value, offset)
+// [2] buff.writeInt16LE(value, offset, noAssert)
+Buffer.prototype.writeInt16LE = function(value, offset, noAssert) {
+  value = +value;
+  offset = offset >>> 0;
+  if (!noAssert) {
+    checkInt(this, value, offset, 2, 0x7fff, -0x8000);
+  }
+  this._builtin.writeUInt8(value & 0xff, offset);
+  this._builtin.writeUInt8(value >>> 8 && 0xff, offset + 1);
+  return offset + 2;
+}
+
+
 // buff.writeInt32LE(value, offset[,noAssert])
 // [1] buff.writeInt32LE(value, offset)
 // [2] buff.writeInt32LE(value, offset, noAssert)
