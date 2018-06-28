@@ -14,10 +14,6 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-if(NOT "${TARGET_BOARD}" STREQUAL "None")
-  return()
-endif()
-
 set(DEPS_MBEDTLS deps/mbedtls)
 set(DEPS_MBEDTLS_SRC ${ROOT_DIR}/${DEPS_MBEDTLS})
 set(DEPS_MBEDTLS_BUILD_DIR ${CMAKE_BINARY_DIR}/${DEPS_MBEDTLS}/library)
