@@ -146,7 +146,7 @@ assert.equal(buff13.readUInt8(3), 0x89);
 assert.equal(buff13.readUInt16LE(0), 0xcdef);
 assert.equal(buff13.readUInt16LE(2), 0x89ab);
 
-buff13.writeInt16LE(0x0102, 0);
+buff13.writeUInt16LE(0x0102, 0);
 assert.equal(buff13.readUInt8(0), 0x02);
 assert.equal(buff13.readInt8(0), 2);
 assert.equal(buff13.readUInt8(1), 0x01);
