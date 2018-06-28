@@ -17,8 +17,13 @@ before_install:
   - ls node_modules/.bin
 
 script:
-  - npm run lint
-  - tools/travis_script.py
+  - npm test
+
+env:
+  matrix:
+    - OPTS="host-linux" TARGET_OS="linux"
+    - OPTS="--test=external-modules"
+    - OPTS="--test=no-snapshot"
 
 matrix:
   include:
