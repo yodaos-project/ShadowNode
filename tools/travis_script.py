@@ -1,89 +1,113 @@
 #!/usr/bin/env python
 
-# Copyright 2017-present Samsung Electronics Co., Ltd. and other contributors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import os
-import json
 
 from common_py.system.filesystem import FileSystem as fs
 from common_py.system.executor import Executor as ex
+from common_py.system.platform import Platform
+from check_tidy import check_tidy
 
+platform = Platform()
 
 DOCKER_ROOT_PATH = fs.join('/root')
 
-# IoT.js path in travis
+# ShadowNode path in travis
 TRAVIS_BUILD_PATH = fs.join(os.environ['TRAVIS_BUILD_DIR'])
 
-# IoT.js path in docker
-DOCKER_IOTJS_PATH = fs.join(DOCKER_ROOT_PATH, 'iotjs')
-
-DOCKER_TIZENRT_PATH = fs.join(DOCKER_ROOT_PATH, 'TizenRT')
-DOCKER_TIZENRT_OS_PATH = fs.join(DOCKER_TIZENRT_PATH, 'os')
-DOCKER_TIZENRT_OS_TOOLS_PATH = fs.join(DOCKER_TIZENRT_OS_PATH, 'tools')
-
-DOCKER_NAME = 'iotjs_docker'
-
+# ShadowNode path in docker
+DOCKER_SHADOW_NODE_PATH = fs.join(DOCKER_ROOT_PATH, 'workspace/shadow-node')
+DOCKER_NAME = 'shadow_node_docker'
 BUILDTYPES = ['debug', 'release']
 
-TIZENRT_TAG = '1.1_Public_Release'
+# Common buildoptions for sanitizer jobs.
+BUILDOPTIONS_SANITIZER = [
+    '--buildtype=debug',
+    '--clean',
+    '--compile-flag=-fno-common',
+    '--compile-flag=-fno-omit-frame-pointer',
+    '--jerry-cmake-param=-DFEATURE_SYSTEM_ALLOCATOR=ON',
+    '--jerry-cmake-param=-DJERRY_LIBC=OFF',
+    '--no-check-valgrind',
+    '--no-snapshot',
+    '--profile=test/profiles/host-linux.profile',
+    '--run-test=full',
+    '--target-arch=i686'
+]
 
 def run_docker():
-    ex.check_run_cmd('docker', ['run', '-dit', '--name', DOCKER_NAME, '-v',
-                     '%s:%s' % (TRAVIS_BUILD_PATH, DOCKER_IOTJS_PATH),
-                     'iotjs/ubuntu:0.3'])
+    ex.check_run_cmd('docker', ['run', '-dit', '--privileged',
+                     '--name', DOCKER_NAME, '-v',
+                     '%s:%s' % (TRAVIS_BUILD_PATH, DOCKER_SHADOW_NODE_PATH),
+                     '--add-host', 'test.mosquitto.org:127.0.0.1',
+                     'iotjs/ubuntu:0.8'])
 
-def exec_docker(cwd, cmd):
+def exec_docker(cwd, cmd, env=[]):
     exec_cmd = 'cd %s && ' % cwd + ' '.join(cmd)
-    ex.check_run_cmd('docker', ['exec', '-it', DOCKER_NAME,
-                                'bash', '-c', exec_cmd])
+    docker_args = ['exec', '-it']
+    for e in env:
+        docker_args.append('-e')
+        docker_args.append(e)
 
-def set_release_config_tizenrt():
-    exec_docker(DOCKER_ROOT_PATH, ['cp', 'tizenrt_release_config',
-                                   fs.join(DOCKER_TIZENRT_OS_PATH, '.config')])
+    docker_args += [DOCKER_NAME, 'bash', '-c', exec_cmd]
+    ex.check_run_cmd('docker', docker_args)
+
+def start_mosquitto_server():
+    exec_docker(DOCKER_ROOT_PATH, ['mosquitto', '-d'])
+
+def build_jerry():
+    exec_docker(DOCKER_SHADOW_NODE_PATH, [
+                './deps/jerry/tools/run-tests.py',
+                '--unittests'], [])
+
+def build_iotjs(buildtype, args=[], env=[]):
+    exec_docker(DOCKER_SHADOW_NODE_PATH, [
+                './tools/build.py',
+                '--clean',
+                '--buildtype=' + buildtype] + args, env)
 
 if __name__ == '__main__':
-    run_docker()
+    if os.getenv('RUN_DOCKER') == 'yes':
+        run_docker()
+        # install dbus and zlib
+        exec_docker('/', ['apt-get', 'install', '-q', '-y',
+                    'zlib1g-dev',
+                    'dbus',
+                    'libdbus-1-dev'], [])
+        start_mosquitto_server()
 
-    test = os.environ['OPTS']
+    test = os.getenv('OPTS')
     if test == 'host-linux':
+        build_jerry()
         for buildtype in BUILDTYPES:
-            exec_docker(DOCKER_IOTJS_PATH,
-                        ['./tools/build.py',
-                         '--buildtype=%s' % buildtype,
-                         '--profile=test/profiles/host-linux.profile'])
+            build_iotjs(buildtype, [
+                        '--cmake-param=-DENABLE_MODULE_ASSERT=ON',
+                        '--tests',
+                        '--no-check-valgrind'])
+
+    elif test == "host-darwin":
+        for buildtype in BUILDTYPES:
+            ex.check_run_cmd('./tools/build.py', [
+                            '--tests',
+                            '--no-check-valgrind',
+                            '--buildtype=' + buildtype,
+                            '--clean',
+                            '--profile=test/profiles/host-darwin.profile'])
 
     elif test == 'rpi2':
-        build_options = ['--clean', '--target-arch=arm', '--target-board=rpi2',
-                         '--profile=test/profiles/rpi2-linux.profile']
-
         for buildtype in BUILDTYPES:
-            exec_docker(DOCKER_IOTJS_PATH, ['./tools/build.py',
-                                            '--buildtype=%s' % buildtype] +
-                                            build_options)
+            build_iotjs(buildtype, [
+                        '--target-arch=arm',
+                        '--target-board=rpi2',
+                        '--profile=test/profiles/rpi2-linux.profile'])
 
-    elif test == 'artik053':
-        # Checkout specified tag
-        exec_docker(DOCKER_TIZENRT_PATH, ['git', 'checkout', TIZENRT_TAG])
-        # Set configure
-        exec_docker(DOCKER_TIZENRT_OS_TOOLS_PATH, ['./configure.sh',
-                                                   'artik053/iotjs'])
-
+    elif test == "no-snapshot":
         for buildtype in BUILDTYPES:
-            if buildtype == 'release':
-                set_release_config_tizenrt()
-            exec_docker(DOCKER_TIZENRT_OS_PATH,
-                        ['make', 'IOTJS_ROOT_DIR=../../iotjs',
-                         'IOTJS_BUILD_OPTION='
-                         '--profile=test/profiles/tizenrt.profile'])
+            build_iotjs(buildtype, [
+                        '--tests',
+                        '--no-check-valgrind',
+                        '--no-snapshot',
+                        '--jerry-lto'])
+
+
+    elif test == "coverity":
+        ex.check_run_cmd('./tools/build.py', ['--clean'])
