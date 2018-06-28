@@ -255,7 +255,7 @@ ecma_raise_standard_error (ecma_standard_error_t error_type, /**< error type */
   JERRY_CONTEXT (error_value) = ecma_make_object_value (error_obj_p);
   JERRY_CONTEXT (status_flags) |= ECMA_STATUS_EXCEPTION;
   JERRY_CONTEXT (stack_index) = 0;
-  memset( JERRY_CONTEXT (stack_frames), 0, 10 * sizeof (uint32_t));
+  memset (JERRY_CONTEXT (stack_frames), 0, 10 * sizeof (uint32_t));
 
   return ECMA_VALUE_ERROR;
 } /* ecma_raise_standard_error */
@@ -346,7 +346,7 @@ ecma_raise_standard_error_with_format (ecma_standard_error_t error_type, /**< er
   JERRY_CONTEXT (error_value) = ecma_make_object_value (error_obj_p);
   JERRY_CONTEXT (status_flags) |= ECMA_STATUS_EXCEPTION;
   JERRY_CONTEXT (stack_index) = 0;
-  memset( JERRY_CONTEXT (stack_frames), 0, 10 * sizeof (uint32_t));
+  memset (JERRY_CONTEXT (stack_frames), 0, 10 * sizeof (uint32_t));
 
   return ECMA_VALUE_ERROR;
 } /* ecma_raise_standard_error_with_format */
