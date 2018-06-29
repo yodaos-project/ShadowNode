@@ -382,9 +382,9 @@ JS_FUNCTION(ErrName) {
   DJS_CHECK_ARGS(1, number);
 
   int errorcode = JS_GET_ARG(0, number);
-  char err[50];
+  char err[128];
 
-  mbedtls_strerror(errorcode, err, 50);
+  mbedtls_strerror(errorcode, err, sizeof(err));
   return jerry_create_string_from_utf8((const jerry_char_t*)err);
 }
 
