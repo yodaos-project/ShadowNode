@@ -444,6 +444,10 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
                 && !ecma_is_lexical_environment (func_obj_p));
   JERRY_ASSERT (ecma_op_is_callable (ecma_make_object_value (func_obj_p)));
 
+#ifdef JERRY_CPU_PROFILER
+  double time = jerry_port_get_current_time();
+#endif /* JERRY_CPU_PROFILER */
+
   ecma_value_t ret_value = ECMA_VALUE_EMPTY;
 
   if (ecma_get_object_type (func_obj_p) == ECMA_OBJECT_TYPE_FUNCTION)
@@ -642,6 +646,22 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
   }
 
   JERRY_ASSERT (!ecma_is_value_empty (ret_value));
+
+#ifdef JERRY_CPU_PROFILER
+  FILE *fp = JERRY_CONTEXT (cpu_profiling_fp);
+  if (fp)
+  {
+    fprintf (fp, "%g", jerry_port_get_current_time () - time);
+    for (vm_frame_ctx_t *ctx_p = JERRY_CONTEXT (vm_top_context_p);
+         ctx_p != NULL; ctx_p = ctx_p->prev_context_p)
+    {
+      jmem_cpointer_t byte_code_cp;
+      JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, ctx_p->bytecode_header_p);
+      fprintf (fp, ",%u", (uint32_t) byte_code_cp);
+    }
+    fprintf (fp, "\n");
+  }
+#endif /* JERRY_CPU_PROFILER */
 
   return ret_value;
 } /* ecma_op_function_call */

@@ -14,6 +14,7 @@
         "net",
         "os",
         "path",
+        "profiler",
         "sax",
         "string_decoder",
         "stream",
@@ -294,6 +295,11 @@
     "path": {
       "js_file": "js/path.js",
       "require": ["util"]
+    },
+    "profiler": {
+      "native_files": ["modules/iotjs_module_profiler.c"],
+      "init": "InitProfiler",
+      "js_file": "js/profiler.js"
     },
     "pipe_wrap": {
       "native_files": ["modules/iotjs_module_pipe.c"],
