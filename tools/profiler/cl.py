@@ -23,8 +23,11 @@ for i in range(len(lines)):
 for key in stack_time.keys():
     time = stack_time[key]
     for key1 in stack_time.keys():
-        if key1.endswith(key) and len(key) != len(key1):
-            time -= stack_time[key1]
+        if key1.endswith(key):
+            words = key.split(',')
+            words1 = key1.split(',')
+            if len(words) + 1 == len(words1):
+                time -= stack_time[key1]
     stack_time[key] = time
 
 debug_info = {}

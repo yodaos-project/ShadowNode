@@ -2816,6 +2816,21 @@ error:
 #undef READ_LITERAL
 #undef READ_LITERAL_INDEX
 
+#ifdef JERRY_CPU_PROFILER
+static void
+print_prof_stack (FILE *fp)
+{
+  for (vm_frame_ctx_t *ctx_p = JERRY_CONTEXT (vm_top_context_p);
+       ctx_p != NULL; ctx_p = ctx_p->prev_context_p)
+  {
+    jmem_cpointer_t byte_code_cp;
+    JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, ctx_p->bytecode_header_p);
+    fprintf (fp, ",%u", (uint32_t) byte_code_cp);
+  }
+  fprintf (fp, "\n");
+}
+#endif /* JERRY_CPU_PROFILER */
+
 /**
  * Execute code block.
  *
@@ -2876,6 +2891,10 @@ vm_execute (vm_frame_ctx_t *frame_ctx_p, /**< frame context */
 
   vm_init_loop (frame_ctx_p);
 
+#ifdef JERRY_CPU_PROFILER
+  double time = jerry_port_get_current_time();
+#endif /* JERRY_CPU_PROFILER */
+
   while (true)
   {
     completion_value = vm_loop (frame_ctx_p);
@@ -2910,6 +2929,16 @@ vm_execute (vm_frame_ctx_t *frame_ctx_p, /**< frame context */
     JERRY_CONTEXT (debugger_stop_context) = NULL;
   }
 #endif /* JERRY_DEBUGGER */
+
+#ifdef JERRY_CPU_PROFILER
+  FILE *fp = JERRY_CONTEXT (cpu_profiling_fp);
+  if (fp)
+  {
+    fprintf (fp, "%g", jerry_port_get_current_time () - time);
+    print_prof_stack (fp);
+  }
+#endif /* JERRY_CPU_PROFILER */
+
 
   JERRY_CONTEXT (vm_top_context_p) = frame_ctx_p->prev_context_p;
   return completion_value;
