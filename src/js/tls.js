@@ -9,15 +9,12 @@ var util = require('util');
 var TlsWrap = native.TlsWrap;
 var TLS_CHUNK_MAX_SIZE = require('constants').TLS_CHUNK_MAX_SIZE;
 
-function Delegate(proto, target) {
-  if (!(this instanceof Delegate)) {
-    return new Delegate(proto, target);
-  }
+function Delegator(proto, target) {
   this.proto = proto;
   this.target = target;
 }
 
-Delegate.prototype.method = function method(name) {
+Delegator.prototype.method = function method(name) {
   var proto = this.proto;
   var target = this.target;
 
@@ -69,7 +66,7 @@ function TLSHandle(options) {
   };
 }
 
-Delegate(TLSHandle.prototype, 'tcpHandle')
+new Delegator(TLSHandle.prototype, 'tcpHandle')
   .method('shutdown')
   .method('setKeepAlive')
   .method('getpeername')
