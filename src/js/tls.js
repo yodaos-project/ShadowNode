@@ -30,6 +30,11 @@ function TLSHandle(options) {
   this.tlsWrap = new TlsWrap(options);
   this.tlsWrap.onwrite = function onwrite(chunk) {
     self.tcpHandle.write(chunk, function afterWrite(status) {
+      /**
+       * Empty stub callback for native calls,
+       * for tlsWrap's actual ignoring of when the chunk that is not written by
+       * user explicitly is written
+       */
     });
   };
   this.tlsWrap.onread = function onread(nread, buffer) {
@@ -87,7 +92,7 @@ TLSHandle.prototype.connect = function connect(ip, port, afterConnect) {
     self.tcpHandle.readStart();
     var err = self.tlsWrap.handshake();
     if (err < 0) {
-      throw TlsWrap.errname(err);
+      throw new Error(TlsWrap.errname(err));
     }
   });
 };
@@ -158,7 +163,6 @@ function TLSSocket(socket, opts) {
     tlsOptions.ca = tlsOptions.ca.join('\n');
   }
 
-  /** @type tls.TlsWrap */
   var handle = new TLSHandle(tlsOptions);
 
   net.Socket.call(this, Object.assign(socket, { handle: handle }));
