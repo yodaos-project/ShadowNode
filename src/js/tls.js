@@ -5,7 +5,6 @@ require('crypto');
 var net = require('net');
 var tcp = require('tcp');
 var util = require('util');
-/** @type tls.TlsWrap */
 var TlsWrap = native.TlsWrap;
 var TLS_CHUNK_MAX_SIZE = require('constants').TLS_CHUNK_MAX_SIZE;
 
