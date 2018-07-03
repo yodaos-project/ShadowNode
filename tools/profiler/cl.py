@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-#convert jerry cpu profiler file into collapse file, which is input format of flamegraph.pl
+#convert jerry cpu profiler file into collapse file,
+#which is input format of flamegraph.pl
 import sys
 import re
 
@@ -41,11 +42,13 @@ for line in debug_info_file:
         m = re.match(r'(\+ ([a-zA-Z0-9_]*))? \[(\d+),(\d+)\] (\d+)',line)
         if(m):
             func_name = m.group(2) if m.group(2) else m.group(5)
-            debug_info[m.group(5)] = func_name + '@' + file_name + '(' + m.group(3) + '.' + m.group(4) + ')'
+            lineinfo = '(' + m.group(3) + ':' + m.group(4) + ')'
+            debug_info[m.group(5)] = func_name + '@' + file_name + lineinfo
 
 for key in stack_time.keys():
     stack = key.split(',')
     stack.reverse()
-    display_stack = map(lambda x: debug_info[x] if debug_info.has_key(x) else x, stack)
+    display_stack = map(lambda x: debug_info[x] if debug_info.has_key(x) else x,
+                        stack)
     print ";".join(display_stack) + ' ' + str(stack_time[key])
 

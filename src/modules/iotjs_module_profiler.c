@@ -10,7 +10,8 @@ JS_FUNCTION(StartProfiling) {
   iotjs_string_t filepath = JS_GET_ARG(0, string);
   double duration = JS_GET_ARG(1, number);
   bool res =
-      jerry_start_cpu_profiling((const char*)iotjs_string_data(&filepath), duration);
+      jerry_start_cpu_profiling((const char*)iotjs_string_data(&filepath),
+                                duration);
   // iotjs_string_destroy(&filepath);
   return jerry_create_boolean(res);
 }
