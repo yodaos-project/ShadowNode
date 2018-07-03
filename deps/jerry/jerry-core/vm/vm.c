@@ -2892,7 +2892,7 @@ vm_execute (vm_frame_ctx_t *frame_ctx_p, /**< frame context */
   vm_init_loop (frame_ctx_p);
 
 #ifdef JERRY_CPU_PROFILER
-  double time = jerry_port_get_current_time();
+  double begin_time = jerry_port_get_current_time();
 #endif /* JERRY_CPU_PROFILER */
 
   while (true)
@@ -2931,11 +2931,17 @@ vm_execute (vm_frame_ctx_t *frame_ctx_p, /**< frame context */
 #endif /* JERRY_DEBUGGER */
 
 #ifdef JERRY_CPU_PROFILER
+  double end_time = jerry_port_get_current_time ();
   FILE *fp = JERRY_CONTEXT (cpu_profiling_fp);
   if (fp)
   {
-    fprintf (fp, "%g", jerry_port_get_current_time () - time);
+    fprintf (fp, "%g", end_time - begin_time);
     print_prof_stack (fp);
+    if (JERRY_CONTEXT (cpu_profiling_duration) > 0 &&
+        end_time > JERRY_CONTEXT (cpu_profiling_start_time) + JERRY_CONTEXT (cpu_profiling_duration))
+    {
+      jerry_stop_cpu_profiling ();
+    }
   }
 #endif /* JERRY_CPU_PROFILER */
 

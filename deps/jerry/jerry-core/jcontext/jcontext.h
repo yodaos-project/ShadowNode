@@ -136,6 +136,8 @@ typedef struct
 
 #ifdef JERRY_CPU_PROFILER
   FILE *cpu_profiling_fp;
+  double cpu_profiling_duration;
+  double cpu_profiling_start_time;
 #endif /* JERRY_CPU_PROFILER */
 } jerry_context_t;
 

@@ -75,8 +75,27 @@ function takeSnapshot() {
   return new Snapshot();
 }
 
+/**
+ * startProfiling(path)
+ * startProfiling(duration)
+ * startProfiling(path, duration)
+ */
 function startProfiling() {
-  native.startProfiling(`${process.cwd()}/Profile-${Date.now()}`);
+  var path = `${process.cwd()}/Profile-${Date.now()}`;
+  var duration = -1;
+
+  if(arguments.length == 1) {
+    if(typeof(arguments[0]) === 'number') {
+      duration = arguments[0];
+    } else if(typeof(arguments[0]) === 'string') {
+      path = arguments[0];
+    }
+  } else if(arguments.length == 2) {
+    path = arguments[0];
+    duration = arguments[1];
+  }
+
+  native.startProfiling(path, duration);
 }
 
 function stopProfiling() {

@@ -5,9 +5,12 @@ JS_FUNCTION(StartProfiling) {
     return JS_CREATE_ERROR(COMMON, "cpu profiling is not enabled.");
   if (!jerry_value_is_string(jargv[0]))
     return JS_CREATE_ERROR(COMMON, "filepath should be required.");
+  if (!jerry_value_is_number(jargv[1]))
+    return JS_CREATE_ERROR(COMMON, "duration should be number.");
   iotjs_string_t filepath = JS_GET_ARG(0, string);
+  double duration = JS_GET_ARG(1, number);
   bool res =
-      jerry_start_cpu_profiling((const char*)iotjs_string_data(&filepath));
+      jerry_start_cpu_profiling((const char*)iotjs_string_data(&filepath), duration);
   // iotjs_string_destroy(&filepath);
   return jerry_create_boolean(res);
 }
