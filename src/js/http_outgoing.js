@@ -26,7 +26,7 @@ function OutgoingMessage() {
   this.writable = true;
 
   this._hasBody = true;
-  this._bodyLength = 0;
+  this._contentLength = 0;
   this.chunkedEncoding = false;
   this.useChunkedEncodingByDefault = true;
 
@@ -41,7 +41,8 @@ function OutgoingMessage() {
   this._headers = {};
 
   // if user explicitly remove headers
-  this._removedTE = false;
+  this._removedTransferEncoding = false;
+  this._removedContentLength = false;
 }
 
 util.inherits(OutgoingMessage, stream.Stream);
@@ -70,6 +71,13 @@ OutgoingMessage.prototype.end = function(data, encoding, callback) {
   }
 
   if (data) {
+    if (this._header === undefined) {
+      if (typeof data === 'string') {
+        this._contentLength = Buffer.byteLength(data, encoding);
+      } else {
+        this._contentLength = data.length;
+      }
+    }
     this.write(data, encoding);
   }
 
@@ -117,13 +125,6 @@ OutgoingMessage.prototype._send = function(chunk, encoding, callback) {
   if (util.isBuffer(chunk)) {
     chunk = chunk.toString();
   }
-  this._bodyLength += chunk.length;
-  if (!this.getHeader('Content-Length') &&
-    // 'chunked' transfer-encoding should not set content-length
-    this.getHeader('Transfer-Encoding') !== 'chunked' &&
-    this._bodyLength) {
-    this.setHeader('Content-Length', this._bodyLength);
-  }
 
   if (!this._sentHeader) {
     chunk = this._header + '\r\n' + chunk;
@@ -165,6 +166,11 @@ OutgoingMessage.prototype.write = function(chunk, encoding, callback) {
 
 // Stringfy header fields of _headers into _header
 OutgoingMessage.prototype._storeHeader = function(statusLine) {
+  var state = {
+    contentLength: false,
+    transferEncoding: false,
+  }
+
   var headerStr = '';
 
   var keys;
@@ -173,32 +179,45 @@ OutgoingMessage.prototype._storeHeader = function(statusLine) {
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
       headerStr += key + ': ' + this._headers[key] + '\r\n';
-      this.matchHeader(key, this._headers[key]);
+      this.matchHeader(state, key, this._headers[key]);
     }
   }
 
-  if (!this._hasBody) {
-    // Make sure we don't end the 0\r\n\r\n at the end of the message.
-    this.chunkedEncoding = false;
-  } else if (!this._removedTE && this.useChunkedEncodingByDefault) {
-    headerStr += 'Transfer-Encoding: chunked\r\n';
-    this.chunkedEncoding = true;
+  if (!state.contentLength && !state.transferEncoding) {
+    // Both Content-Length and Transfer-Encoding are not set by user explicitly
+    if (!this._hasBody) {
+      // Make sure we don't end the 0\r\n\r\n at the end of the message.
+      this.chunkedEncoding = false;
+    } else if (!this._removedContentLength && this._contentLength) {
+      headerStr += 'Content-Length: ' + this._contentLength + '\r\n';
+    } else if (!this._removedTransferEncoding && this.useChunkedEncodingByDefault) {
+      headerStr += 'Transfer-Encoding: chunked\r\n';
+      this.chunkedEncoding = true;
+    } else {
+      // We should only be able to get here if both Content-Length and
+      // Transfer-Encoding are removed by the user.
+    }
   }
 
   this._header = statusLine + headerStr;
 };
 
 
-OutgoingMessage.prototype.matchHeader = function matchHeader(field, value) {
+OutgoingMessage.prototype.matchHeader = function matchHeader(state, field, value) {
   if (field.length < 4 || field.length > 17)
     return;
   field = field.toLowerCase();
   switch (field) {
     case 'transfer-encoding':
-      this._removedTE = false;
+      state.transferEncoding = true;
+      this._removedTransferEncoding = false;
       if (/(?:^|\W)chunked(?:$|\W)/i.test(value)) {
         this.chunkedEncoding = true;
       }
+      break;
+    case 'content-length':
+      state.contentLength = true;
+      this._removedContentLength = false;
       break;
   }
 }
@@ -232,7 +251,10 @@ OutgoingMessage.prototype.removeHeader = function(name) {
 
   switch (key) {
     case 'transfer-encoding':
-      this._removedTE = true;
+      this._removedTransferEncoding = true;
+      break;
+    case 'content-length':
+      this._removedContentLength = true;
       break;
   }
 };
