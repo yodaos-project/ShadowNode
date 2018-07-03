@@ -17,6 +17,8 @@
 var util = require('util');
 var stream = require('stream');
 
+var crlf_buf = Buffer.from('\r\n');
+
 
 function OutgoingMessage() {
   stream.Stream.call(this);
@@ -25,6 +27,8 @@ function OutgoingMessage() {
 
   this._hasBody = true;
   this._bodyLength = 0;
+  this.chunkedEncoding = false;
+  this.useChunkedEncodingByDefault = true;
 
   this.finished = false;
   this._sentHeader = false;
@@ -36,6 +40,8 @@ function OutgoingMessage() {
   // response header obj : (key, value) pairs
   this._headers = {};
 
+  // if user explicitly remove headers
+  this._removedTE = false;
 }
 
 util.inherits(OutgoingMessage, stream.Stream);
@@ -65,6 +71,10 @@ OutgoingMessage.prototype.end = function(data, encoding, callback) {
 
   if (data) {
     this.write(data, encoding);
+  }
+
+  if (this.chunkedEncoding) {
+    this.write('')
   }
 
   // Register finish event handler.
@@ -133,10 +143,23 @@ OutgoingMessage.prototype.write = function(chunk, encoding, callback) {
     return true;
   }
 
-  var ret = this._send(chunk, encoding, callback);
+  var len, ret;
+  if (this.chunkedEncoding) {
+    if (typeof chunk === 'string') {
+      len = Buffer.byteLength(chunk, encoding);
+    } else {
+      len = chunk.length;
+    }
+
+    this._send(len.toString(16), 'latin1', null);
+    this._send(crlf_buf, null, null);
+    this._send(chunk, encoding, null);
+    ret = this._send(crlf_buf, null, callback);
+  } else {
+    ret = this._send(chunk, encoding, callback);
+  }
 
   return ret;
-
 };
 
 
@@ -150,12 +173,35 @@ OutgoingMessage.prototype._storeHeader = function(statusLine) {
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
       headerStr += key + ': ' + this._headers[key] + '\r\n';
+      this.matchHeader(key, this._headers[key]);
     }
   }
 
-  this._header = statusLine + headerStr;
+  if (!this._hasBody) {
+    // Make sure we don't end the 0\r\n\r\n at the end of the message.
+    this.chunkedEncoding = false;
+  } else if (!this._removedTE && this.useChunkedEncodingByDefault) {
+    headerStr += 'Transfer-Encoding: chunked\r\n';
+    this.chunkedEncoding = true;
+  }
 
+  this._header = statusLine + headerStr;
 };
+
+
+OutgoingMessage.prototype.matchHeader = function matchHeader(field, value) {
+  if (field.length < 4 || field.length > 17)
+    return;
+  field = field.toLowerCase();
+  switch (field) {
+    case 'transfer-encoding':
+      this._removedTE = false;
+      if (/(?:^|\W)chunked(?:$|\W)/i.test(value)) {
+        this.chunkedEncoding = true;
+      }
+      break;
+  }
+}
 
 
 OutgoingMessage.prototype.setHeader = function(name, value) {
@@ -181,6 +227,14 @@ OutgoingMessage.prototype.removeHeader = function(name) {
   }
 
   delete this._headers[name];
+
+  var key = name.toLowerCase();
+
+  switch (key) {
+    case 'transfer-encoding':
+      this._removedTE = true;
+      break;
+  }
 };
 
 

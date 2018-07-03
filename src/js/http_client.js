@@ -31,6 +31,23 @@ function ClientRequest(options, cb) {
   var method = options.method || 'GET';
   var path = options.path || '/';
 
+  var methodIsString = (typeof method === 'string');
+  if (methodIsString && method) {
+    method = this.method = method.toUpperCase();
+  } else {
+    method = this.method = 'GET';
+  }
+
+  if (method === 'GET' ||
+      method === 'HEAD' ||
+      method === 'DELETE' ||
+      method === 'OPTIONS' ||
+      method === 'CONNECT') {
+    this.useChunkedEncodingByDefault = false;
+  } else {
+    this.useChunkedEncodingByDefault = true;
+  }
+
   // If `options` contains header information, save it.
   if (options.headers) {
     var keys = Object.keys(options.headers);
