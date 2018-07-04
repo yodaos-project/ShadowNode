@@ -14,6 +14,7 @@
  */
 
 #include <stdio.h>
+#include <errno.h>
 
 #include "debugger.h"
 #include "ecma-alloc.h"
@@ -3404,8 +3405,30 @@ bool
 jerry_open_parser_dump (void)
 {
   jerry_assert_api_available ();
-  JERRY_CONTEXT (parser_dump_fd) = tmpfile ();
-  return true;
+  FILE *fd = tmpfile ();
+
+  if (fd)
+  {
+    JERRY_CONTEXT (parser_dump_fd) = fd;
+    return true;
+  }
+
+  if (errno == EROFS)
+  {
+    fprintf (stderr, "tmpfile(): Read-only filesystem.\n");
+    jerry_fatal (ERR_SYSCALL);
+  }
+  else if (errno == EEXIST)
+  {
+    fprintf (stderr, "tmpfile(): Unable to generate a unique filename.\n");
+    jerry_fatal (ERR_SYSCALL);
+  }
+  else
+  {
+    fprintf (stderr, "tmpfile(): Unknown/Unhandled error\n");
+    jerry_fatal (ERR_SYSCALL);
+  }
+  return false;
 }
 
 bool
