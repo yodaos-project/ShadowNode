@@ -23,9 +23,6 @@
 void iotjs_uncaught_exception(jerry_value_t jexception) {
   const jerry_value_t process = iotjs_module_get("process");
 
-  // clean dump file
-  jerry_flush_parser_dump_file();
-
   // create frames
   uint32_t* frames = jerry_get_backtrace();
   uint32_t len = jerry_get_backtrace_max_depth();

@@ -210,7 +210,6 @@ jerry_cleanup (void)
   }
 #endif /* JERRY_DEBUGGER */
 
-  jerry_cleanup_parser_dump_file ();
 
   for (jerry_context_data_header_t *this_p = JERRY_CONTEXT (context_data_p), *next_p = NULL;
        this_p != NULL;
@@ -226,6 +225,7 @@ jerry_cleanup (void)
 
   ecma_finalize ();
   jmem_finalize ();
+  jerry_close_parser_dump ();
   jerry_make_api_unavailable ();
 } /* jerry_cleanup */
 
@@ -3401,15 +3401,15 @@ jerry_get_typedarray_buffer (jerry_value_t value, /**< TypedArray to get the arr
 } /* jerry_get_typedarray_buffer */
 
 bool
-jerry_set_parser_dump_file (char *path)
+jerry_open_parser_dump (void)
 {
   jerry_assert_api_available ();
-  JERRY_CONTEXT (parser_dump_fd) = fopen (path, "a+");
+  JERRY_CONTEXT (parser_dump_fd) = tmpfile ();
   return true;
 }
 
 bool
-jerry_cleanup_parser_dump_file (void)
+jerry_close_parser_dump (void)
 {
   if (JERRY_CONTEXT (parser_dump_fd))
   {
@@ -3420,15 +3420,45 @@ jerry_cleanup_parser_dump_file (void)
   return false;
 }
 
-bool
-jerry_flush_parser_dump_file (void)
+jerry_value_t
+jerry_read_parser_dump (int pos)
 {
-  if (JERRY_CONTEXT (parser_dump_fd))
+  FILE *handle = JERRY_CONTEXT (parser_dump_fd);
+
+#define PARSER_DUMP_BUFFER_SIZE 1024
+  if (handle)
   {
-    fflush (JERRY_CONTEXT (parser_dump_fd));
-    return true;
+    char str[PARSER_DUMP_BUFFER_SIZE];
+    int offset = 0;
+    memset (str, 0, PARSER_DUMP_BUFFER_SIZE);
+
+    if (pos == 0)
+    {
+      rewind (handle);
+    }
+    else
+    {
+      fseek (handle, 0, pos);
+    }
+
+    while (!feof (handle) && offset < PARSER_DUMP_BUFFER_SIZE)
+    {
+      int v = fgetc (handle);
+      if (v == EOF)
+        break;
+
+      str[offset] = (char)v;
+      offset += 1;
+    }
+
+    if (offset > 0)
+    {
+      return jerry_create_string_sz_from_utf8 ((jerry_char_t *)str,
+                                               (jerry_size_t)offset);
+    }
   }
-  return false;
+#undef PARSER_DUMP_BUFFER_SIZE
+  return jerry_create_boolean (false);
 }
 
 uint32_t*
