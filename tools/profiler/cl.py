@@ -1,9 +1,15 @@
 #!/usr/bin/env python
 
-#convert jerry cpu profiler file into collapse file,
-#which is input format of flamegraph.pl
+# convert jerry cpu profiler file into collapse file,
+# which is input format of flamegraph.pl
 import sys
 import re
+
+# input format
+# eachline is a call stack info
+# time, bytecode_1,..., bytecode_n-1, bytecode_n
+# bytecode_n call bytecode_n-1, ... call bytecode_1
+# time is top frame bytecode_n's time
 
 f = open(sys.argv[1])
 
@@ -11,6 +17,7 @@ stack_time = {}
 
 lines = f.readlines()
 
+# Merge all same call stack and put into hashmap
 for i in range(len(lines)):
     current_line = lines[i].strip('\n')
     l = current_line.split(',',1)
@@ -21,6 +28,8 @@ for i in range(len(lines)):
     time += float(l[0])
     stack_time[l[1]] = time
 
+# For each call stack, subtract all call stack whose depth is just 1 smaller.
+# The resut is self time.
 for key in stack_time.keys():
     time = stack_time[key]
     for key1 in stack_time.keys():
@@ -31,8 +40,8 @@ for key in stack_time.keys():
                 time -= stack_time[key1]
     stack_time[key] = time
 
+# parse debug info dump file
 debug_info = {}
-
 debug_info_file = open(sys.argv[2])
 for line in debug_info_file:
     line = line.strip('\n');
@@ -45,6 +54,7 @@ for line in debug_info_file:
             lineinfo = '(' + m.group(3) + ':' + m.group(4) + ')'
             debug_info[m.group(5)] = func_name + '@' + file_name + lineinfo
 
+# map call stack into human readable
 for key in stack_time.keys():
     stack = key.split(',')
     stack.reverse()
