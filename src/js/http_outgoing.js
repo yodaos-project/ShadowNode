@@ -26,7 +26,7 @@ function OutgoingMessage() {
   this.writable = true;
 
   this._hasBody = true;
-  this._contentLength = 0;
+  this._contentLength = null;
   this.chunkedEncoding = false;
   this.useChunkedEncodingByDefault = true;
 
@@ -65,13 +65,8 @@ OutgoingMessage.prototype.end = function(data, encoding, callback) {
     return false;
   }
 
-  // flush header
-  if (!this._header) {
-    this._implicitHeader();
-  }
-
   if (data) {
-    if (this._header === undefined) {
+    if (!this._header) {
       if (typeof data === 'string') {
         this._contentLength = Buffer.byteLength(data, encoding);
       } else {
@@ -79,10 +74,13 @@ OutgoingMessage.prototype.end = function(data, encoding, callback) {
       }
     }
     this.write(data, encoding);
+  } else if (!this._header) {
+    this._contentLength = 0;
+    this._implicitHeader();
   }
 
   if (this.chunkedEncoding) {
-    this.write('')
+    this.write('');
   }
 
   // Register finish event handler.
@@ -125,7 +123,6 @@ OutgoingMessage.prototype._send = function(chunk, encoding, callback) {
   if (util.isBuffer(chunk)) {
     chunk = chunk.toString();
   }
-
   if (!this._sentHeader) {
     chunk = this._header + '\r\n' + chunk;
     this._sentHeader = true;
@@ -169,7 +166,7 @@ OutgoingMessage.prototype._storeHeader = function(statusLine) {
   var state = {
     contentLength: false,
     transferEncoding: false,
-  }
+  };
 
   var headerStr = '';
 
@@ -188,9 +185,11 @@ OutgoingMessage.prototype._storeHeader = function(statusLine) {
     if (!this._hasBody) {
       // Make sure we don't end the 0\r\n\r\n at the end of the message.
       this.chunkedEncoding = false;
-    } else if (!this._removedContentLength && this._contentLength) {
+    } else if (!this._removedContentLength &&
+               typeof this._contentLength === 'number') {
       headerStr += 'Content-Length: ' + this._contentLength + '\r\n';
-    } else if (!this._removedTransferEncoding && this.useChunkedEncodingByDefault) {
+    } else if (!this._removedTransferEncoding &&
+               this.useChunkedEncodingByDefault) {
       headerStr += 'Transfer-Encoding: chunked\r\n';
       this.chunkedEncoding = true;
     } else {
@@ -203,7 +202,8 @@ OutgoingMessage.prototype._storeHeader = function(statusLine) {
 };
 
 
-OutgoingMessage.prototype.matchHeader = function matchHeader(state, field, value) {
+OutgoingMessage.prototype.matchHeader =
+function matchHeader(state, field, value) {
   if (field.length < 4 || field.length > 17)
     return;
   field = field.toLowerCase();
@@ -220,7 +220,7 @@ OutgoingMessage.prototype.matchHeader = function matchHeader(state, field, value
       this._removedContentLength = false;
       break;
   }
-}
+};
 
 
 OutgoingMessage.prototype.setHeader = function(name, value) {

@@ -212,7 +212,8 @@ var readRequest = http.request({
 readRequest.end('foobar');
 readRequest.on('response', function(incomingMessage) {
   assert.equal(incomingMessage.statusCode, 200);
-  assert.equal(readRequest.getHeader('content-length'), 6);
+  assert(readRequest._header)
+  assert(readRequest._header.match('Content-Length: 6'));
   isRequest7Finished = true;
 });
 
@@ -232,11 +233,11 @@ var request8 = http.request({
   path: '/',
   method: 'POST'
 });
-request8.setHeader('Content-Length', 10);
+request8.setHeader('Content-Length', 6);
 request8.end('foobar');
 request8.on('response', function(incomingMessage) {
   assert.equal(incomingMessage.statusCode, 200);
-  assert.equal(request8.getHeader('content-length'), 10);
+  assert.equal(request8.getHeader('content-length'), 6);
   isRequest8Finished = true;
 });
 

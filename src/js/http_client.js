@@ -29,7 +29,7 @@ function ClientRequest(options, cb) {
   var port = options.port = options.port || 80;
   var host = options.host = options.hostname || options.host || '127.0.0.1';
   var method = options.method || 'GET';
-  var path = options.path || '/';
+  this.path = options.path || '/';
 
   var methodIsString = (typeof method === 'string');
   if (methodIsString && method) {
@@ -64,9 +64,6 @@ function ClientRequest(options, cb) {
     }
     this.setHeader('Host', hostHeader);
   }
-
-  // store first header line to be sent.
-  this._storeHeader(method + ' ' + path + ' HTTP/1.1\r\n');
 
   // Register response event handler.
   if (cb) {
@@ -222,6 +219,13 @@ function responseOnEnd() {
     socket.destroySoon();
   }
 }
+
+ClientRequest.prototype._implicitHeader = function _implicitHeader() {
+  if (this._header) {
+    throw new Error('Cannot render headers after they are sent');
+  }
+  this._storeHeader(this.method + ' ' + this.path + ' HTTP/1.1\r\n');
+};
 
 ClientRequest.prototype.abort = function() {
   var self = this;
