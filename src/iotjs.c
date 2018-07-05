@@ -33,8 +33,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-// static char JS_DUMP_PATHNAME[50];
-
 /**
  * Initialize JerryScript.
  */
