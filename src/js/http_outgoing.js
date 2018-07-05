@@ -17,7 +17,7 @@
 var util = require('util');
 var stream = require('stream');
 
-var crlf_buf = Buffer.from('\r\n');
+var crlfBuf = Buffer.from('\r\n');
 
 
 function OutgoingMessage() {
@@ -150,9 +150,9 @@ OutgoingMessage.prototype.write = function(chunk, encoding, callback) {
     }
 
     this._send(len.toString(16), 'latin1', null);
-    this._send(crlf_buf, null, null);
+    this._send(crlfBuf, null, null);
     this._send(chunk, encoding, null);
-    ret = this._send(crlf_buf, null, callback);
+    ret = this._send(crlfBuf, null, callback);
   } else {
     ret = this._send(chunk, encoding, callback);
   }

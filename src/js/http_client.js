@@ -221,7 +221,7 @@ function responseOnEnd() {
 }
 
 ClientRequest.prototype._implicitHeader = function _implicitHeader() {
-  if (this._header) {
+  if (this._sentHeader) {
     throw new Error('Cannot render headers after they are sent');
   }
   this._storeHeader(this.method + ' ' + this.path + ' HTTP/1.1\r\n');
