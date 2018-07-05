@@ -33,8 +33,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-static char JS_DUMP_PATHNAME[50];
-
 /**
  * Initialize JerryScript.
  */
@@ -188,28 +186,6 @@ static jerry_value_t dummy_wait_for_client_source_cb() {
   return jerry_create_undefined();
 }
 
-static void iotjs_onexit(void) {
-  remove(JS_DUMP_PATHNAME);
-}
-
-static void iotjs_onsignal(int signum) {
-  remove(JS_DUMP_PATHNAME);
-  signal(signum, SIG_DFL);
-  kill(getpid(), signum);
-}
-
-static void atsignal() {
-  struct sigaction sa;
-  sa.sa_flags = 0;
-  sa.sa_handler = iotjs_onsignal;
-  sigaction(SIGQUIT, &sa, NULL);
-  sigaction(SIGILL, &sa, NULL);
-  sigaction(SIGABRT, &sa, NULL);
-  sigaction(SIGFPE, &sa, NULL);
-  sigaction(SIGSEGV, &sa, NULL);
-  sigaction(SIGINT, &sa, NULL);
-}
-
 int iotjs_entry(int argc, char** argv) {
   // Initialize debug print.
   init_debug_settings();
@@ -245,14 +221,7 @@ int iotjs_entry(int argc, char** argv) {
   iotjs_environment_set_loop(env, uv_default_loop());
 
   // set parser dump file
-  memset(JS_DUMP_PATHNAME, 0, sizeof(JS_DUMP_PATHNAME));
-  snprintf(JS_DUMP_PATHNAME, sizeof(JS_DUMP_PATHNAME), "/tmp/iotjs.%zu",
-           (size_t)getpid());
-  jerry_set_parser_dump_file(JS_DUMP_PATHNAME);
-
-  // handle signal and exit events
-  atsignal();
-  atexit(iotjs_onexit);
+  jerry_open_parser_dump();
 
   // Start iot.js.
   ret_code = iotjs_start(env);

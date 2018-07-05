@@ -50,9 +50,16 @@
   function loadDumpIfExists() {
     var lines = [];
     try {
-      process._flushParserDumpFile();
-      var loc = '/tmp/iotjs.' + process.pid;
-      lines = fs.readFileSync(loc).toString().split('\n');
+      var data = '';
+      var chunk;
+      var offset = 0;
+      do {
+        chunk = process._readParserDump(offset);
+        offset += chunk.length;
+        data += chunk;
+      } while (chunk !== false);
+
+      lines = data.split('\n');
     } catch (err) {
       console.error(`occurrs unkwnown error when loading dump: ${err.message}`);
     }

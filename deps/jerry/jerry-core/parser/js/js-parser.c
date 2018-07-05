@@ -2482,6 +2482,7 @@ parser_parse_function (parser_context_t *context_p, /**< context */
       memcpy (func_name, 
               context_p->lit_object.literal_p->u.char_p, 
               context_p->lit_object.literal_p->prop.length);
+
       fprintf (JERRY_CONTEXT (parser_dump_fd), "+ %s", func_name);
     }
 #endif /* JERRY_DEBUGGER */
