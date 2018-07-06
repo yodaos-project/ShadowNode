@@ -70,6 +70,8 @@ function Buffer(subject, encoding) {
           }
           break;
         default:
+          // defaults to utf8 encoding
+          // TODO: support ascii, latin1, utf16le encodings
           this.write(subject);
       }
     } else {
