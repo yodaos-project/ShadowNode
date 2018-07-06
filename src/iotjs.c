@@ -187,6 +187,11 @@ static jerry_value_t dummy_wait_for_client_source_cb() {
 }
 
 int iotjs_entry(int argc, char** argv) {
+  // Disable stdio buffering, it interacts poorly with printf()
+  // calls elsewhere in the program
+  setvbuf(stdout, NULL, _IONBF, 0);
+  setvbuf(stderr, NULL, _IONBF, 0);
+
   // Initialize debug print.
   init_debug_settings();
 
