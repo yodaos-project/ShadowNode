@@ -211,6 +211,11 @@ static void atsignal() {
 }
 
 int iotjs_entry(int argc, char** argv) {
+  // Disable stdio buffering, it interacts poorly with printf()
+  // calls elsewhere in the program
+  setvbuf(stdout, NULL, _IONBF, 0);
+  setvbuf(stderr, NULL, _IONBF, 0);
+
   // Initialize debug print.
   init_debug_settings();
 
