@@ -367,8 +367,9 @@ var writable = new Writable({ highWaterMark:256 });
 ```
 
 
-### writable.end([chunk[, callback]])
+### writable.end([chunk][, encoding][, callback])
 * `chunk` {Buffer|string} Final data to write.
+* `encoding` {string} The encoding, if `chunk` is a string
 * `callback` {Function}
 
 Calling this function signals that no more data will
@@ -390,8 +391,9 @@ writable.end();
 ```
 
 
-### writable.write(chunk[, callback])
+### writable.write(chunk[, encoding][, callback])
 * `chunk` {Buffer|string} Data to write.
+* `encoding` {string} The encoding, if `chunk` is a string
 * `callback` {Function} Called when this chunk of data is flushed.
 * Returns: {boolean}
 
@@ -434,8 +436,9 @@ writable._readyToWrite();
 ```
 
 
-### writable._write(chunk, callback, onwrite)
+### writable._write(chunk, encoding, callback, onwrite)
 * `chunk` {Buffer|string} The data to be written by the stream.
+* `encoding` {string} If the chunk is a string, then `encoding` is the character encoding of that string. If chunk is a `Buffer`, or if the stream is operating in object mode, `encoding` may be ignored.
 * `callback` {Function} Callback to be called when the chunk of data is flushed.
 * `onwrite` {Function} Internal Callback to be called for when the chunk of data is flushed.
 
@@ -455,7 +458,7 @@ var Writable = require('stream').Writable;
 
 var writable = new Writable();
 
-writable._write = function(chunk, callback, onwrite) {
+writable._write = function(chunk, encoding, callback, onwrite) {
   // prints: message
   console.log(chunk);
 
