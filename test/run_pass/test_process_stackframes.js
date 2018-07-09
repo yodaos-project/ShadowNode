@@ -11,4 +11,3 @@ assert(frames.length === 11);
 // Expect top frame to be address of namedFunction
 assert(frames[0] !== 0);
 
-process._flushParserDumpFile();

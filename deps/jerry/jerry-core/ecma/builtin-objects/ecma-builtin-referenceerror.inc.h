@@ -37,6 +37,8 @@ OBJECT_VALUE (LIT_MAGIC_STRING_PROTOTYPE,
               ECMA_BUILTIN_ID_REFERENCE_ERROR_PROTOTYPE,
               ECMA_PROPERTY_FIXED)
 
+DUMMY_ROUTINE
+
 #endif /* !CONFIG_DISABLE_ERROR_BUILTINS */
 
 #include "ecma-builtin-helpers-macro-undefs.inc.h"

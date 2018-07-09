@@ -46,6 +46,8 @@ OBJECT_VALUE (LIT_MAGIC_STRING_PROTOTYPE,
               ECMA_BUILTIN_ID_UINT32ARRAY_PROTOTYPE,
               ECMA_PROPERTY_FIXED)
 
+DUMMY_ROUTINE
+
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
 
 #include "ecma-builtin-helpers-macro-undefs.inc.h"

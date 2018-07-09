@@ -27,6 +27,8 @@
 #define PASTE_(x, y) PASTE__ (x, y)
 #define PASTE(x, y) PASTE_ (x, y)
 
+#define ROUTINE_NAME_MAGIC_ID \
+  PASTE (PASTE (ecma_builtin_, BUILTIN_UNDERSCORED_ID), _name_magic_ids)
 #define PROPERTY_DESCRIPTOR_LIST_NAME \
   PASTE (PASTE (ecma_builtin_, BUILTIN_UNDERSCORED_ID), _property_descriptor_list)
 #define DISPATCH_ROUTINE_ROUTINE_NAME \
@@ -48,7 +50,9 @@
   static ecma_value_t c_setter_func_name (ROUTINE_ARG_LIST_1);
 #define ACCESSOR_READ_ONLY(name, c_getter_func_name, prop_attributes) \
   static ecma_value_t c_getter_func_name (ROUTINE_ARG_LIST_0);
+#define DUMMY_ROUTINE
 #include BUILTIN_INC_HEADER_NAME
+#undef DUMMY_ROUTINE
 #undef ROUTINE_ARG_LIST_NON_FIXED
 #undef ROUTINE_ARG_LIST_3
 #undef ROUTINE_ARG_LIST_2
@@ -69,10 +73,22 @@ enum
   ECMA_ACCESSOR_ ## name ## c_setter_func_name,
 #define ACCESSOR_READ_ONLY(name, c_getter_func_name, prop_attributes) \
   ECMA_ACCESSOR_ ## name ## c_getter_func_name,
+#define DUMMY_ROUTINE
 #include BUILTIN_INC_HEADER_NAME
+#undef DUMMY_ROUTINE
 };
 
 #endif /* !BUILTIN_CUSTOM_DISPATCH */
+
+lit_magic_string_id_t ROUTINE_NAME_MAGIC_ID[] =
+{
+#define ROUTINE(name, c_function_name, args_number, length_prop_value) \
+  name,
+#define DUMMY_ROUTINE \
+  LIT_MAGIC_STRING__EMPTY,
+#include BUILTIN_INC_HEADER_NAME
+#undef DUMMY_ROUTINE
+};
 
 /**
  * Built-in property list of the built-in object.
@@ -138,7 +154,9 @@ const ecma_builtin_property_descriptor_t PROPERTY_DESCRIPTOR_LIST_NAME[] =
     prop_attributes, \
     ECMA_ACCESSOR_ ## name ## c_getter_func_name \
   },
+#define DUMMY_ROUTINE
 #include BUILTIN_INC_HEADER_NAME
+#undef DUMMY_ROUTINE
   {
     LIT_MAGIC_STRING__COUNT,
     ECMA_BUILTIN_PROPERTY_END,
@@ -198,7 +216,9 @@ DISPATCH_ROUTINE_ROUTINE_NAME (uint16_t builtin_routine_id, /**< built-in wide r
        { \
          return c_getter_func_name(this_arg_value); \
        }
+#define DUMMY_ROUTINE
 #include BUILTIN_INC_HEADER_NAME
+#undef DUMMY_ROUTINE
 #undef ROUTINE_ARG
 #undef ROUTINE_ARG_LIST_0
 #undef ROUTINE_ARG_LIST_1
