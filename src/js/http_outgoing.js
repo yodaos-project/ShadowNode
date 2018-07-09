@@ -17,6 +17,8 @@
 var util = require('util');
 var stream = require('stream');
 
+var crlfBuf = Buffer.from('\r\n');
+
 
 function OutgoingMessage() {
   stream.Stream.call(this);
@@ -24,7 +26,9 @@ function OutgoingMessage() {
   this.writable = true;
 
   this._hasBody = true;
-  this._bodyLength = 0;
+  this._contentLength = null;
+  this.chunkedEncoding = false;
+  this.useChunkedEncodingByDefault = true;
 
   this.finished = false;
   this._sentHeader = false;
@@ -36,6 +40,9 @@ function OutgoingMessage() {
   // response header obj : (key, value) pairs
   this._headers = {};
 
+  // if user explicitly remove headers
+  this._removedTransferEncoding = false;
+  this._removedContentLength = false;
 }
 
 util.inherits(OutgoingMessage, stream.Stream);
@@ -58,13 +65,22 @@ OutgoingMessage.prototype.end = function(data, encoding, callback) {
     return false;
   }
 
-  // flush header
-  if (!this._header) {
+  if (data) {
+    if (!this._header) {
+      if (typeof data === 'string') {
+        this._contentLength = Buffer.byteLength(data, encoding);
+      } else {
+        this._contentLength = data.length;
+      }
+    }
+    this.write(data, encoding);
+  } else if (!this._header) {
+    this._contentLength = 0;
     this._implicitHeader();
   }
 
-  if (data) {
-    this.write(data, encoding);
+  if (this.chunkedEncoding) {
+    this.write('');
   }
 
   // Register finish event handler.
@@ -107,14 +123,6 @@ OutgoingMessage.prototype._send = function(chunk, encoding, callback) {
   if (util.isBuffer(chunk)) {
     chunk = chunk.toString();
   }
-  this._bodyLength += chunk.length;
-  if (!this.getHeader('Content-Length') &&
-    // 'chunked' transfer-encoding should not set content-length
-    this.getHeader('Transfer-Encoding') !== 'chunked' &&
-    this._bodyLength) {
-    this.setHeader('Content-Length', this._bodyLength);
-  }
-
   if (!this._sentHeader) {
     chunk = this._header + '\r\n' + chunk;
     this._sentHeader = true;
@@ -133,15 +141,33 @@ OutgoingMessage.prototype.write = function(chunk, encoding, callback) {
     return true;
   }
 
-  var ret = this._send(chunk, encoding, callback);
+  var len, ret;
+  if (this.chunkedEncoding) {
+    if (typeof chunk === 'string') {
+      len = Buffer.byteLength(chunk, encoding);
+    } else {
+      len = chunk.length;
+    }
+
+    this._send(len.toString(16), 'latin1', null);
+    this._send(crlfBuf, null, null);
+    this._send(chunk, encoding, null);
+    ret = this._send(crlfBuf, null, callback);
+  } else {
+    ret = this._send(chunk, encoding, callback);
+  }
 
   return ret;
-
 };
 
 
 // Stringfy header fields of _headers into _header
 OutgoingMessage.prototype._storeHeader = function(statusLine) {
+  var state = {
+    contentLength: false,
+    transferEncoding: false,
+  };
+
   var headerStr = '';
 
   var keys;
@@ -150,11 +176,50 @@ OutgoingMessage.prototype._storeHeader = function(statusLine) {
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
       headerStr += key + ': ' + this._headers[key] + '\r\n';
+      this.matchHeader(state, key, this._headers[key]);
+    }
+  }
+
+  if (!state.contentLength && !state.transferEncoding) {
+    // Both Content-Length and Transfer-Encoding are not set by user explicitly
+    if (!this._hasBody) {
+      // Make sure we don't end the 0\r\n\r\n at the end of the message.
+      this.chunkedEncoding = false;
+    } else if (!this._removedContentLength &&
+               typeof this._contentLength === 'number') {
+      headerStr += 'Content-Length: ' + this._contentLength + '\r\n';
+    } else if (!this._removedTransferEncoding &&
+               this.useChunkedEncodingByDefault) {
+      headerStr += 'Transfer-Encoding: chunked\r\n';
+      this.chunkedEncoding = true;
+    } else {
+      // We should only be able to get here if both Content-Length and
+      // Transfer-Encoding are removed by the user.
     }
   }
 
   this._header = statusLine + headerStr;
+};
 
+
+OutgoingMessage.prototype.matchHeader =
+function matchHeader(state, field, value) {
+  if (field.length < 4 || field.length > 17)
+    return;
+  field = field.toLowerCase();
+  switch (field) {
+    case 'transfer-encoding':
+      state.transferEncoding = true;
+      this._removedTransferEncoding = false;
+      if (/(?:^|\W)chunked(?:$|\W)/i.test(value)) {
+        this.chunkedEncoding = true;
+      }
+      break;
+    case 'content-length':
+      state.contentLength = true;
+      this._removedContentLength = false;
+      break;
+  }
 };
 
 
@@ -181,6 +246,17 @@ OutgoingMessage.prototype.removeHeader = function(name) {
   }
 
   delete this._headers[name];
+
+  var key = name.toLowerCase();
+
+  switch (key) {
+    case 'transfer-encoding':
+      this._removedTransferEncoding = true;
+      break;
+    case 'content-length':
+      this._removedContentLength = true;
+      break;
+  }
 };
 
 
