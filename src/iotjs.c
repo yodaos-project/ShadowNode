@@ -206,7 +206,6 @@ int iotjs_entry(int argc, char** argv) {
   // Parse command line arguments.
   if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)argc,
                                                       argv)) {
-    DLOG("iotjs_environment_parse_command_line_arguments failed");
     ret_code = 1;
     goto terminate;
   }

@@ -19,9 +19,17 @@
 #include "iotjs_debuglog.h"
 
 #ifdef ENABLE_DEBUG_LOG
+#define COLOR_PRINT(id, str) "\033[" id "m" str "\033[0m"
+
 int iotjs_debug_level = DBGLEV_ERR;
 FILE* iotjs_log_stream;
-const char* iotjs_debug_prefix[4] = { "", "ERR", "WRN", "INF" };
+const char* iotjs_debug_prefix[4] = { 
+  "",
+  COLOR_PRINT("31", "error"),
+  COLOR_PRINT("33", "warn"),
+  COLOR_PRINT("36", "info"),
+};
+#undef COLOR_PRINT
 #endif // ENABLE_DEBUG_LOG
 
 

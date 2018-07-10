@@ -99,6 +99,28 @@ static void iotjs_environment_destroy(iotjs_environment_t* env) {
   }
 }
 
+void iotjs_environment_print_help() {
+  fprintf(stderr, "Usage: iotjs [options] [script | script.js] [arguments]\n"
+                  "\n"
+                  "Options:\n"
+                  "  -v, --version              print version\n"
+                  "  -h, --help                 print help\n"
+                  "  --loadstat                 print the load statistics\n"
+                  "  --memstat                  print the memory statistics\n"
+                  "  --show-opcodes             print the opcodes of running script\n"
+                  "  --start-debug-server       activate the debugger server\n\n"
+                  "Environment variables:\n"
+                  "NODE_DISABLE_COLORS          set to 1 to disable colors in the REPL\n"
+                  "NODE_PATH                    ':'-separated list of directories\n"
+                  "                             prefixed to the module search path\n"
+                  "\nDocumentation can be found at "
+                  "https://github.com/Rokid/ShadowNode/tree/master/docs\n");
+}
+
+void iotjs_environment_print_version() {
+  fprintf(stdout, "v" NODE_MAJOR_VERSION "." NODE_MINOR_VERSION
+                  "." NODE_PATCH_VERSION "\n");
+}
 
 /**
  * Parse command line arguments
@@ -112,7 +134,13 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
   uint32_t i = 1;
   uint8_t port_arg_len = strlen("--jerry-debugger-port=");
   while (i < argc && argv[i][0] == '-') {
-    if (!strcmp(argv[i], "--loadstat")) {
+    if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
+      iotjs_environment_print_help();
+      return false;
+    } else if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--version")) {
+      iotjs_environment_print_version();
+      return false;
+    } else if (!strcmp(argv[i], "--loadstat")) {
       _this->config.loadstat = true;
     } else if (!strcmp(argv[i], "--memstat")) {
       _this->config.memstat = true;
@@ -144,10 +172,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
   // except when sources are sent over by the debugger client.
   if ((argc - i) < 1 && (_this->config.debugger == NULL ||
                          !_this->config.debugger->wait_source)) {
-    fprintf(stderr, "Version: v" NODE_MAJOR_VERSION "." NODE_MINOR_VERSION
-                    "." NODE_PATCH_VERSION "\n");
-    fprintf(stderr,
-            "Usage: iotjs [options] {script | script.js} [arguments]\n\n");
+    iotjs_environment_print_help();
     return false;
   }
 
