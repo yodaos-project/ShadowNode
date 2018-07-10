@@ -32,7 +32,7 @@ extern const char* iotjs_debug_prefix[4];
 #define IOTJS_DLOG(lvl, ...)                                        \
   do {                                                              \
     if (0 <= lvl && lvl <= iotjs_debug_level && iotjs_log_stream) { \
-      fprintf(iotjs_log_stream, "%s ", iotjs_debug_prefix[lvl]);  \
+      fprintf(iotjs_log_stream, "%s ", iotjs_debug_prefix[lvl]);    \
       fprintf(iotjs_log_stream, __VA_ARGS__);                       \
       fprintf(iotjs_log_stream, "\n");                              \
       fflush(iotjs_log_stream);                                     \
