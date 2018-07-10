@@ -8,13 +8,10 @@ enum QoS { QOS0, QOS1, QOS2, SUBFAIL = 0x80 };
 
 typedef struct {
   iotjs_jobjectwrap_t jobjectwrap;
-  char* host;
-  int port;
   unsigned char* src;
   int srclen;
   int offset;
   MQTTPacket_connectData options_;
-  uv_loop_t* loop;
 } IOTJS_VALIDATED_STRUCT(iotjs_mqtt_t);
 
 static JNativeInfoType this_module_native_info = { .free_cb = NULL };
@@ -261,11 +258,10 @@ JS_FUNCTION(MqttGetAck) {
     return JS_CREATE_ERROR(COMMON, "invalid qos from message.");
   }
 
-  if (len <= 0)
+  if (len <= 0) {
     return JS_CREATE_ERROR(COMMON, "invalid serialization for ack.")
-
-               jerry_value_t retbuf =
-                   iotjs_bufferwrap_create_buffer((size_t)len);
+  }
+  jerry_value_t retbuf = iotjs_bufferwrap_create_buffer((size_t)len);
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(retbuf);
   iotjs_bufferwrap_copy(wrap, (const char*)buf, (size_t)len);
   return retbuf;
