@@ -234,10 +234,9 @@ JS_FUNCTION(GetStackFrames) {
 }
 
 
-JS_FUNCTION(FlushParserDumpFile) {
-  // flush dump file
-  jerry_flush_parser_dump_file();
-  return jerry_create_undefined();
+JS_FUNCTION(ReadParserDump) {
+  int pos = JS_GET_ARG(0, number);
+  return jerry_read_parser_dump(pos);
 }
 
 
@@ -543,7 +542,7 @@ jerry_value_t InitProcess() {
   // errors
   iotjs_jval_set_method(process, "_createUVException", CreateUVException);
   iotjs_jval_set_method(process, "_getStackFrames", GetStackFrames);
-  iotjs_jval_set_method(process, "_flushParserDumpFile", FlushParserDumpFile);
+  iotjs_jval_set_method(process, "_readParserDump", ReadParserDump);
 
   // virtual machine
   iotjs_jval_set_method(process, "gc", ForceGC);

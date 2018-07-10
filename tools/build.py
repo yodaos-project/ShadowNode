@@ -410,11 +410,6 @@ def run_checktest(options):
 
     fs.chdir(path.PROJECT_ROOT)
 
-    # Crash tests
-    code = ex.run_cmd('tools/check_crash.sh', [iotjs])
-    if code != 0:
-        ex.fail('Failed to pass crash tests')
-
     # run unit tests
     code = ex.run_cmd(iotjs, [path.CHECKTEST_PATH] + build_args)
     if code != 0:

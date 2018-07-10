@@ -48,22 +48,24 @@ typedef ecma_value_t (*ecma_builtin_dispatch_call_t)(const ecma_value_t argument
 
 static const ecma_builtin_dispatch_routine_t ecma_builtin_routines[] =
 {
-  #define BUILTIN(a, b, c, d, e)
+  #define BUILTIN(a, b, c, d, e, f)
   #define BUILTIN_ROUTINE(builtin_id, \
                           object_type, \
                           object_prototype_builtin_id, \
                           is_extensible, \
-                          lowercase_name) \
+                          lowercase_name, \
+                          name_magic_id) \
     ecma_builtin_ ## lowercase_name ## _dispatch_routine,
   #include "ecma-builtins.inc.h"
   #undef BUILTIN
   #undef BUILTIN_ROUTINE
-  #define BUILTIN_ROUTINE(a, b, c, d, e)
+  #define BUILTIN_ROUTINE(a, b, c, d, e, f)
   #define BUILTIN(builtin_id, \
                   object_type, \
                   object_prototype_builtin_id, \
                   is_extensible, \
-                  lowercase_name) \
+                  lowercase_name, \
+                  name_magic_id) \
     ecma_builtin_ ## lowercase_name ## _dispatch_routine,
   #include "ecma-builtins.inc.h"
   #undef BUILTIN
@@ -72,12 +74,13 @@ static const ecma_builtin_dispatch_routine_t ecma_builtin_routines[] =
 
 static const ecma_builtin_dispatch_call_t ecma_builtin_call_functions[] =
 {
-  #define BUILTIN(a, b, c, d, e)
+  #define BUILTIN(a, b, c, d, e, f)
   #define BUILTIN_ROUTINE(builtin_id, \
                           object_type, \
                           object_prototype_builtin_id, \
                           is_extensible, \
-                          lowercase_name) \
+                          lowercase_name, \
+                          name_magic_id) \
     ecma_builtin_ ## lowercase_name ## _dispatch_call,
   #include "ecma-builtins.inc.h"
   #undef BUILTIN_ROUTINE
@@ -86,12 +89,13 @@ static const ecma_builtin_dispatch_call_t ecma_builtin_call_functions[] =
 
 static const ecma_builtin_dispatch_call_t ecma_builtin_construct_functions[] =
 {
-  #define BUILTIN(a, b, c, d, e)
+  #define BUILTIN(a, b, c, d, e, f)
   #define BUILTIN_ROUTINE(builtin_id, \
                           object_type, \
                           object_prototype_builtin_id, \
                           is_extensible, \
-                          lowercase_name) \
+                          lowercase_name, \
+                          name_magic_id) \
     ecma_builtin_ ## lowercase_name ## _dispatch_construct,
   #include "ecma-builtins.inc.h"
   #undef BUILTIN_ROUTINE
@@ -103,23 +107,77 @@ static const ecma_builtin_dispatch_call_t ecma_builtin_construct_functions[] =
  */
 static const ecma_builtin_property_list_reference_t ecma_builtin_property_list_references[] =
 {
-#define BUILTIN(a, b, c, d, e)
+#define BUILTIN(a, b, c, d, e, f)
 #define BUILTIN_ROUTINE(builtin_id, \
                         object_type, \
                         object_prototype_builtin_id, \
                         is_extensible, \
-                        lowercase_name) \
+                        lowercase_name, \
+                        name_magic_id) \
   ecma_builtin_ ## lowercase_name ## _property_descriptor_list,
 #include "ecma-builtins.inc.h"
 #undef BUILTIN
 #undef BUILTIN_ROUTINE
-#define BUILTIN_ROUTINE(a, b, c, d, e)
+#define BUILTIN_ROUTINE(a, b, c, d, e, f)
 #define BUILTIN(builtin_id, \
                 object_type, \
                 object_prototype_builtin_id, \
                 is_extensible, \
-                lowercase_name) \
+                lowercase_name, \
+                name_magic_id) \
   ecma_builtin_ ## lowercase_name ## _property_descriptor_list,
+#include "ecma-builtins.inc.h"
+#undef BUILTIN_ROUTINE
+#undef BUILTIN
+};
+
+static const lit_magic_string_id_t ecma_builtin_magic_string[] =
+{
+#define BUILTIN(a, b, c, d, e, f)
+#define BUILTIN_ROUTINE(builtin_id, \
+                        object_type, \
+                        object_prototype_builtin_id, \
+                        is_extensible, \
+                        lowercase_name, \
+                        name_magic_id) \
+  name_magic_id,
+#include "ecma-builtins.inc.h"
+#undef BUILTIN
+#undef BUILTIN_ROUTINE
+#define BUILTIN_ROUTINE(a, b, c, d, e, f)
+#define BUILTIN(builtin_id, \
+                object_type, \
+                object_prototype_builtin_id, \
+                is_extensible, \
+                lowercase_name, \
+                name_magic_id) \
+  name_magic_id,
+#include "ecma-builtins.inc.h"
+#undef BUILTIN_ROUTINE
+#undef BUILTIN
+};
+
+static lit_magic_string_id_t *ecma_builtin_routine_magic_string[] =
+{
+#define BUILTIN(a, b, c, d, e, f)
+#define BUILTIN_ROUTINE(builtin_id, \
+                        object_type, \
+                        object_prototype_builtin_id, \
+                        is_extensible, \
+                        lowercase_name, \
+                        name_magic_id) \
+  ecma_builtin_ ## lowercase_name ## _name_magic_ids,
+#include "ecma-builtins.inc.h"
+#undef BUILTIN
+#undef BUILTIN_ROUTINE
+#define BUILTIN_ROUTINE(a, b, c, d, e, f)
+#define BUILTIN(builtin_id, \
+                object_type, \
+                object_prototype_builtin_id, \
+                is_extensible, \
+                lowercase_name, \
+                name_magic_id) \
+  ecma_builtin_ ## lowercase_name ## _name_magic_ids,
 #include "ecma-builtins.inc.h"
 #undef BUILTIN_ROUTINE
 #undef BUILTIN
@@ -405,7 +463,8 @@ ecma_instantiate_builtin (ecma_builtin_id_t id) /**< built-in id */
                 object_type, \
                 object_prototype_builtin_id, \
                 is_extensible, \
-                lowercase_name) \
+                lowercase_name, \
+                name_magic_id) \
     case builtin_id: \
     { \
       ecma_instantiate_builtin_helper (builtin_id, \
@@ -414,7 +473,7 @@ ecma_instantiate_builtin (ecma_builtin_id_t id) /**< built-in id */
                                        is_extensible); \
       break; \
     }
-#define BUILTIN_ROUTINE(a, b, c, d, e) BUILTIN(a, b, c, d, e)
+#define BUILTIN_ROUTINE(a, b, c, d, e, f) BUILTIN(a, b, c, d, e, f)
 #include "ecma-builtins.inc.h"
 #undef BUILTIN
 #undef BUILTIN_ROUTINE
@@ -426,6 +485,20 @@ ecma_instantiate_builtin (ecma_builtin_id_t id) /**< built-in id */
     }
   }
 } /* ecma_instantiate_builtin */
+
+/**
+ * set magic string id of builtin routine name
+ */
+static void
+ecma_builtin_routine_set_name (ecma_builtin_id_t id, /**< builtin id */
+                               ecma_builtin_id_t routine_id, /**< builtin routine id */
+                               lit_magic_string_id_t magic_id) /**<magic string id */
+{
+  ecma_builtin_id_t index = (routine_id >= ECMA_BUILTIN_ID__COUNT) ?
+                            routine_id - ECMA_BUILTIN_ID__COUNT :
+                            routine_id;
+  ecma_builtin_routine_magic_string[id][index] = magic_id;
+}
 
 /**
  * Finalize ECMA built-in objects
@@ -710,6 +783,18 @@ ecma_builtin_try_to_instantiate_property (ecma_object_t *object_p, /**< object *
       func_obj_p = ecma_builtin_make_function_object_for_routine (builtin_id,
                                                                   ECMA_GET_ROUTINE_ID (curr_property_p->value),
                                                                   ECMA_GET_ROUTINE_LENGTH (curr_property_p->value));
+      lit_magic_string_id_t id = ecma_builtin_routine_get_name (builtin_id, ECMA_GET_ROUTINE_ID (curr_property_p->value));
+      if (id != magic_string_id)
+      {
+        /* These builtins use custom routine dispatcher instead of template.
+         *  So routine id are not consist to declaration in their inc.h.
+         *  Magic string id of name should be set correctly.
+         */
+        JERRY_ASSERT (builtin_id ==ECMA_BUILTIN_ID_DATE_PROTOTYPE || builtin_id == ECMA_BUILTIN_ID_MATH );
+        ecma_builtin_routine_set_name (builtin_id,
+                                                                    ECMA_GET_ROUTINE_ID (curr_property_p->value),
+                                                                    magic_string_id);
+      }
       value = ecma_make_object_value (func_obj_p);
       break;
     }
@@ -938,6 +1023,30 @@ ecma_builtin_dispatch_construct (ecma_object_t *obj_p, /**< built-in object */
   JERRY_ASSERT (builtin_object_id < sizeof (ecma_builtin_construct_functions) / sizeof (ecma_builtin_dispatch_call_t));
   return ecma_builtin_construct_functions[builtin_object_id] (arguments_list_p, arguments_list_len);
 } /* ecma_builtin_dispatch_construct */
+
+/**
+ * get magic string id of builtin routine name
+ * @return lit_magic_string_id_t
+ */
+lit_magic_string_id_t
+ecma_builtin_routine_get_name (ecma_builtin_id_t id, /**< builtin id */
+                               ecma_builtin_id_t routine_id) /**< builtin routine id */
+{
+  ecma_builtin_id_t index = (routine_id >= ECMA_BUILTIN_ID__COUNT) ?
+                            routine_id - ECMA_BUILTIN_ID__COUNT :
+                            routine_id;
+  return ecma_builtin_routine_magic_string[id][index];
+}
+
+/**
+ * get magic string id of builtin name
+ * @return lit_magic_string_id_t
+ */
+lit_magic_string_id_t
+ecma_builtin_get_name (ecma_builtin_id_t id) /**< builtin id */
+{
+  return ecma_builtin_magic_string[id];
+}
 
 /**
  * @}

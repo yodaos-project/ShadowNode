@@ -25,7 +25,7 @@ assert(duplex.read);
 var msg1 = 'message 1';
 var msg2 = 'message 2';
 
-duplex._write = function(chunk, callback) {
+duplex._write = function(chunk, encoding, callback) {
   assert.equal(chunk == msg1, true);
   duplex.push(msg2);
   duplex.end();

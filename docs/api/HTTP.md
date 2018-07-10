@@ -275,7 +275,7 @@ After response header is parsed, this event will be fired.
 * `data` {Buffer | string}
 * `callback` {Function}
 
-Finishes sending the request.
+Finishes sending the request. If the request is chunked, this will send the terminating `'0\r\n\r\n'`.
 
 If `data` is provided, it sends `data` first, and finishes.
 If `callback` is specified, it is called when the request stream is finished.
@@ -290,11 +290,16 @@ Registers cb for 'timeout' event and set socket's timeout value to ms. This even
 If cb is not provided, the socket will be destroyed automatically after timeout.
 If you provides cb, you should handle the socket's timeout.
 
-### request.write(data[, callback])
+### request.write(data[, encoding][, callback])
 * `data` {Buffer | string}
+* `encoding` {string}
 * `callback` {Function}
 
-Sends `data` as a request body. `callback` will be called when data is flushed.
+Sends a chunk of the body. By calling this method many times, a request body can be sent to a server — in that case it is suggested to use the `['Transfer-Encoding', 'chunked']` header line when creating the request.
+
+The encoding argument is optional and only applies when `chunk` is a string. Defaults to `'utf8'`.
+
+The `callback` argument is optional and will be called when this chunk of data is flushed.
 
 
 ## Class: http.IncomingMessage

@@ -525,9 +525,9 @@ jerry_value_t jerry_get_typedarray_buffer (jerry_value_t value,
                                            jerry_length_t *byte_offset,
                                            jerry_length_t *byte_length);
 
-bool jerry_set_parser_dump_file (char* path);
-bool jerry_cleanup_parser_dump_file (void);
-bool jerry_flush_parser_dump_file (void);
+bool jerry_open_parser_dump (void);
+bool jerry_close_parser_dump (void);
+jerry_value_t jerry_read_parser_dump (int);
 
 uint32_t *jerry_get_backtrace (void);
 void jerry_get_backtrace_depth (uint32_t *stack_frames, uint32_t depth);

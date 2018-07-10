@@ -31,6 +31,8 @@ NUMBER_VALUE (LIT_MAGIC_STRING_BYTES_PER_ELEMENT_U,
               2,
               ECMA_PROPERTY_FIXED)
 
+DUMMY_ROUTINE
+
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
 
 #include "ecma-builtin-helpers-macro-undefs.inc.h"

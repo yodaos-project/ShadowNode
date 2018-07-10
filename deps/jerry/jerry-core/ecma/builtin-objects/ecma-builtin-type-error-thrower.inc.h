@@ -28,4 +28,6 @@ NUMBER_VALUE (LIT_MAGIC_STRING_LENGTH,
               0,
               ECMA_PROPERTY_FIXED)
 
+DUMMY_ROUTINE
+
 #include "ecma-builtin-helpers-macro-undefs.inc.h"

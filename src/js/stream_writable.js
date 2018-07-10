@@ -20,8 +20,9 @@ var util = require('util');
 var Stream = stream.Stream;
 var defaultHighWaterMark = 128;
 
-function WriteReq(chunk, callback) {
+function WriteReq(chunk, encoding, callback) {
   this.chunk = chunk;
+  this.encoding = encoding;
   this.callback = callback;
 }
 
@@ -89,7 +90,12 @@ util.inherits(Writable, Stream);
 //    underlying stream
 //      |
 //    Writable.prototype._onwrite()
-Writable.prototype.write = function(chunk, callback) {
+Writable.prototype.write = function(chunk, encoding, callback) {
+  if (typeof encoding === 'function') {
+    callback = encoding;
+    encoding = null;
+  }
+
   var state = this._writableState;
 
   if (state.ended) {
@@ -97,18 +103,23 @@ Writable.prototype.write = function(chunk, callback) {
     return false;
   }
 
-  return writeOrBuffer(this, chunk, callback);
+  return writeOrBuffer(this, chunk, encoding, callback);
 };
 
 
 // This function object never to be called. concrete stream should override
 // this method.
-Writable.prototype._write = function(chunk, callback, onwrite) {
+Writable.prototype._write = function(chunk, encoding, callback, onwrite) {
   throw new Error('unreachable');
 };
 
 
-Writable.prototype.end = function(chunk, callback) {
+Writable.prototype.end = function(chunk, encoding, callback) {
+  if (typeof encoding === 'function') {
+    callback = encoding;
+    encoding = null;
+  }
+
   var state = this._writableState;
 
   // Because NuttX cannot poll 'EOF',so forcely raise EOF event.
@@ -123,7 +134,7 @@ Writable.prototype.end = function(chunk, callback) {
   }
 
   if (!util.isNullOrUndefined(chunk)) {
-    this.write(chunk);
+    this.write(chunk, encoding);
   }
 
   if (!state.ending) {
@@ -165,11 +176,11 @@ function writeAfterEnd(stream, callback) {
 }
 
 
-function writeOrBuffer(stream, chunk, callback) {
+function writeOrBuffer(stream, chunk, encoding, callback) {
   var state = stream._writableState;
 
   if (util.isString(chunk)) {
-    chunk = new Buffer(chunk);
+    chunk = Buffer.from(chunk, encoding);
   }
 
   state.length += chunk.length;
@@ -177,10 +188,10 @@ function writeOrBuffer(stream, chunk, callback) {
   if (!state.ready || state.writing || state.buffer.length > 0) {
     // stream not yet ready or there is pending request to write.
     // push this request into write queue.
-    state.buffer.push(new WriteReq(chunk, callback));
+    state.buffer.push(new WriteReq(chunk, encoding, callback));
   } else {
     // here means there is no pending data. write out.
-    doWrite(stream, chunk, callback);
+    doWrite(stream, chunk, encoding, callback);
   }
 
   // total length of buffered message exceeded high water mark.
@@ -199,13 +210,13 @@ function writeBuffered(stream) {
       onEmptyBuffer(stream);
     } else {
       var req = state.buffer.shift();
-      doWrite(stream, req.chunk, req.callback);
+      doWrite(stream, req.chunk, req.encoding, req.callback);
     }
   }
 }
 
 
-function doWrite(stream, chunk, callback) {
+function doWrite(stream, chunk, encoding, callback) {
   var state = stream._writableState;
 
   if (state.writing) {
@@ -217,7 +228,7 @@ function doWrite(stream, chunk, callback) {
   state.writingLength = chunk.length;
 
   // Write down the chunk data.
-  stream._write(chunk, callback, stream._onwrite.bind(stream));
+  stream._write(chunk, encoding, callback, stream._onwrite.bind(stream));
 }
 
 

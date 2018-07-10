@@ -73,7 +73,10 @@ typedef struct
                         object_type, \
                         object_prototype_builtin_id, \
                         is_extensible, \
-                        lowercase_name) \
+                        lowercase_name, \
+                        name_magic_id) \
+extern lit_magic_string_id_t \
+ecma_builtin_ ## lowercase_name ## _name_magic_ids[]; \
 extern const ecma_builtin_property_descriptor_t \
 ecma_builtin_ ## lowercase_name ## _property_descriptor_list[]; \
 ecma_value_t \
@@ -91,7 +94,10 @@ ecma_builtin_ ## lowercase_name ## _dispatch_routine (uint16_t builtin_routine_i
                 object_type, \
                 object_prototype_builtin_id, \
                 is_extensible, \
-                lowercase_name) \
+                lowercase_name, \
+                name_magic_id) \
+extern lit_magic_string_id_t \
+ecma_builtin_ ## lowercase_name ## _name_magic_ids[]; \
 extern const ecma_builtin_property_descriptor_t \
 ecma_builtin_ ## lowercase_name ## _property_descriptor_list[]; \
 ecma_value_t \
