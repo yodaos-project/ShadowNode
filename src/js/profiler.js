@@ -84,13 +84,13 @@ function startProfiling() {
   var path = `${process.cwd()}/Profile-${Date.now()}`;
   var duration = -1;
 
-  if(arguments.length == 1) {
-    if(typeof(arguments[0]) === 'number') {
+  if (arguments.length === 1) {
+    if (typeof (arguments[0]) === 'number') {
       duration = arguments[0];
-    } else if(typeof(arguments[0]) === 'string') {
+    } else if (typeof (arguments[0]) === 'string') {
       path = arguments[0];
     }
-  } else if(arguments.length == 2) {
+  } else if (arguments.length === 2) {
     path = arguments[0];
     duration = arguments[1];
   }
