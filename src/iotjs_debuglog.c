@@ -23,7 +23,7 @@
 
 int iotjs_debug_level = DBGLEV_ERR;
 FILE* iotjs_log_stream;
-const char* iotjs_debug_prefix[4] = { 
+const char* iotjs_debug_prefix[4] = {
   "",
   COLOR_PRINT("31", "error"),
   COLOR_PRINT("33", "warn"),

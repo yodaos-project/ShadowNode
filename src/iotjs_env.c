@@ -100,21 +100,22 @@ static void iotjs_environment_destroy(iotjs_environment_t* env) {
 }
 
 void iotjs_environment_print_help() {
-  fprintf(stderr, "Usage: iotjs [options] [script | script.js] [arguments]\n"
-                  "\n"
-                  "Options:\n"
-                  "  -v, --version              print version\n"
-                  "  -h, --help                 print help\n"
-                  "  --loadstat                 print the load statistics\n"
-                  "  --memstat                  print the memory statistics\n"
-                  "  --show-opcodes             print the opcodes of running script\n"
-                  "  --start-debug-server       activate the debugger server\n\n"
-                  "Environment variables:\n"
-                  "NODE_DISABLE_COLORS          set to 1 to disable colors in the REPL\n"
-                  "NODE_PATH                    ':'-separated list of directories\n"
-                  "                             prefixed to the module search path\n"
-                  "\nDocumentation can be found at "
-                  "https://github.com/Rokid/ShadowNode/tree/master/docs\n");
+  fprintf(
+    stderr,
+    "Usage: iotjs [options] [script | script.js] [arguments]\n\n"
+    "Options:\n"
+    "  -v, --version              print version\n"
+    "  -h, --help                 print help\n"
+    "  --loadstat                 print the load statistics\n"
+    "  --memstat                  print the memory statistics\n"
+    "  --show-opcodes             print the opcodes of running script\n"
+    "  --start-debug-server       activate the debugger server\n\n"
+    "Environment variables:\n"
+    "NODE_DISABLE_COLORS          set to 1 to disable colors in the REPL\n"
+    "NODE_PATH                    ':'-separated list of directories\n"
+    "                             prefixed to the module search path\n"
+    "\nDocumentation can be found at "
+    "https://github.com/Rokid/ShadowNode/tree/master/docs\n");
 }
 
 void iotjs_environment_print_version() {
