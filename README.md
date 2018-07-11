@@ -2,6 +2,7 @@
 
 The Node.js Runtime in shadow, which supports NPM packages partially for embeddable platform.
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/7c70ae6d6c5d4d778d18ccd70f11bd0d)](https://app.codacy.com/app/yorkie/ShadowNode?utm_source=github.com&utm_medium=referral&utm_content=Rokid/ShadowNode&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/Rokid/ShadowNode.svg?branch=master)](https://travis-ci.org/Rokid/ShadowNode)
 [![License](https://img.shields.io/badge/licence-Apache%202.0-brightgreen.svg?style=flat)](LICENSE)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FRokid%2Fshadow-node.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FRokid%2Fshadow-node?ref=badge_shield)
