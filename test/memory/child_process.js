@@ -10,7 +10,7 @@ var matrix = {
 
 (function main() {
   var rss = process.memoryUsage().rss;
-  exec('ls', (err) => err && console.error(err));
+  exec('ls', (err) => err && console.error('error', err));
   setTimeout(() => {
     var curr = process.memoryUsage().rss;
     if (startProfiling) {
@@ -35,4 +35,4 @@ function summary() {
 setTimeout(() => {
   startProfiling = true;
   setTimeout(summary, 5 * 1000);
-}, 100);
+}, 500);

@@ -210,8 +210,8 @@ JS_FUNCTION(ProcessSpawn) {
 #undef IOTJS_PROCESS_SET_XID
 #undef IOTJS_PROCESS_SET_STRING
 
-  iotjs_processwrap_parse_args_opts(js_options, &options);
-  iotjs_processwrap_parse_envs_opts(js_options, &options);
+  uint32_t args_len = iotjs_processwrap_parse_args_opts(js_options, &options);
+  uint32_t envs_len = iotjs_processwrap_parse_envs_opts(js_options, &options);
   iotjs_processwrap_parse_stdio_opts(js_options, &options);
   jerry_release_value(js_options);
 
