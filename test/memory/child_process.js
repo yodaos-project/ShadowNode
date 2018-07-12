@@ -8,6 +8,9 @@ var matrix = {
   samples: 0,
 };
 
+var duration = process.argv[2] || 5000;
+var cycle = process.argv[3] || 0;
+
 (function main() {
   var rss = process.memoryUsage().rss;
   exec('ls', (err) => err && console.error('error', err));
@@ -21,7 +24,7 @@ var matrix = {
     }
     console.log(`> total: ${curr}, increase: ${curr - rss}`);
     main();
-  }, 0);
+  }, cycle);
 })();
 
 function summary() {
@@ -34,5 +37,5 @@ function summary() {
 
 setTimeout(() => {
   startProfiling = true;
-  setTimeout(summary, 5 * 1000);
+  setTimeout(summary, duration);
 }, 500);
