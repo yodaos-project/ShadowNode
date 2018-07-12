@@ -1,7 +1,7 @@
+#include "iotjs_def.h"
 #include <unistd.h>
 #include <errno.h>
 #include <uv.h>
-#include "iotjs_def.h"
 
 JS_FUNCTION(Isatty) {
   int fd = JS_GET_ARG(0, number);
