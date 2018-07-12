@@ -1,5 +1,5 @@
 'use strict';
 
 exports.isatty = function(fd) {
-  return false;
+  return native.isatty(fd || 0);
 };

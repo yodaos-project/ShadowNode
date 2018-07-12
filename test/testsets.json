@@ -106,6 +106,7 @@
     { "name": "test_timers_error.js" },
     { "name": "test_timers_simple.js", "timeout": 10 },
     { "name": "test_tls_connect_and_close.js" },
+    { "name": "test_tty.js" },
     { "name": "test_uart.js", "timeout": 10, "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_uart_api.js" },
     { "name": "test_util.js" }
