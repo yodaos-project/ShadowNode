@@ -407,6 +407,8 @@
       "require": ["util", "net", "tcp"]
     },
     "tty": {
+      "native_files": ["modules/iotjs_module_tty.c"],
+      "init": "InitTty",
       "js_file": "js/tty.js"
     },
     "uart": {
