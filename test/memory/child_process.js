@@ -2,6 +2,7 @@
 
 var exec = require('child_process').exec;
 var startProfiling = false;
+var profilingHandle = null;
 var matrix = {
   startRss: 0,
   endRss: 0,
@@ -14,7 +15,7 @@ var cycle = process.argv[3] || 0;
 (function main() {
   var rss = process.memoryUsage().rss;
   exec('ls', (err) => err && console.error('error', err));
-  setTimeout(() => {
+  profilingHandle = setTimeout(() => {
     var curr = process.memoryUsage().rss;
     if (startProfiling) {
       if (!matrix.startRss)
@@ -22,12 +23,15 @@ var cycle = process.argv[3] || 0;
       matrix.endRss = rss;
       matrix.samples += 1;
     }
-    console.log(`> total: ${curr}, increase: ${curr - rss}`);
+    if (curr - rss > 0) {
+      console.log(`> total: ${curr}, increase: ${curr - rss}`);
+    }
     main();
   }, cycle);
 })();
 
 function summary() {
+  clearTimeout(profilingHandle);
   console.log(`Memory Leak Summary(${matrix.samples} samples):`);
   console.log(` Rss(From): ${matrix.startRss}`);
   console.log(` Rss(End ): ${matrix.endRss}`);
