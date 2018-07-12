@@ -38,14 +38,15 @@ extern const iotjs_prefix_t iotjs_debug_prefix[4];
 /*
  * test with "nohup iotjs > /my.log 2>&1 < /dev/null"
  */
-#define DBG_COLOR_PRINT(prefix) do {                                \
-  if (isatty(0) == 1) {                                             \
-    fprintf(iotjs_log_stream,                                       \
-      "\033[%sm%s\033[0m ", prefix.color, prefix.text);             \
-  } else {                                                          \
-    fprintf(iotjs_log_stream, "[%s] ", prefix.text);                \
-  }                                                                 \
-} while (0)
+#define DBG_COLOR_PRINT(prefix)                                     \
+  do {                                                              \
+    if (isatty(0) == 1) {                                           \
+      fprintf(iotjs_log_stream, "\033[%sm%s\033[0m ", prefix.color, \
+              prefix.text);                                         \
+    } else {                                                        \
+      fprintf(iotjs_log_stream, "[%s] ", prefix.text);              \
+    }                                                               \
+  } while (0)
 
 #define IOTJS_DLOG(lvl, ...)                                        \
   do {                                                              \
