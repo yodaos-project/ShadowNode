@@ -35,4 +35,4 @@ function summary() {
 setTimeout(() => {
   startProfiling = true;
   setTimeout(summary, 5 * 1000);
-}, 2 * 1000);
+}, 100);
