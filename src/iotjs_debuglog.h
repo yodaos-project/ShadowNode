@@ -20,19 +20,37 @@
 #ifdef ENABLE_DEBUG_LOG
 
 #include <stdio.h>
+#include <unistd.h>
+
+typedef struct iotjs_prefix_s {
+  const char* color;
+  const char* text;
+} iotjs_prefix_t;
 
 extern int iotjs_debug_level;
 extern FILE* iotjs_log_stream;
-extern const char* iotjs_debug_prefix[4];
+extern const iotjs_prefix_t iotjs_debug_prefix[4];
 
 #define DBGLEV_ERR 1
 #define DBGLEV_WARN 2
 #define DBGLEV_INFO 3
 
+/*
+ * test with "nohup iotjs > /my.log 2>&1 < /dev/null"
+ */
+#define DBG_COLOR_PRINT(prefix) do {                                \
+  if (isatty(0) == 1) {                                             \
+    fprintf(iotjs_log_stream,                                       \
+      "\033[%sm%s\033[0m ", prefix.color, prefix.text);             \
+  } else {                                                          \
+    fprintf(iotjs_log_stream, "[%s] ", prefix.text);                \
+  }                                                                 \
+} while (0)
+
 #define IOTJS_DLOG(lvl, ...)                                        \
   do {                                                              \
     if (0 <= lvl && lvl <= iotjs_debug_level && iotjs_log_stream) { \
-      fprintf(iotjs_log_stream, "%s ", iotjs_debug_prefix[lvl]);    \
+      DBG_COLOR_PRINT(iotjs_debug_prefix[lvl]);                     \
       fprintf(iotjs_log_stream, __VA_ARGS__);                       \
       fprintf(iotjs_log_stream, "\n");                              \
       fflush(iotjs_log_stream);                                     \
