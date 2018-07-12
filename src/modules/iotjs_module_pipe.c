@@ -174,7 +174,7 @@ JS_FUNCTION(WriteUtf8String) {
   const size_t size = iotjs_string_size(&data);
   buf = uv_buf_init((char*)chunk, size);
   int r = uv_try_write((uv_stream_t*)&_this->handle, &buf, 1);
-  
+
   // free the data firstly
   iotjs_string_destroy(&data);
   if (r < 0) {
