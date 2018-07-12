@@ -19,11 +19,16 @@
 #include "iotjs_debuglog.h"
 
 #ifdef ENABLE_DEBUG_LOG
+
 int iotjs_debug_level = DBGLEV_ERR;
 FILE* iotjs_log_stream;
-const char* iotjs_debug_prefix[4] = { "", "ERR", "WRN", "INF" };
+const iotjs_prefix_t iotjs_debug_prefix[4] = {
+  { .color = "", .text = "" },
+  { .color = "31", .text = "error" },
+  { .color = "33", .text = "warn" },
+  { .color = "36", .text = "info" },
+};
 #endif // ENABLE_DEBUG_LOG
-
 
 void init_debug_settings() {
 #ifdef ENABLE_DEBUG_LOG
