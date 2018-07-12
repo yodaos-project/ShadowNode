@@ -89,8 +89,8 @@ JS_FUNCTION(ProcessConstructor) {
   return jerry_create_undefined();
 }
 
-static void iotjs_processwrap_parse_args_opts(jerry_value_t js_options,
-                                              uv_process_options_t* options) {
+static uint32_t iotjs_processwrap_parse_args_opts(
+    jerry_value_t js_options, uv_process_options_t* options) {
   jerry_value_t jarr = iotjs_jval_get_property(js_options, "args");
   uint32_t len = jerry_get_array_length(jarr);
   if (len > 0) {
@@ -98,6 +98,8 @@ static void iotjs_processwrap_parse_args_opts(jerry_value_t js_options,
     for (uint32_t i = 0; i < len; i++) {
       jerry_value_t jval = iotjs_jval_get_property_by_index(jarr, i);
       iotjs_string_t str = iotjs_jval_as_string(jval);
+
+      // TODO(Yorkie): check if this allocated block are valid.
       options->args[i] = (char*)strdup(iotjs_string_data(&str));
       iotjs_string_destroy(&str);
       jerry_release_value(jval);
@@ -105,10 +107,11 @@ static void iotjs_processwrap_parse_args_opts(jerry_value_t js_options,
     options->args[len] = NULL;
   }
   jerry_release_value(jarr);
+  return len;
 }
 
-static void iotjs_processwrap_parse_envs_opts(jerry_value_t js_options,
-                                              uv_process_options_t* options) {
+static uint32_t iotjs_processwrap_parse_envs_opts(
+    jerry_value_t js_options, uv_process_options_t* options) {
   jerry_value_t jarr = iotjs_jval_get_property(js_options, "envPairs");
   uint32_t len = jerry_get_array_length(jarr);
   if (len > 0) {
@@ -116,6 +119,8 @@ static void iotjs_processwrap_parse_envs_opts(jerry_value_t js_options,
     for (uint32_t i = 0; i < len; i++) {
       jerry_value_t jval = iotjs_jval_get_property_by_index(jarr, i);
       iotjs_string_t str = iotjs_jval_as_string(jval);
+
+      // TODO(Yorkie): check if this allocated block are valid.
       options->env[i] = (char*)strdup(iotjs_string_data(&str));
       iotjs_string_destroy(&str);
       jerry_release_value(jval);
@@ -123,6 +128,7 @@ static void iotjs_processwrap_parse_envs_opts(jerry_value_t js_options,
     options->env[len] = NULL;
   }
   jerry_release_value(jarr);
+  return len;
 }
 
 static void iotjs_processwrap_parse_stdio_opts(jerry_value_t js_options,
@@ -191,7 +197,8 @@ JS_FUNCTION(ProcessSpawn) {
     jerry_value_t val = iotjs_jval_get_property(js_options, #name);    \
     if (!jerry_value_is_undefined(val) && !jerry_value_is_null(val)) { \
       iotjs_string_t str = iotjs_jval_as_string(val);                  \
-      options.name = iotjs_string_data(&str);                          \
+      options.name = strdup(iotjs_string_data(&str));                  \
+      iotjs_string_destroy(&str);                                      \
     }                                                                  \
     jerry_release_value(val);                                          \
   } while (0)
@@ -203,8 +210,8 @@ JS_FUNCTION(ProcessSpawn) {
 #undef IOTJS_PROCESS_SET_XID
 #undef IOTJS_PROCESS_SET_STRING
 
-  iotjs_processwrap_parse_args_opts(js_options, &options);
-  iotjs_processwrap_parse_envs_opts(js_options, &options);
+  uint32_t args_len = iotjs_processwrap_parse_args_opts(js_options, &options);
+  uint32_t envs_len = iotjs_processwrap_parse_envs_opts(js_options, &options);
   iotjs_processwrap_parse_stdio_opts(js_options, &options);
   jerry_release_value(js_options);
 
@@ -217,14 +224,32 @@ JS_FUNCTION(ProcessSpawn) {
   }
 
   if (options.args != NULL) {
+    for (uint32_t i = 0; i < args_len; i++)
+      if (options.args[i] != NULL)
+        free(options.args[i]);
     free(options.args);
   }
 
   if (options.env != NULL) {
+    for (uint32_t i = 0; i < envs_len; i++)
+      if (options.env[i] != NULL)
+        free(options.env[i]);
     free(options.env);
   }
 
-  return jerry_create_number(err);
+  if (options.file != NULL) {
+    free((void*)options.file);
+  }
+
+  if (options.cwd != NULL) {
+    free((void*)options.cwd);
+  }
+
+  if (options.stdio != NULL) {
+    free((void*)options.stdio);
+  }
+
+  return jerry_create_number(0);
 }
 
 JS_FUNCTION(ProcessKill) {
