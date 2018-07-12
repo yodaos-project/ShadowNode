@@ -40,4 +40,16 @@ matrix:
       os: osx
       install: tools/brew-install-deps.sh
 
+before_deploy:
+  - git config --local user.name "yorkie"
+  - git config --local user.email "yorkiefixer@gmail.com"
+  - git tag "$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)"
+
+deploy:
+  privider: releases
+  skip_cleanup: true
+  api_key: $GITHUB_TOKEN
+  on:
+    tags: true
+
 fast_finish: true
