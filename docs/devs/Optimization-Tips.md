@@ -43,3 +43,22 @@ You can make your compiler to place the JerryScript heap in specific section by 
 
 jmem_heap_t jerry_global_heap __attribute__ ((aligned (JMEM_ALIGNMENT))) JERRY_GLOBAL_HEAP_SECTION;
 ```
+
+## CPU Profiler
+Adding below arguments when building and running IoT.js will enable CPU Profiler.
+
+```shell
+$ ./tools/build.py --jerry-cpu-profiler
+```
+
+Add Javascript code like docs/api/Profiler.md, Iot.js will generate a Profiler file and parser dump file at runtime, say Profiler-123 and Profiler-123.dump.
+
+Users can generate collapse stack trace file.
+```shell
+tools/profiler/cl.py Profiler-123 Profiler-123.dump > col.txt
+```
+
+Then generate flame graph html file.
+```shell
+tools/profiler/flamegraph.pl col.txt > prof.html
+```

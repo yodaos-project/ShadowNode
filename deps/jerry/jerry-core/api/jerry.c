@@ -14,6 +14,9 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <errno.h>
 
 #include "debugger.h"
@@ -211,6 +214,8 @@ jerry_cleanup (void)
   }
 #endif /* JERRY_DEBUGGER */
 
+
+  jerry_stop_cpu_profiling ();
 
   for (jerry_context_data_header_t *this_p = JERRY_CONTEXT (context_data_p), *next_p = NULL;
        this_p != NULL;
@@ -3503,6 +3508,124 @@ jerry_get_backtrace_max_depth (void)
 {
   jerry_assert_api_available ();
   return 10;
+}
+
+bool
+jerry_enable_cpu_profiling (void)
+{
+  jerry_assert_api_available ();
+
+#ifndef JERRY_CPU_PROFILER
+  return false;
+#else
+  return true;
+#endif
+}
+
+/**
+ * start CPU profiling
+ * return false if profiler feature disabled or profiler already started.
+ */
+bool
+jerry_start_cpu_profiling (const char *path,
+                           double duration) /**< millisecond duration, no limit if <= 0 */
+{
+  jerry_assert_api_available ();
+
+#ifndef JERRY_CPU_PROFILER
+  JERRY_UNUSED (path);
+  JERRY_UNUSED (duration);
+  return false;
+#else
+
+  if (JERRY_CONTEXT (cpu_profiling_fp))
+  {
+    return false;
+  }
+
+  FILE *fp = fopen (path, "w");
+  if (fp == NULL)
+  {
+    return false;
+  }
+
+  JERRY_CONTEXT (cpu_profiling_fp) = fp;
+
+  JERRY_CONTEXT (cpu_profiling_start_time) = jerry_port_get_current_time ();
+  JERRY_CONTEXT (cpu_profiling_duration) = duration;
+  return true;
+#endif
+}
+
+extern int fileno (FILE *__stream);
+extern ssize_t readlink (const char *path, char *buf, size_t len);
+bool
+jerry_stop_cpu_profiling (void)
+{
+  jerry_assert_api_available ();
+
+#ifndef JERRY_CPU_PROFILER
+  return false;
+#else
+
+  if (!JERRY_CONTEXT (cpu_profiling_fp))
+  {
+    return false;
+  }
+
+#define CMDLINE_SIZE 128
+  char cmdline[CMDLINE_SIZE + 1] = {0};
+  int fd = fileno (JERRY_CONTEXT (cpu_profiling_fp));
+  snprintf (cmdline, CMDLINE_SIZE, "/proc/self/fd/%d", fd);
+  char prof_dump_path[CMDLINE_SIZE + 1] = {0};
+  ssize_t sz = readlink (cmdline, prof_dump_path, CMDLINE_SIZE);
+  strcpy (prof_dump_path + sz, ".dump");
+  FILE *prof_dump_fp = fopen (prof_dump_path, "w");
+  if (prof_dump_fp == NULL)
+  {
+    goto done;
+  }
+
+  FILE *dump_fp = JERRY_CONTEXT (parser_dump_fd);
+  if (dump_fp == NULL)
+  {
+    goto done;
+  }
+
+  // record file position
+  long int cur_pos = fseek (dump_fp, 0, SEEK_CUR);
+
+  // file size
+  fseek (dump_fp, 0, SEEK_END);
+  size_t file_sz = (size_t) ftell (dump_fp);
+
+  char *dump_buf = (char*) malloc (file_sz);
+  if(dump_buf == NULL)
+  {
+    goto done;
+  }
+  rewind (dump_fp);
+  fread (dump_buf, file_sz, 1, dump_fp);
+  fwrite (dump_buf, file_sz, 1, prof_dump_fp);
+
+  // restore file position
+  fseek (dump_fp, cur_pos, SEEK_SET);
+
+done:
+  if (dump_buf != NULL)
+  {
+    free (dump_buf);
+  }
+  if (prof_dump_fp != NULL)
+  {
+    fclose (prof_dump_fp);
+  }
+  fclose (JERRY_CONTEXT (cpu_profiling_fp));
+  JERRY_CONTEXT (cpu_profiling_fp) = NULL;
+
+  return true;
+#undef CMDLINE_SIZE
+#endif
 }
 
 /**
