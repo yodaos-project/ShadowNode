@@ -23,6 +23,7 @@
 
 * [(DBUS)](DBUS.md)
 * [(MQTT)](MQTT.md)
+* [Profiler](Profiler.md)
 * [(WebSocket)](WebSocket.md)
 
 ## Hardware API
