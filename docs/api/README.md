@@ -14,7 +14,6 @@
 * [Net](Net.md)
 * [OS](OS.md)
 * [Process](Process.md)
-* [Profiler](Profiler.md)
 * [Timers](Timers.md)
 * [TLS](TLS.md)
 * [UDP/Datagram](DGRAM.md)
@@ -24,6 +23,7 @@
 
 * [(DBUS)](DBUS.md)
 * [(MQTT)](MQTT.md)
+* [Profiler](Profiler.md)
 * [(WebSocket)](WebSocket.md)
 
 ## Hardware API

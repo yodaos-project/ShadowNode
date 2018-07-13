@@ -47,7 +47,7 @@ jmem_heap_t jerry_global_heap __attribute__ ((aligned (JMEM_ALIGNMENT))) JERRY_G
 ## CPU Profiler
 Adding below arguments when building and running IoT.js will enable CPU Profiler.
 
-```text
+```shell
 $ ./tools/build.py --jerry-cpu-profiler
 ```
 
