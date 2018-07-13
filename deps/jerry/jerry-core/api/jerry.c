@@ -3557,6 +3557,8 @@ jerry_start_cpu_profiling (const char *path,
 #endif
 }
 
+extern int fileno (FILE *__stream);
+extern ssize_t readlink (const char *path, char *buf, size_t len);
 bool
 jerry_stop_cpu_profiling (void)
 {
@@ -3571,19 +3573,58 @@ jerry_stop_cpu_profiling (void)
     return false;
   }
 
-  if (JERRY_CONTEXT (cpu_profiling_fp))
-  {
-    fclose (JERRY_CONTEXT (cpu_profiling_fp));
-    JERRY_CONTEXT (cpu_profiling_fp) = NULL;
-  }
-
-  jerry_flush_parser_dump_file ();
 #define CMDLINE_SIZE 128
   char cmdline[CMDLINE_SIZE + 1] = {0};
-  size_t pid = (size_t) getpid ();
-  snprintf (cmdline, CMDLINE_SIZE, "cp /tmp/iotjs.%zu ./iotjs.dump", pid);
-  system (cmdline);
+  int fd = fileno (JERRY_CONTEXT (cpu_profiling_fp));
+  snprintf (cmdline, CMDLINE_SIZE, "/proc/self/fd/%d", fd);
+  char prof_dump_path[CMDLINE_SIZE + 1] = {0};
+  ssize_t sz = readlink (cmdline, prof_dump_path, CMDLINE_SIZE);
+  strcpy (prof_dump_path + sz, ".dump");
+  FILE *prof_dump_fp = fopen (prof_dump_path, "w");
+  if (prof_dump_fp == NULL)
+  {
+    goto done;
+  }
+
+  FILE *dump_fp = JERRY_CONTEXT (parser_dump_fd);
+  if (dump_fp == NULL)
+  {
+    goto done;
+  }
+
+  // record file position
+  long int cur_pos = fseek (dump_fp, 0, SEEK_CUR);
+
+  // file size
+  fseek (dump_fp, 0, SEEK_END);
+  size_t file_sz = (size_t) ftell (dump_fp);
+
+  char *dump_buf = (char*)malloc(file_sz);
+  if(dump_buf == NULL)
+  {
+    goto done;
+  }
+  rewind (dump_fp);
+  fread (dump_buf, file_sz, 1, dump_fp);
+  fwrite (dump_buf, file_sz, 1, prof_dump_fp);
+
+  // restore file position
+  fseek (dump_fp, cur_pos, SEEK_SET);
+
+done:
+  if (dump_buf != NULL)
+  {
+    free (dump_buf);
+  }
+  if (prof_dump_fp != NULL)
+  {
+    fclose (prof_dump_fp);
+  }
+  fclose (JERRY_CONTEXT (cpu_profiling_fp));
+  JERRY_CONTEXT (cpu_profiling_fp) = NULL;
+
   return true;
+#undef CMDLINE_SIZE
 #endif
 }
 
