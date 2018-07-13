@@ -9,3 +9,4 @@ var child = require('child_process').fork(__dirname + '/child.js', {
 child.on('message', (data) => {
   // console.log(data.toString());
 });
+
