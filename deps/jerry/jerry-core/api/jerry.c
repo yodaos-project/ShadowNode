@@ -3599,7 +3599,7 @@ jerry_stop_cpu_profiling (void)
   fseek (dump_fp, 0, SEEK_END);
   size_t file_sz = (size_t) ftell (dump_fp);
 
-  char *dump_buf = (char*)malloc(file_sz);
+  char *dump_buf = (char*) malloc (file_sz);
   if(dump_buf == NULL)
   {
     goto done;

@@ -76,6 +76,7 @@ function takeSnapshot() {
 }
 
 /**
+ * startProfiling()
  * startProfiling(path)
  * startProfiling(duration)
  * startProfiling(path, duration)
