@@ -169,8 +169,14 @@ JS_FUNCTION(WriteUtf8String) {
 
   iotjs_string_t data = JS_GET_ARG(0, string);
   uv_buf_t buf;
-  buf = uv_buf_init((char*)iotjs_string_data(&data), iotjs_string_size(&data));
+
+  const char* chunk = iotjs_string_data(&data);
+  const size_t size = iotjs_string_size(&data);
+  buf = uv_buf_init((char*)chunk, size);
   int r = uv_try_write((uv_stream_t*)&_this->handle, &buf, 1);
+
+  // free the data firstly
+  iotjs_string_destroy(&data);
   if (r < 0) {
     return JS_CREATE_ERROR(COMMON, "failed to write to stream.");
   }
