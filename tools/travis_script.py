@@ -80,7 +80,8 @@ if __name__ == '__main__':
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
                         '--cmake-param=-DENABLE_MODULE_ASSERT=ON',
-                        '--tests'])
+                        '--tests',
+                        '--no-check-valgrind'])
 
     elif test == "host-darwin":
         for buildtype in BUILDTYPES:
