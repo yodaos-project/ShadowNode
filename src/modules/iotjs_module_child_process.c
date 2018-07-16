@@ -76,6 +76,7 @@ static void iotjs_processwrap_onexit(uv_process_t* handle, int64_t exit_status,
   if (jerry_value_is_function(fn)) {
     iotjs_make_callback(fn, jthis, &jargs);
   }
+  iotjs_jargs_destroy(&jargs);
   jerry_release_value(status);
   jerry_release_value(signal);
   jerry_release_value(fn);
