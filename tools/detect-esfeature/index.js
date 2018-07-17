@@ -1,5 +1,8 @@
 'use strict';
 
+// from https://github.com/Tokimon/es-feature-detection
+// author: https://github.com/Tokimon
+
 function check(script) {
   try {
     return (new Function('"use strict";\n' + script))() !== false; // eslint-disable-line no-new-func
