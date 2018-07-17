@@ -387,6 +387,9 @@ function ServiceInterface(dbus, name, service) {
 ServiceInterface.prototype.makeCall = function(member, data) {
   var self = this;
   var metadata = self._methods[member];
+  if (!metadata || typeof metadata.handler !== 'function')
+    throw new TypeError(`Invalid caller, ${member} is not callable`);
+
   var args = convertData2Array(data);
   args.push(function(err, response) {
     if (err) throw err;
