@@ -188,9 +188,10 @@ def init_options():
         help='Enable JerryScript-debugger')
 
     # Unit testing and benchmarking options
-    parser.add_argument('--tests',
-        action='store_true', default=False,
-        help='Start checking tests')
+    parser.add_argument('--run-test',
+        nargs='?', default=False, const="quiet", choices=["full", "quiet"],
+        help='Execute tests after build, optional argument specifies '
+             'the level of output for the testrunner')
     parser.add_argument('--no-init-submodule',
         action='store_true', default=False,
         help='Disable initialization of git submodules')
@@ -206,6 +207,8 @@ def init_options():
     parser.add_argument('-e', '--experimental',
         action='store_true', default=False,
         help='Enable to build experimental features')
+    parser.add_argument('--testsets',
+        help='Specify the additional testsets file')
 
     options = parser.parse_args(argv)
     options.config = build_config
@@ -402,27 +405,25 @@ def run_checktest(options):
 
     # IoT.js executable
     iotjs = fs.join(options.build_root, 'bin', 'iotjs')
-    build_args = ['quiet=' + checktest_quiet]
+    cmd = fs.join(path.TOOLS_ROOT, 'testrunner.py')
+    args = [iotjs]
 
-    # experimental
-    if options.experimental:
-        build_args.append('experimental=' + 'yes');
+    # testsets
+    if options.testsets:
+        args.append('--testsets=' + options.testsets);
+
+    if options.run_test == "quiet":
+        args.append('--quiet')
 
     fs.chdir(path.PROJECT_ROOT)
 
     # run unit tests
-    code = ex.run_cmd(iotjs, [path.CHECKTEST_PATH] + build_args)
+    code = ex.run_cmd(cmd, args)
     if code != 0:
         ex.fail('Failed to pass unit tests')
 
     if not options.no_check_valgrind:
-        code = ex.run_cmd('valgrind', ['--leak-check=full',
-                                       '--error-exitcode=5',
-                                       '--undef-value-errors=no',
-                                       iotjs,
-                                       path.CHECKTEST_PATH] + build_args)
-        if code == 5:
-            ex.fail('Failed to pass valgrind test')
+        code = ex.run_cmd(cmd, ['--valgrind'] + args)
         if code != 0:
             ex.fail('Failed to pass unit tests in valgrind environment')
 
@@ -443,8 +444,10 @@ if __name__ == '__main__':
 
     build_iotjs(options)
 
+    print("\n%sIoT.js Build Succeeded!!%s\n" % (ex._TERM_GREEN, ex._TERM_EMPTY))
+
     # Run tests.
-    if options.tests:
+    if options.run_test:
         print_progress('Run tests')
         if options.buildlib:
             print("Skip unit tests - build target is library\n")
@@ -454,5 +457,9 @@ if __name__ == '__main__':
              run_checktest(options)
         else:
             print("Skip unit tests - target-host pair is not allowed\n")
-
-    print("\n%sIoT.js Build Succeeded!!%s\n" % (ex._TERM_GREEN, ex._TERM_EMPTY))
+    else:
+        print("\n%sTo run tests use '--run-test' "
+              "or one of the folowing commands:%s"
+              % (ex._TERM_BLUE, ex._TERM_EMPTY))
+        print("\n    tools/testrunner.py %s/%s/%s/bin/iotjs\n"
+              % (options.builddir, options.target_tuple, options.buildtype))

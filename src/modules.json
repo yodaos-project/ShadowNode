@@ -18,7 +18,6 @@
         "sax",
         "string_decoder",
         "stream",
-        "testdriver",
         "tls",
         "tty",
         "punycode",
@@ -394,11 +393,6 @@
     "tcp": {
       "native_files": ["modules/iotjs_module_tcp.c"],
       "init": "InitTcp"
-    },
-    "testdriver": {
-      "native_files": ["modules/iotjs_module_testdriver.c"],
-      "init": "InitTestdriver",
-      "require": ["assert"]
     },
     "timers": {
       "native_files": ["modules/iotjs_module_timer.c"],
