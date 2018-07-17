@@ -81,13 +81,13 @@ if __name__ == '__main__':
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
                         '--cmake-param=-DENABLE_MODULE_ASSERT=ON',
-                        '--tests',
+                        '--run-test',
                         '--no-check-valgrind'])
 
     elif test == "host-darwin":
         for buildtype in BUILDTYPES:
             ex.check_run_cmd('./tools/build.py', [
-                            '--tests',
+                            '--run-test',
                             '--no-check-valgrind',
                             '--buildtype=' + buildtype,
                             '--clean',
@@ -103,7 +103,7 @@ if __name__ == '__main__':
     elif test == "no-snapshot":
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
-                        '--tests',
+                        '--run-test',
                         '--no-check-valgrind',
                         '--no-snapshot',
                         '--jerry-lto'])
