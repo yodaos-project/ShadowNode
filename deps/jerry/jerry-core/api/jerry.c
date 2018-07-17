@@ -3574,8 +3574,8 @@ jerry_stop_cpu_profiling (void)
   }
 
 #define CMDLINE_SIZE 128
-  char cmdline[CMDLINE_SIZE + 1] = {0};
   char *dump_buf = NULL;
+  char cmdline[CMDLINE_SIZE + 1] = {0};
   int fd = fileno (JERRY_CONTEXT (cpu_profiling_fp));
   snprintf (cmdline, CMDLINE_SIZE, "/proc/self/fd/%d", fd);
   char prof_dump_path[CMDLINE_SIZE + 1] = {0};
