@@ -3575,6 +3575,7 @@ jerry_stop_cpu_profiling (void)
 
 #define CMDLINE_SIZE 128
   char cmdline[CMDLINE_SIZE + 1] = {0};
+  char *dump_buf = NULL;
   int fd = fileno (JERRY_CONTEXT (cpu_profiling_fp));
   snprintf (cmdline, CMDLINE_SIZE, "/proc/self/fd/%d", fd);
   char prof_dump_path[CMDLINE_SIZE + 1] = {0};
@@ -3599,7 +3600,7 @@ jerry_stop_cpu_profiling (void)
   fseek (dump_fp, 0, SEEK_END);
   size_t file_sz = (size_t) ftell (dump_fp);
 
-  char *dump_buf = (char*) malloc (file_sz);
+  dump_buf = (char*) malloc (file_sz);
   if(dump_buf == NULL)
   {
     goto done;
