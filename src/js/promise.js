@@ -1,9 +1,5 @@
 'use strict';
 
-function noop() {
-  // Nothing
-}
-
 function Promise(fn) {
   if (!(this instanceof Promise))
     throw new TypeError('undefined is not a promise');
@@ -45,7 +41,7 @@ function handle(self, deferred) {
 
 function resolve(self, newValue) {
   try {
-    // Promise Resolution Procedure: 
+    // Promise Resolution Procedure:
     // https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
     if (newValue === self)
       throw new TypeError('A promise cannot be resolved with itself.');
@@ -81,7 +77,7 @@ function reject(self, newValue) {
 
 function finale(self) {
   if (self._state === 2 && self._deferreds.length === 0) {
-    process.nextTick(function () {
+    process.nextTick(function() {
       if (!self._handled) {
         Promise._unhandledRejectionFn(self._value);
       }
@@ -110,12 +106,12 @@ function doResolve(fn, self) {
   var done = false;
   try {
     fn(
-      function (value) {
+      function(value) {
         if (done) return;
         done = true;
         resolve(self, value);
       },
-      function (reason) {
+      function(reason) {
         if (done) return;
         done = true;
         reject(self, reason);
@@ -128,42 +124,45 @@ function doResolve(fn, self) {
   }
 }
 
-Promise.prototype['catch'] = function (onRejected) {
+Promise.prototype.catch = function(onRejected) {
   return this.then(null, onRejected);
 };
 
-Promise.prototype.then = function (onFulfilled, onRejected) {
-  var prom = new this.constructor(noop);
-
+Promise.prototype.then = function(onFulfilled, onRejected) {
+  var prom = new this.constructor(function() {
+    // Do nothing
+  });
   handle(this, new Handler(onFulfilled, onRejected, prom));
   return prom;
 };
 
-Promise.prototype['finally'] = function (callback) {
+Promise.prototype.finally = function(callback) {
   var constructor = this.constructor;
   return this.then(
-    function (value) {
-      return constructor.resolve(callback()).then(function () {
+    function(value) {
+      return constructor.resolve(callback()).then(function() {
         return value;
       });
     },
-    function (reason) {
-      return constructor.resolve(callback()).then(function () {
+    function(reason) {
+      return constructor.resolve(callback()).then(function() {
         return constructor.reject(reason);
       });
     }
   );
 };
 
-Promise.all = function (arr) {
+Promise.all = function(arr) {
   var args = arr;
-  if (args.length === 0) return Promise.resolve([]);
-  if (args.length === 1) {
-    return Promise.resolve(arr[0]).then(data => {
-      return [data]
-    })
+  if (args.length === 0) {
+    return Promise.resolve([]);
   }
-  return new Promise(function (resolve, reject) {
+  if (args.length === 1) {
+    return Promise.resolve(arr[0]).then(function(data) {
+      return [data];
+    });
+  }
+  return new Promise(function(resolve, reject) {
     var remaining = args.length;
 
     function res(i, val) {
@@ -171,7 +170,7 @@ Promise.all = function (arr) {
         if (val && (typeof val === 'object' || typeof val === 'function')) {
           if (typeof val.then === 'function') {
             val.then(
-              function (val) {
+              function(val) {
                 res(i, val);
               },
               reject
@@ -194,24 +193,24 @@ Promise.all = function (arr) {
   });
 };
 
-Promise.resolve = function (value) {
+Promise.resolve = function(value) {
   if (value && typeof value === 'object' && value.constructor === Promise) {
     return value;
   }
 
-  return new Promise(function (resolve) {
+  return new Promise(function(resolve) {
     resolve(value);
   });
 };
 
-Promise.reject = function (value) {
-  return new Promise(function (resolve, reject) {
+Promise.reject = function(value) {
+  return new Promise(function(resolve, reject) {
     reject(value);
   });
 };
 
-Promise.race = function (values) {
-  return new Promise(function (resolve, reject) {
+Promise.race = function(values) {
+  return new Promise(function(resolve, reject) {
     for (var i = 0, len = values.length; i < len; i++) {
       values[i].then(resolve, reject);
     }
@@ -219,14 +218,12 @@ Promise.race = function (values) {
 };
 
 // Use polyfill for setImmediate for performance gains
-Promise._immediateFn = function (fn) {
-  setTimeout(fn, 0)
-}
+Promise._immediateFn = function _immediateFn(fn) {
+  setTimeout(fn, 0);
+};
 
 Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
-  if (typeof console !== 'undefined' && console) {
-    console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
-  }
+  console.warn('Possible Unhandled Promise Rejection:', err);
 };
 
 module.exports = Promise;
