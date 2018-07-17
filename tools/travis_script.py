@@ -111,4 +111,3 @@ if __name__ == '__main__':
 
     elif test == "coverity":
         ex.check_run_cmd('./tools/build.py', ['--clean'])
-
