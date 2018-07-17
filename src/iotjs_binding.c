@@ -117,7 +117,7 @@ double iotjs_jval_as_number(jerry_value_t jval) {
 iotjs_string_t iotjs_jval_as_string(jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_string(jval));
 
-  jerry_size_t size = jerry_get_string_size(jval);
+  jerry_size_t size = jerry_get_utf8_string_size(jval);
 
   if (size == 0)
     return iotjs_string_create();
@@ -125,7 +125,7 @@ iotjs_string_t iotjs_jval_as_string(jerry_value_t jval) {
   char* buffer = iotjs_buffer_allocate(size + 1);
   jerry_char_t* jerry_buffer = (jerry_char_t*)(buffer);
 
-  size_t check = jerry_string_to_char_buffer(jval, jerry_buffer, size);
+  size_t check = jerry_string_to_utf8_char_buffer(jval, jerry_buffer, size);
 
   IOTJS_ASSERT(check == size);
   buffer[size] = '\0';
