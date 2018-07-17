@@ -588,7 +588,6 @@ JS_FUNCTION(EmitSignal) {
   JS_DECLARE_THIS_PTR(dbus, dbus);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_dbus_t, dbus);
 
-  DBusMessageIter iter;
   DBusMessage* msg;
   dbus_uint32_t serial = 0;
 
@@ -596,13 +595,28 @@ JS_FUNCTION(EmitSignal) {
   iotjs_string_t iface = JS_GET_ARG(1, string);
   iotjs_string_t signal = JS_GET_ARG(2, string);
   iotjs_string_t signature = JS_GET_ARG(3, string);
-
+  jerry_value_t args = JS_GET_ARG(4, object);
   msg = dbus_message_new_signal(iotjs_string_data(&object_path),
                                 iotjs_string_data(&iface),
                                 iotjs_string_data(&signal));
 
-  dbus_message_iter_init_append(msg, &iter);
-  iotjs_dbus_encode_jobject(jargv[4], &iter, iotjs_string_data(&signature));
+  jerry_size_t length = jerry_get_array_length(args);
+  if (length > 0) {
+    DBusMessageIter iter;
+    DBusSignatureIter signatureIter;
+    dbus_message_iter_init_append(msg, &iter);
+    dbus_signature_iter_init(&signatureIter, iotjs_string_data(&signature));
+
+    for (uint32_t i = 0; i < length; i++) {
+      char* arg_sig = dbus_signature_iter_get_signature(&signatureIter);
+      jerry_value_t val = jerry_get_property_by_index(args, i);
+      iotjs_dbus_encode_jobject(val, &iter, arg_sig);
+      dbus_free(arg_sig);
+
+      if (!dbus_signature_iter_next(&signatureIter))
+        break;
+    }
+  }
 
   dbus_connection_send(_this->connection, msg, &serial);
   dbus_connection_flush(_this->connection);
