@@ -1,0 +1,4 @@
+{
+  "Array.prototype.includes": "return typeof Array.prototype.includes !== 'undefined'",
+  "TypedArray.prototype.includes": "return typeof Int8Array.prototype.includes !== 'undefined' && typeof Uint8Array.prototype.includes !== 'undefined' && typeof Uint8ClampedArray.prototype.includes !== 'undefined' && typeof Int16Array.prototype.includes !== 'undefined' && typeof Uint16Array.prototype.includes !== 'undefined' && typeof Int32Array.prototype.includes !== 'undefined' && typeof Uint32Array.prototype.includes !== 'undefined' && typeof Float32Array.prototype.includes !== 'undefined' && typeof Float64Array.prototype.includes !== 'undefined'"
+}

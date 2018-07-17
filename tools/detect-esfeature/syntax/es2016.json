@@ -1,0 +1,7 @@
+{
+  "Exponentiation operator": "2**3",
+  "Rest destructuring": {
+    "Rest parameter destructuring": "function f(a,{b:{c}},...[d,...e]){}",
+    "Nested rest destructuring": "var {a:{b,c}}={a:{b:1,c:2}}"
+  }
+}
