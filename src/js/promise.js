@@ -1,11 +1,42 @@
+// Copyright (c) 2014 Taylor Hakes
+// Copyright (c) 2014 Forbes Lindesay
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+/*
+ * Forked from https://github.com/taylorhakes/promise-polyfill
+ * Version 487e452.
+ */
+
 'use strict';
+
+var STATE_PENDING = 0;
+var STATE_FULFILLED = 1;
+var STATE_REJECTED = 2;
+var STATE_NEXT = 3;
 
 function Promise(fn) {
   if (!(this instanceof Promise))
     throw new TypeError('undefined is not a promise');
   if (typeof fn !== 'function')
     throw new TypeError('Promise resolver undefined is not a function');
-  this._state = 0;
+  this._state = STATE_PENDING;
   this._handled = false;
   this._value = undefined;
   this._deferreds = [];
@@ -14,18 +45,19 @@ function Promise(fn) {
 }
 
 function handle(self, deferred) {
-  while (self._state === 3) {
+  while (self._state === STATE_NEXT) {
     self = self._value;
   }
-  if (self._state === 0) {
+  if (self._state === STATE_PENDING) {
     self._deferreds.push(deferred);
     return;
   }
   self._handled = true;
   process.nextTick(function() {
-    var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+    var isFulfilled = self._state === STATE_FULFILLED;
+    var cb = isFulfilled ? deferred.onFulfilled : deferred.onRejected;
     if (cb === null) {
-      (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+      (isFulfilled ? resolve : reject)(deferred.promise, self._value);
       return;
     }
     var ret;
@@ -52,7 +84,7 @@ function resolve(self, newValue) {
     ) {
       var then = newValue.then;
       if (newValue instanceof Promise) {
-        self._state = 3;
+        self._state = STATE_NEXT;
         self._value = newValue;
         finale(self);
         return;
@@ -61,7 +93,7 @@ function resolve(self, newValue) {
         return;
       }
     }
-    self._state = 1;
+    self._state = STATE_FULFILLED;
     self._value = newValue;
     finale(self);
   } catch (e) {
@@ -70,13 +102,13 @@ function resolve(self, newValue) {
 }
 
 function reject(self, newValue) {
-  self._state = 2;
+  self._state = STATE_REJECTED;
   self._value = newValue;
   finale(self);
 }
 
 function finale(self) {
-  if (self._state === 2 && self._deferreds.length === 0) {
+  if (self._state === STATE_REJECTED && self._deferreds.length === 0) {
     process.nextTick(function() {
       if (!self._handled) {
         Promise._unhandledRejectionFn(self._value);
