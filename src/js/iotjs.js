@@ -421,6 +421,7 @@
 
   global.console = Module.require('console');
   global.Buffer = Module.require('buffer');
+  global.Promise = Module.require('promise');
 
   var timers;
   function _timeoutHandler(mode) {

@@ -15,6 +15,7 @@
         "os",
         "path",
         "profiler",
+        "promise",
         "sax",
         "string_decoder",
         "stream",
@@ -299,6 +300,9 @@
       "native_files": ["modules/iotjs_module_profiler.c"],
       "init": "InitProfiler",
       "js_file": "js/profiler.js"
+    },
+    "promise": {
+      "js_file": "js/promise.js"
     },
     "pipe_wrap": {
       "native_files": ["modules/iotjs_module_pipe.c"],

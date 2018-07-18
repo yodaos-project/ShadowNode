@@ -1,1 +1,2 @@
-# Currently an empty profile.
+CONFIG_DISABLE_ES2015_PROMISE_BUILTIN
+
