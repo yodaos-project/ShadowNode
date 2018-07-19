@@ -50,11 +50,19 @@ for line in DEBUG_INFO_FILE:
     if line.endswith(':'):
         file_name = line.strip(':')
     else:
-        m = re.match(r'(\+ ([a-zA-Z0-9_]*))? \[(\d+),(\d+)\] (\d+)', line)
+        m = re.match(r'(\+ ([a-zA-Z0-9_]*))?( )*(\[(\d+),(\d+)\])?( )*(\d+)', line)
+        # m.group(1) (\+ ([a-zA-Z0-9_]*))
+        # m.group(2) ([a-zA-Z0-9_]*)
+        # m.group(3) ( )
+        # m.group(4) (\[(\d+),(\d+)\])
+        # m.group(5) (\d+)
+        # m.group(6) (\d+)
+        # m.group(7) ( )
+        # m.group(8) (\d+)
         if m:
-            func_name = m.group(2) if m.group(2) else m.group(5)
-            lineinfo = '(' + m.group(3) + ':' + m.group(4) + ')'
-            DEBUG_INFO[m.group(5)] = func_name + '@' + file_name + lineinfo
+            func_name = m.group(2) if m.group(2) else m.group(8)
+            lineinfo = '(' + m.group(5) + ':' + m.group(6) + ')' if m.group(4) else '()'
+            DEBUG_INFO[m.group(8)] = func_name + '@' + file_name + lineinfo
 
 # map call stack into human readable
 for line, time in STACK_TIME.items():
