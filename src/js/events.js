@@ -25,7 +25,7 @@ module.exports = EventEmitter;
 module.exports.EventEmitter = EventEmitter;
 
 
-EventEmitter.prototype.emit = function(type) {
+EventEmitter.prototype.emit = function(type, arg1, arg2) {
   if (!this._events) {
     this._events = {};
   }
@@ -42,8 +42,13 @@ EventEmitter.prototype.emit = function(type) {
 
   var listeners = this._events[type];
   if (util.isArray(listeners)) {
-    listeners = listeners.slice();
-    var args = Array.prototype.slice.call(arguments, 1);
+    var args;
+    switch (arguments.length) {
+      case 0: args = []; break;
+      case 1: args = [arg1]; break;
+      case 2: args = [arg1, arg2]; break;
+      default: args = Array.prototype.slice.call(arguments, 1); break;
+    }
     for (var i = 0; i < listeners.length; ++i) {
       listeners[i].apply(this, args);
     }
