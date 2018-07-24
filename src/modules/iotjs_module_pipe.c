@@ -189,7 +189,7 @@ JS_FUNCTION(WriteUtf8String) {
   jerry_acquire_value(callback);
 
   const char* chunk = iotjs_string_data(&data);
-  unsigned int size = iotjs_string_size(&data); 
+  unsigned int size = iotjs_string_size(&data);
   uv_write_t* write_req = (uv_write_t*)malloc(sizeof(uv_write_t));
   write_req->data = (void*)(uintptr_t)callback;
   uv_stream_t* handle = (uv_stream_t*)&_this->handle;
