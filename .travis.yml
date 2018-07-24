@@ -1,43 +1,72 @@
-language: c
+stages:
+- test
+- deploy
 
+language: c
 os: linux
 dist: trusty
 sudo: required
 
 services:
-  - docker
+- docker
 
 cache:
   directories:
-    - node_modules/
+  - node_modules/
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tools/apt-get-install-deps.sh; fi
-  - npm install
-  - ls node_modules/.bin
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tools/apt-get-install-deps.sh; fi
+- npm install
+- ls node_modules/.bin
 
 script:
-  - npm run lint
-  - tools/travis_script.py
-
-matrix:
-  include:
-    - env:
-      - JOBNAME="Linux/x86-64 Build & Correctness Tests"
-      - OPTS="host-linux"
-      - RUN_DOCKER=yes
-    - env:
-      - JOBNAME="Linux/x86-64 without snapshot Build & Correctness Tests"
-      - OPTS="no-snapshot"
-      - RUN_DOCKER=yes
-    - env:
-      - JOBNAME="Linux/x86-64 without snapshot Build & Correctness Tests"
-      - OPTS="no-snapshot"
-      - RUN_DOCKER=yes
-    - env:
-      - JOBNAME="OSX/x86-64 Build & Correctness Tests"
-      - OPTS="host-darwin"
-      os: osx
-      install: tools/brew-install-deps.sh
+- npm run lint
+- tools/travis_script.py
 
 fast_finish: true
+
+.deploy_job_template: &deploy_job_template
+  script:
+  - tools/build.py --buildtype release --clean --install --install-prefix $(pwd)/build/usr
+  - tar -czf shadow-node-${TRAVIS_TAG}-$(uname)-$(uname -m).tar.gz -C build ./usr
+  deploy:
+    provider: releases
+    api_key:
+      secure: 2hv9lARw31OBKufMpQXm5IfEtA3yIe8h9xppUzjfaDsW0aoqCA8NoSQPYDnPoAxRGDHHks3r/h33LqP2HLpA2joyXAchMvv9ULoO3f4Pob7ceKRz3VA3Zl/IDHDVaGLhRedV8KtLxxUGPmRmixv0XXyAJulB/EUnkxrfxFHOZgP86X1lJM2JV/1Lr00qiTVmm1kNzDJoPDyBuun70XcKwV8y5h4No8d4xFRieidXQTD9bTQqyzfiOUrC7kawiy2jLu4kqzPEJo+b48UNVqItA85nEHB5lLJ9d2Ae1GFY/cpMs1zZ+s1OLCGD1lQml/dKDfAsvnFnTySc4M7ibxpUmMau/VQ32W+lvvYMOAcPS5joUiSHsrAK6gSOf2/gaq8VjBnzlR8DXTEdSZ2u8CnFIjFqXK8V6Gj9w2Qjo02KHF9jz2mTOPW6Xe6L96A6Wf6Qy/3NIcI2O+MZ92TEsxQ10hsFooCoEIFZGZpcc165PwHr3fevAmPr/hakVPeDcDjjhD4o3k817Tls+Grp3TnlJWvj7wylV2pkf6YBoDvGem3DjezW+KEFbDlJgGDG36/RzrGgQPQZkyBfmBq/yDJt/IEjsN0x+b7V/zxsx7eCHgmZchs1TpcD9xDQAnSPBF4qtiomo+uJYZXna/++H+p4JCiELXsx3TN9A9AblWKFkI8=
+    file_glob: true
+    skip_cleanup: true
+    file: "./shadow-node-*.tar.gz"
+    on:
+      repo: Rokid/ShadowNode
+      tags: true
+
+jobs:
+  include:
+  - stage: test
+    env:
+    - JOBNAME="Linux/x86-64 Build & Correctness Tests"
+    - OPTS="host-linux"
+    - RUN_DOCKER=yes
+  - stage: test
+    env:
+    - JOBNAME="Linux/x86-64 without snapshot Build & Correctness Tests"
+    - OPTS="no-snapshot"
+    - RUN_DOCKER=yes
+  - stage: test
+    env:
+    - JOBNAME="Linux/x86-64 without snapshot Build & Correctness Tests"
+    - OPTS="no-snapshot"
+    - RUN_DOCKER=yes
+  - stage: test
+    env:
+    - JOBNAME="OSX/x86-64 Build & Correctness Tests"
+    - OPTS="host-darwin"
+    os: osx
+    install: tools/brew-install-deps.sh
+
+  - stage: deploy
+    <<: *deploy_job_template
+  - stage: deploy
+    <<: *deploy_job_template
+    os: osx
+    install: tools/brew-install-deps.sh
