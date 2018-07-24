@@ -163,23 +163,41 @@ JS_FUNCTION(PipeReadStart) {
 //   printf("write done with status: %d\n", status);
 // }
 
+static void write_utf8_string_cb(uv_write_t* req, int status) {
+  jerry_value_t callback = (jerry_value_t)(uintptr_t)req->data;
+  iotjs_jargs_t jargs = iotjs_jargs_create(1);
+  if (status) {
+    const char* uv_err = uv_strerror(status);
+    char err[128];
+    sprintf(err, "writeUtf8String error %s", uv_err);
+    iotjs_jargs_append_error(&jargs, err);
+  } else {
+    iotjs_jargs_append_undefined(&jargs);
+  }
+  iotjs_make_callback(callback, jerry_create_undefined(), &jargs);
+  iotjs_jargs_destroy(&jargs);
+  jerry_release_value(callback);
+  free(req);
+}
+
 JS_FUNCTION(WriteUtf8String) {
   JS_DECLARE_THIS_PTR(pipewrap, pipewrap);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pipewrap_t, pipewrap);
 
   iotjs_string_t data = JS_GET_ARG(0, string);
-  uv_buf_t buf;
+  jerry_value_t callback = JS_GET_ARG(1, function);
+  jerry_acquire_value(callback);
 
   const char* chunk = iotjs_string_data(&data);
-  const size_t size = iotjs_string_size(&data);
-  buf = uv_buf_init((char*)chunk, size);
-  int r = uv_try_write((uv_stream_t*)&_this->handle, &buf, 1);
+  unsigned int size = iotjs_string_size(&data); 
+  uv_write_t* write_req = (uv_write_t*)malloc(sizeof(uv_write_t));
+  write_req->data = (void*)(uintptr_t)callback;
+  uv_stream_t* handle = (uv_stream_t*)&_this->handle;
+  uv_buf_t buf = uv_buf_init((char*)chunk, size);
+  uv_write(write_req, handle, &buf, 1, write_utf8_string_cb);
 
   // free the data firstly
   iotjs_string_destroy(&data);
-  if (r < 0) {
-    return JS_CREATE_ERROR(COMMON, "failed to write to stream.");
-  }
   return jerry_create_undefined();
 }
 

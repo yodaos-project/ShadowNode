@@ -653,7 +653,8 @@ function setupChannel(target, channel) {
     }
 
     var string = JSON.stringify(message) + '\n';
-    var err = channel.writeUtf8String(string);
+    callback = typeof callback === 'function' ? callback : function() {}
+    var err = channel.writeUtf8String(string, callback);
 
     if (err === 0 && handle) {
       if (!this._handleQueue)
