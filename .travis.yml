@@ -28,7 +28,7 @@ fast_finish: true
 .deploy_job_template: &deploy_job_template
   script:
   - tools/build.py --buildtype release --clean --install --install-prefix $(pwd)/build/usr
-  - tar -czf shadow-node-$(uname)-$(uname -m).tar.gz -C build ./usr
+  - tar -czf shadow-node-${TRAVIS_TAG}-$(uname)-$(uname -m).tar.gz -C build ./usr
   deploy:
     provider: releases
     api_key:
