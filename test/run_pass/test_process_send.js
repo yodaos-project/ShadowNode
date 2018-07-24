@@ -5,7 +5,7 @@ if (process.send) {
   // send with callback
   process.send(data, err => {
     assert.equal(err, undefined);
-  })
+  });
   // send without callback
   process.send(data);
 } else {
