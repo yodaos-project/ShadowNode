@@ -23,7 +23,7 @@ set(TUV_PLATFORM_PATH ${PLATFORM_NAME_L})
 #
 set(PLATFORM_SRCFILES
       ${PLATFORM_SRCFILES}
-#     ${UNIX_PATH}/proctitle.c
+      ${UNIX_PATH}/proctitle.c
       ${UNIX_PATH}/linux-core.c
 #     ${UNIX_PATH}/linux-inotify.c
       ${UNIX_PATH}/linux-syscalls.c

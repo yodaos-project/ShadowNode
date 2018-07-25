@@ -322,6 +322,25 @@ JS_FUNCTION(Hrtime) {
   return out;
 }
 
+JS_FUNCTION(GetProcessTitle) {
+  char title[1024];
+  int r = uv_get_process_title(title, sizeof(title));
+  if (r == 0) {
+    return jerry_create_string((jerry_char_t*)title);
+  } else if (r == -ENOBUFS) {
+    return JS_CREATE_ERROR(COMMON, "process title is too long");
+  } else {
+    const char* err = uv_strerror(r);
+    return JS_CREATE_ERROR(COMMON, err);
+  }
+}
+
+JS_FUNCTION(SetProcessTitle) {
+  iotjs_string_t title = JS_GET_ARG(0, string);
+  uv_set_process_title(iotjs_string_data(&title));
+  iotjs_string_destroy(&title);
+  return jerry_create_undefined();
+}
 
 JS_FUNCTION(GetEnvironArray) {
   uint32_t size = 0;
@@ -465,7 +484,6 @@ static void SetProcessIotjs(jerry_value_t process) {
 static void SetProcessArgv(jerry_value_t process) {
   const iotjs_environment_t* env = iotjs_environment_get();
   uint32_t argc = iotjs_environment_argc(env);
-
   jerry_value_t argv = jerry_create_array(argc);
 
   for (uint32_t i = 0; i < argc; ++i) {
@@ -475,7 +493,6 @@ static void SetProcessArgv(jerry_value_t process) {
     jerry_release_value(arg);
   }
   iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_ARGV, argv);
-
   jerry_release_value(argv);
 }
 
@@ -531,7 +548,13 @@ jerry_value_t InitProcess() {
                         DebuggerSourceCompile);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DOEXIT, DoExit);
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_KILL, Kill);
-  iotjs_jval_set_method(process, "hrtime", Hrtime);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_HRTIME, Hrtime);
+
+  // process title
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING__GETPROCESSTITLE,
+                        GetProcessTitle);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING__SETPROCESSTITLE,
+                        SetProcessTitle);
 
   // env
   iotjs_jval_set_method(process, "_getEnvironArray", GetEnvironArray);
@@ -544,17 +567,19 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_method(process, "_getStackFrames", GetStackFrames);
   iotjs_jval_set_method(process, "_readParserDump", ReadParserDump);
 
+
   // virtual machine
-  iotjs_jval_set_method(process, "gc", ForceGC);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_GC, ForceGC);
 
   // native module
-  iotjs_jval_set_method(process, "dlopen", DLOpen);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DLOPEN, DLOpen);
 
   // snapshot
-  iotjs_jval_set_method(process, "compileSnapshot", CompileSnapshot);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILESNAPSHOT,
+                        CompileSnapshot);
 
   // stats
-  iotjs_jval_set_method(process, "memoryUsage", MemoryUsage);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_MEMORYUSAGE, MemoryUsage);
 
   // process.builtin_modules
   jerry_value_t builtin_modules = jerry_create_object();

@@ -560,7 +560,6 @@
     process.emit('warning', warning, type, code, ctor);
   };
 
-
   var _hrtime = process.hrtime;
   var NANOSECOND_PER_SECONDS = 1e9;
   process.hrtime = function hrtime(time) {
@@ -590,6 +589,16 @@
     }
     return [left, right];
   };
+
+  // set process.title
+  Object.defineProperty(process, 'title', {
+    get: function() {
+      return process._getProcessTitle();
+    },
+    set: function(val) {
+      process._setProcessTitle(val + '');
+    },
+  });
 
   function setupChannel() {
     // If we were spawned with env NODE_CHANNEL_FD then load that up and
