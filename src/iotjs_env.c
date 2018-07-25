@@ -131,6 +131,9 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
                                                     char** argv) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_environment_t, env);
 
+  // set uv args
+  uv_setup_args((int)argc, argv);
+
   // Parse IoT.js command line arguments.
   uint32_t i = 1;
   uint8_t port_arg_len = strlen("--jerry-debugger-port=");

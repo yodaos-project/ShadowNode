@@ -1081,6 +1081,9 @@ struct uv_dirent_s {
   uv_dirent_type_t type;
 };
 
+UV_EXTERN char** uv_setup_args(int argc, char** argv);
+UV_EXTERN int uv_get_process_title(char* buffer, size_t size);
+UV_EXTERN int uv_set_process_title(const char* title);
 UV_EXTERN int uv_resident_set_memory(size_t* rss);
 UV_EXTERN int uv_uptime(double* uptime);
 

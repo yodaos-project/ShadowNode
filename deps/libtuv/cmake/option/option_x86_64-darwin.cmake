@@ -25,10 +25,10 @@ set(PLATFORM_SRCFILES
 #     ${UNIX_PATH}/bsd-ifaddrs.c
       ${UNIX_PATH}/loop.c
       ${UNIX_PATH}/darwin.c
-#     ${UNIX_PATH}/darwin-proctitle.c
+      ${UNIX_PATH}/darwin-proctitle.c
       ${UNIX_PATH}/fsevents.c
       ${UNIX_PATH}/kqueue.c
-#     ${UNIX_PATH}/proctitle.c
+      ${UNIX_PATH}/proctitle.c
       ${UNIX_PATH}/pipe.c
       ${UNIX_PATH}/pthread-barrier.c
       ${UNIX_PATH}/signal.c

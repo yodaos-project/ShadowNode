@@ -50,7 +50,7 @@ set(PLATFORM_SRCFILES
       ${UNIX_PATH}/pipe.c
       ${UNIX_PATH}/poll.c
       ${UNIX_PATH}/process.c
-#     ${UNIX_PATH}/proctitle.c
+      ${UNIX_PATH}/proctitle.c
       ${UNIX_PATH}/signal.c
       ${UNIX_PATH}/spinlock.h
       ${UNIX_PATH}/stream.c
