@@ -550,8 +550,10 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_HRTIME, Hrtime);
 
   // process title
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING__GETPROCESSTITLE, GetProcessTitle);
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING__SETPROCESSTITLE, SetProcessTitle);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING__GETPROCESSTITLE,
+                        GetProcessTitle);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING__SETPROCESSTITLE,
+                        SetProcessTitle);
 
   // env
   iotjs_jval_set_method(process, "_getEnvironArray", GetEnvironArray);
@@ -572,7 +574,8 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DLOPEN, DLOpen);
 
   // snapshot
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILESNAPSHOT, CompileSnapshot);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILESNAPSHOT,
+                        CompileSnapshot);
 
   // stats
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_MEMORYUSAGE, MemoryUsage);
