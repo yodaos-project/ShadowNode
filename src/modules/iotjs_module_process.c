@@ -330,15 +330,16 @@ JS_FUNCTION(GetProcessTitle) {
   } else if (r == -ENOBUFS) {
     return JS_CREATE_ERROR(COMMON, "process title is too long");
   } else {
-    return JS_CREATE_ERROR(COMMON, "unknown uv error when get process title");
+    const char* err = uv_strerror(r);
+    return JS_CREATE_ERROR(COMMON, err);
   }
 }
 
 JS_FUNCTION(SetProcessTitle) {
   iotjs_string_t title = JS_GET_ARG(0, string);
-  int r = uv_set_process_title(iotjs_string_data(&title));
+  uv_set_process_title(iotjs_string_data(&title));
   iotjs_string_destroy(&title);
-  return jerry_create_number(r);
+  return jerry_create_undefined();
 }
 
 JS_FUNCTION(GetEnvironArray) {
