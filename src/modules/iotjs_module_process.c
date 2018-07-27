@@ -35,22 +35,22 @@ extern char** environ;
 #define STR(x) STR_HELPER(x)
 static jerry_value_t ConstructVersionsObject() {
   jerry_value_t jval = jerry_create_object();
-  iotjs_jval_set_property_string_raw(jval, "node", IOTJS_VERSION);
+  iotjs_jval_set_property_string_raw(jval, IOTJS_MAGIC_STRING_NODE, IOTJS_VERSION);
 
 #define HTTP_PARSER_VERSION_STRING \
   STR(HTTP_PARSER_VERSION_MAJOR)   \
   "." STR(HTTP_PARSER_VERSION_MINOR) "." STR(HTTP_PARSER_VERSION_PATCH)
-  iotjs_jval_set_property_string_raw(jval, "http_parser",
+  iotjs_jval_set_property_string_raw(jval, IOTJS_MAGIC_STRING_HTTPPARSER_SNAKECASE,
                                      HTTP_PARSER_VERSION_STRING);
 #undef HTTP_PARSER_VERSION_STRING
 
 #define UV_VERSION_STRING \
   STR(UV_VERSION_MAJOR)   \
   "." STR(UV_VERSION_MINOR) "." STR(UV_VERSION_PATCH)
-  iotjs_jval_set_property_string_raw(jval, "uv", UV_VERSION_STRING);
+  iotjs_jval_set_property_string_raw(jval, IOTJS_MAGIC_STRING_UV, UV_VERSION_STRING);
 #undef UV_VERSION_STRING
 
-  iotjs_jval_set_property_string_raw(jval, "mbedtls", MBEDTLS_VERSION_STRING);
+  iotjs_jval_set_property_string_raw(jval, IOTJS_MAGIC_STRING_MBEDTLS, MBEDTLS_VERSION_STRING);
 
   return jval;
 }
@@ -632,7 +632,7 @@ jerry_value_t InitProcess() {
                                      IOTJS_VERSION);
 
   jerry_value_t jval_versions = ConstructVersionsObject();
-  iotjs_jval_set_property_jval(process, "versions", jval_versions);
+  iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_VERSIONS, jval_versions);
   jerry_release_value(jval_versions);
 
   // Set iotjs
