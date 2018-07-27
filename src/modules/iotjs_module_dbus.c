@@ -280,12 +280,22 @@ static DBusHandlerResult iotjs_dbus_handle_message(DBusConnection* conn,
   jerry_set_object_native_pointer(jmsg, msg, &this_module_native_info);
 
   iotjs_jargs_t jargs = iotjs_jargs_create(5);
-  iotjs_jargs_append_jval(&jargs, jerry_create_string(sender));
-  iotjs_jargs_append_jval(&jargs, jerry_create_string(object_path));
-  iotjs_jargs_append_jval(&jargs, jerry_create_string(interface));
-  iotjs_jargs_append_jval(&jargs, jerry_create_string(member));
+  jerry_value_t jsender = jerry_create_string(sender);
+  jerry_value_t jobject_path = jerry_create_string(object_path);
+  jerry_value_t jinterface = jerry_create_string(interface);
+  jerry_value_t jmember = jerry_create_string(member);
+  iotjs_jargs_append_jval(&jargs, jsender);
+  iotjs_jargs_append_jval(&jargs, jobject_path);
+  iotjs_jargs_append_jval(&jargs, jinterface);
+  iotjs_jargs_append_jval(&jargs, jmember);
   iotjs_jargs_append_jval(&jargs, jmsg);
   iotjs_make_callback(_this->jcallback, jerry_create_undefined(), &jargs);
+  jerry_release_value(jsender);
+  jerry_release_value(jobject_path);
+  jerry_release_value(jinterface);
+  jerry_release_value(jmember);
+  jerry_release_value(jmsg);
+  iotjs_jargs_destroy(&jargs);
 
   return DBUS_HANDLER_RESULT_HANDLED;
 }
@@ -310,15 +320,25 @@ static DBusHandlerResult iotjs_dbus_signal_filter(DBusConnection* connection,
 
   iotjs_jargs_t jargs = iotjs_jargs_create(5);
   if (sender) {
-    iotjs_jargs_append_jval(&jargs, jerry_create_string(sender));
+    jerry_value_t jsender = jerry_create_string(sender);
+    iotjs_jargs_append_jval(&jargs, jsender);
+    jerry_release_value(jsender);
   } else {
-    iotjs_jargs_append_jval(&jargs, jerry_create_null());
+    iotjs_jargs_append_null(&jargs);
   }
-  iotjs_jargs_append_jval(&jargs, jerry_create_string(object_path));
-  iotjs_jargs_append_jval(&jargs, jerry_create_string(interface));
-  iotjs_jargs_append_jval(&jargs, jerry_create_string(signal));
+  jerry_value_t jobject_path = jerry_create_string(object_path);
+  jerry_value_t jinterface = jerry_create_string(interface);
+  jerry_value_t jsignal = jerry_create_string(signal);
+  iotjs_jargs_append_jval(&jargs, jobject_path);
+  iotjs_jargs_append_jval(&jargs, jinterface);
+  iotjs_jargs_append_jval(&jargs, jsignal);
   iotjs_jargs_append_jval(&jargs, jmsg);
   iotjs_make_callback(_this->signal_handler, jerry_create_undefined(), &jargs);
+  jerry_release_value(jobject_path);
+  jerry_release_value(jinterface);
+  jerry_release_value(jsignal);
+  jerry_release_value(jmsg);
+  iotjs_jargs_destroy(&jargs);
   return DBUS_HANDLER_RESULT_HANDLED;
 }
 
@@ -339,8 +359,11 @@ static void iotjs_dbus_call_method(DBusPendingCall* pending, void* data) {
     return;
 
   iotjs_jargs_t jargs = iotjs_jargs_create(1);
-  iotjs_jargs_append_jval(&jargs, iotjs_dbus_decode_message(msg));
+  jerry_value_t jmsg = iotjs_dbus_decode_message(msg);
+  iotjs_jargs_append_jval(&jargs, jmsg);
   iotjs_make_callback(method_data->jcallback, jerry_create_undefined(), &jargs);
+  jerry_release_value(jmsg);
+  iotjs_jargs_destroy(&jargs);
   dbus_message_unref(msg);
 }
 
@@ -432,6 +455,10 @@ JS_FUNCTION(CallMethod) {
                                    iotjs_string_data(&object_path),
                                    iotjs_string_data(&iface),
                                    iotjs_string_data(&method));
+  iotjs_string_destroy(&service_name);
+  iotjs_string_destroy(&object_path);
+  iotjs_string_destroy(&iface);
+  iotjs_string_destroy(&method);
 
   jerry_size_t length = jerry_get_array_length(args);
   if (length > 0) {
@@ -444,12 +471,14 @@ JS_FUNCTION(CallMethod) {
       char* arg_sig = dbus_signature_iter_get_signature(&signatureIter);
       jerry_value_t val = jerry_get_property_by_index(args, i);
       iotjs_dbus_encode_jobject(val, &iter, arg_sig);
+      jerry_release_value(val);
       dbus_free(arg_sig);
 
       if (!dbus_signature_iter_next(&signatureIter))
         break;
     }
   }
+  iotjs_string_destroy(&signature);
 
   DBusPendingCall* pending;
   if (!dbus_connection_send_with_reply(_this->connection, msg, &pending,
@@ -487,6 +516,7 @@ JS_FUNCTION(RequestName) {
   iotjs_string_t name = JS_GET_ARG(0, string);
 
   dbus_bus_request_name(_this->connection, iotjs_string_data(&name), 0, NULL);
+  iotjs_string_destroy(&name);
   dbus_connection_flush(_this->connection);
   return jerry_create_null();
 }
@@ -503,6 +533,7 @@ JS_FUNCTION(RegisterObjectPath) {
   dbus_bool_t r = dbus_connection_register_object_path(_this->connection,
                                                        iotjs_string_data(&path),
                                                        &vt, (void*)dbus);
+  iotjs_string_destroy(&path);
   dbus_connection_flush(_this->connection);
   if (!r) {
     return JS_CREATE_ERROR(COMMON, "Out of memory");
@@ -518,6 +549,7 @@ JS_FUNCTION(UnregisterObjectPath) {
   dbus_bool_t r =
       dbus_connection_unregister_object_path(_this->connection,
                                              iotjs_string_data(&path));
+  iotjs_string_destroy(&path);
   dbus_connection_flush(_this->connection);
   if (!r)
     return JS_CREATE_ERROR(COMMON, "Out of memory");
@@ -541,6 +573,7 @@ JS_FUNCTION(SendMessageReply) {
 
   dbus_message_iter_init_append(reply, &iter);
   iotjs_dbus_encode_jobject(jargv[1], &iter, iotjs_string_data(&signature));
+  iotjs_string_destroy(&signature);
   dbus_connection_send(_this->connection, reply, &serial);
   dbus_connection_flush(_this->connection);
   dbus_message_unref(reply);
@@ -599,6 +632,9 @@ JS_FUNCTION(EmitSignal) {
   msg = dbus_message_new_signal(iotjs_string_data(&object_path),
                                 iotjs_string_data(&iface),
                                 iotjs_string_data(&signal));
+  iotjs_string_destroy(&object_path);
+  iotjs_string_destroy(&iface);
+  iotjs_string_destroy(&signal);
 
   jerry_size_t length = jerry_get_array_length(args);
   if (length > 0) {
@@ -612,11 +648,13 @@ JS_FUNCTION(EmitSignal) {
       jerry_value_t val = jerry_get_property_by_index(args, i);
       iotjs_dbus_encode_jobject(val, &iter, arg_sig);
       dbus_free(arg_sig);
+      jerry_release_value(val);
 
       if (!dbus_signature_iter_next(&signatureIter))
         break;
     }
   }
+  iotjs_string_destroy(&signature);
 
   dbus_connection_send(_this->connection, msg, &serial);
   dbus_connection_flush(_this->connection);
@@ -646,5 +684,6 @@ jerry_value_t InitDBus() {
 
   jerry_release_value(proto);
   jerry_release_value(jdbusConstructor);
+  jerry_release_value(jdbus);
   return jdbus;
 }
