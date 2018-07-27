@@ -16,11 +16,13 @@
 #include "iotjs_def.h"
 #include "iotjs_exception.h"
 #include "iotjs_js.h"
+#include "http_parser.h"
 #include "jerryscript-debugger.h"
 #include <dlfcn.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "mbedtls/version.h"
 
 #ifdef __APPLE__
 #include <crt_externs.h>
@@ -29,6 +31,35 @@
 extern char** environ;
 #endif
 
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+static jerry_value_t ConstructVersionsObject() {
+  jerry_value_t jval = jerry_create_object();
+  iotjs_jval_set_property_string_raw(jval, IOTJS_MAGIC_STRING_NODE,
+                                     IOTJS_VERSION);
+
+#define HTTP_PARSER_VERSION_STRING \
+  STR(HTTP_PARSER_VERSION_MAJOR)   \
+  "." STR(HTTP_PARSER_VERSION_MINOR) "." STR(HTTP_PARSER_VERSION_PATCH)
+  iotjs_jval_set_property_string_raw(jval,
+                                     IOTJS_MAGIC_STRING_HTTPPARSER_SNAKECASE,
+                                     HTTP_PARSER_VERSION_STRING);
+#undef HTTP_PARSER_VERSION_STRING
+
+#define UV_VERSION_STRING \
+  STR(UV_VERSION_MAJOR)   \
+  "." STR(UV_VERSION_MINOR) "." STR(UV_VERSION_PATCH)
+  iotjs_jval_set_property_string_raw(jval, IOTJS_MAGIC_STRING_UV,
+                                     UV_VERSION_STRING);
+#undef UV_VERSION_STRING
+
+  iotjs_jval_set_property_string_raw(jval, IOTJS_MAGIC_STRING_MBEDTLS,
+                                     MBEDTLS_VERSION_STRING);
+
+  return jval;
+}
+#undef STR
+#undef STR_HELPER
 
 static jerry_value_t WrapEval(const char* name, size_t name_len,
                               const char* source, size_t length) {
@@ -604,6 +635,10 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_property_string_raw(process, IOTJS_MAGIC_STRING_VERSION,
                                      IOTJS_VERSION);
 
+  jerry_value_t jval_versions = ConstructVersionsObject();
+  iotjs_jval_set_property_jval(process, IOTJS_MAGIC_STRING_VERSIONS,
+                               jval_versions);
+  jerry_release_value(jval_versions);
 
   // Set iotjs
   SetProcessIotjs(process);

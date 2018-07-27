@@ -70,7 +70,18 @@ extern void force_terminate();
 #define TARGET_OS "unknown"
 #endif
 
-#define IOTJS_VERSION "1.0.0"
+#ifndef NODE_MAJOR_VERSION
+#define NODE_MAJOR_VERSION "0"
+#endif
+#ifndef NODE_MINOR_VERSION
+#define NODE_MINOR_VERSION "0"
+#endif
+#ifndef NODE_PATCH_VERSION
+#define NODE_PATCH_VERSION "0"
+#endif
+#define IOTJS_VERSION \
+  NODE_MAJOR_VERSION  \
+  "." NODE_MINOR_VERSION "." NODE_PATCH_VERSION
 
 #if !defined(STRINGIFY)
 #define STRINGIFY(x) #x
