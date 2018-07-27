@@ -84,6 +84,10 @@ lit_magic_string_id_t ROUTINE_NAME_MAGIC_ID[] =
 {
 #define ROUTINE(name, c_function_name, args_number, length_prop_value) \
   name,
+#define ACCESSOR_READ_WRITE(name, c_getter_func_name, c_setter_func_name, prop_attributes) \
+  name,
+#define ACCESSOR_READ_ONLY(name, c_getter_func_name, prop_attributes) \
+  name,
 #define DUMMY_ROUTINE \
   LIT_MAGIC_STRING__EMPTY,
 #include BUILTIN_INC_HEADER_NAME
