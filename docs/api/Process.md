@@ -181,6 +181,26 @@ console.log(process.version);
 // 1.0.0
 ```
 
+### process.versions
+* {Object}
+
+The `process.versions` property returns an object listing the version strings of ShadowNode and its dependencies.
+
+```js
+console.log(process.versions);
+```
+
+Will generate an object similar to:
+
+```json
+{
+  "node":"0.8.0",
+  "http_parser":"2.5.0",
+  "uv":"1.10.1",
+  "mbedtls":"2.4.0"
+}
+```
+
 ### Event: 'exit'
 * `callback` {Function}
   * `code` {integer}  exitCode
