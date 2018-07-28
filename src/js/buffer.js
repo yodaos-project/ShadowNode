@@ -402,11 +402,21 @@ Buffer.prototype.readInt32LE = function(offset, noAssert) {
 // [1] buff.readFloatLE(offset)
 // [2] buff.readFloatLE(offset, noAssert)
 Buffer.prototype.readFloatLE = function(offset, noAssert) {
-  // TODO
   offset = offset >>> 0;
   if (!noAssert)
     checkOffset(offset, 2, this.length);
-  return 1.0;
+  return this._builtin.readFloatLE(offset);
+};
+
+
+// buff.readDoubleLE(offset[,noAssert])
+// [1] buff.readDoubleLE(offset)
+// [2] buff.readDoubleLE(offset, noAssert)
+Buffer.prototype.readDoubleLE = function(offset, noAssert) {
+  offset = offset >>> 0;
+  if (!noAssert)
+    checkOffset(offset, 2, this.length);
+  return this._builtin.readDoubleLE(offset);
 };
 
 
