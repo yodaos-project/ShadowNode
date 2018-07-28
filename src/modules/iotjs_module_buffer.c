@@ -639,7 +639,7 @@ jerry_value_t InitBuffer() {
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READUINT8, ReadUInt8);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READFLOATLE, ReadFloatLE);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READDOUBLELE,
-			ReadDoubleLE);
+                        ReadDoubleLE);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SLICE, Slice);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOSTRING, ToString);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOHEXSTRING, ToHexString);
