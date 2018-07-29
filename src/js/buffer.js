@@ -404,7 +404,7 @@ Buffer.prototype.readInt32LE = function(offset, noAssert) {
 Buffer.prototype.readFloatLE = function(offset, noAssert) {
   offset = offset >>> 0;
   if (!noAssert)
-    checkOffset(offset, 2, this.length);
+    checkOffset(offset, 4, this.length);
   return this._builtin.readFloatLE(offset);
 };
 
@@ -415,7 +415,7 @@ Buffer.prototype.readFloatLE = function(offset, noAssert) {
 Buffer.prototype.readDoubleLE = function(offset, noAssert) {
   offset = offset >>> 0;
   if (!noAssert)
-    checkOffset(offset, 2, this.length);
+    checkOffset(offset, 8, this.length);
   return this._builtin.readDoubleLE(offset);
 };
 
