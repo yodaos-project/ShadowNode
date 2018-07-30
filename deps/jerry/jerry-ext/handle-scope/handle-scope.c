@@ -126,8 +126,8 @@ jerryx_escape_handle(jerryx_escapable_handle_scope scope,
 {
   bool found = false;
   jerryx_handle_t *handle = scope->handle_ptr;
-  jerryx_handle_t *memo_handle;
-  jerryx_handle_t *found_handle;
+  jerryx_handle_t *memo_handle = NULL;
+  jerryx_handle_t *found_handle = NULL;
   while (!found)
   {
     if (handle == NULL)
@@ -145,20 +145,24 @@ jerryx_escape_handle(jerryx_escapable_handle_scope scope,
      */
     found = true;
     found_handle = handle;
-    if (memo_handle != NULL)
+    if (memo_handle == NULL)
+    {
+      scope->handle_ptr = NULL;
+    }
+    else
     {
       memo_handle->sibling = found_handle->sibling;
     }
   }
 
-  if (scope->parent == NULL) {
+  jerryx_handle_scope parent = scope->parent;
+  if (parent == NULL) {
     return jerryx_handle_scope_mismatch;
   }
 
   /**
    * Escape handle to parent scope
    */
-  jerryx_handle_scope parent = scope->parent;
   found_handle->sibling = parent->handle_ptr;
   parent->handle_ptr = found_handle;
   *result = found_handle->jval;
