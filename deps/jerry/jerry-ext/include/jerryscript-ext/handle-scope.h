@@ -61,12 +61,6 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
                       jerry_value_t escapee,
                       jerry_value_t *result);
 
-void
-jerryx_handle_scope_release_handles(jerryx_handle_t *handle);
-
-void
-jerryx_handle_scope_add_to (jerry_value_t jval, jerryx_handle_scope scope);
-
 jerry_value_t
 jerryx_handle_add (jerry_value_t jval);
 

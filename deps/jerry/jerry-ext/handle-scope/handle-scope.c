@@ -13,7 +13,7 @@
  */
 
 #include <stdlib.h>
-#include "jerryscript-ext/handle-scope.h"
+#include "handle-scope-internal.h"
 
 const jerryx_handle_scope_t jerryx_handle_scope_root;
 jerryx_handle_scope jerryx_handle_scope_current = (jerryx_handle_scope) &jerryx_handle_scope_root;
@@ -24,9 +24,9 @@ jerryx_handle_scope jerryx_handle_scope_current = (jerryx_handle_scope) &jerryx_
  * @return status code, jerryx_handle_scope_ok if success.
  */
 jerryx_handle_scope_status
-jerryx_open_handle_scope(jerryx_handle_scope *result)
+jerryx_open_handle_scope (jerryx_handle_scope *result)
 {
-  jerryx_handle_scope scope = malloc(sizeof(jerryx_handle_scope_t));
+  jerryx_handle_scope scope = malloc (sizeof(jerryx_handle_scope_t));
   scope->handle_ptr = NULL;
   scope->child = NULL;
   jerryx_handle_scope_current->child = scope;
@@ -42,14 +42,14 @@ jerryx_open_handle_scope(jerryx_handle_scope *result)
  * Release all jerry values that the handle and its siblings holds.
  */
 void
-jerryx_handle_scope_release_handles(jerryx_handle_t *handle)
+jerryx_handle_scope_release_handles (jerryx_handle_t *handle)
 {
   jerryx_handle_t *a_handle = handle;
   while (a_handle != NULL)
   {
-    jerry_release_value(a_handle->jval);
+    jerry_release_value (a_handle->jval);
     jerryx_handle_t *sibling = a_handle->sibling;
-    free(a_handle);
+    free (a_handle);
     a_handle = sibling;
   }
 }
@@ -63,7 +63,7 @@ jerryx_handle_scope_release_handles(jerryx_handle_t *handle)
  * @return status code, jerryx_handle_scope_ok if success.
  */
 jerryx_handle_scope_status
-jerryx_close_handle_scope(jerryx_handle_scope scope)
+jerryx_close_handle_scope (jerryx_handle_scope scope)
 {
   if (scope->parent != NULL)
   {
@@ -76,11 +76,11 @@ jerryx_close_handle_scope(jerryx_handle_scope scope)
   jerryx_handle_scope a_scope = scope;
   do
   {
-    jerryx_handle_scope_release_handles(a_scope->handle_ptr);
+    jerryx_handle_scope_release_handles (a_scope->handle_ptr);
     jerryx_handle_scope child = a_scope->child;
-    free(a_scope);
+    free (a_scope);
     a_scope = child;
-  } while(a_scope != NULL);
+  } while (a_scope != NULL);
 
   return jerryx_handle_scope_ok;
 }
@@ -93,9 +93,9 @@ jerryx_close_handle_scope(jerryx_handle_scope scope)
  * @return status code, jerryx_handle_scope_ok if success.
  */
 jerryx_handle_scope_status
-jerryx_open_escapable_handle_scope(jerryx_handle_scope *result)
+jerryx_open_escapable_handle_scope (jerryx_handle_scope *result)
 {
-  return jerryx_open_handle_scope(result);
+  return jerryx_open_handle_scope (result);
 }
 
 
@@ -107,9 +107,9 @@ jerryx_open_escapable_handle_scope(jerryx_handle_scope *result)
  * @return status code, jerryx_handle_scope_ok if success.
  */
 jerryx_handle_scope_status
-jerryx_close_escapable_handle_scope(jerryx_handle_scope scope)
+jerryx_close_escapable_handle_scope (jerryx_handle_scope scope)
 {
-  return jerryx_close_handle_scope(scope);
+  return jerryx_close_handle_scope (scope);
 }
 
 
@@ -121,9 +121,9 @@ jerryx_close_escapable_handle_scope(jerryx_handle_scope scope)
  * @return status code, jerryx_handle_scope_ok if success.
  */
 jerryx_handle_scope_status
-jerryx_escape_handle(jerryx_escapable_handle_scope scope,
-                     jerry_value_t escapee,
-                     jerry_value_t *result)
+jerryx_escape_handle (jerryx_escapable_handle_scope scope,
+                      jerry_value_t escapee,
+                      jerry_value_t *result)
 {
   bool found = false;
   jerryx_handle_t *handle = scope->handle_ptr;
@@ -174,9 +174,9 @@ jerryx_escape_handle(jerryx_escapable_handle_scope scope,
 
 
 void
-jerryx_handle_scope_add_to(jerry_value_t jval, jerryx_handle_scope scope)
+jerryx_handle_scope_add_to (jerry_value_t jval, jerryx_handle_scope scope)
 {
-  jerryx_handle_t *handle = malloc(sizeof(jerryx_handle_t));
+  jerryx_handle_t *handle = malloc (sizeof(jerryx_handle_t));
   handle->jval = jval;
 
   handle->sibling = scope->handle_ptr;
@@ -185,8 +185,8 @@ jerryx_handle_scope_add_to(jerry_value_t jval, jerryx_handle_scope scope)
 
 
 jerry_value_t
-jerryx_handle_add(jerry_value_t jval)
+jerryx_handle_add (jerry_value_t jval)
 {
-  jerryx_handle_scope_add_to(jval, jerryx_handle_scope_current);
+  jerryx_handle_scope_add_to (jval, jerryx_handle_scope_current);
   return jval;
 }
