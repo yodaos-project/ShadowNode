@@ -38,8 +38,8 @@ static const jerry_object_native_info_t native_info =
 static jerry_value_t
 create_object (void)
 {
-  jerryx_handle_scope scope;
-  jerryx_open_handle_scope (&scope);
+  jerryx_escapable_handle_scope scope;
+  jerryx_open_escapable_handle_scope (&scope);
   jerry_value_t obj = jerryx_handle_add (jerry_create_object ());
   jerry_set_object_native_pointer (obj, NULL, &native_info);
 
