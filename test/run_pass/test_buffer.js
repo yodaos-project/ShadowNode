@@ -207,3 +207,20 @@ assert.equal(buff18.readInt32LE(0), 117901063);
 
 var buff19 = new Buffer([0xb5, 0x01]);
 assert.equal(buff19.readInt16LE(0), 437);
+
+var buff20 = new Buffer([10, 20, 30, 40]);
+assert.equal(buff20.readFloatLE(0), 8.775107173558151e-15);
+assert.throws(function() {
+  var buff = new Buffer(3);
+  buff.fill(10);
+  buff.readFloatLE(0);
+}, RangeError);
+
+var buff21 = new Buffer([10, 20, 30, 40, 0, 0, 10, 20]);
+assert.equal(buff21.readDoubleLE(0), 3.8615925991830683e-212);
+assert.throws(function() {
+  var buff = new Buffer(7);
+  buff.fill(10);
+  buff.readDoubleLE(0);
+}, RangeError);
+

@@ -597,3 +597,45 @@ var buffer = new Buffer('ABCDEF');
 // prints: 4342
 console.log(buffer.readUInt16LE(1).toString(16));
 ```
+
+
+### buf.readFloatLE(offset[, noAssert])
+* `offset` {number} Start position of buffer for reading.
+* `noAssert` {boolean} Skip offset validation. **Default:** `false`
+* Returns: {number}
+
+Reads a float number from `buf` buffer starting from `offset` position with
+little endian format.
+
+If `noAssert` is set and the offset is higher than the size of
+the buffer the result is undefined.
+
+**Example**
+
+```js
+var Buffer = require('buffer');
+
+var buffer = new Buffer([1, 2, 3, 4]);
+console.log(buffer.readFloatLE(1));
+```
+
+
+### buf.readDoubleLE(offset[, noAssert])
+* `offset` {number} Start position of buffer for reading.
+* `noAssert` {boolean} Skip offset validation. **Default:** `false`
+* Returns: {number}
+
+Reads a double number from `buf` buffer starting from `offset` position with
+little endian format.
+
+If `noAssert` is set and the offset is higher than the size of
+the buffer the result is undefined.
+
+**Example**
+
+```js
+var Buffer = require('buffer');
+
+var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+console.log(buffer.readDoubleLE(1);
+```

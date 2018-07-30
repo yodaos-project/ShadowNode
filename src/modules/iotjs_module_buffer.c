@@ -429,6 +429,44 @@ JS_FUNCTION(ReadUInt8) {
 }
 
 
+JS_FUNCTION(ReadFloatLE) {
+  JS_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
+  DJS_CHECK_ARGS(1, number);
+
+  size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
+  size_t offset = iotjs_convert_double_to_sizet(JS_GET_ARG(0, number));
+  offset = bound_range(offset, 0, buffer_length - 1);
+
+  char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
+  float result = 0.0;
+
+  if (buffer != NULL) {
+    const char* ptr = buffer + offset;
+    memcpy(&result, ptr, sizeof(float));
+  }
+  return jerry_create_number(result);
+}
+
+
+JS_FUNCTION(ReadDoubleLE) {
+  JS_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
+  DJS_CHECK_ARGS(1, number);
+
+  size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
+  size_t offset = iotjs_convert_double_to_sizet(JS_GET_ARG(0, number));
+  offset = bound_range(offset, 0, buffer_length - 1);
+
+  char* buffer = iotjs_bufferwrap_buffer(buffer_wrap);
+  double result = 0.0;
+
+  if (buffer != NULL) {
+    const char* ptr = buffer + offset;
+    memcpy(&result, ptr, sizeof(double));
+  }
+  return jerry_create_number(result);
+}
+
+
 JS_FUNCTION(Slice) {
   JS_DECLARE_THIS_PTR(bufferwrap, buffer_wrap);
   DJS_CHECK_ARGS(2, number, number);
@@ -599,6 +637,9 @@ jerry_value_t InitBuffer() {
 
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_WRITEUINT8, WriteUInt8);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READUINT8, ReadUInt8);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READFLOATLE, ReadFloatLE);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_READDOUBLELE,
+                        ReadDoubleLE);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_SLICE, Slice);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOSTRING, ToString);
   iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_TOHEXSTRING, ToHexString);
