@@ -1,0 +1,59 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef JERRYX_HANDLE_SCOPE_H
+#define JERRYX_HANDLE_SCOPE_H
+
+#include "jerryscript.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+
+typedef struct {
+  jerry_value_t jval;
+  jerryx_handle_t *sibling;
+} jerryx_handle_t;
+
+typedef struct {
+  jerryx_handle_t *handle_ptr;
+  jerryx_handle_scope_t *child;
+  jerryx_handle_scope_t *parent;
+} jerryx_handle_scope_t;
+typedef jerryx_handle_scope_t *jerryx_handle_scope;
+typedef jerryx_handle_scope_t *jerryx_escapable_handle_scope;
+
+typedef enum {
+  jerryx_handle_scope_ok = 0,
+
+  jerryx_escape_called_twice,
+  jerryx_handle_scope_mismatch,
+} jerryx_handle_scope_status;
+
+const jerryx_handle_scope_t jerryx_handle_scope_root;
+jerryx_handle_scope jerryx_handle_scope_current = &jerryx_handle_scope_root;
+
+jerryx_handle_scope_status jerryx_open_handle_scope(jerryx_handle_scope *result);
+jerryx_handle_scope_status jerryx_close_handle_scope(jerryx_handle_scope scope);
+jerryx_handle_scope_status jerryx_open_escapable_handle_scope(jerryx_handle_scope *result);
+jerryx_handle_scope_status jerryx_close_escapable_handle_scope(jerryx_handle_scope scope);
+jerryx_handle_scope_status jerryx_escape_handle(jerryx_escapable_handle_scope scope,
+                                                jerry_value_t escapee,
+                                                jerry_value_t *result);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+#endif /* !JERRYX_HANDLE_SCOPE_H */
