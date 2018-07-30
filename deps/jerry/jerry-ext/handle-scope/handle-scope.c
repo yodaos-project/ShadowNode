@@ -12,14 +12,19 @@
  * limitations under the License.
  */
 
+#include <stdlib.h>
 #include "jerryscript-ext/handle-scope.h"
+
+const jerryx_handle_scope_t jerryx_handle_scope_root;
+jerryx_handle_scope jerryx_handle_scope_current = (jerryx_handle_scope) &jerryx_handle_scope_root;
 
 /**
  * Opens a new handle scope and attach it to current global scope as a child scope.
  *
  * @return status code, jerryx_handle_scope_ok if success.
  */
-jerryx_handle_scope_status jerryx_open_handle_scope(jerryx_handle_scope *result)
+jerryx_handle_scope_status
+jerryx_open_handle_scope(jerryx_handle_scope *result)
 {
   jerryx_handle_scope scope = malloc(sizeof(jerryx_handle_scope_t));
   scope->handle_ptr = NULL;
@@ -36,7 +41,8 @@ jerryx_handle_scope_status jerryx_open_handle_scope(jerryx_handle_scope *result)
 /**
  * Release all jerry values that the handle and its siblings holds.
  */
-void jerryx_handle_scope_release_handles(jerryx_handle_t *handle) {
+void
+jerryx_handle_scope_release_handles(jerryx_handle_t *handle) {
   jerryx_handle_t *a_handle = handle;
   while (a_handle != NULL)
   {
@@ -55,7 +61,8 @@ void jerryx_handle_scope_release_handles(jerryx_handle_t *handle) {
  *
  * @return status code, jerryx_handle_scope_ok if success.
  */
-jerryx_handle_scope_status jerryx_close_handle_scope(jerryx_handle_scope scope)
+jerryx_handle_scope_status
+jerryx_close_handle_scope(jerryx_handle_scope scope)
 {
   if (scope->parent != NULL)
   {
@@ -84,7 +91,8 @@ jerryx_handle_scope_status jerryx_close_handle_scope(jerryx_handle_scope scope)
  *
  * @return status code, jerryx_handle_scope_ok if success.
  */
-jerryx_handle_scope_status jerryx_open_escapable_handle_scope(jerryx_handle_scope *result)
+jerryx_handle_scope_status
+jerryx_open_escapable_handle_scope(jerryx_handle_scope *result)
 {
   return jerryx_open_handle_scope(result);
 }
@@ -97,7 +105,8 @@ jerryx_handle_scope_status jerryx_open_escapable_handle_scope(jerryx_handle_scop
  *
  * @return status code, jerryx_handle_scope_ok if success.
  */
-jerryx_handle_scope_status jerryx_close_escapable_handle_scope(jerryx_handle_scope scope)
+jerryx_handle_scope_status
+jerryx_close_escapable_handle_scope(jerryx_handle_scope scope)
 {
   return jerryx_close_handle_scope(scope);
 }
@@ -110,9 +119,10 @@ jerryx_handle_scope_status jerryx_close_escapable_handle_scope(jerryx_handle_sco
  *
  * @return status code, jerryx_handle_scope_ok if success.
  */
-jerryx_handle_scope_status jerryx_escape_handle(jerryx_escapable_handle_scope scope,
-                                                jerry_value_t escapee,
-                                                jerry_value_t *result)
+jerryx_handle_scope_status
+jerryx_escape_handle(jerryx_escapable_handle_scope scope,
+                     jerry_value_t escapee,
+                     jerry_value_t *result)
 {
   bool found = false;
   jerryx_handle_t *handle = scope->handle_ptr;
@@ -133,13 +143,12 @@ jerryx_handle_scope_status jerryx_escape_handle(jerryx_escapable_handle_scope sc
     /**
      * Remove found handle from current scope's handle chain
      */
-    found == true;
+    found = true;
     found_handle = handle;
     if (memo_handle != NULL)
     {
       memo_handle->sibling = found_handle->sibling;
     }
-    break;
   }
 
   if (scope->parent == NULL) {
@@ -155,4 +164,23 @@ jerryx_handle_scope_status jerryx_escape_handle(jerryx_escapable_handle_scope sc
   *result = found_handle->jval;
 
   return jerryx_handle_scope_ok;
+}
+
+
+void
+jerryx_handle_scope_add_to(jerry_value_t jval, jerryx_handle_scope scope)
+{
+  jerryx_handle_t *handle = malloc(sizeof(jerryx_handle_t));
+  handle->jval = jval;
+
+  handle->sibling = scope->handle_ptr;
+  scope->handle_ptr = handle;
+}
+
+
+jerry_value_t
+jerryx_handle_add(jerry_value_t jval)
+{
+  jerryx_handle_scope_add_to(jval, jerryx_handle_scope_current);
+  return jval;
 }
