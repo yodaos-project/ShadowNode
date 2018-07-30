@@ -42,7 +42,8 @@ jerryx_open_handle_scope(jerryx_handle_scope *result)
  * Release all jerry values that the handle and its siblings holds.
  */
 void
-jerryx_handle_scope_release_handles(jerryx_handle_t *handle) {
+jerryx_handle_scope_release_handles(jerryx_handle_t *handle)
+{
   jerryx_handle_t *a_handle = handle;
   while (a_handle != NULL)
   {
@@ -156,7 +157,8 @@ jerryx_escape_handle(jerryx_escapable_handle_scope scope,
   }
 
   jerryx_handle_scope parent = scope->parent;
-  if (parent == NULL) {
+  if (parent == NULL)
+  {
     return jerryx_handle_scope_mismatch;
   }
 
