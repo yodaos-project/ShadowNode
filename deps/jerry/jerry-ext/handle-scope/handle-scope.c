@@ -150,6 +150,7 @@ jerryx_handle_scope_status jerryx_escape_handle(jerryx_escapable_handle_scope sc
   jerryx_handle_scope parent = scope->parent;
   found_handle->sibling = parent->handle_ptr;
   parent->handle_ptr = found_handle;
+  *result = found_handle->jval;
 
   return jerryx_handle_scope_ok;
 }
