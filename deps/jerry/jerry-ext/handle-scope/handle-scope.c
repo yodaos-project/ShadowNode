@@ -41,7 +41,9 @@ void jerryx_handle_scope_release_handles(jerryx_handle_t *handle) {
   while (a_handle != NULL)
   {
     jerry_release_value(a_handle->jval);
-    a_handle = a_handle->sibling;
+    jerryx_handle_t *sibling = a_handle->sibling;
+    free(a_handle);
+    a_handle = sibling;
   }
 }
 
