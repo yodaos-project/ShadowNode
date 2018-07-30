@@ -24,7 +24,6 @@ ExternalProject_Add(hostjerry
   INSTALL_COMMAND ""
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCMAKE_C_COMPILER=/usr/bin/gcc
     -DCMAKE_C_FLAGS="--std=c99"
     -DENABLE_ALL_IN_ONE=ON
     -DENABLE_STATIC_LINK=OFF
