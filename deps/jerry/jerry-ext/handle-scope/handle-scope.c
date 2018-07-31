@@ -113,9 +113,10 @@ jerryx_close_escapable_handle_scope (jerryx_handle_scope scope)
  * An assertion of if parent exists shall be made before invoking this function.
  *
  */
-void
+jerry_value_t
 jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t idx)
 {
+  jerry_value_t jval = scope->handle_prelist[idx];
   jerryx_handle_scope_add_to (scope->handle_prelist[idx], jerryx_handle_scope_get_parent (scope));
 
   if (scope->handle_count > JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT)
@@ -124,14 +125,15 @@ jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t 
     scope->handle_ptr = handle->sibling;
     scope->handle_prelist[idx] = handle->jval;
     scope->handle_count -= 1;
-    return;
+    return jval;
   }
 
   if (idx < JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT - 1)
   {
-    scope->handle_prelist[idx] = scope->handle_prelist[JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT - 1];
+    scope->handle_prelist[idx] = scope->handle_prelist[scope->handle_count - 1];
   }
   scope->handle_count -= 1;
+  return jval;
 }
 
 
@@ -169,7 +171,11 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
 
     if (found)
     {
-      jerryx_hand_scope_escape_handle_from_prelist (scope, found_idx);
+      /**
+       * Escape handle to parent scope
+       * handle count has been decremented in `jerryx_hand_scope_escape_handle_from_prelist`
+       */
+      *result =jerryx_hand_scope_escape_handle_from_prelist (scope, found_idx);
       return jerryx_handle_scope_ok;
     }
   }
@@ -254,7 +260,6 @@ jerryx_handle_scope_add_to (jerry_value_t jval, jerryx_handle_scope scope)
   if (handle_count < JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT)
   {
     scope->handle_prelist[handle_count] = jval;
-    scope->handle_count = handle_count + 1;
     return;
   }
   jerryx_handle_t *handle = malloc (sizeof(jerryx_handle_t));

@@ -14,17 +14,17 @@
  */
 
 /**
- * Unit test for jerry-ext/handle-scope-handle-prelist.
+ * Unit test for jerry-ext/handle-scope.
  *
- * Tests escaping jerry value that holds on scope's handle heap.
+ * Tests escaping jerry value that passed from scopes which are created on heap.
+ * Also reallocates scopes for one times to test if reallocation works.
  */
 
 #include "jerryscript.h"
 #include "jerryscript-ext/handle-scope.h"
 #include "test-common.h"
 
-static size_t native_free_cb_call_count;
-static const size_t handle_count = JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT * 2;
+static int native_free_cb_call_count;
 
 static void
 native_free_cb (void *native_p)
@@ -39,21 +39,25 @@ static const jerry_object_native_info_t native_info =
 };
 
 static jerry_value_t
-create_object (void)
+create_object_nested (int times)
 {
   jerryx_escapable_handle_scope scope;
   jerryx_open_escapable_handle_scope (&scope);
 
   jerry_value_t obj;
-  for (size_t idx = 0; idx < handle_count; idx ++)
+  if (times == 0)
   {
     obj = jerryx_handle_add (jerry_create_object ());
     jerry_set_object_native_pointer (obj, NULL, &native_info);
   }
+  else
+  {
+    obj = create_object_nested (times - 1);
+  }
 
   jerry_value_t escaped;
   jerryx_escape_handle (scope, obj, &escaped);
-  TEST_ASSERT (scope->handle_count == (handle_count -1));
+  TEST_ASSERT (scope->handle_count == 0);
 
   jerryx_close_handle_scope (scope);
   return escaped;
@@ -64,11 +68,15 @@ test_handle_scope_val (void)
 {
   jerryx_handle_scope scope;
   jerryx_open_handle_scope (&scope);
-  jerry_value_t obj = create_object ();
-  (void) obj;
 
-  jerry_gc ();
-  TEST_ASSERT (native_free_cb_call_count == (handle_count -1));
+  for (int idx = 0; idx < 2; ++idx)
+  {
+    jerry_value_t obj = create_object_nested (JERRY_X_HANDLE_SCOPE_PRELIST_SCOPE_COUNT * 2);
+    (void) obj;
+  }
+
+  jerry_gc();
+  TEST_ASSERT (native_free_cb_call_count == 0);
 
   jerryx_close_handle_scope (scope);
 } /* test_handle_scope_val */
@@ -82,7 +90,7 @@ main (void)
   test_handle_scope_val ();
 
   jerry_gc ();
-  TEST_ASSERT (native_free_cb_call_count == handle_count);
+  TEST_ASSERT (native_free_cb_call_count == 2);
 
   jerry_cleanup ();
 } /* main */

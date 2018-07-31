@@ -44,7 +44,8 @@ create_object (void)
   jerry_set_object_native_pointer (obj, NULL, &native_info);
 
   jerry_value_t escaped;
-  jerryx_escape_handle(scope, obj, &escaped);
+  jerryx_escape_handle (scope, obj, &escaped);
+  TEST_ASSERT (scope->handle_count == 0);
 
   jerryx_close_handle_scope (scope);
   return escaped;
@@ -58,6 +59,7 @@ test_handle_scope_val (void)
   jerry_value_t obj = create_object ();
   (void) obj;
 
+  jerry_gc();
   TEST_ASSERT (native_free_cb_call_count == 0);
 
   jerryx_close_handle_scope (scope);
@@ -70,6 +72,7 @@ main (void)
 
   native_free_cb_call_count = 0;
   test_handle_scope_val ();
+
   jerry_gc ();
   TEST_ASSERT (native_free_cb_call_count == 1);
 

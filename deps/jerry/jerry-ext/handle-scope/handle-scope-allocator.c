@@ -125,6 +125,11 @@ jerryx_handle_scope_alloc ()
     scope->parent = dy_current;
     dy_current->child = scope;
   }
+  else
+  {
+    kJerryXHandleScopePool.start = scope;
+  }
+
   kJerryXHandleScopeCurrent = (jerryx_handle_scope_t *) scope;
 
   kJerryXHandleScopePool.count += 1;

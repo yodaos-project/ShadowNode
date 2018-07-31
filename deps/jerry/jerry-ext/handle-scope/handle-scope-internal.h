@@ -62,7 +62,7 @@ jerryx_handle_scope_free (jerryx_handle_scope_t *scope);
 void
 jerryx_handle_scope_release_handles (jerryx_handle_scope scope);
 
-void
+jerry_value_t
 jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t idx);
 
 jerry_value_t

@@ -52,7 +52,7 @@ create_object (void)
   }
 
   jerry_value_t escaped;
-  jerryx_escape_handle(scope, obj, &escaped);
+  jerryx_escape_handle (scope, obj, &escaped);
   TEST_ASSERT (scope->handle_count == (handle_count -1));
 
   jerryx_close_handle_scope (scope);
@@ -80,6 +80,7 @@ main (void)
 
   native_free_cb_call_count = 0;
   test_handle_scope_val ();
+
   jerry_gc ();
   TEST_ASSERT (native_free_cb_call_count == handle_count);
 
