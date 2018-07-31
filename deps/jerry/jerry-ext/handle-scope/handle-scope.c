@@ -27,6 +27,7 @@ jerryx_handle_scope_status
 jerryx_open_handle_scope (jerryx_handle_scope *result)
 {
   jerryx_handle_scope scope = malloc (sizeof(jerryx_handle_scope_t));
+  scope->handle_count = 0;
   scope->handle_ptr = NULL;
   scope->child = NULL;
   jerryx_handle_scope_current->child = scope;
@@ -55,6 +56,7 @@ jerryx_handle_scope_release_handles (jerryx_handle_scope scope)
       free (a_handle);
       a_handle = sibling;
     }
+    handle_count = JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT;
   }
 
   for (size_t idx = 0; idx < handle_count; idx++)
@@ -211,8 +213,8 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
     found_handle = handle;
     if (memo_handle == NULL)
     {
-      // found handle is the only handle in heap
-      scope->handle_ptr = NULL;
+      // found handle is the first handle in heap
+      scope->handle_ptr = found_handle->sibling;
     }
     else
     {
@@ -223,26 +225,28 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
   /**
    * Escape handle to parent scope
    */
-  jerryx_handle_scope_add_handle_to (found_handle, parent);
+  *result = jerryx_handle_scope_add_handle_to (found_handle, parent);
   scope->handle_count -= 1;
 
-  *result = found_handle->jval;
   return jerryx_handle_scope_ok;
 }
 
-void
+jerry_value_t
 jerryx_handle_scope_add_handle_to (jerryx_handle_t *handle, jerryx_handle_scope scope)
 {
   size_t handle_count = scope->handle_count;
   scope->handle_count += 1;
   if (handle_count < JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT)
   {
-    scope->handle_prelist[handle_count] = handle->jval;
-    return;
+    jerry_value_t jval = handle->jval;
+    free (handle);
+    scope->handle_prelist[handle_count] = jval;
+    return jval;
   }
 
   handle->sibling = scope->handle_ptr;
   scope->handle_ptr = handle;
+  return handle->jval;
 }
 
 
