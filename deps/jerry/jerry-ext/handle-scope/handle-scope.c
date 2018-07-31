@@ -15,8 +15,8 @@
 #include <stdlib.h>
 #include "handle-scope-internal.h"
 
-const jerryx_handle_scope_t jerryx_handle_scope_root;
-jerryx_handle_scope jerryx_handle_scope_current = (jerryx_handle_scope) &jerryx_handle_scope_root;
+static jerryx_handle_scope_t jerryx_handle_scope_root;
+static jerryx_handle_scope jerryx_handle_scope_current = (jerryx_handle_scope) &jerryx_handle_scope_root;
 
 /**
  * Opens a new handle scope and attach it to current global scope as a child scope.
