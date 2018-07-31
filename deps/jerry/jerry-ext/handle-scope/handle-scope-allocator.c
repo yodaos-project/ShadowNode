@@ -32,6 +32,9 @@ static jerryx_handle_scope_pool_t kJerryXHandleScopePool = {
 #define JerryXHandleScopePrelistIdx(scope) (scope - kJerryXHandleScopePool.prelist)
 
 
+/**
+ * Get current handle scope top of stack.
+ */
 jerryx_handle_scope_t *
 jerryx_handle_scope_get_current (void)
 {
@@ -39,6 +42,9 @@ jerryx_handle_scope_get_current (void)
 }
 
 
+/**
+ * Get root handle scope.
+ */
 jerryx_handle_scope_t *
 jerryx_handle_scope_get_root (void)
 {
@@ -46,6 +52,9 @@ jerryx_handle_scope_get_root (void)
 }
 
 
+/**
+ * Determines if given handle scope is located in pre-allocated list.
+ */
 bool
 jerryx_handle_scope_is_in_prelist (jerryx_handle_scope_t *scope)
 {
@@ -54,6 +63,12 @@ jerryx_handle_scope_is_in_prelist (jerryx_handle_scope_t *scope)
 }
 
 
+/**
+ * Get the parent of given handle scope.
+ * If given handle scope is in prelist, the parent must be in prelist too;
+ * if given is the first item of heap chain list, the parent must be the last one of prelist;
+ * the parent must be in chain list otherwise.
+ */
 jerryx_handle_scope_t *
 jerryx_handle_scope_get_parent (jerryx_handle_scope_t *scope)
 {
@@ -75,6 +90,12 @@ jerryx_handle_scope_get_parent (jerryx_handle_scope_t *scope)
 }
 
 
+/**
+ * Get the child of given handle scope.
+ * If the given handle scope is in heap chain list, its child must be in heap chain list too;
+ * if the given handle scope is the last one of prelist, its child must be the first item of chain list;
+ * the children are in prelist otherwise.
+ */
 jerryx_handle_scope_t *
 jerryx_handle_scope_get_child (jerryx_handle_scope_t *scope)
 {
@@ -100,6 +121,15 @@ jerryx_handle_scope_get_child (jerryx_handle_scope_t *scope)
 }
 
 
+/**
+ * Claims a handle scope either from prelist or allocating a new memory block,
+ * and increment pool's scope count by 1, and set current scope to the newly claimed one.
+ * If there are still available spaces in prelist, claims a block in prelist;
+ * otherwise allocates a new memory block from heap and sets its fields to default values,
+ * and link it to previously dynamically allocated scope, or link it to pool's start pointer.
+ *
+ * @returns the newly claimed handle scope pointer.
+ */
 jerryx_handle_scope_t *
 jerryx_handle_scope_alloc (void)
 {
@@ -137,6 +167,10 @@ jerryx_handle_scope_alloc (void)
 }
 
 
+/**
+ * Deannounce a previously claimed handle scope, return it to pool
+ * or free the allocated memory block.
+ */
 void
 jerryx_handle_scope_free (jerryx_handle_scope_t *scope)
 {

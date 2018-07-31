@@ -112,6 +112,7 @@ jerryx_close_escapable_handle_scope (jerryx_handle_scope scope)
  * Escape a jerry value from the scope to its parent scope.
  * An assertion of if parent exists shall be made before invoking this function.
  *
+ * @returns escaped jerry value id
  */
 jerry_value_t
 jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t idx)
@@ -229,6 +230,8 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
 
 /**
  * Try to reuse given handle if possible while adding to the scope.
+ *
+ * @returns the jerry value id wrapped by given handle.
  */
 jerry_value_t
 jerryx_handle_scope_add_handle_to (jerryx_handle_t *handle, jerryx_handle_scope scope)
