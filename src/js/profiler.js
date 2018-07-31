@@ -4,8 +4,7 @@
  * @class Snapshot
  */
 function Snapshot() {
-  // native.takeSnapshot();
-  throw new Error('not implemented');
+  native.takeSnapshot("heapsnapshot.txt");
 }
 
 /**

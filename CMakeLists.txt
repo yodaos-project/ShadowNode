@@ -62,6 +62,10 @@ if(FEATURE_CPU_PROFILER)
   set(FEATURE_FUNCTION_NAME ON)
 endif()
 
+if(FEATURE_HEAP_PROFILER)
+  set(FEATURE_FUNCTION_NAME ON)
+endif()
+
 macro(iotjs_add_flags VAR)
   foreach(_flag ${ARGN})
     set(${VAR} "${${VAR}} ${_flag}")

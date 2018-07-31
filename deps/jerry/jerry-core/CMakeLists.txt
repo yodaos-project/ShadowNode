@@ -25,6 +25,7 @@ set(FEATURE_JS_PARSER          ON       CACHE BOOL   "Enable js-parser?")
 set(FEATURE_MEM_STATS          OFF      CACHE BOOL   "Enable memory statistics?")
 set(FEATURE_MEM_STRESS_TEST    OFF      CACHE BOOL   "Enable mem-stress test?")
 set(FEATURE_CPU_PROFILER       OFF      CACHE BOOL   "Enable Cpu profiler?")
+set(FEATURE_HEAP_PROFILER      OFF      CACHE BOOL   "Enable Heap profiler?")
 set(FEATURE_FUNCTION_NAME      OFF      CACHE BOOL   "Enable saving Javascript function name?")
 set(FEATURE_PARSER_DUMP        OFF      CACHE BOOL   "Enable parser byte-code dumps?")
 set(FEATURE_PROFILE            "es5.1"  CACHE STRING "Use default or other profile?")
@@ -68,6 +69,7 @@ message(STATUS "FEATURE_JS_PARSER           " ${FEATURE_JS_PARSER})
 message(STATUS "FEATURE_MEM_STATS           " ${FEATURE_MEM_STATS})
 message(STATUS "FEATURE_MEM_STRESS_TEST     " ${FEATURE_MEM_STRESS_TEST})
 message(STATUS "FEATURE_CPU_PROFILER        " ${FEATURE_CPU_PROFILER})
+message(STATUS "FEATURE_HEAP_PROFILER       " ${FEATURE_HEAP_PROFILER})
 message(STATUS "FEATURE_FUNCTION_NAME       " ${FEATURE_FUNCTION_NAME})
 message(STATUS "FEATURE_PARSER_DUMP         " ${FEATURE_PARSER_DUMP} ${FEATURE_PARSER_DUMP_MESSAGE})
 message(STATUS "FEATURE_PROFILE             " ${FEATURE_PROFILE})
@@ -97,6 +99,7 @@ set(INCLUDE_CORE
     "${CMAKE_CURRENT_SOURCE_DIR}/lit"
     "${CMAKE_CURRENT_SOURCE_DIR}/parser/js"
     "${CMAKE_CURRENT_SOURCE_DIR}/parser/regexp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/profiler"
     "${CMAKE_CURRENT_SOURCE_DIR}/vm")
 
 # Sources
@@ -113,6 +116,7 @@ file(GLOB SOURCE_CORE_JRT                       jrt/*.c)
 file(GLOB SOURCE_CORE_LIT                       lit/*.c)
 file(GLOB SOURCE_CORE_PARSER_JS                 parser/js/*.c)
 file(GLOB SOURCE_CORE_PARSER_REGEXP             parser/regexp/*.c)
+file(GLOB SOURCE_CORE_PROFILER                  profiler/*.c)
 file(GLOB SOURCE_CORE_VM                        vm/*.c)
 
 set(SOURCE_CORE_FILES
@@ -128,6 +132,7 @@ set(SOURCE_CORE_FILES
     ${SOURCE_CORE_LIT}
     ${SOURCE_CORE_PARSER_JS}
     ${SOURCE_CORE_PARSER_REGEXP}
+    ${SOURCE_CORE_PROFILER}
     ${SOURCE_CORE_VM})
 
 # All-in-one build
@@ -186,6 +191,11 @@ endif()
 # Cpu profiler
 if (FEATURE_CPU_PROFILER)
   set(DEFINES_JERRY ${DEFINES_JERRY} JERRY_CPU_PROFILER)
+endif()
+
+# Heap profiler
+if (FEATURE_HEAP_PROFILER)
+  set(DEFINES_JERRY ${DEFINES_JERRY} JERRY_HEAP_PROFILER)
 endif()
 
 # Save function name

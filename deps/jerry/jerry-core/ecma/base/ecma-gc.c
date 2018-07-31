@@ -91,8 +91,17 @@ ecma_gc_is_object_visited (ecma_object_t *object_p) /**< object */
  * Set visited flag of the object.
  */
 static inline void
-ecma_gc_set_object_visited (ecma_object_t *object_p) /**< object */
+ecma_gc_set_object_visited (ecma_object_t *object_p, /**< object */
+                            bool *first_visit, /**< if is first reference from object */
+                            ecma_string_t *edge_name_p, /**< edge name */
+                            v8_edge_type_t edge_type, /**< v8 edge type */
+                            void *args) /**< callback args */
 {
+  JERRY_UNUSED (first_visit);
+  JERRY_UNUSED (edge_name_p);
+  JERRY_UNUSED (edge_type);
+  JERRY_UNUSED (args);
+
   /* Set reference counter to one if it is zero. */
   if (object_p->type_flags_refs < ECMA_OBJECT_REF_ONE)
   {
@@ -149,9 +158,12 @@ ecma_deref_object (ecma_object_t *object_p) /**< object */
  */
 static void
 ecma_gc_mark_property (ecma_property_pair_t *property_pair_p, /**< property pair */
-                       uint32_t index) /**< property index */
+                       uint32_t index, /**< property index */
+                       bool *first_visit,
+                       ecma_visit_object_callback_t callback,
+                       void *callback_args)
 {
-  uint8_t property = property_pair_p->header.types[index];
+  ecma_property_t property = property_pair_p->header.types[index];
 
   switch (ECMA_PROPERTY_GET_TYPE (property))
   {
@@ -169,7 +181,19 @@ ecma_gc_mark_property (ecma_property_pair_t *property_pair_p, /**< property pair
       {
         ecma_object_t *value_obj_p = ecma_get_object_from_value (value);
 
-        ecma_gc_set_object_visited (value_obj_p);
+        ecma_string_t *prop_name_p = ecma_string_from_property_name (property,
+            property_pair_p->names_cp[index]);
+        if (prop_name_p)
+        {
+          callback (value_obj_p, first_visit, prop_name_p, EDGE_TYPE_PROPERTY, callback_args);
+          ecma_deref_ecma_string (prop_name_p);
+        }
+        else
+        {
+          // TODO: when happen?
+          prop_name_p = ecma_get_magic_string (LIT_MAGIC_STRING__EMPTY);
+          callback (value_obj_p, first_visit, prop_name_p, EDGE_TYPE_PROPERTY, callback_args);
+        }
       }
       break;
     }
@@ -181,12 +205,14 @@ ecma_gc_mark_property (ecma_property_pair_t *property_pair_p, /**< property pair
 
       if (getter_obj_p != NULL)
       {
-        ecma_gc_set_object_visited (getter_obj_p);
+        ecma_string_t *getter_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_GET);
+        callback (getter_obj_p, first_visit, getter_string_p, EDGE_TYPE_PROPERTY, callback_args);
       }
 
       if (setter_obj_p != NULL)
       {
-        ecma_gc_set_object_visited (setter_obj_p);
+        ecma_string_t *setter_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_SET);
+        callback (setter_obj_p, first_visit, setter_string_p, EDGE_TYPE_PROPERTY, callback_args);
       }
       break;
     }
@@ -207,26 +233,33 @@ ecma_gc_mark_property (ecma_property_pair_t *property_pair_p, /**< property pair
 /**
  * Mark objects as visited starting from specified object as root
  */
-static void
-ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
+void
+ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from */
+              ecma_visit_object_callback_t callback, /**< visit object callback */
+              void *callback_args) /** callback args */
 {
   JERRY_ASSERT (object_p != NULL);
+#ifndef JERRY_HEAP_PROFILER
   JERRY_ASSERT (ecma_gc_is_object_visited (object_p));
+#endif /* JERRY_HEAP_PROFILER */
 
   bool traverse_properties = true;
+  bool first_visit = true;
+
+  ecma_string_t *empty_string_p = ecma_get_magic_string (LIT_MAGIC_STRING__EMPTY);
 
   if (ecma_is_lexical_environment (object_p))
   {
     ecma_object_t *lex_env_p = ecma_get_lex_env_outer_reference (object_p);
     if (lex_env_p != NULL)
     {
-      ecma_gc_set_object_visited (lex_env_p);
+      callback (lex_env_p, &first_visit, empty_string_p, EDGE_TYPE_CONTEXT, callback_args);
     }
 
     if (ecma_get_lex_env_type (object_p) != ECMA_LEXICAL_ENVIRONMENT_DECLARATIVE)
     {
       ecma_object_t *binding_object_p = ecma_get_lex_env_binding_object (object_p);
-      ecma_gc_set_object_visited (binding_object_p);
+      callback (binding_object_p, &first_visit, empty_string_p, EDGE_TYPE_CONTEXT, callback_args);
 
       traverse_properties = false;
     }
@@ -236,7 +269,8 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
     ecma_object_t *proto_p = ecma_get_object_prototype (object_p);
     if (proto_p != NULL)
     {
-      ecma_gc_set_object_visited (proto_p);
+      ecma_string_t *proto_string_p = ecma_get_magic_string(LIT_MAGIC_STRING_PROTOTYPE);
+      callback (proto_p, &first_visit, proto_string_p, EDGE_TYPE_PROPERTY, callback_args);
     }
 
     switch (ecma_get_object_type (object_p))
@@ -253,7 +287,7 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
 
           if (ecma_is_value_object (result))
           {
-            ecma_gc_set_object_visited (ecma_get_object_from_value (result));
+            callback (ecma_get_object_from_value (result), &first_visit, empty_string_p, EDGE_TYPE_PROPERTY, callback_args);
           }
 
           /* Mark all reactions. */
@@ -262,7 +296,7 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
 
           while (ecma_value_p != NULL)
           {
-            ecma_gc_set_object_visited (ecma_get_object_from_value (*ecma_value_p));
+            callback (ecma_get_object_from_value (*ecma_value_p), &first_visit, empty_string_p, EDGE_TYPE_PROPERTY, callback_args);
             ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
           }
 
@@ -270,7 +304,7 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
 
           while (ecma_value_p != NULL)
           {
-            ecma_gc_set_object_visited (ecma_get_object_from_value (*ecma_value_p));
+            callback (ecma_get_object_from_value (*ecma_value_p), &first_visit, empty_string_p, EDGE_TYPE_PROPERTY, callback_args);
             ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
           }
         }
@@ -289,14 +323,14 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
             ecma_object_t *lex_env_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_object_t,
                                                                         ext_object_p->u.pseudo_array.u2.lex_env_cp);
 
-            ecma_gc_set_object_visited (lex_env_p);
+            callback (lex_env_p, &first_visit, empty_string_p, EDGE_TYPE_CONTEXT, callback_args);
             break;
           }
 #ifndef CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN
           case ECMA_PSEUDO_ARRAY_TYPEDARRAY:
           case ECMA_PSEUDO_ARRAY_TYPEDARRAY_WITH_INFO:
           {
-            ecma_gc_set_object_visited (ecma_typedarray_get_arraybuffer (object_p));
+            callback (ecma_typedarray_get_arraybuffer (object_p), &first_visit, empty_string_p, EDGE_TYPE_ELEMENT, callback_args);
             break;
           }
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
@@ -317,7 +351,7 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
         target_func_obj_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_object_t,
                                                              ext_function_p->u.bound_function.target_function);
 
-        ecma_gc_set_object_visited (target_func_obj_p);
+        callback (target_func_obj_p, &first_visit, empty_string_p, EDGE_TYPE_HIDDEN, callback_args);
 
         ecma_value_t args_len_or_this = ext_function_p->u.bound_function.args_len_or_this;
 
@@ -325,7 +359,7 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
         {
           if (ecma_is_value_object (args_len_or_this))
           {
-            ecma_gc_set_object_visited (ecma_get_object_from_value (args_len_or_this));
+            callback (ecma_get_object_from_value (args_len_or_this), &first_visit, empty_string_p, EDGE_TYPE_PROPERTY, callback_args);
           }
           break;
         }
@@ -339,7 +373,7 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
         {
           if (ecma_is_value_object (args_p[i]))
           {
-            ecma_gc_set_object_visited (ecma_get_object_from_value (args_p[i]));
+            callback (ecma_get_object_from_value (args_p[i]), &first_visit, empty_string_p, EDGE_TYPE_ELEMENT, callback_args);
           }
         }
         break;
@@ -348,10 +382,15 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
       {
         if (!ecma_get_object_is_builtin (object_p))
         {
+          ecma_string_t *scope_string_p = ecma_get_magic_string(LIT_MAGIC_STRING_SCOPE);
           ecma_extended_object_t *ext_func_p = (ecma_extended_object_t *) object_p;
 
-          ecma_gc_set_object_visited (ECMA_GET_INTERNAL_VALUE_POINTER (ecma_object_t,
-                                                                       ext_func_p->u.function.scope_cp));
+          callback (ECMA_GET_INTERNAL_VALUE_POINTER (ecma_object_t,
+                                                     ext_func_p->u.function.scope_cp),
+                    &first_visit,
+                    scope_string_p,
+                    EDGE_TYPE_HIDDEN,
+                    callback_args);
         }
         break;
       }
@@ -360,12 +399,16 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
       {
         ecma_arrow_function_t *arrow_func_p = (ecma_arrow_function_t *) object_p;
 
-        ecma_gc_set_object_visited (ECMA_GET_NON_NULL_POINTER (ecma_object_t,
-                                                               arrow_func_p->scope_cp));
+        callback (ECMA_GET_NON_NULL_POINTER (ecma_object_t,
+                                             arrow_func_p->scope_cp),
+                  &first_visit,
+                  empty_string_p,
+                  EDGE_TYPE_HIDDEN,
+                  callback_args);
 
         if (ecma_is_value_object (arrow_func_p->this_binding))
         {
-          ecma_gc_set_object_visited (ecma_get_object_from_value (arrow_func_p->this_binding));
+          callback (ecma_get_object_from_value (arrow_func_p->this_binding), &first_visit, empty_string_p, EDGE_TYPE_HIDDEN, callback_args);
         }
         break;
       }
@@ -391,8 +434,16 @@ ecma_gc_mark (ecma_object_t *object_p) /**< object to mark from */
     {
       JERRY_ASSERT (ECMA_PROPERTY_IS_PROPERTY_PAIR (prop_iter_p));
 
-      ecma_gc_mark_property ((ecma_property_pair_t *) prop_iter_p, 0);
-      ecma_gc_mark_property ((ecma_property_pair_t *) prop_iter_p, 1);
+      ecma_gc_mark_property ((ecma_property_pair_t *) prop_iter_p,
+                             0,
+                             &first_visit,
+                             callback,
+                             callback_args);
+      ecma_gc_mark_property ((ecma_property_pair_t *) prop_iter_p,
+                             1,
+                             &first_visit,
+                             callback,
+                             callback_args);
 
       prop_iter_p = ECMA_GET_POINTER (ecma_property_header_t,
                                       prop_iter_p->next_property_cp);
@@ -802,7 +853,7 @@ ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
   obj_iter_p = black_objects_p;
   while (obj_iter_p != NULL)
   {
-    ecma_gc_mark (obj_iter_p);
+    ecma_vist_object_references (obj_iter_p, ecma_gc_set_object_visited, NULL);
     obj_iter_p = ecma_gc_get_object_next (obj_iter_p);
   }
 
@@ -840,7 +891,7 @@ ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
         ecma_gc_set_object_next (obj_iter_p, black_objects_p);
         black_objects_p = obj_iter_p;
 
-        ecma_gc_mark (obj_iter_p);
+        ecma_vist_object_references (obj_iter_p, ecma_gc_set_object_visited, NULL);
         marked_anything_during_current_iteration = true;
       }
       else

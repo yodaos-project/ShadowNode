@@ -28,8 +28,10 @@ JERRY_STATIC_ASSERT (((sizeof (ecma_property_value_t) - 1) & sizeof (ecma_proper
 JERRY_STATIC_ASSERT (sizeof (ecma_string_t) == sizeof (uint64_t),
                      size_of_ecma_string_t_must_be_less_than_or_equal_to_8_bytes);
 
+#ifndef JERRY_HEAP_PROFILER
 JERRY_STATIC_ASSERT (sizeof (ecma_extended_object_t) - sizeof (ecma_object_t) <= sizeof (uint64_t),
                      size_of_ecma_extended_object_part_must_be_less_than_or_equal_to_8_bytes);
+#endif /* JERRY_HEAP_PROFILER */
 
 /** \addtogroup ecma ECMA
  * @{
@@ -122,7 +124,12 @@ ecma_alloc_extended_object (size_t size) /**< size of object */
   jmem_stats_allocate_object_bytes (size);
 #endif /* JMEM_STATS */
 
-  return jmem_heap_alloc_block (size);
+    ecma_extended_object_t *ext_object_p = (ecma_extended_object_t*) jmem_heap_alloc_block (size);
+#ifdef JERRY_HEAP_PROFILER
+    ext_object_p->size = (uint32_t) size;
+#endif /* JERRY_HEAP_PROFILER */
+
+    return ext_object_p;
 } /* ecma_alloc_extended_object */
 
 /**

@@ -551,6 +551,7 @@ main (int argc,
   register_js_function ("assert", jerryx_handler_assert);
   register_js_function ("gc", jerryx_handler_gc);
   register_js_function ("print", jerryx_handler_print);
+  register_js_function ("heapdump", jerryx_handler_heapdump);
 
   jerry_value_t ret_value = jerry_create_undefined ();
 

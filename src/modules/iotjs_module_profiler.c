@@ -1,5 +1,14 @@
 #include "iotjs_def.h"
 
+JS_FUNCTION(TakeSnapshot) {
+  if (!jerry_value_is_string(jargv[0]))
+    return JS_CREATE_ERROR(COMMON, "filepath should be required.");
+
+  iotjs_string_t filepath = JS_GET_ARG(0, string);
+  jerry_heap_profiler_take_snapshot ((const char*)iotjs_string_data(&filepath));
+  return jerry_create_boolean(true);
+}
+
 JS_FUNCTION(StartProfiling) {
   if (!jerry_enable_cpu_profiling())
     return JS_CREATE_ERROR(COMMON, "cpu profiling is not enabled.");
@@ -27,6 +36,7 @@ JS_FUNCTION(StopProfiling) {
 
 jerry_value_t InitProfiler() {
   jerry_value_t profiler = jerry_create_object();
+  iotjs_jval_set_method(profiler, "takeSnapshot", TakeSnapshot);
   iotjs_jval_set_method(profiler, "startProfiling", StartProfiling);
   iotjs_jval_set_method(profiler, "stopProfiling", StopProfiling);
   return profiler;

@@ -711,6 +711,10 @@ typedef struct
 {
   ecma_object_t object; /**< object header */
 
+#ifdef JERRY_HEAP_PROFILER
+  uint32_t size;
+#endif /* JERRY_HEAP_PROFILER */
+
   /*
    * Description of extra fields. These extra fields depends on the object type.
    */
@@ -835,6 +839,9 @@ typedef struct
 typedef struct
 {
   ecma_object_t object; /**< object header */
+#ifdef JERRY_HEAP_PROFILER
+  uint32_t size;
+#endif /* JERRY_HEAP_PROFILER */
   ecma_value_t this_binding; /**< value of 'this' binding */
   jmem_cpointer_t scope_cp; /**< function scope */
   jmem_cpointer_t bytecode_cp; /**< function byte code */

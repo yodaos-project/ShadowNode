@@ -296,7 +296,7 @@ BUILTIN_ROUTINE (ECMA_BUILTIN_ID_TYPE_ERROR_THROWER,
                  ECMA_BUILTIN_ID_FUNCTION_PROTOTYPE,
                  false,
                  type_error_thrower,
-                 LIT_MAGIC_STRING_TYPE_ERROR_UL)
+                 LIT_MAGIC_STRING_ERROR_UL)
 
 #ifndef CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN
 
