@@ -23,7 +23,7 @@
 #include "jerryscript-ext/handle-scope.h"
 #include "test-common.h"
 
-static int native_free_cb_call_count;
+static size_t native_free_cb_call_count;
 static const size_t handle_count = JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT + 1;
 
 static void
