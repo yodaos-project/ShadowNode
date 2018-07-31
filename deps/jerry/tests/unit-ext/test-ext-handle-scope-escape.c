@@ -43,7 +43,8 @@ create_object (void)
   jerry_value_t obj = jerryx_handle_add (jerry_create_object ());
   jerry_set_object_native_pointer (obj, NULL, &native_info);
 
-  jerry_value_t escaped;
+  // If leaves `escaped` uninitialized, there will be a style error on linux thrown by compiler
+  jerry_value_t escaped = 0;
   jerryx_escape_handle (scope, obj, &escaped);
   TEST_ASSERT (scope->handle_count == 0);
 
