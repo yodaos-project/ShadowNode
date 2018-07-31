@@ -22,6 +22,10 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+#ifndef JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT
+#define JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT 20
+#endif
+
 typedef struct jerryx_handle_t jerryx_handle_t;
 struct jerryx_handle_t {
   jerry_value_t jval;
@@ -30,6 +34,8 @@ struct jerryx_handle_t {
 
 typedef struct jerryx_handle_scope_t jerryx_handle_scope_t;
 struct jerryx_handle_scope_t {
+  jerry_value_t handle_prelist[JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT];
+  size_t handle_count;
   jerryx_handle_t *handle_ptr;
   jerryx_handle_scope_t *child;
   jerryx_handle_scope_t *parent;

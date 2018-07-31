@@ -25,7 +25,10 @@ extern "C"
 
 /** MARK: - handle-scope.c */
 void
-jerryx_handle_scope_release_handles (jerryx_handle_t *handle);
+jerryx_handle_scope_release_handles (jerryx_handle_scope scope);
+
+void
+jerryx_handle_scope_add_handle_to (jerryx_handle_t *handle, jerryx_handle_scope scope);
 
 void
 jerryx_handle_scope_add_to (jerry_value_t jval, jerryx_handle_scope scope);
