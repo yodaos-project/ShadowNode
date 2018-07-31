@@ -101,7 +101,7 @@ jerryx_handle_scope_get_child (jerryx_handle_scope_t *scope)
 
 
 jerryx_handle_scope_t *
-jerryx_handle_scope_alloc ()
+jerryx_handle_scope_alloc (void)
 {
   if (kJerryXHandleScopePool.count < JERRY_X_HANDLE_SCOPE_PRELIST_SCOPE_COUNT)
   {
