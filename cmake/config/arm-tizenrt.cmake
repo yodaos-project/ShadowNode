@@ -15,5 +15,5 @@
 set(CMAKE_SYSTEM_NAME Tizenrt)
 set(CMAKE_SYSTEM_PROCESSOR armv7l)
 
-set(CMAKE_C_COMPILER arm-none-eabi-gcc)
+set(CMAKE_C_COMPILER ${CMAKE_TOOLCHAIN_ROOT}/arm-none-eabi-gcc)
 set(CMAKE_C_COMPILER_WORKS TRUE)
