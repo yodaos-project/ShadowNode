@@ -55,7 +55,8 @@ create_object_nested (int times)
     obj = create_object_nested (times - 1);
   }
 
-  jerry_value_t escaped;
+  // If leaves `escaped` uninitialized, there will be a style error on linux thrown by compiler
+  jerry_value_t escaped = 0;
   jerryx_escape_handle (scope, obj, &escaped);
   TEST_ASSERT (scope->handle_count == 0);
 
