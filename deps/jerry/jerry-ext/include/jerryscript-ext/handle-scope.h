@@ -80,7 +80,7 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
                       jerry_value_t *result);
 
 jerry_value_t
-jerryx_handle_add (jerry_value_t jval);
+jerryx_create_handle (jerry_value_t jval);
 
 #ifdef __cplusplus
 }

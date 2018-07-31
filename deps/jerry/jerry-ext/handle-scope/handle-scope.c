@@ -118,7 +118,7 @@ jerry_value_t
 jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t idx)
 {
   jerry_value_t jval = scope->handle_prelist[idx];
-  jerryx_handle_scope_add_to (scope->handle_prelist[idx], jerryx_handle_scope_get_parent (scope));
+  jerryx_create_handle_in_scope (scope->handle_prelist[idx], jerryx_handle_scope_get_parent (scope));
 
   if (scope->handle_count > JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT)
   {
@@ -256,7 +256,7 @@ jerryx_handle_scope_add_handle_to (jerryx_handle_t *handle, jerryx_handle_scope 
  * Add given jerry value to the scope.
  */
 void
-jerryx_handle_scope_add_to (jerry_value_t jval, jerryx_handle_scope scope)
+jerryx_create_handle_in_scope (jerry_value_t jval, jerryx_handle_scope scope)
 {
   size_t handle_count = scope->handle_count;
   scope->handle_count += 1;
@@ -277,8 +277,8 @@ jerryx_handle_scope_add_to (jerry_value_t jval, jerryx_handle_scope scope)
  * Add given jerry value to current top scope.
  */
 jerry_value_t
-jerryx_handle_add (jerry_value_t jval)
+jerryx_create_handle (jerry_value_t jval)
 {
-  jerryx_handle_scope_add_to (jval, jerryx_handle_scope_get_current ());
+  jerryx_create_handle_in_scope (jval, jerryx_handle_scope_get_current ());
   return jval;
 }

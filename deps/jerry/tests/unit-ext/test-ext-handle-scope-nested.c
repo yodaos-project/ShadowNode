@@ -47,7 +47,7 @@ create_object_nested (int times)
   jerry_value_t obj;
   if (times == 0)
   {
-    obj = jerryx_handle_add (jerry_create_object ());
+    obj = jerryx_create_handle (jerry_create_object ());
     jerry_set_object_native_pointer (obj, NULL, &native_info);
   }
   else

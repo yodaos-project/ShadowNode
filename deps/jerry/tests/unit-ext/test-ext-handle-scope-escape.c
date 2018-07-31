@@ -40,7 +40,7 @@ create_object (void)
 {
   jerryx_escapable_handle_scope scope;
   jerryx_open_escapable_handle_scope (&scope);
-  jerry_value_t obj = jerryx_handle_add (jerry_create_object ());
+  jerry_value_t obj = jerryx_create_handle (jerry_create_object ());
   jerry_set_object_native_pointer (obj, NULL, &native_info);
 
   // If leaves `escaped` uninitialized, there will be a style error on linux thrown by compiler

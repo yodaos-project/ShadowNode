@@ -48,7 +48,7 @@ test_handle_scope_val (void)
 {
   jerryx_handle_scope scope;
   jerryx_open_handle_scope (&scope);
-  jerry_value_t obj = jerryx_handle_add (create_object ());
+  jerry_value_t obj = jerryx_create_handle (create_object ());
   (void) obj;
   jerryx_close_handle_scope (scope);
 } /* test_handle_scope_val */

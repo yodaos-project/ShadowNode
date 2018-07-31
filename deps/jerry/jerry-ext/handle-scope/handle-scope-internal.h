@@ -69,7 +69,7 @@ jerry_value_t
 jerryx_handle_scope_add_handle_to (jerryx_handle_t *handle, jerryx_handle_scope scope);
 
 void
-jerryx_handle_scope_add_to (jerry_value_t jval, jerryx_handle_scope scope);
+jerryx_create_handle_in_scope (jerry_value_t jval, jerryx_handle_scope scope);
 /** MARK: - END handle-scope.c */
 
 #ifdef __cplusplus

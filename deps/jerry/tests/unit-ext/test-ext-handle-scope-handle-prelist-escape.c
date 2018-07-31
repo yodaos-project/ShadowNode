@@ -47,7 +47,7 @@ create_object (void)
   jerry_value_t obj;
   for (size_t idx = 0; idx < handle_count; idx ++)
   {
-    obj = jerryx_handle_add (jerry_create_object ());
+    obj = jerryx_create_handle (jerry_create_object ());
     jerry_set_object_native_pointer (obj, NULL, &native_info);
   }
 
