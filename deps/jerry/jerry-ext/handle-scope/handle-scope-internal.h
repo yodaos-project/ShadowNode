@@ -23,6 +23,41 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+/** MARK: - handle-scope-allocator.c */
+/**
+ * A linear allocating memory pool for type jerryx_handle_scope_t,
+ * in which allocated item shall be released in reversed order of allocation
+ */
+typedef struct jerryx_handle_scope_pool_t jerryx_handle_scope_pool_t;
+struct jerryx_handle_scope_pool_t {
+  jerryx_handle_scope_t prelist[JERRY_X_HANDLE_SCOPE_PRELIST_SCOPE_COUNT];
+  size_t count;
+  jerryx_handle_scope_dynamic_t *start;
+  jerryx_handle_scope_dynamic_t *end;
+};
+
+jerryx_handle_scope_t *
+jerryx_handle_scope_get_current (void);
+
+jerryx_handle_scope_t *
+jerryx_handle_scope_get_root (void);
+
+bool
+jerryx_handle_scope_is_in_prelist (jerryx_handle_scope_t *scope);
+
+jerryx_handle_scope_t *
+jerryx_handle_scope_get_parent (jerryx_handle_scope_t *scope);
+
+jerryx_handle_scope_t *
+jerryx_handle_scope_get_child (jerryx_handle_scope_t *scope);
+
+jerryx_handle_scope_t *
+jerryx_handle_scope_alloc (void);
+
+void
+jerryx_handle_scope_free (jerryx_handle_scope_t *scope);
+/** MARK: - END handle-scope-allocator.c */
+
 /** MARK: - handle-scope.c */
 void
 jerryx_handle_scope_release_handles (jerryx_handle_scope scope);

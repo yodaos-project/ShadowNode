@@ -15,9 +15,6 @@
 #include <stdlib.h>
 #include "handle-scope-internal.h"
 
-static jerryx_handle_scope_t jerryx_handle_scope_root;
-static jerryx_handle_scope jerryx_handle_scope_current = (jerryx_handle_scope) &jerryx_handle_scope_root;
-
 /**
  * Opens a new handle scope and attach it to current global scope as a child scope.
  *
@@ -26,15 +23,7 @@ static jerryx_handle_scope jerryx_handle_scope_current = (jerryx_handle_scope) &
 jerryx_handle_scope_status
 jerryx_open_handle_scope (jerryx_handle_scope *result)
 {
-  jerryx_handle_scope scope = malloc (sizeof(jerryx_handle_scope_t));
-  scope->handle_count = 0;
-  scope->handle_ptr = NULL;
-  scope->child = NULL;
-  jerryx_handle_scope_current->child = scope;
-  scope->parent = jerryx_handle_scope_current;
-
-  jerryx_handle_scope_current = scope;
-  *result = scope;
+  *result = jerryx_handle_scope_alloc ();
   return jerryx_handle_scope_ok;
 }
 
@@ -61,7 +50,7 @@ jerryx_handle_scope_release_handles (jerryx_handle_scope scope)
 
   for (size_t idx = 0; idx < handle_count; idx++)
   {
-    jerry_release_value(scope->handle_prelist[idx]);
+    jerry_release_value (scope->handle_prelist[idx]);
   }
 }
 
@@ -76,11 +65,6 @@ jerryx_handle_scope_release_handles (jerryx_handle_scope scope)
 jerryx_handle_scope_status
 jerryx_close_handle_scope (jerryx_handle_scope scope)
 {
-  if (scope->parent != NULL)
-  {
-    scope->parent->child = NULL;
-  }
-
   /**
    * Release all handles related to given scope and its child scopes
    */
@@ -88,8 +72,8 @@ jerryx_close_handle_scope (jerryx_handle_scope scope)
   do
   {
     jerryx_handle_scope_release_handles (a_scope);
-    jerryx_handle_scope child = a_scope->child;
-    free (a_scope);
+    jerryx_handle_scope child = jerryx_handle_scope_get_child (a_scope);
+    jerryx_handle_scope_free (a_scope);
     a_scope = child;
   } while (a_scope != NULL);
 
@@ -132,7 +116,7 @@ jerryx_close_escapable_handle_scope (jerryx_handle_scope scope)
 void
 jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t idx)
 {
-  jerryx_handle_scope_add_to (scope->handle_prelist[idx], scope->parent);
+  jerryx_handle_scope_add_to (scope->handle_prelist[idx], jerryx_handle_scope_get_parent (scope));
 
   if (scope->handle_count > JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT)
   {
@@ -163,7 +147,7 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
                       jerry_value_t escapee,
                       jerry_value_t *result)
 {
-  jerryx_handle_scope parent = scope->parent;
+  jerryx_handle_scope parent = jerryx_handle_scope_get_parent (scope);
   if (parent == NULL)
   {
     return jerryx_handle_scope_mismatch;
@@ -287,6 +271,6 @@ jerryx_handle_scope_add_to (jerry_value_t jval, jerryx_handle_scope scope)
 jerry_value_t
 jerryx_handle_add (jerry_value_t jval)
 {
-  jerryx_handle_scope_add_to (jval, jerryx_handle_scope_current);
+  jerryx_handle_scope_add_to (jval, jerryx_handle_scope_get_current ());
   return jval;
 }

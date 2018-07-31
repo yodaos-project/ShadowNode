@@ -26,6 +26,10 @@ extern "C"
 #define JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT 20
 #endif
 
+#ifndef JERRY_X_HANDLE_SCOPE_PRELIST_SCOPE_COUNT
+#define JERRY_X_HANDLE_SCOPE_PRELIST_SCOPE_COUNT 20
+#endif
+
 typedef struct jerryx_handle_t jerryx_handle_t;
 struct jerryx_handle_t {
   jerry_value_t jval;
@@ -33,15 +37,23 @@ struct jerryx_handle_t {
 };
 
 typedef struct jerryx_handle_scope_t jerryx_handle_scope_t;
+typedef jerryx_handle_scope_t *jerryx_handle_scope;
+typedef jerryx_handle_scope_t *jerryx_escapable_handle_scope;
 struct jerryx_handle_scope_t {
   jerry_value_t handle_prelist[JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT];
   size_t handle_count;
   jerryx_handle_t *handle_ptr;
-  jerryx_handle_scope_t *child;
-  jerryx_handle_scope_t *parent;
 };
-typedef jerryx_handle_scope_t *jerryx_handle_scope;
-typedef jerryx_handle_scope_t *jerryx_escapable_handle_scope;
+
+
+typedef struct jerryx_handle_scope_dynamic_t jerryx_handle_scope_dynamic_t;
+struct jerryx_handle_scope_dynamic_t {
+  jerry_value_t handle_prelist[JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT];
+  size_t handle_count;
+  jerryx_handle_t *handle_ptr;
+  jerryx_handle_scope_dynamic_t *child;
+  jerryx_handle_scope_dynamic_t *parent;
+};
 
 typedef enum {
   jerryx_handle_scope_ok = 0,
