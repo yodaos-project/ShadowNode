@@ -27,6 +27,9 @@ extern "C"
 void
 jerryx_handle_scope_release_handles (jerryx_handle_scope scope);
 
+void
+jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t idx);
+
 jerry_value_t
 jerryx_handle_scope_add_handle_to (jerryx_handle_t *handle, jerryx_handle_scope scope);
 
