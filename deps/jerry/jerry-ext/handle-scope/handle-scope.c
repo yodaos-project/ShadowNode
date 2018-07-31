@@ -124,6 +124,11 @@ jerryx_close_escapable_handle_scope (jerryx_handle_scope scope)
 }
 
 
+/**
+ * Escape a jerry value from the scope to its parent scope.
+ * An assertion of if parent exists shall be made before invoking this function.
+ *
+ */
 jerryx_handle_scope_status
 jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t idx)
 {
@@ -231,6 +236,10 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
   return jerryx_handle_scope_ok;
 }
 
+
+/**
+ * Try to reuse given handle if possible while adding to the scope.
+ */
 jerry_value_t
 jerryx_handle_scope_add_handle_to (jerryx_handle_t *handle, jerryx_handle_scope scope)
 {
@@ -250,6 +259,9 @@ jerryx_handle_scope_add_handle_to (jerryx_handle_t *handle, jerryx_handle_scope 
 }
 
 
+/**
+ * Add given jerry value to the scope.
+ */
 void
 jerryx_handle_scope_add_to (jerry_value_t jval, jerryx_handle_scope scope)
 {
@@ -269,6 +281,9 @@ jerryx_handle_scope_add_to (jerry_value_t jval, jerryx_handle_scope scope)
 }
 
 
+/**
+ * Add given jerry value to current top scope.
+ */
 jerry_value_t
 jerryx_handle_add (jerry_value_t jval)
 {
