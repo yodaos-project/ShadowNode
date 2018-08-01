@@ -146,6 +146,7 @@ jerryx_handle_scope_alloc (void)
 
   do {
     jerryx_handle_scope_dynamic_t *dy_scope = malloc (sizeof(jerryx_handle_scope_dynamic_t));
+    JERRYX_HANDLE_SCOPE_ASSERT(dy_scope != NULL);
     dy_scope->child = NULL;
 
     if (kJerryXHandleScopePool.count != JERRYX_SCOPE_PRELIST_SIZE)

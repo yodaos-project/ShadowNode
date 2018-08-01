@@ -16,12 +16,28 @@
 #define JERRYX_HANDLE_SCOPE_INTERNAL_H
 
 #include "jerryscript.h"
+#include "jerryscript-port.h"
 #include "jerryscript-ext/handle-scope.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif /* __cplusplus */
+
+#define JERRYX_HANDLE_SCOPE_ASSERT(x) \
+  do \
+  { \
+    if (!(x)) \
+    { \
+      jerry_port_log (JERRY_LOG_LEVEL_ERROR, \
+                      "JerryXHandleScope: Assertion '%s' failed at %s(%s):%lu.\n", \
+                      #x, \
+                      __FILE__, \
+                      __func__, \
+                      (unsigned long) __LINE__); \
+      jerry_port_fatal (ERR_FAILED_INTERNAL_ASSERTION); \
+    } \
+  } while (0)
 
 /** MARK: - handle-scope-allocator.c */
 /**

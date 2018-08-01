@@ -271,6 +271,7 @@ jerryx_create_handle_in_scope (jerry_value_t jval, jerryx_handle_scope scope)
     goto deferred;
   }
   jerryx_handle_t *handle = malloc (sizeof(jerryx_handle_t));
+  JERRYX_HANDLE_SCOPE_ASSERT(handle != NULL);
   handle->jval = jval;
 
   handle->sibling = scope->handle_ptr;
