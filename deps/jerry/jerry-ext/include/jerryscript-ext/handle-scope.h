@@ -39,6 +39,7 @@ struct jerryx_handle_t {
 #define JERRYX_HANDLE_FIELDS                                \
   jerry_value_t handle_prelist[JERRYX_HANDLE_PRELIST_SIZE]; \
   size_t handle_count;                                      \
+  bool escaped;                                             \
   jerryx_handle_t *handle_ptr
 
 typedef struct jerryx_handle_scope_s jerryx_handle_scope_t;

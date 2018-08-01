@@ -125,7 +125,6 @@ jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t 
     jerryx_handle_t *handle = scope->handle_ptr;
     scope->handle_ptr = handle->sibling;
     scope->handle_prelist[idx] = handle->jval;
-    scope->handle_count -= 1;
     return jval;
   }
 
@@ -133,7 +132,6 @@ jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t 
   {
     scope->handle_prelist[idx] = scope->handle_prelist[scope->handle_count - 1];
   }
-  scope->handle_count -= 1;
   return jval;
 }
 
@@ -150,6 +148,11 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
                       jerry_value_t escapee,
                       jerry_value_t *result)
 {
+  if (scope->escaped)
+  {
+    return jerryx_escape_called_twice;
+  }
+
   jerryx_handle_scope parent = jerryx_handle_scope_get_parent (scope);
   if (parent == NULL)
   {
@@ -177,10 +180,9 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
     {
       /**
        * Escape handle to parent scope
-       * handle count has been decremented in `jerryx_hand_scope_escape_handle_from_prelist`
        */
       *result =jerryx_hand_scope_escape_handle_from_prelist (scope, found_idx);
-      return jerryx_handle_scope_ok;
+      goto deferred;
     }
   };
 
@@ -224,8 +226,10 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
    * Escape handle to parent scope
    */
   *result = jerryx_handle_scope_add_handle_to (found_handle, parent);
-  scope->handle_count -= 1;
 
+deferred:
+  scope->handle_count -= 1;
+  scope->escaped = true;
   return jerryx_handle_scope_ok;
 }
 

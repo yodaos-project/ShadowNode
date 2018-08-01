@@ -137,35 +137,38 @@ jerryx_handle_scope_get_child (jerryx_handle_scope_t *scope)
 jerryx_handle_scope_t *
 jerryx_handle_scope_alloc (void)
 {
+  jerryx_handle_scope_t *scope;
   if (kJerryXHandleScopePool.count < JERRYX_SCOPE_PRELIST_SIZE)
   {
-    jerryx_handle_scope_t *scope = kJerryXHandleScopePool.prelist + kJerryXHandleScopePool.count;
-    scope->handle_count = 0;
-    scope->handle_ptr = NULL;
-
-    kJerryXHandleScopeCurrent = scope;
-    kJerryXHandleScopePool.count += 1;
-    return scope;
+    scope = kJerryXHandleScopePool.prelist + kJerryXHandleScopePool.count;
+    goto deferred;
   }
 
-  jerryx_handle_scope_dynamic_t *scope = malloc (sizeof(jerryx_handle_scope_dynamic_t));
+  do {
+    jerryx_handle_scope_dynamic_t *dy_scope = malloc (sizeof(jerryx_handle_scope_dynamic_t));
+    dy_scope->child = NULL;
+
+    if (kJerryXHandleScopePool.count != JERRYX_SCOPE_PRELIST_SIZE)
+    {
+      jerryx_handle_scope_dynamic_t *dy_current = (jerryx_handle_scope_dynamic_t *) kJerryXHandleScopeCurrent;
+      dy_scope->parent = dy_current;
+      dy_current->child = dy_scope;
+    }
+    else
+    {
+      kJerryXHandleScopePool.start = dy_scope;
+      dy_scope->parent = NULL;
+    }
+
+    scope = (jerryx_handle_scope_t *) dy_scope;
+  } while (0);
+
+deferred:
   scope->handle_count = 0;
+  scope->escaped = false;
   scope->handle_ptr = NULL;
-  scope->child = NULL;
 
-  if (kJerryXHandleScopePool.count != JERRYX_SCOPE_PRELIST_SIZE)
-  {
-    jerryx_handle_scope_dynamic_t *dy_current = (jerryx_handle_scope_dynamic_t *) kJerryXHandleScopeCurrent;
-    scope->parent = dy_current;
-    dy_current->child = scope;
-  }
-  else
-  {
-    kJerryXHandleScopePool.start = scope;
-  }
-
-  kJerryXHandleScopeCurrent = (jerryx_handle_scope_t *) scope;
-
+  kJerryXHandleScopeCurrent = scope;
   kJerryXHandleScopePool.count += 1;
   return (jerryx_handle_scope_t *) scope;
 }
