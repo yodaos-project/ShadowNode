@@ -27,7 +27,7 @@ static jerryx_handle_scope_pool_t kJerryXHandleScopePool = {
 };
 
 #define kJerryXHandleScopePoolPrelistLast \
-  kJerryXHandleScopePool.prelist + JERRY_X_HANDLE_SCOPE_PRELIST_SCOPE_COUNT - 1
+  kJerryXHandleScopePool.prelist + JERRYX_SCOPE_PRELIST_SIZE - 1
 
 #define JerryXHandleScopePrelistIdx(scope) (scope - kJerryXHandleScopePool.prelist)
 
@@ -35,6 +35,7 @@ static jerryx_handle_scope_pool_t kJerryXHandleScopePool = {
 /**
  * Get current handle scope top of stack.
  */
+inline
 jerryx_handle_scope_t *
 jerryx_handle_scope_get_current (void)
 {
@@ -45,6 +46,7 @@ jerryx_handle_scope_get_current (void)
 /**
  * Get root handle scope.
  */
+inline
 jerryx_handle_scope_t *
 jerryx_handle_scope_get_root (void)
 {
@@ -55,11 +57,13 @@ jerryx_handle_scope_get_root (void)
 /**
  * Determines if given handle scope is located in pre-allocated list.
  */
+static
+inline
 bool
 jerryx_handle_scope_is_in_prelist (jerryx_handle_scope_t *scope)
 {
   return (kJerryXHandleScopePool.prelist <= scope) &&
-    (scope <= (kJerryXHandleScopePool.prelist + JERRY_X_HANDLE_SCOPE_PRELIST_SCOPE_COUNT - 1));
+    (scope <= (kJerryXHandleScopePool.prelist + JERRYX_SCOPE_PRELIST_SIZE - 1));
 }
 
 
@@ -133,7 +137,7 @@ jerryx_handle_scope_get_child (jerryx_handle_scope_t *scope)
 jerryx_handle_scope_t *
 jerryx_handle_scope_alloc (void)
 {
-  if (kJerryXHandleScopePool.count < JERRY_X_HANDLE_SCOPE_PRELIST_SCOPE_COUNT)
+  if (kJerryXHandleScopePool.count < JERRYX_SCOPE_PRELIST_SIZE)
   {
     jerryx_handle_scope_t *scope = kJerryXHandleScopePool.prelist + kJerryXHandleScopePool.count;
     scope->handle_count = 0;
@@ -149,7 +153,7 @@ jerryx_handle_scope_alloc (void)
   scope->handle_ptr = NULL;
   scope->child = NULL;
 
-  if (kJerryXHandleScopePool.count != JERRY_X_HANDLE_SCOPE_PRELIST_SCOPE_COUNT)
+  if (kJerryXHandleScopePool.count != JERRYX_SCOPE_PRELIST_SIZE)
   {
     jerryx_handle_scope_dynamic_t *dy_current = (jerryx_handle_scope_dynamic_t *) kJerryXHandleScopeCurrent;
     scope->parent = dy_current;

@@ -22,12 +22,12 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-#ifndef JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT
-#define JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT 20
+#ifndef JERRYX_HANDLE_PRELIST_SIZE
+#define JERRYX_HANDLE_PRELIST_SIZE 20
 #endif
 
-#ifndef JERRY_X_HANDLE_SCOPE_PRELIST_SCOPE_COUNT
-#define JERRY_X_HANDLE_SCOPE_PRELIST_SCOPE_COUNT 20
+#ifndef JERRYX_SCOPE_PRELIST_SIZE
+#define JERRYX_SCOPE_PRELIST_SIZE 20
 #endif
 
 typedef struct jerryx_handle_t jerryx_handle_t;
@@ -36,24 +36,27 @@ struct jerryx_handle_t {
   jerryx_handle_t *sibling;
 };
 
-typedef struct jerryx_handle_scope_t jerryx_handle_scope_t;
+#define JERRYX_HANDLE_FIELDS                                \
+  jerry_value_t handle_prelist[JERRYX_HANDLE_PRELIST_SIZE]; \
+  size_t handle_count;                                      \
+  jerryx_handle_t *handle_ptr
+
+typedef struct jerryx_handle_scope_s jerryx_handle_scope_t;
 typedef jerryx_handle_scope_t *jerryx_handle_scope;
 typedef jerryx_handle_scope_t *jerryx_escapable_handle_scope;
-struct jerryx_handle_scope_t {
-  jerry_value_t handle_prelist[JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT];
-  size_t handle_count;
-  jerryx_handle_t *handle_ptr;
+struct jerryx_handle_scope_s {
+  JERRYX_HANDLE_FIELDS;
 };
 
 
-typedef struct jerryx_handle_scope_dynamic_t jerryx_handle_scope_dynamic_t;
-struct jerryx_handle_scope_dynamic_t {
-  jerry_value_t handle_prelist[JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT];
-  size_t handle_count;
-  jerryx_handle_t *handle_ptr;
+typedef struct jerryx_handle_scope_dynamic_s jerryx_handle_scope_dynamic_t;
+struct jerryx_handle_scope_dynamic_s {
+  JERRYX_HANDLE_FIELDS;
   jerryx_handle_scope_dynamic_t *child;
   jerryx_handle_scope_dynamic_t *parent;
 };
+
+#undef JERRYX_HANDLE_FIELDS
 
 typedef enum {
   jerryx_handle_scope_ok = 0,

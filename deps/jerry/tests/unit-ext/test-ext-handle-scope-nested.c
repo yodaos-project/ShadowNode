@@ -72,7 +72,7 @@ test_handle_scope_val (void)
 
   for (int idx = 0; idx < 2; ++idx)
   {
-    jerry_value_t obj = create_object_nested (JERRY_X_HANDLE_SCOPE_PRELIST_SCOPE_COUNT * 2);
+    jerry_value_t obj = create_object_nested (JERRYX_SCOPE_PRELIST_SIZE * 2);
     (void) obj;
   }
 

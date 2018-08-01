@@ -24,7 +24,7 @@
 #include "test-common.h"
 
 static size_t native_free_cb_call_count;
-static const size_t handle_count = JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT + 1;
+static const size_t handle_count = JERRYX_HANDLE_PRELIST_SIZE + 1;
 
 static void
 native_free_cb (void *native_p)

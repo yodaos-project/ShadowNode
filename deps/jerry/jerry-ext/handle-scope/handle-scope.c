@@ -35,7 +35,7 @@ void
 jerryx_handle_scope_release_handles (jerryx_handle_scope scope)
 {
   size_t handle_count = scope->handle_count;
-  if (scope->handle_count > JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT)
+  if (scope->handle_count > JERRYX_HANDLE_PRELIST_SIZE)
   {
     jerryx_handle_t *a_handle = scope->handle_ptr;
     while (a_handle != NULL)
@@ -45,7 +45,7 @@ jerryx_handle_scope_release_handles (jerryx_handle_scope scope)
       free (a_handle);
       a_handle = sibling;
     }
-    handle_count = JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT;
+    handle_count = JERRYX_HANDLE_PRELIST_SIZE;
   }
 
   for (size_t idx = 0; idx < handle_count; idx++)
@@ -120,7 +120,7 @@ jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t 
   jerry_value_t jval = scope->handle_prelist[idx];
   jerryx_create_handle_in_scope (scope->handle_prelist[idx], jerryx_handle_scope_get_parent (scope));
 
-  if (scope->handle_count > JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT)
+  if (scope->handle_count > JERRYX_HANDLE_PRELIST_SIZE)
   {
     jerryx_handle_t *handle = scope->handle_ptr;
     scope->handle_ptr = handle->sibling;
@@ -129,7 +129,7 @@ jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t 
     return jval;
   }
 
-  if (idx < JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT - 1)
+  if (idx < JERRYX_HANDLE_PRELIST_SIZE - 1)
   {
     scope->handle_prelist[idx] = scope->handle_prelist[scope->handle_count - 1];
   }
@@ -157,10 +157,13 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
   }
 
   bool found = false;
-  do
   {
     size_t found_idx = 0;
-    for (size_t idx = 0; idx < JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT; idx++)
+    size_t prelist_count =
+      scope->handle_count < JERRYX_HANDLE_PRELIST_SIZE ?
+        scope->handle_count :
+        JERRYX_HANDLE_PRELIST_SIZE;
+    for (size_t idx = 0; idx < prelist_count; idx++)
     {
       if (escapee == scope->handle_prelist[idx])
       {
@@ -179,10 +182,9 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
       *result =jerryx_hand_scope_escape_handle_from_prelist (scope, found_idx);
       return jerryx_handle_scope_ok;
     }
-  }
-  while (0);
+  };
 
-  if (scope->handle_count <= JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT)
+  if (scope->handle_count <= JERRYX_HANDLE_PRELIST_SIZE)
   {
     return jerryx_handle_scope_mismatch;
   }
@@ -238,7 +240,7 @@ jerryx_handle_scope_add_handle_to (jerryx_handle_t *handle, jerryx_handle_scope 
 {
   size_t handle_count = scope->handle_count;
   scope->handle_count += 1;
-  if (handle_count < JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT)
+  if (handle_count < JERRYX_HANDLE_PRELIST_SIZE)
   {
     jerry_value_t jval = handle->jval;
     free (handle);
@@ -259,17 +261,19 @@ void
 jerryx_create_handle_in_scope (jerry_value_t jval, jerryx_handle_scope scope)
 {
   size_t handle_count = scope->handle_count;
-  scope->handle_count += 1;
-  if (handle_count < JERRY_X_HANDLE_SCOPE_PRELIST_HANDLE_COUNT)
+  if (handle_count < JERRYX_HANDLE_PRELIST_SIZE)
   {
     scope->handle_prelist[handle_count] = jval;
-    return;
+    goto deferred;
   }
   jerryx_handle_t *handle = malloc (sizeof(jerryx_handle_t));
   handle->jval = jval;
 
   handle->sibling = scope->handle_ptr;
   scope->handle_ptr = handle;
+
+deferred:
+  scope->handle_count += 1;
 }
 
 
