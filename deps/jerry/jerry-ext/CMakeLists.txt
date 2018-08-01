@@ -24,14 +24,16 @@ if(FEATURE_INIT_FINI)
 endif()
 
 # Source directories
-file(GLOB SOURCE_EXT_ARG      arg/*.c)
-file(GLOB SOURCE_EXT_MODULE   module/*.c)
-file(GLOB SOURCE_EXT_HANDLER  handler/*.c)
+file(GLOB SOURCE_EXT_ARG          arg/*.c)
+file(GLOB SOURCE_EXT_MODULE       module/*.c)
+file(GLOB SOURCE_EXT_HANDLER      handler/*.c)
+file(GLOB SOURCE_EXT_HANDLE_SCOPE handle-scope/*.c)
 
 set(SOURCE_EXT
     ${SOURCE_EXT_ARG}
     ${SOURCE_EXT_MODULE}
-    ${SOURCE_EXT_HANDLER})
+    ${SOURCE_EXT_HANDLER}
+    ${SOURCE_EXT_HANDLE_SCOPE})
 
 add_library(${JERRY_EXT_NAME} STATIC ${SOURCE_EXT})
 
