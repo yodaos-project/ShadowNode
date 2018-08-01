@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(CMAKE_C_COMPILER arm-linux-gnueabihf-gcc)
+set(CMAKE_C_COMPILER ${CMAKE_TOOLCHAIN_ROOT}/arm-linux-gnueabihf-gcc)
