@@ -166,12 +166,16 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
       scope->handle_count < JERRYX_HANDLE_PRELIST_SIZE ?
         scope->handle_count :
         JERRYX_HANDLE_PRELIST_SIZE;
-    for (size_t idx = 0; idx < prelist_count; idx++)
+    /**
+     * Search prelist in a reversed order since last added handle
+     * is possible the one to be escaped
+     */
+    for (size_t idx_plus_1 = prelist_count; idx_plus_1 > 0; --idx_plus_1)
     {
-      if (escapee == scope->handle_prelist[idx])
+      if (escapee == scope->handle_prelist[idx_plus_1 - 1])
       {
         found = true;
-        found_idx = idx;
+        found_idx = idx_plus_1 - 1;
         break;
       }
     }
@@ -191,6 +195,10 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
     return jerryx_handle_scope_mismatch;
   }
 
+  /**
+   * Handle chain list is already in an reversed order,
+   * search through it as it is
+   */
   jerryx_handle_t *handle = scope->handle_ptr;
   jerryx_handle_t *memo_handle = NULL;
   jerryx_handle_t *found_handle = NULL;

@@ -49,7 +49,6 @@ struct jerryx_handle_scope_pool_s {
   jerryx_handle_scope_t prelist[JERRYX_SCOPE_PRELIST_SIZE];
   size_t count;
   jerryx_handle_scope_dynamic_t *start;
-  jerryx_handle_scope_dynamic_t *end;
 };
 
 jerryx_handle_scope_t *

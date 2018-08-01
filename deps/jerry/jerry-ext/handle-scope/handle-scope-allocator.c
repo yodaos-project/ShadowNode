@@ -23,7 +23,6 @@ static jerryx_handle_scope_t *kJerryXHandleScopeCurrent = &kJerryXHandleScopeRoo
 static jerryx_handle_scope_pool_t kJerryXHandleScopePool = {
   .count = 0,
   .start = NULL,
-  .end = NULL,
 };
 
 #define kJerryXHandleScopePoolPrelistLast \
