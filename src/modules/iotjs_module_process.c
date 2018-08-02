@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "internal/node_api.h"
 #include "mbedtls/version.h"
 
 #ifdef __APPLE__
@@ -413,27 +414,45 @@ JS_FUNCTION(ForceGC) {
   return jerry_create_boolean(true);
 }
 
-JS_FUNCTION(DLOpen) {
+JS_FUNCTION(OpenNativeModule) {
   iotjs_string_t location = JS_GET_ARG(0, string);
-  void (*initfn)(jerry_value_t);
 
   void* handle = dlopen(iotjs_string_data(&location), RTLD_LAZY);
+  iotjs_string_destroy(&location);
+
   if (handle == NULL) {
-    fprintf(stderr, "dlopen: error(%s)\n", dlerror());
-    return jerry_create_number(-1);
+    char* err_msg = dlerror();
+    jerry_value_t jval_error =
+        jerry_create_error(JERRY_ERROR_COMMON, (jerry_char_t*)err_msg);
+    return jval_error;
   }
 
-  initfn = dlsym(handle, "iotjs_module_register");
+  jerry_value_t exports;
+  int status = napi_module_init_pending(&exports);
+  if (status == napi_module_load_ok) {
+    return exports;
+  }
+  if (status == napi_module_no_nm_register_func) {
+    jerry_value_t jval_error = jerry_create_error(
+        JERRY_ERROR_COMMON,
+        (jerry_char_t*)"Native module has no nm_register_func");
+    return jval_error;
+  }
+
+  void (*init_fn)(jerry_value_t);
+  init_fn = dlsym(handle, "iotjs_module_register");
   // check for dlsym
-  char* error = dlerror();
-  if (error != NULL) {
-    fprintf(stderr, "dlsym: error(%s)\n", error);
+  if (init_fn == NULL) {
+    char* err_msg = dlerror();
     dlclose(handle);
-    return jerry_create_number(-1);
+
+    jerry_value_t jval_error =
+        jerry_create_error(JERRY_ERROR_COMMON, (jerry_char_t*)err_msg);
+    return jval_error;
   }
 
-  jerry_value_t exports = jerry_create_object();
-  (*initfn)(exports);
+  exports = jerry_create_object();
+  (*init_fn)(exports);
   return exports;
 }
 
@@ -603,7 +622,8 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_GC, ForceGC);
 
   // native module
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DLOPEN, DLOpen);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_OPENNATIVEMODULE,
+                        OpenNativeModule);
 
   // snapshot
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILESNAPSHOT,

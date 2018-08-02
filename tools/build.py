@@ -405,6 +405,27 @@ def build_iotjs(options):
         run_make(options, options.build_root)
 
 
+def build_napi_test_module(options):
+    print_progress('Build NAPI test module')
+
+    # Set NAPI test module cmake options.
+    project_root = fs.join(path.PROJECT_ROOT, 'test', 'napi')
+    build_root = fs.join(project_root, 'build')
+    cmake_opt = [
+        '-B%s' % build_root,
+        '-H%s' % project_root,
+        "-DCMAKE_TOOLCHAIN_FILE='%s'" % options.cmake_toolchain_file,
+        '-DCMAKE_BUILD_TYPE=%s' % options.buildtype.capitalize(),
+        '-DTARGET_ARCH=%s' % options.target_arch,
+        '-DTARGET_OS=%s' % options.target_os,
+        '-DPLATFORM_DESCRIPTOR=%s' % options.target_tuple,
+        '-DINSTALL_PREFIX=%s' % options.install_prefix,
+    ]
+    # Run cmake.
+    ex.check_run_cmd('cmake', cmake_opt)
+    run_make(options, build_root)
+
+
 def run_checktest(options):
     checktest_quiet = 'yes'
     if os.getenv('TRAVIS') == "true":
@@ -455,6 +476,7 @@ if __name__ == '__main__':
 
     # Run tests.
     if options.run_test:
+        build_napi_test_module(options)
         print_progress('Run tests')
         if options.buildlib:
             print("Skip unit tests - build target is library\n")

@@ -398,6 +398,8 @@ file(GLOB LIBUV_HEADERS "${ROOT_DIR}/deps/libtuv/include/*.h")
 
 set(IOTJS_PUBLIC_HEADERS
   "include/iotjs.h"
+  "include/node_api.h"
+  "include/node_api_types.h"
   ${IOTJS_HEADERS}
   ${JERRY_HEADERS}
   ${LIBUV_HEADERS}
