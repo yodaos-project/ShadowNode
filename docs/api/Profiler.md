@@ -34,6 +34,18 @@ The profiling data will be stored into a file ${process.cwd()}/Profile-${Date.no
 
 The `profiler.startProfiling(path, duration)` method start a CPU profiler, which will stop after `duration` milliseconds.
 
+### profiler.takeSnapshot()
+* Returns {null}
+
+The `profiler.takeSnapshot()` methd take a Heap profiler file into ${process.cwd()}/Profile-${Date.now()}.
+
+### profiler.takeSnapshot(path)
+* `path` {String} profiling data file path
+* Returns {null}
+
+The `profiler.takeSnapshot()` methd take a Heap profiler file which path is `path`.
+
+
 **Example**
 
 ```js
@@ -45,7 +57,7 @@ profiler.stopProfiling();
 
 ```js
 var profiler = require('profiler');
-profiler.startProfiling("/data/profile-123.txt");
+profiler.startProfiling('/data/profile-123.txt');
 balabala...
 profiler.stopProfiling();
 ```
@@ -58,6 +70,15 @@ balabala...
 
 ```js
 var profiler = require('profiler');
-profiler.startProfiling("/data/profile-123.txt", 1000);
+profiler.startProfiling('/data/profile-123.txt', 1000);
 balabala...
 ```
+
+```js
+var profiler = require('profiler');
+profiler.takeSnapshot();
+```
+
+```js
+var profiler = require('profiler');
+profiler.takeSnapshot('/data/profile-123.txt');
