@@ -80,6 +80,8 @@ def get_arguments():
                         help='build jerry-ext (default: %(default)s)')
     parser.add_argument('--jerry-function-name', metavar='X', choices=['ON', 'OFF'], default='ON', type=str.upper,
                         help='enable function name (%(choices)s; default: %(default)s)')
+    parser.add_argument('--jerry-heap-profiler', metavar='X', choices=['ON', 'OFF'], default='OFF', type=str.upper,
+                        help='enable heap profile (%(choices)s; default: %(default)s)')
     parser.add_argument('--jerry-libc', metavar='X', choices=['ON', 'OFF'], default='OFF', type=str.upper,
                         help='build and use jerry-libc (%(choices)s; default: %(default)s)')
     parser.add_argument('--jerry-libm', metavar='X', choices=['ON', 'OFF'], default='ON', type=str.upper,
@@ -160,6 +162,7 @@ def generate_build_options(arguments):
     build_options.append('-DJERRY_PORT_DEFAULT=%s' % arguments.jerry_port_default)
     build_options.append('-DJERRY_EXT=%s' % arguments.jerry_ext)
     build_options.append('-DFEATURE_FUNCTION_NAME=%s' % arguments.jerry_function_name)
+    build_options.append('-DFEATURE_HEAP_PROFILER=%s' % arguments.jerry_heap_profiler)
     build_options.append('-DJERRY_LIBC=%s' % arguments.jerry_libc)
     build_options.append('-DJERRY_LIBM=%s' % arguments.jerry_libm)
     build_options.append('-DFEATURE_JS_PARSER=%s' % arguments.js_parser)
