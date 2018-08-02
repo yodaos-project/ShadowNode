@@ -3,8 +3,8 @@
 /**
  * @class Snapshot
  */
-function Snapshot() {
-  native.takeSnapshot("heapsnapshot.txt");
+function Snapshot(path) {
+  native.takeSnapshot(path);
 }
 
 /**
@@ -71,7 +71,13 @@ Profile.prototype.export = function(cb) {
  * @method getHeader
  */
 function takeSnapshot() {
-  return new Snapshot();
+  var path;
+  if (arguments.length >= 1) {
+    path = arguments[0];
+  } else if (arguments.length === 0) {
+    path = `${process.cwd()}/Profile-${Date.now()}`;
+  }
+  return new Snapshot(path);
 }
 
 /**
