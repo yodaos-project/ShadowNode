@@ -55,6 +55,10 @@ endmacro(add_cmake_arg)
 set(JERRY_LIBS jerry-core jerry-port-default)
 set(DEPS_LIB_JERRY_ARGS)
 
+if(ENABLE_JERRYX)
+  list(APPEND JERRY_LIBS jerry-ext)
+endif()
+
 # Configure the MinSizeRel as the default build type
 # for target jerry in release mode.
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
@@ -138,6 +142,7 @@ ExternalProject_Add(libjerry
 set_property(DIRECTORY APPEND PROPERTY
   ADDITIONAL_MAKE_CLEAN_FILES
     ${CMAKE_BINARY_DIR}/lib/libjerry-core.a
+    ${CMAKE_BINARY_DIR}/lib/libjerry-ext.a
     ${CMAKE_BINARY_DIR}/lib/libjerry-libm.a
     ${CMAKE_BINARY_DIR}/lib/libjerry-libc.a
 )
@@ -147,6 +152,12 @@ add_library(jerry-core STATIC IMPORTED)
 add_dependencies(jerry-core libjerry)
 set_property(TARGET jerry-core PROPERTY
   IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libjerry-core.a)
+
+# define external jerry-ext target
+add_library(jerry-ext STATIC IMPORTED)
+add_dependencies(jerry-ext libjerry)
+set_property(TARGET jerry-ext PROPERTY
+  IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libjerry-ext.a)
 
 # define external jerry-libc target
 add_library(jerry-libc STATIC IMPORTED)
@@ -175,4 +186,6 @@ if(NOT "${TARGET_OS}" MATCHES "NUTTX")
   set(JERRY_PORT_DIR ${DEPS_LIB_JERRY_SRC}/jerry-port/default)
 endif()
 
-set(JERRY_INCLUDE_DIR ${DEPS_LIB_JERRY}/jerry-core/include)
+set(JERRY_INCLUDE_DIR
+  ${DEPS_LIB_JERRY}/jerry-core/include
+  ${DEPS_LIB_JERRY}/jerry-ext/include)
