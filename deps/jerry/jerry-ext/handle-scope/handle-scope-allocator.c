@@ -75,6 +75,10 @@ jerryx_handle_scope_is_in_prelist (jerryx_handle_scope_t *scope)
 jerryx_handle_scope_t *
 jerryx_handle_scope_get_parent (jerryx_handle_scope_t *scope)
 {
+  if (scope == &kJerryXHandleScopeRoot)
+  {
+    return NULL;
+  }
   if (!jerryx_handle_scope_is_in_prelist (scope))
   {
     jerryx_handle_scope_dynamic_t *dy_scope = (jerryx_handle_scope_dynamic_t *) scope;
@@ -87,7 +91,7 @@ jerryx_handle_scope_get_parent (jerryx_handle_scope_t *scope)
   }
   if (scope == kJerryXHandleScopePool.prelist)
   {
-    return NULL;
+    return &kJerryXHandleScopeRoot;
   }
   return kJerryXHandleScopePool.prelist + JerryXHandleScopePrelistIdx (scope) - 1;
 }
@@ -102,6 +106,13 @@ jerryx_handle_scope_get_parent (jerryx_handle_scope_t *scope)
 jerryx_handle_scope_t *
 jerryx_handle_scope_get_child (jerryx_handle_scope_t *scope)
 {
+  if (scope == &kJerryXHandleScopeRoot)
+  {
+    if (kJerryXHandleScopePool.count > 0) {
+      return kJerryXHandleScopePool.prelist;
+    }
+    return NULL;
+  }
   if (!jerryx_handle_scope_is_in_prelist (scope))
   {
     jerryx_handle_scope_dynamic_t *child = ((jerryx_handle_scope_dynamic_t *) scope)->child;
@@ -181,6 +192,11 @@ deferred:
 void
 jerryx_handle_scope_free (jerryx_handle_scope_t *scope)
 {
+  if (scope == &kJerryXHandleScopeRoot)
+  {
+    return;
+  }
+
   kJerryXHandleScopePool.count -= 1;
 
   if (!jerryx_handle_scope_is_in_prelist (scope))

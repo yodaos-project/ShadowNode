@@ -52,6 +52,7 @@ jerryx_handle_scope_release_handles (jerryx_handle_scope scope)
   {
     jerry_release_value (scope->handle_prelist[idx]);
   }
+  scope->handle_count = 0;
 }
 
 

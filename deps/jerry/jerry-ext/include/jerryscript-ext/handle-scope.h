@@ -86,6 +86,15 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
 jerry_value_t
 jerryx_create_handle (jerry_value_t jval);
 
+
+/** MARK: - handle-scope-allocator.c */
+jerryx_handle_scope_t *
+jerryx_handle_scope_get_current (void);
+
+jerryx_handle_scope_t *
+jerryx_handle_scope_get_root (void);
+/** MARK: - END handle-scope-allocator.c */
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

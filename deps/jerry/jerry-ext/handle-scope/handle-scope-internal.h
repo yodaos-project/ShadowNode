@@ -52,12 +52,6 @@ struct jerryx_handle_scope_pool_s {
 };
 
 jerryx_handle_scope_t *
-jerryx_handle_scope_get_current (void);
-
-jerryx_handle_scope_t *
-jerryx_handle_scope_get_root (void);
-
-jerryx_handle_scope_t *
 jerryx_handle_scope_get_parent (jerryx_handle_scope_t *scope);
 
 jerryx_handle_scope_t *
