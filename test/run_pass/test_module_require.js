@@ -39,8 +39,13 @@ assert.equal(pkg3.add2(22, 44), 66);
 
 // Load invalid modules.
 assert.throws(function() {
-  var test3 = require('run_pass/require1/babel-template');
+  var test3 = require(dir + 'babel-template');
 }, Error);
+
+// Load arbitrary file.
+assert.throws(function() {
+  var test4 = require(dir + 'arbitrary_file.txt');
+}, SyntaxError);
 
 assert.throws(function() {
   var test4 = require('tmp');

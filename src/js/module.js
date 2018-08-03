@@ -219,9 +219,7 @@ iotjs_module_t.load = function(id, parent) {
   iotjs_module_t.curr = modPath;
 
   var ext = modPath.substr(modPath.lastIndexOf('.') + 1);
-  if (ext === 'js') {
-    module.compile();
-  } else if (ext === 'jsc') {
+  if (ext === 'jsc') {
     module.compile(true);
   } else if (ext === 'json') {
     var source = process.readSource(modPath);
@@ -232,6 +230,9 @@ iotjs_module_t.load = function(id, parent) {
       throw new Error(`could not find native module "${module.filename}"`);
     }
     module.exports = native;
+  } else {
+    /** Treat any other file as js file */
+    module.compile();
   }
 
   if (process._loadstat()) {
