@@ -20,19 +20,11 @@
 static jerry_value_t Print(const jerry_value_t* jargv,
                            const jerry_length_t jargc, FILE* out_fd) {
   JS_CHECK_ARGS(1, string);
-  iotjs_string_t msg = JS_GET_ARG(0, string);
-  const char* str = iotjs_string_data(&msg);
-  unsigned str_len = iotjs_string_size(&msg);
-  unsigned idx = 0;
-
-  for (idx = 0; idx < str_len; idx++) {
-    if (str[idx] != 0) {
-      fprintf(out_fd, "%c", str[idx]);
-    } else {
-      fprintf(out_fd, "\\u0000");
-    }
-  }
-  iotjs_string_destroy(&msg);
+  jerry_size_t len = jerry_get_string_size(jargv[0]);
+  jerry_char_t str[len + 1];
+  jerry_string_to_char_buffer(jargv[0], str, len);
+  str[len] = '\0';
+  fprintf(out_fd, "%s", str);
   return jerry_create_undefined();
 }
 
