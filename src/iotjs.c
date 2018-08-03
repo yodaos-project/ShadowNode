@@ -24,6 +24,9 @@
 #ifndef __NUTTX__
 #include "jerryscript-port-default.h"
 #endif
+#ifdef ENABLE_JERRYX
+#include "jerryscript-ext/handle-scope.h"
+#endif
 #include "jerryscript-port.h"
 #include "jerryscript.h"
 
@@ -255,6 +258,9 @@ int iotjs_entry(int argc, char** argv) {
   }
 
   // Release JerryScript engine.
+#ifdef ENABLE_JERRYX
+  jerryx_close_handle_scope(jerryx_handle_scope_get_root());
+#endif
   iotjs_jerry_release(env);
 
 terminate:;
