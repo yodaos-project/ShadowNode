@@ -257,10 +257,11 @@ int iotjs_entry(int argc, char** argv) {
     jerry_release_value(res);
   }
 
-  // Release JerryScript engine.
 #ifdef ENABLE_JERRYX
+  // Release handles in root handle scope
   jerryx_close_handle_scope(jerryx_handle_scope_get_root());
 #endif
+  // Release JerryScript engine.
   iotjs_jerry_release(env);
 
 terminate:;
