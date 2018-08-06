@@ -13,5 +13,4 @@
  * limitations under the License.
  */
 
-
 process.exit(0);

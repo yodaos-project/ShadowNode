@@ -163,11 +163,11 @@ static int iotjs_start(iotjs_environment_t* env) {
     } while (more && !iotjs_environment_is_exiting(env));
 
     exit_code = iotjs_process_exitcode();
-
     if (!iotjs_environment_is_exiting(env)) {
       // Emit 'exit' event.
       iotjs_process_emit_exit(exit_code);
-
+    }
+    if (!iotjs_environment_is_exiting(env)) {
       iotjs_environment_go_state_exiting(env);
     }
   }
