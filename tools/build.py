@@ -489,7 +489,9 @@ if __name__ == '__main__':
 
     # Run tests.
     if options.run_test:
+        print_progress('Build test dependencies')
         build_napi_test_module(options)
+
         print_progress('Run tests')
         if options.buildlib:
             print("Skip unit tests - build target is library\n")
