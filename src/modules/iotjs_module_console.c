@@ -24,7 +24,7 @@ static jerry_value_t Print(const jerry_value_t* jargv,
   jerry_char_t str[len + 1];
   jerry_string_to_char_buffer(jargv[0], str, len);
   str[len] = '\0';
-  fprintf(out_fd, str);
+  fprintf(out_fd, "%s", str);
   return jerry_create_undefined();
 }
 
