@@ -78,7 +78,7 @@ def get_arguments():
                         help='enable the jerry debugger (%(choices)s; default: %(default)s)')
     parser.add_argument('--jerry-ext', metavar='X', choices=['ON', 'OFF'], default='ON', type=str.upper,
                         help='build jerry-ext (default: %(default)s)')
-    parser.add_argument('--jerry-function-name', metavar='X', choices=['ON', 'OFF'], default='ON', type=str.upper,
+    parser.add_argument('--jerry-function-name', metavar='X', choices=['ON', 'OFF'], default='OFF', type=str.upper,
                         help='enable function name (%(choices)s; default: %(default)s)')
     parser.add_argument('--jerry-heap-profiler', metavar='X', choices=['ON', 'OFF'], default='OFF', type=str.upper,
                         help='enable heap profile (%(choices)s; default: %(default)s)')
