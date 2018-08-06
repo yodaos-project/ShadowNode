@@ -173,9 +173,10 @@ class TestRunner(object):
             "timeout": 0
         }
 
-        for testset in self.testsets:
-            with open(testset) as testsets_file:
-                testsets = json.load(testsets_file, object_pairs_hook=OrderedDict)
+        for testset_path in self.testsets:
+            with open(testset_path) as testsets_file:
+                testsets = json.load(testsets_file,
+                                     object_pairs_hook=OrderedDict)
 
             for testset, tests in testsets.items():
                 self.run_testset(testset, tests)
