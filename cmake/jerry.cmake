@@ -57,6 +57,7 @@ set(DEPS_LIB_JERRY_ARGS)
 
 if(ENABLE_JERRYX)
   list(APPEND JERRY_LIBS jerry-ext)
+  iotjs_add_compile_flags(-DENABLE_JERRYX)
 endif()
 
 # Configure the MinSizeRel as the default build type

@@ -108,12 +108,12 @@ if __name__ == '__main__':
                         '--no-snapshot',
                         '--jerry-lto'])
 
-    elif test == "jerryx":
+    elif test == 'napi':
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
                 '--run-test',
                 '--no-check-valgrind',
-                '--jerryx',
+                '--napi',
                 '--jerry-lto'])
 
     elif test == "coverity":

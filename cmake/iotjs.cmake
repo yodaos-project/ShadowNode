@@ -309,6 +309,11 @@ if(ENABLE_SNAPSHOT)
   iotjs_add_compile_flags(-DENABLE_SNAPSHOT)
 endif()
 
+if(ENABLE_NAPI)
+  iotjs_add_compile_flags(-DENABLE_NAPI)
+endif()
+
+
 # Run js2c
 set(JS2C_RUN_MODE "release")
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
@@ -326,6 +331,11 @@ add_custom_command(
           ${IOTJS_SOURCE_DIR}/js/*.js
 )
 
+set(IOTJS_NAPI_SRC)
+if (DEFINED ENABLE_NAPI)
+  file(GLOB IOTJS_NAPI_SRC ${IOTJS_SOURCE_DIR}/napi/*.c)
+endif()
+
 # Collect all sources into LIB_IOTJS_SRC
 file(GLOB LIB_IOTJS_SRC ${IOTJS_SOURCE_DIR}/*.c)
 list(APPEND LIB_IOTJS_SRC
@@ -333,6 +343,7 @@ list(APPEND LIB_IOTJS_SRC
   ${IOTJS_SOURCE_DIR}/iotjs_js.h
   ${IOTJS_MODULE_SRC}
   ${IOTJS_PLATFORM_SRC}
+  ${IOTJS_NAPI_SRC}
 )
 
 separate_arguments(EXTERNAL_INCLUDE_DIR)
@@ -368,6 +379,7 @@ message(STATUS "CMAKE_BUILD_TYPE         ${CMAKE_BUILD_TYPE}")
 message(STATUS "CMAKE_C_FLAGS            ${CMAKE_C_FLAGS}")
 message(STATUS "CMAKE_TOOLCHAIN_FILE     ${CMAKE_TOOLCHAIN_FILE}")
 message(STATUS "ENABLE_LTO               ${ENABLE_LTO}")
+message(STATUS "ENABLE_NAPI              ${ENABLE_NAPI}")
 message(STATUS "ENABLE_SNAPSHOT          ${ENABLE_SNAPSHOT}")
 message(STATUS "EXTERNAL_INCLUDE_DIR     ${EXTERNAL_INCLUDE_DIR}")
 message(STATUS "EXTERNAL_LIBC_INTERFACE  ${EXTERNAL_LIBC_INTERFACE}")

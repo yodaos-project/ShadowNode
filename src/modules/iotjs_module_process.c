@@ -22,7 +22,9 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
+#ifdef ENABLE_NAPI
 #include "internal/node_api.h"
+#endif
 #include "mbedtls/version.h"
 
 #ifdef __APPLE__
@@ -428,6 +430,8 @@ JS_FUNCTION(OpenNativeModule) {
   }
 
   jerry_value_t exports;
+
+#ifdef ENABLE_NAPI
   int status = napi_module_init_pending(&exports);
   if (status == napi_module_load_ok) {
     return exports;
@@ -438,6 +442,7 @@ JS_FUNCTION(OpenNativeModule) {
         (jerry_char_t*)"Native module has no nm_register_func");
     return jval_error;
   }
+#endif
 
   void (*init_fn)(jerry_value_t);
   init_fn = dlsym(handle, "iotjs_module_register");
@@ -445,9 +450,12 @@ JS_FUNCTION(OpenNativeModule) {
   if (init_fn == NULL) {
     char* err_msg = dlerror();
     dlclose(handle);
+    char* msg_tpl = "dlopen(%s)";
+    char msg[strlen(err_msg) + 8];
+    sprintf(msg, msg_tpl, err_msg);
 
     jerry_value_t jval_error =
-        jerry_create_error(JERRY_ERROR_COMMON, (jerry_char_t*)err_msg);
+        jerry_create_error(JERRY_ERROR_COMMON, (jerry_char_t*)msg);
     return jval_error;
   }
 

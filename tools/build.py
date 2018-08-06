@@ -190,6 +190,10 @@ def init_options():
         action='store_true', default=False,
         help='Enable JerryScript-debugger')
 
+    parser.add_argument('--napi',
+        action='store_true', default=False,
+        help='Build ShadowNode with N-API enabled')
+
     # Unit testing and benchmarking options
     parser.add_argument('--run-test',
         nargs='?', default=False, const="quiet", choices=["full", "quiet"],
@@ -240,6 +244,11 @@ def adjust_options(options):
 
     if options.target_board in ['rpi2', 'artik10', 'artik05x']:
         options.no_check_valgrind = True
+
+    if options.napi:
+        options.jerryx = True
+        if options.testsets is None:
+            options.testsets = 'test/napi-testsets.json'
 
     # Then add calculated options.
     options.host_tuple = '%s-%s' % (platform.arch(), platform.os())
@@ -364,6 +373,10 @@ def build_iotjs(options):
     # --jerry-debugger
     if options.jerry_debugger:
         cmake_opt.append('-DFEATURE_DEBUGGER=ON')
+
+    # --napi
+    if options.napi:
+        cmake_opt.append('-DENABLE_NAPI=ON')
 
     # --jerryx
     if options.jerryx:
