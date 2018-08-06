@@ -8,6 +8,6 @@ Bug fixes and new features should include tests and possibly benchmarks.
 ##### Checklist
 <!-- Remove items that do not apply. For completed items, change [ ] to [x]. -->
 
-- [ ] `tools/build --run-test` passes
+- [ ] `npm test` passes
 - [ ] tests and/or benchmarks are included
 - [ ] documentation is changed or added
