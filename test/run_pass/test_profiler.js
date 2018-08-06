@@ -1,7 +1,13 @@
 'use strict';
 
+/* This test need custom build
+ * $ShadowNode ./tools/build.py --jerry-heap-profiler --jerry-cpu-profiler
+ */
 var profiler = require('profiler');
-profiler.startProfiling();
+
+profiler.takeSnapshot('test.heapdump');
+
+profiler.startProfiling('test.cpuprof');
 console.log('cpu profiling starts');
 
 function test() {
