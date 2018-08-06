@@ -23,3 +23,24 @@ napi_status napi_create_int32(napi_env env, int32_t value, napi_value* result) {
   *result = (napi_value)(uintptr_t)jval;
   return napi_ok;
 }
+
+
+napi_status napi_set_named_property(napi_env env, napi_value object,
+                                    const char* utf8name, napi_value value) {
+  jerry_value_t jval = (jerry_value_t)(uintptr_t)object;
+  jerry_value_t jval_prop_val = (jerry_value_t)(uintptr_t)value;
+  jerry_value_t jval_prop_name =
+      jerry_create_string_from_utf8((jerry_char_t*)utf8name);
+
+  jerry_value_t jval_result =
+      jerry_set_property(jval, jval_prop_name, jval_prop_val);
+  jerry_release_value(jval_prop_name);
+
+  if (jerry_value_has_error_flag(jval_result)) {
+    jerry_release_value(jval_result);
+    return napi_invalid_arg;
+  }
+
+  jerry_release_value(jval_result);
+  return napi_ok;
+}

@@ -15,7 +15,7 @@
 
 #include "iotjs.h"
 #include "jerryscript-ext/handle-scope.h"
-#include "internal/node_api.h"
+#include "internal/node_api_internal.h"
 #include "node_api.h"
 
 static napi_module *mod_pending;
@@ -36,19 +36,31 @@ int napi_module_init_pending(jerry_value_t *exports) {
     return napi_module_no_nm_register_func;
   }
 
-  jerry_value_t jval_exports = jerry_create_object();
   napi_env env = (napi_env)NULL;
 
   jerryx_escapable_handle_scope scope;
   jerryx_open_escapable_handle_scope(&scope);
-  *exports = (*Init)(env, jval_exports);
-  jerryx_close_handle_scope(scope);
 
-  if (*exports != jval_exports) {
-    jerry_release_value(jval_exports);
+  jerry_value_t jval_exports = jerry_create_object();
+  jerryx_create_handle(jval_exports);
+  napi_value nvalue_ret = (*Init)(env, jval_exports);
+
+  if (nvalue_ret == NULL) {
+    *exports = jerry_create_undefined();
   } else {
-    jerryx_escape_handle(scope, *exports, exports);
+    jerry_value_t jval_ret = (jerry_value_t)(uintptr_t)nvalue_ret;
+    if (jval_ret != jval_exports) {
+      jerry_release_value(jval_exports);
+    }
+    /**
+     * TODO: how do root scope cope with JS_FUNCTION
+     * return value's auto-releasing?
+     */
+    jerry_acquire_value(jval_ret);
+    jerryx_escape_handle(scope, jval_ret, exports);
   }
+
+  jerryx_close_handle_scope(scope);
 
   mod_pending = NULL;
   return napi_module_load_ok;

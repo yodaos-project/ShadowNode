@@ -23,7 +23,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #ifdef ENABLE_NAPI
-#include "internal/node_api.h"
+#include "internal/node_api_internal.h"
 #endif
 #include "mbedtls/version.h"
 

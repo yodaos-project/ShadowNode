@@ -17,9 +17,10 @@
 #define IOTJS_NODE_API_H
 
 #include "jerryscript.h"
+#include "node_api.h"
 
-typedef jerry_value_t (*jerry_addon_register_func)(void *env,
-                                                   jerry_value_t exports);
+typedef napi_value (*jerry_addon_register_func)(void *env,
+                                                jerry_value_t exports);
 
 typedef enum {
   napi_module_load_ok = 0,
