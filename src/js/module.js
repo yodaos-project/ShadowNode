@@ -225,10 +225,7 @@ iotjs_module_t.load = function(id, parent) {
     var source = process.readSource(modPath);
     module.exports = JSON.parse(source);
   } else if (ext === 'node') {
-    var native = process.dlopen(module.filename);
-    if (native === -1) {
-      throw new Error(`could not find native module "${module.filename}"`);
-    }
+    var native = process.openNativeModule(module.filename);
     module.exports = native;
   } else {
     /** Treat any other file as js file */

@@ -149,6 +149,7 @@ class TestRunner(object):
         self.coverage = options.coverage
         self.skip_modules = []
         self.results = {}
+        self.testsets = options.testsets
 
         if options.skip_modules:
             self.skip_modules = options.skip_modules.split(",")
@@ -173,11 +174,13 @@ class TestRunner(object):
             "timeout": 0
         }
 
-        with open(fs.join(path.TEST_ROOT, "testsets.json")) as testsets_file:
-            testsets = json.load(testsets_file, object_pairs_hook=OrderedDict)
+        for testset_path in self.testsets:
+            with open(testset_path) as testsets_file:
+                testsets = json.load(testsets_file,
+                                     object_pairs_hook=OrderedDict)
 
-        for testset, tests in testsets.items():
-            self.run_testset(testset, tests)
+            for testset, tests in testsets.items():
+                self.run_testset(testset, tests)
 
         Reporter.report_final(self.results)
 
@@ -298,6 +301,9 @@ def get_args():
                         help="check tests with Valgrind")
     parser.add_argument("--coverage", action="store_true", default=False,
                         help="measure JavaScript coverage")
+    parser.add_argument('--testsets', action='append',
+                        default=[fs.join(path.TEST_ROOT, 'testsets.json')],
+                        help='Test alternative testsets')
 
     return parser.parse_args()
 
