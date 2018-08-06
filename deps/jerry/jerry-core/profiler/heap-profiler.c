@@ -76,101 +76,34 @@ static void string_print (FILE *fp, ecma_string_t *name_str_p)
   fprintf (fp, "\"}\n");
 }
 
-static ecma_string_t*
-get_object_name (ecma_object_t *object_p)
-{
-//  ecma_object_type_t type = ecma_get_object_type (object_p);
-//  if (type == ECMA_OBJECT_TYPE_FUNCTION)
-  {
-    ecma_extended_object_t *func_obj_p = (ecma_extended_object_t *) object_p;
-    if (ecma_get_object_is_builtin (object_p))
-    {
-      lit_magic_string_id_t id;
-      ecma_built_in_props_t builtin = func_obj_p->u.built_in;
-      if (ecma_builtin_function_is_routine (object_p))
-      {
-        id = ecma_builtin_routine_get_name (builtin.id, builtin.routine_id);
-      }
-      else
-      {
-        id = ecma_builtin_get_name (builtin.id);
-      }
-      return ecma_get_magic_string (id);
-    }
-#ifdef JERRY_FUNCTION_NAME
-    else {
-      const ecma_compiled_code_t *bytecode_data_p = ecma_op_function_get_compiled_code (func_obj_p);
-      if (bytecode_data_p->name != ECMA_VALUE_EMPTY)
-      {
-        return ecma_get_string_from_value (bytecode_data_p->name);
-      }
-    }
-#endif /* JERRY_FUNCTION_NAME */
-  }
-
-  lit_magic_string_id_t id = ecma_object_get_class_name (object_p);
-  return ecma_get_magic_string(id);
-}
-
-static ecma_string_t*
-get_object_constructor_name (ecma_object_t *object_p)
-{
-  ecma_object_t *proto_p = ecma_get_object_prototype (object_p);
-  if (proto_p != NULL)
-  {
-    ecma_string_t *constructor_string = ecma_get_magic_string(LIT_MAGIC_STRING_CONSTRUCTOR);
-    ecma_property_t *property_p = ecma_find_named_property (proto_p, constructor_string);
-
-    if (property_p != NULL &&
-        ECMA_PROPERTY_GET_TYPE (*property_p) == ECMA_PROPERTY_TYPE_NAMEDDATA)
-    {
-      ecma_property_value_t *prop_value = ecma_get_named_data_property (proto_p, constructor_string);
-      if (ecma_is_value_object (prop_value->value))
-      {
-        return get_object_name (ecma_get_object_from_value(prop_value->value));
-      }
-    }
-  }
-  return NULL;
-}
-
 static void
 heapdump_object (FILE *fp, ecma_object_t *object_p)
 {
   ecma_value_t node_id = ecma_make_object_value (object_p);
-  ecma_string_t *node_name = NULL;
+  ecma_string_t *node_name = ecma_object_get_name (object_p);
+  uint32_t node_self_size = ecma_object_get_size (object_p);
   int node_type;
-  uint32_t node_self_size = sizeof (ecma_object_t); //default
 
   if (ecma_is_lexical_environment (object_p))
   {
     node_type = NODE_TYPE_HIDDEN;
-    node_name = ecma_get_magic_string (LIT_MAGIC_STRING_LEX_ENV);
   }
   else
   {
     ecma_object_type_t type = ecma_get_object_type (object_p);
-    if (type != ECMA_OBJECT_TYPE_GENERAL && ecma_get_object_extensible (object_p))
-    {
-      ecma_extended_object_t *ext_object_p = (ecma_extended_object_t*) object_p;
-      node_self_size = ext_object_p->size;
-    }
     switch (type)
     {
     case ECMA_OBJECT_TYPE_GENERAL:
       node_type = NODE_TYPE_OBJECT;
-      node_name = get_object_constructor_name (object_p);
       break;
     case ECMA_OBJECT_TYPE_CLASS:
       node_type = NODE_TYPE_OBJECT; // ?
       break;
     case ECMA_OBJECT_TYPE_FUNCTION:
       node_type = NODE_TYPE_CLOSURE;
-      node_name = get_object_name (object_p);
       break;
     case ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION:
       node_type = NODE_TYPE_CLOSURE;
-      node_name = ecma_get_magic_string (LIT_MAGIC_STRING_EXTERNAL_FUNCTION);
       break;
     case ECMA_OBJECT_TYPE_ARRAY:
       node_type = NODE_TYPE_ARRAY;
@@ -184,7 +117,6 @@ heapdump_object (FILE *fp, ecma_object_t *object_p)
 #ifndef CONFIG_DISABLE_ES2015_ARROW_FUNCTION
     case ECMA_OBJECT_TYPE_ARROW_FUNCTION:
       node_type = NODE_TYPE_CLOSURE;
-      node_name = ecma_get_magic_string (LIT_MAGIC_STRING_ARROW_FUNCTION);
       break;
 #endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
     default:
@@ -192,13 +124,7 @@ heapdump_object (FILE *fp, ecma_object_t *object_p)
     }
   }
 
-  if (node_name == NULL)
-  {
-    lit_magic_string_id_t id = ecma_object_get_class_name (object_p);
-    node_name = ecma_get_magic_string (id);
-  }
-
-  fprintf (fp, "\"node\":[%d,%u,%d,%u]\n",
+  fprintf (fp, "\"node\":[%d,%u,%u,%u]\n",
            node_type,
            ecma_make_string_value (node_name),
            node_id,
