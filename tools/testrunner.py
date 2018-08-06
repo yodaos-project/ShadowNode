@@ -20,6 +20,7 @@ import argparse
 import json
 import signal
 import subprocess
+import sys
 import time
 
 from collections import OrderedDict
@@ -306,7 +307,8 @@ def main():
 
     testrunner = TestRunner(options)
     testrunner.run()
-
+    if testrunner.results["fail"] > 0:
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
