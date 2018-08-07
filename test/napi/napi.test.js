@@ -7,3 +7,15 @@ assert.strictEqual(napi_test.id, 321)
 
 assert.strictEqual(typeof napi_test.sayHello, 'function')
 assert.strictEqual(napi_test.sayHello(), 'Hello')
+
+assert.strictEqual(typeof napi_test.sayError, 'function')
+
+var error
+try {
+  napi_test.sayError()
+} catch (err) {
+  error = err
+}
+assert(error instanceof Error)
+assert.strictEqual(error.code, 'foo')
+assert.strictEqual(error.message, 'bar')

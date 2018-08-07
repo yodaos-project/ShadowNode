@@ -1,6 +1,6 @@
 #include <node_api.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 napi_value SayHello(napi_env env, napi_callback_info info) {
   napi_status status;
@@ -13,17 +13,33 @@ napi_value SayHello(napi_env env, napi_callback_info info) {
   return str;
 }
 
+napi_value SayError(napi_env env, napi_callback_info info) {
+  napi_status status;
+
+  status = napi_throw_error(env, "foo", "bar");
+  if (status != napi_ok)
+    return NULL;
+
+  return NULL;
+}
+
 napi_value Init(napi_env env, napi_value exports) {
   napi_status status;
 
-  napi_value fn;
-  status = napi_create_function(env, NULL, 0, SayHello, NULL, &fn);
-  if (status != napi_ok)
-    return NULL;
+#define set_named_method(env, target, prop_name, handler)            \
+  do {                                                               \
+    napi_value fn;                                                   \
+    status = napi_create_function(env, NULL, 0, handler, NULL, &fn); \
+    if (status != napi_ok)                                           \
+      return NULL;                                                   \
+                                                                     \
+    status = napi_set_named_property(env, target, prop_name, fn);    \
+    if (status != napi_ok)                                           \
+      return NULL;                                                   \
+  } while (0);
 
-  status = napi_set_named_property(env, exports, "sayHello", fn);
-  if (status != napi_ok)
-    return NULL;
+  set_named_method(env, exports, "sayHello", SayHello);
+  set_named_method(env, exports, "sayError", SayError);
 
   napi_value id;
   status = napi_create_int32(env, 321, &id);
