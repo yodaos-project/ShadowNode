@@ -199,8 +199,12 @@ class TestRunner(object):
 
             append_coverage_code(testfile, self.coverage)
 
-            exitcode, output, runtime = self.run_test(
-                testfile, timeout, fs.join(path.TEST_ROOT, testset), test.get("env"))
+            options = {
+                "root": fs.join(path.TEST_ROOT, testset),
+                "env": test.get("env"),
+                "timeout": timeout,
+            }
+            exitcode, output, runtime = self.run_test(testfile, options)
             expected_failure = test.get("expected-failure", False)
 
             remove_coverage_code(testfile, self.coverage)
@@ -223,7 +227,7 @@ class TestRunner(object):
                 self.results["fail"] += 1
 
 
-    def run_test(self, testfile, timeout, root, env):
+    def run_test(self, testfile, options):
         command = [self.iotjs, testfile]
 
         if self.valgrind:
@@ -236,13 +240,12 @@ class TestRunner(object):
             command = ["valgrind"] + valgrind_options + command
 
         myenv = os.environ.copy()
-        if env != None:
-            for key, val in env.items():
+        if options["env"] != None:
+            for key, val in options["env"].items():
                 if key == u"NODE_PATH":
-                    myenv[key] = fs.join(root, val)
-            print(myenv)
+                    myenv[key] = fs.join(options["root"], val)
 
-        signal.alarm(timeout)
+        signal.alarm(options["timeout"])
 
         try:
             start = time.time()
