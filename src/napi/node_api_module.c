@@ -52,12 +52,7 @@ int napi_module_init_pending(jerry_value_t *exports) {
     if (jval_ret != jval_exports) {
       jerry_release_value(jval_exports);
     }
-    /**
-     * TODO: how do root scope cope with JS_FUNCTION
-     * return value's auto-releasing?
-     */
-    jerry_acquire_value(jval_ret);
-    jerryx_escape_handle(scope, jval_ret, exports);
+    jerryx_evade_handle(scope, jval_ret, exports);
   }
 
   jerryx_close_handle_scope(scope);
