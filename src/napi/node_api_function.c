@@ -34,25 +34,40 @@ static jerry_value_t handler(const jerry_value_t function_obj,
   callback_info->jval_this = this_val;
   callback_info->function_info = function_info;
 
+  napi_env env = function_info->env;
+  jerry_value_t jval_ret;
+
   jerryx_handle_scope scope;
   jerryx_open_handle_scope(&scope);
 
   napi_value nvalue_ret =
-      function_info->cb(function_info->env, (napi_callback_info)callback_info);
+      function_info->cb(env, (napi_callback_info)callback_info);
   free(callback_info);
 
+  iotjs_napi_env_t *iotjs_napi_env = (iotjs_napi_env_t *)env;
+  if (iotjs_napi_is_exception_pending(iotjs_napi_env)) {
+    if (iotjs_napi_env->pending_exception != NULL) {
+      jval_ret = AS_JERRY_VALUE(iotjs_napi_env->pending_exception);
+    } else {
+      // TODO: fatal error support, trigger `uncaughtException`
+      jval_ret = AS_JERRY_VALUE(iotjs_napi_env->pending_fatal_exception);
+    }
+
+    goto cleanup;
+  }
+
   // TODO: check if nvalue_ret is escaped
-  jerry_value_t jval_ret;
   if (nvalue_ret == NULL) {
     jval_ret = jerry_create_undefined();
   } else {
     /** jval returned from N-API functions is scoped */
     jval_ret = AS_JERRY_VALUE(nvalue_ret);
   }
-
   jerryx_remove_handle(scope, jval_ret, &jval_ret);
-  jerryx_close_handle_scope(scope);
 
+
+cleanup:
+  jerryx_close_handle_scope(scope);
   return jval_ret;
 }
 
@@ -63,7 +78,7 @@ napi_status napi_create_function(napi_env env, const char *utf8name,
   jerryx_create_handle(jval_func);
 
   iotjs_function_info_t *function_info = malloc(sizeof(iotjs_function_info_t));
-  // TODO: init function info
+  function_info->env = env;
   function_info->cb = cb;
   function_info->data = data;
   jerry_set_object_native_pointer(jval_func, function_info,

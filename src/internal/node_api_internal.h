@@ -26,6 +26,7 @@
 
 int napi_module_init_pending(jerry_value_t *exports);
 napi_env iotjs_get_current_napi_env();
+bool iotjs_napi_is_exception_pending(iotjs_napi_env_t *env);
 napi_status iotjs_napi_env_set_exception(napi_env env, napi_value error);
 napi_status iotjs_napi_env_set_fatal_exception(napi_env env, napi_value error);
 

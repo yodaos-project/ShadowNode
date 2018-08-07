@@ -51,7 +51,8 @@ NAPI_NUMBER_CONVERT_FROM_NVALUE(uint32_t, uint32);
 
 napi_status napi_create_string_utf8(napi_env env, const char* str,
                                     size_t length, napi_value* result) {
-  jerry_value_t jval = jerry_create_string_sz_from_utf8((jerry_char_t *)str, length);
+  jerry_value_t jval =
+      jerry_create_string_sz_from_utf8((jerry_char_t*)str, length);
   jerryx_create_handle(jval);
   *result = AS_NAPI_VALUE(jval);
   return napi_ok;
