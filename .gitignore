@@ -31,6 +31,7 @@ cscope.*
 # Dependency directories
 node_modules/
 !tools/node_modules
+!test/run_pass/require2/node_modules
 
 # Coverage directory used by tools like istanbul
 coverage
