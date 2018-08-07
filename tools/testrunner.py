@@ -241,11 +241,11 @@ class TestRunner(object):
 
             command = ["valgrind"] + valgrind_options + command
 
-        myenv = os.environ.copy()
+        my_env = os.environ.copy()
         if options["env"] != None:
             for key, val in options["env"].items():
                 if key == u"NODE_PATH":
-                    myenv[key] = fs.join(options["root"], val)
+                    my_env[key] = fs.join(options["root"], val)
 
         signal.alarm(options["timeout"])
 
@@ -253,7 +253,7 @@ class TestRunner(object):
             start = time.time()
             process = subprocess.Popen(args=command,
                                        cwd=path.TEST_ROOT,
-                                       env=myenv,
+                                       env=my_env,
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT)
 
