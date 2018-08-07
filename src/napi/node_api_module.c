@@ -47,6 +47,7 @@ int napi_module_init_pending(jerry_value_t *exports) {
 
   if (nvalue_ret == NULL) {
     *exports = jerry_create_undefined();
+    jerry_release_value(jval_exports);
   } else {
     jerry_value_t jval_ret = AS_JERRY_VALUE(nvalue_ret);
     if (jval_ret != jval_exports) {
