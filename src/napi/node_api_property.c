@@ -36,3 +36,104 @@ napi_status napi_set_named_property(napi_env env, napi_value object,
   jerry_release_value(jval_result);
   return napi_ok;
 }
+
+napi_status iotjs_napi_prop_desc_to_jdesc(napi_env env,
+                                          const napi_property_descriptor* ndesc,
+                                          jerry_property_descriptor_t* jdesc) {
+  napi_status status;
+#define JATTR_FROM_NAPI_ATTR(prop_attr)        \
+  if (ndesc->attributes && napi_##prop_attr) { \
+    jdesc->is_##prop_attr##_defined = true;    \
+    jdesc->is_##prop_attr = true;              \
+  }
+
+  JATTR_FROM_NAPI_ATTR(writable);
+  JATTR_FROM_NAPI_ATTR(enumerable);
+  JATTR_FROM_NAPI_ATTR(configurable);
+
+#undef JATTR_FROM_NAPI_ATTR
+
+  if (ndesc->value != NULL) {
+    jdesc->is_value_defined = true;
+    jdesc->value = AS_JERRY_VALUE(ndesc->value);
+    return napi_ok;
+  }
+
+  if (ndesc->method != NULL) {
+    napi_value method;
+    status = napi_create_function(env, "method", 6, ndesc->method, ndesc->data,
+                                  &method);
+    if (status != napi_ok)
+      return status;
+    jdesc->is_value_defined = true;
+    jdesc->value = AS_JERRY_VALUE(method);
+    return napi_ok;
+  }
+
+#define JACCESSOR_FROM_NAPI_ATTR(access)                                       \
+  do {                                                                         \
+    if (ndesc->access##ter != NULL) {                                          \
+      napi_value access##ter;                                                  \
+      status = napi_create_function(env, #access "ter", 6, ndesc->access##ter, \
+                                    ndesc->data, &access##ter);                \
+      if (status != napi_ok)                                                   \
+        return status;                                                         \
+      jdesc->is_##access##_defined = true;                                     \
+      jdesc->access##ter = AS_JERRY_VALUE(access##ter);                        \
+    }                                                                          \
+  } while (0)
+
+  JACCESSOR_FROM_NAPI_ATTR(get);
+  JACCESSOR_FROM_NAPI_ATTR(set);
+
+#undef JACCESSOR_FROM_NAPI_ATTR
+
+  return napi_ok;
+}
+
+napi_status napi_define_properties(napi_env env, napi_value object,
+                                   size_t property_count,
+                                   const napi_property_descriptor* properties) {
+  jerry_value_t jval_target = AS_JERRY_VALUE(object);
+  if (!jerry_value_is_object(jval_target)) {
+    return napi_object_expected;
+  }
+
+  napi_status status;
+  jerry_property_descriptor_t prop_desc;
+  for (size_t i = 0; i < property_count; ++i) {
+    jerry_init_property_descriptor_fields(&prop_desc);
+    napi_property_descriptor prop = properties[i];
+
+    jerry_value_t jval_prop_name;
+    if (prop.utf8name != NULL) {
+      jval_prop_name =
+          jerry_create_string_from_utf8((jerry_char_t*)prop.utf8name);
+      jerryx_create_handle(jval_prop_name);
+    } else if (prop.name != NULL) {
+      jval_prop_name = AS_JERRY_VALUE(prop.name);
+    } else {
+      return napi_invalid_arg;
+    }
+
+    status = iotjs_napi_prop_desc_to_jdesc(env, &prop, &prop_desc);
+    if (status != napi_ok)
+      return status;
+
+    jerry_value_t return_value =
+        jerry_define_own_property(jval_target, jval_prop_name, &prop_desc);
+    if (jerry_value_has_error_flag(return_value)) {
+      // TODO: collect error info
+      return napi_generic_failure;
+    }
+    jerry_release_value(return_value);
+
+    /**
+     * We don't have to call `jerry_free_property_descriptor_fields`
+     * since most napi values are managed by handle scopes.
+     */
+    // jerry_free_property_descriptor_fields(&prop_desc);
+  }
+
+  return napi_ok;
+}
