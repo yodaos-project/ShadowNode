@@ -22,6 +22,7 @@ import signal
 import subprocess
 import sys
 import time
+import os
 
 from collections import OrderedDict
 from common_py import path
@@ -198,7 +199,8 @@ class TestRunner(object):
 
             append_coverage_code(testfile, self.coverage)
 
-            exitcode, output, runtime = self.run_test(testfile, timeout)
+            exitcode, output, runtime = self.run_test(
+                testfile, timeout, fs.join(path.TEST_ROOT, testset), test.get("env"))
             expected_failure = test.get("expected-failure", False)
 
             remove_coverage_code(testfile, self.coverage)
@@ -221,7 +223,7 @@ class TestRunner(object):
                 self.results["fail"] += 1
 
 
-    def run_test(self, testfile, timeout):
+    def run_test(self, testfile, timeout, root, env):
         command = [self.iotjs, testfile]
 
         if self.valgrind:
@@ -233,12 +235,20 @@ class TestRunner(object):
 
             command = ["valgrind"] + valgrind_options + command
 
+        myenv = os.environ.copy()
+        if env != None:
+            for key, val in env.items():
+                if key == u"NODE_PATH":
+                    myenv[key] = fs.join(root, val)
+            print(myenv)
+
         signal.alarm(timeout)
 
         try:
             start = time.time()
             process = subprocess.Popen(args=command,
                                        cwd=path.TEST_ROOT,
+                                       env=myenv,
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT)
 

@@ -56,6 +56,11 @@
     { "name": "test_module_cache.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_module_json.js" },
     { "name": "test_module_require.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_module_require2.js",
+      "env": {
+        "NODE_PATH": "require2"
+      }
+    },
     { "name": "test_net_1.js" },
     { "name": "test_net_2.js" },
     { "name": "test_net_3.js", "skip": ["linux", "nuttx"], "reason": "[linux]: flaky on Travis, [nuttx]: requires too many socket descriptors and too large buffers" },
