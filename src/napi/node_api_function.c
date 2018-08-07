@@ -28,7 +28,8 @@ static jerry_value_t handler(const jerry_value_t function_obj,
                              const jerry_length_t args_cnt) {
   iotjs_function_info_t *function_info;
   jerry_get_object_native_pointer(function_obj, (void *)&function_info, NULL);
-  iotjs_callback_info_t *callback_info = napi_malloc(sizeof(iotjs_callback_info_t));
+  iotjs_callback_info_t *callback_info =
+      napi_malloc(sizeof(iotjs_callback_info_t));
   callback_info->argc = args_cnt;
   callback_info->argv = (jerry_value_t *)args_p;
   callback_info->jval_this = this_val;
@@ -77,7 +78,8 @@ napi_status napi_create_function(napi_env env, const char *utf8name,
   jerry_value_t jval_func = jerry_create_external_function(handler);
   jerryx_create_handle(jval_func);
 
-  iotjs_function_info_t *function_info = napi_malloc(sizeof(iotjs_function_info_t));
+  iotjs_function_info_t *function_info =
+      napi_malloc(sizeof(iotjs_function_info_t));
   function_info->env = env;
   function_info->cb = cb;
   function_info->data = data;
