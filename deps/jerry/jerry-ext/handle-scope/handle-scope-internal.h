@@ -78,7 +78,7 @@ void
 jerryx_create_handle_in_scope (jerry_value_t jval, jerryx_handle_scope scope);
 
 jerryx_handle_scope_status
-jerryx_escape_handle_impl (jerryx_escapable_handle_scope scope,
+jerryx_escape_handle_internal (jerryx_escapable_handle_scope scope,
                            jerry_value_t escapee,
                            jerry_value_t *result,
                            bool should_promote);

@@ -136,10 +136,10 @@ jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t 
 
 
 jerryx_handle_scope_status
-jerryx_escape_handle_impl (jerryx_escapable_handle_scope scope,
-                           jerry_value_t escapee,
-                           jerry_value_t *result,
-                           bool should_promote)
+jerryx_escape_handle_internal (jerryx_escapable_handle_scope scope,
+                               jerry_value_t escapee,
+                               jerry_value_t *result,
+                               bool should_promote)
 {
   if (scope->escaped)
   {
@@ -257,7 +257,7 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
                       jerry_value_t escapee,
                       jerry_value_t *result)
 {
-  return jerryx_escape_handle_impl(scope, escapee, result, true);
+  return jerryx_escape_handle_internal (scope, escapee, result, true);
 }
 
 
@@ -272,7 +272,7 @@ jerry_remove_handle (jerryx_escapable_handle_scope scope,
                      jerry_value_t escapee,
                      jerry_value_t *result)
 {
-  return jerryx_escape_handle_impl(scope, escapee, result, false);
+  return jerryx_escape_handle_internal (scope, escapee, result, false);
 }
 
 
