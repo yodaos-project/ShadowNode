@@ -268,7 +268,7 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
  * @return status code, jerryx_handle_scope_ok if success.
  */
 jerryx_handle_scope_status
-jerry_remove_handle (jerryx_escapable_handle_scope scope,
+jerryx_remove_handle (jerryx_escapable_handle_scope scope,
                      jerry_value_t escapee,
                      jerry_value_t *result)
 {

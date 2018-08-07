@@ -52,7 +52,7 @@ int napi_module_init_pending(jerry_value_t *exports) {
     if (jval_ret != jval_exports) {
       jerry_release_value(jval_exports);
     }
-    jerry_remove_handle(scope, jval_ret, exports);
+    jerryx_remove_handle(scope, jval_ret, exports);
   }
 
   jerryx_close_handle_scope(scope);
