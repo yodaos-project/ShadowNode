@@ -228,6 +228,8 @@ class TestRunner(object):
 
 
     def run_test(self, testfile, options):
+        "run the specify test case"
+
         command = [self.iotjs, testfile]
 
         if self.valgrind:
