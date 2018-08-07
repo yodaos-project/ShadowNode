@@ -83,6 +83,15 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
                       jerry_value_t escapee,
                       jerry_value_t *result);
 
+/**
+ * Completely escape a handle from handle scope,
+ * leave life time management totally up to user.
+ */
+jerryx_handle_scope_status
+jerryx_evade_handle (jerryx_escapable_handle_scope scope,
+                     jerry_value_t escapee,
+                     jerry_value_t *result);
+
 jerry_value_t
 jerryx_create_handle (jerry_value_t jval);
 

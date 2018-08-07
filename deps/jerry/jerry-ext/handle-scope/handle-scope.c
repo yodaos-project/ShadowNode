@@ -110,7 +110,7 @@ jerryx_close_escapable_handle_scope (jerryx_handle_scope scope)
 
 
 /**
- * Escape a jerry value from the scope to its parent scope.
+ * Escape a jerry value from the scope, yet did not promote it to outer scope.
  * An assertion of if parent exists shall be made before invoking this function.
  *
  * @returns escaped jerry value id
@@ -119,8 +119,6 @@ jerry_value_t
 jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t idx)
 {
   jerry_value_t jval = scope->handle_prelist[idx];
-  jerryx_create_handle_in_scope (scope->handle_prelist[idx], jerryx_handle_scope_get_parent (scope));
-
   if (scope->handle_count > JERRYX_HANDLE_PRELIST_SIZE)
   {
     jerryx_handle_t *handle = scope->handle_ptr;
@@ -137,17 +135,11 @@ jerryx_hand_scope_escape_handle_from_prelist (jerryx_handle_scope scope, size_t 
 }
 
 
-/**
- * Promotes the handle to the JavaScript object so that it is valid for the lifetime of
- * the outer scope. It can only be called once per scope. If it is called more than
- * once an error will be returned.
- *
- * @return status code, jerryx_handle_scope_ok if success.
- */
 jerryx_handle_scope_status
-jerryx_escape_handle (jerryx_escapable_handle_scope scope,
-                      jerry_value_t escapee,
-                      jerry_value_t *result)
+jerryx_escape_handle_impl (jerryx_escapable_handle_scope scope,
+                           jerry_value_t escapee,
+                           jerry_value_t *result,
+                           bool should_promote)
 {
   if (scope->escaped)
   {
@@ -183,10 +175,14 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
 
     if (found)
     {
-      /**
-       * Escape handle to parent scope
-       */
-      *result =jerryx_hand_scope_escape_handle_from_prelist (scope, found_idx);
+      *result = jerryx_hand_scope_escape_handle_from_prelist (scope, found_idx);
+      if (should_promote)
+      {
+        /**
+         * Escape handle to parent scope
+         */
+        jerryx_create_handle_in_scope (*result, jerryx_handle_scope_get_parent (scope));
+      }
       goto deferred;
     }
   };
@@ -231,15 +227,52 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
     }
   }
 
-  /**
-   * Escape handle to parent scope
-   */
-  *result = jerryx_handle_scope_add_handle_to (found_handle, parent);
+  if (should_promote)
+  {
+    /**
+     * Escape handle to parent scope
+     */
+    *result = jerryx_handle_scope_add_handle_to (found_handle, parent);
+  }
 
 deferred:
   scope->handle_count -= 1;
-  scope->escaped = true;
+  if (should_promote)
+  {
+    scope->escaped = true;
+  }
   return jerryx_handle_scope_ok;
+}
+
+
+/**
+ * Promotes the handle to the JavaScript object so that it is valid for the lifetime of
+ * the outer scope. It can only be called once per scope. If it is called more than
+ * once an error will be returned.
+ *
+ * @return status code, jerryx_handle_scope_ok if success.
+ */
+jerryx_handle_scope_status
+jerryx_escape_handle (jerryx_escapable_handle_scope scope,
+                      jerry_value_t escapee,
+                      jerry_value_t *result)
+{
+  return jerryx_escape_handle_impl(scope, escapee, result, true);
+}
+
+
+/**
+ * Escape a handle from scope yet do not promote it to the outer scope.
+ * Leave the handle's life time management up to user.
+ *
+ * @return status code, jerryx_handle_scope_ok if success.
+ */
+jerryx_handle_scope_status
+jerryx_evade_handle (jerryx_escapable_handle_scope scope,
+                     jerry_value_t escapee,
+                     jerry_value_t *result)
+{
+  return jerryx_escape_handle_impl(scope, escapee, result, false);
 }
 
 
