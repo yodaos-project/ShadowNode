@@ -36,4 +36,29 @@ typedef struct {
   napi_extended_error_info extended_error_info;
 } iotjs_napi_env_t;
 
+typedef struct {
+  napi_env env;
+  void *native_object;
+  napi_finalize finalize_cb;
+  void *finalize_hint;
+} iotjs_object_info_t;
+
+typedef struct {
+  napi_env env;
+  void *native_object;
+  napi_finalize finalize_cb;
+  void *finalize_hint;
+
+  napi_callback cb;
+  void *data;
+} iotjs_function_info_t;
+
+typedef struct {
+  size_t argc;
+  jerry_value_t *argv;
+  jerry_value_t jval_this;
+
+  iotjs_function_info_t *function_info;
+} iotjs_callback_info_t;
+
 #endif // IOTJS_NODE_API_TYPES_H

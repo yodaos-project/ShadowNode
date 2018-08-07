@@ -1,0 +1,74 @@
+/* Copyright 2018-present Rokid Co., Ltd. and other contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "jerryscript-ext/handle-scope.h"
+#include "jerryscript.h"
+#include <stdlib.h>
+#include "internal/node_api_internal.h"
+#include "node_api.h"
+
+static const jerry_object_native_info_t native_obj_type_info = { .free_cb =
+                                                                     free };
+
+static jerry_value_t handler(const jerry_value_t function_obj,
+                             const jerry_value_t this_val,
+                             const jerry_value_t args_p[],
+                             const jerry_length_t args_cnt) {
+  iotjs_function_info_t *function_info;
+  jerry_get_object_native_pointer(function_obj, (void *)&function_info, NULL);
+  iotjs_callback_info_t *callback_info = malloc(sizeof(iotjs_callback_info_t));
+  callback_info->argc = args_cnt;
+  callback_info->argv = (jerry_value_t *)args_p;
+  callback_info->jval_this = this_val;
+  callback_info->function_info = function_info;
+
+  jerryx_handle_scope scope;
+  jerryx_open_handle_scope(&scope);
+
+  napi_value nvalue_ret =
+      function_info->cb(function_info->env, (napi_callback_info)callback_info);
+  free(callback_info);
+
+  // TODO: check if nvalue_ret is escaped
+  jerry_value_t jval_ret;
+  if (nvalue_ret == NULL) {
+    jval_ret = jerry_create_undefined();
+  } else {
+    /** jval returned from N-API functions is scoped */
+    jval_ret = AS_JERRY_VALUE(nvalue_ret);
+  }
+
+  jerryx_remove_handle(scope, jval_ret, &jval_ret);
+  jerryx_close_handle_scope(scope);
+
+  return jval_ret;
+}
+
+napi_status napi_create_function(napi_env env, const char *utf8name,
+                                 size_t length, napi_callback cb, void *data,
+                                 napi_value *result) {
+  jerry_value_t jval_func = jerry_create_external_function(handler);
+  jerryx_create_handle(jval_func);
+
+  iotjs_function_info_t *function_info = malloc(sizeof(iotjs_function_info_t));
+  // TODO: init function info
+  function_info->cb = cb;
+  function_info->data = data;
+  jerry_set_object_native_pointer(jval_func, function_info,
+                                  &native_obj_type_info);
+
+  *result = AS_NAPI_VALUE(jval_func);
+  return napi_ok;
+}
