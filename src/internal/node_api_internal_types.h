@@ -33,6 +33,7 @@ typedef enum {
 typedef struct {
   napi_value pending_exception;
   napi_value pending_fatal_exception;
+  napi_extended_error_info extended_error_info;
 } iotjs_napi_env_t;
 
 #endif // IOTJS_NODE_API_TYPES_H

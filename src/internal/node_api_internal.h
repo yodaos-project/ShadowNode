@@ -22,6 +22,7 @@
 
 #define AS_JERRY_VALUE(nvalue) (jerry_value_t)(uintptr_t) nvalue
 #define AS_NAPI_VALUE(jval) (napi_value)(uintptr_t) jval
+#define napi_malloc(size) malloc(size)
 
 int napi_module_init_pending(jerry_value_t *exports);
 napi_env iotjs_get_current_napi_env();
