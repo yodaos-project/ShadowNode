@@ -269,8 +269,8 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
  */
 jerryx_handle_scope_status
 jerryx_remove_handle (jerryx_escapable_handle_scope scope,
-                     jerry_value_t escapee,
-                     jerry_value_t *result)
+                      jerry_value_t escapee,
+                      jerry_value_t *result)
 {
   return jerryx_escape_handle_internal (scope, escapee, result, false);
 }
