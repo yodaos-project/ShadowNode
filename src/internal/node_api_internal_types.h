@@ -1,3 +1,4 @@
+
 /* Copyright 2018-present Rokid Co., Ltd. and other contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,19 +14,25 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_NODE_API_H
-#define IOTJS_NODE_API_H
+#ifndef IOTJS_NODE_API_TYPES_H
+#define IOTJS_NODE_API_TYPES_H
 
 #include "jerryscript.h"
-#include "internal/node_api_internal_types.h"
 #include "node_api.h"
 
-#define AS_JERRY_VALUE(nvalue) (jerry_value_t)(uintptr_t) nvalue
-#define AS_NAPI_VALUE(jval) (napi_value)(uintptr_t) jval
+typedef napi_value (*jerry_addon_register_func)(void *env,
+                                                jerry_value_t exports);
 
-int napi_module_init_pending(jerry_value_t *exports);
-napi_env iotjs_get_current_napi_env();
-napi_status iotjs_napi_env_set_exception(napi_env env, napi_value error);
-napi_status iotjs_napi_env_set_fatal_exception(napi_env env, napi_value error);
+typedef enum {
+  napi_module_load_ok = 0,
 
-#endif // IOTJS_NODE_API_H
+  napi_module_no_pending,
+  napi_module_no_nm_register_func,
+} napi_module_load_status;
+
+typedef struct {
+  napi_value pending_exception;
+  napi_value pending_fatal_exception;
+} iotjs_napi_env_t;
+
+#endif // IOTJS_NODE_API_TYPES_H
