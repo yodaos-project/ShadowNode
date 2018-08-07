@@ -88,7 +88,7 @@ jerryx_escape_handle (jerryx_escapable_handle_scope scope,
  * leave life time management totally up to user.
  */
 jerryx_handle_scope_status
-jerryx_evade_handle (jerryx_escapable_handle_scope scope,
+jerry_remove_handle (jerryx_escapable_handle_scope scope,
                      jerry_value_t escapee,
                      jerry_value_t *result);
 

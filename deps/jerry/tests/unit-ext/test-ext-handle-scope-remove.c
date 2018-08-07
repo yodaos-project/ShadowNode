@@ -45,7 +45,7 @@ create_object (void)
 
   // If leaves `escaped` uninitialized, there will be a style error on linux thrown by compiler
   jerry_value_t escaped = 0;
-  jerryx_evade_handle (scope, obj, &escaped);
+  jerry_remove_handle (scope, obj, &escaped);
   TEST_ASSERT (scope->handle_count == 0);
 
   jerryx_close_handle_scope (scope);
