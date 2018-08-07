@@ -99,7 +99,9 @@ heapdump_magic_strings (FILE *fp,
                         string_print_type callback,
                         bool skip_first_comma)
 {
-  for (lit_magic_string_id_t id = 0; id < LIT_NON_INTERNAL_MAGIC_STRING__COUNT; id++)
+  for (lit_magic_string_id_t id = 0;
+       id < LIT_NON_INTERNAL_MAGIC_STRING__COUNT;
+       id++)
   {
     ecma_string_t *string_p = ecma_get_magic_string (id);
     if (!skip_first_comma || id != 0)
@@ -121,14 +123,45 @@ heapdump_strings (FILE *fp, string_print_type callback)
     {
       if (string_list_p->values[i] != JMEM_CP_NULL)
       {
-        ecma_string_t *value_p = JMEM_CP_GET_NON_NULL_POINTER (ecma_string_t,
-                                                               string_list_p->values[i]);
+        ecma_string_t *value_p;
+        value_p = JMEM_CP_GET_NON_NULL_POINTER (ecma_string_t,
+                                                string_list_p->values[i]);
         fprintf (fp, ",");
         callback (fp, value_p);
       }
     }
 
-    string_list_p = JMEM_CP_GET_POINTER (ecma_lit_storage_item_t, string_list_p->next_cp);
+    string_list_p = JMEM_CP_GET_POINTER (ecma_lit_storage_item_t,
+                                         string_list_p->next_cp);
+  }
+}
+
+static void
+heapdump_numbers (FILE *fp)
+{
+  ecma_lit_storage_item_t *number_list_p = JERRY_CONTEXT (number_list_first_p);
+
+  while (number_list_p != NULL)
+  {
+    for (int i = 0; i < ECMA_LIT_STORAGE_VALUE_COUNT; i++)
+    {
+      if (number_list_p->values[i] != JMEM_CP_NULL)
+      {
+        ecma_string_t *value_p = JMEM_CP_GET_NON_NULL_POINTER (ecma_string_t,
+            number_list_p->values[i]);
+        fprintf (fp, ",");
+        fprintf (fp, "{\"node\":");
+        fprintf (fp, "[%u,%u,%u,%u]",
+                 NODE_TYPE_NUMBER,
+                 ecma_make_magic_string_value(LIT_MAGIC_STRING_NUMBER),
+                 value_p->u.lit_number,
+                 (uint32_t) sizeof (double));
+        fprintf (fp, "\n,\"references\":[]\n}\n");
+      }
+    }
+
+    number_list_p = JMEM_CP_GET_POINTER (ecma_lit_storage_item_t,
+                                         number_list_p->next_cp);
   }
 }
 
@@ -146,7 +179,9 @@ heapdump_object_value (ecma_object_t *obj_p,
     {
       fprintf (fp, ",");
     }
-    fprintf (fp, "[%u,%u,%u]", edge_type, ecma_make_string_value (edge_name_p), ecma_make_object_value (obj_p));
+    ecma_value_t name_value = ecma_make_string_value (edge_name_p);
+    ecma_value_t to_node = ecma_make_object_value (obj_p);
+    fprintf (fp, "[%u,%u,%u]", edge_type, name_value, to_node);
   }
 
   if (first_visit && *first_visit)
@@ -233,12 +268,15 @@ heap_profiler_take_snapshot (FILE *fp)
     fprintf (fp, "{");
     heapdump_object (fp, obj_iter_p);
     fprintf (fp, ",\"references\":[");
-    ecma_vist_object_references (obj_iter_p, heapdump_object_value, (void*) fp);
+    ecma_vist_object_references (obj_iter_p,
+                                 heapdump_object_value,
+                                 (void*) fp);
     fprintf (fp, "]\n}\n");
     obj_iter_p = ECMA_GET_POINTER (ecma_object_t, obj_iter_p->gc_next_cp);
   }
   heapdump_magic_strings (fp, string_node_print, false);
   heapdump_strings (fp, string_node_print);
+  heapdump_numbers (fp);
   fprintf(fp, "]\n"); // nodes end
 
   fprintf(fp, "}");
