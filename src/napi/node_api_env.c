@@ -25,7 +25,7 @@ inline napi_env iotjs_get_current_napi_env() {
   return (napi_env)&current_env;
 }
 
-bool iotjs_napi_is_exception_pending(iotjs_napi_env_t *env) {
+inline bool iotjs_napi_is_exception_pending(iotjs_napi_env_t *env) {
   return !(env->pending_exception == NULL &&
            env->pending_fatal_exception == NULL);
 }
@@ -59,7 +59,7 @@ napi_status napi_throw(napi_env env, napi_value error) {
   return napi_ok;
 }
 
-#define NAPI_THROWS(type, jerry_error_type)                        \
+#define DEF_NAPI_THROWS(type, jerry_error_type)                    \
   napi_status napi_throw_##type(napi_env env, const char *code,    \
                                 const char *msg) {                 \
     if (env != iotjs_get_current_napi_env())                       \
@@ -73,10 +73,10 @@ napi_status napi_throw(napi_env env, napi_value error) {
     return napi_throw(env, AS_NAPI_VALUE(jval_error));             \
   }
 
-NAPI_THROWS(error, JERRY_ERROR_COMMON);
-NAPI_THROWS(type_error, JERRY_ERROR_TYPE);
-NAPI_THROWS(range_error, JERRY_ERROR_RANGE);
-#undef NAPI_THROWS
+DEF_NAPI_THROWS(error, JERRY_ERROR_COMMON);
+DEF_NAPI_THROWS(type_error, JERRY_ERROR_TYPE);
+DEF_NAPI_THROWS(range_error, JERRY_ERROR_RANGE);
+#undef DEF_NAPI_THROWS
 
 napi_status napi_fatal_exception(napi_env env, napi_value err) {
   if (env != iotjs_get_current_napi_env())

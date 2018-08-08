@@ -22,10 +22,9 @@
 static const jerry_object_native_info_t native_obj_type_info = { .free_cb =
                                                                      free };
 
-static jerry_value_t handler(const jerry_value_t function_obj,
-                             const jerry_value_t this_val,
-                             const jerry_value_t args_p[],
-                             const jerry_length_t args_cnt) {
+static jerry_value_t iotjs_napi_function_handler(
+    const jerry_value_t function_obj, const jerry_value_t this_val,
+    const jerry_value_t args_p[], const jerry_length_t args_cnt) {
   iotjs_function_info_t *function_info;
   jerry_get_object_native_pointer(function_obj, (void *)&function_info, NULL);
   iotjs_callback_info_t *callback_info = IOTJS_ALLOC(iotjs_callback_info_t);
@@ -74,7 +73,8 @@ cleanup:
 napi_status napi_create_function(napi_env env, const char *utf8name,
                                  size_t length, napi_callback cb, void *data,
                                  napi_value *result) {
-  jerry_value_t jval_func = jerry_create_external_function(handler);
+  jerry_value_t jval_func =
+      jerry_create_external_function(iotjs_napi_function_handler);
   jerryx_create_handle(jval_func);
 
   iotjs_function_info_t *function_info = IOTJS_ALLOC(iotjs_function_info_t);

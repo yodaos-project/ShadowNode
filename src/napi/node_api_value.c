@@ -17,7 +17,7 @@
 #include "jerryscript.h"
 #include "internal/node_api_internal.h"
 
-#define NAPI_NUMBER_CONVERT_FROM_C_TYPE(type, name)          \
+#define DEF_NAPI_NUMBER_CONVERT_FROM_C_TYPE(type, name)      \
   napi_status napi_create_##name(napi_env env, type value,   \
                                  napi_value* result) {       \
     jerry_value_t jval = jerry_create_number((double)value); \
@@ -26,14 +26,13 @@
     return napi_ok;                                          \
   }
 
-NAPI_NUMBER_CONVERT_FROM_C_TYPE(int32_t, int32);
-NAPI_NUMBER_CONVERT_FROM_C_TYPE(uint32_t, uint32);
-NAPI_NUMBER_CONVERT_FROM_C_TYPE(int64_t, int64);
-NAPI_NUMBER_CONVERT_FROM_C_TYPE(double, double);
+DEF_NAPI_NUMBER_CONVERT_FROM_C_TYPE(int32_t, int32);
+DEF_NAPI_NUMBER_CONVERT_FROM_C_TYPE(uint32_t, uint32);
+DEF_NAPI_NUMBER_CONVERT_FROM_C_TYPE(int64_t, int64);
+DEF_NAPI_NUMBER_CONVERT_FROM_C_TYPE(double, double);
+#undef DEF_NAPI_NUMBER_CONVERT_FROM_C_TYPE
 
-#undef NAPI_NUMBER_CONVERT_FROM_C_TYPE
-
-#define NAPI_NUMBER_CONVERT_FROM_NVALUE(type, name)                 \
+#define DEF_NAPI_NUMBER_CONVERT_FROM_NVALUE(type, name)             \
   napi_status napi_get_value_##name(napi_env env, napi_value value, \
                                     type* result) {                 \
     jerry_value_t jval = AS_JERRY_VALUE(value);                     \
@@ -42,12 +41,11 @@ NAPI_NUMBER_CONVERT_FROM_C_TYPE(double, double);
     return napi_ok;                                                 \
   }
 
-NAPI_NUMBER_CONVERT_FROM_NVALUE(double, double);
-NAPI_NUMBER_CONVERT_FROM_NVALUE(int32_t, int32);
-NAPI_NUMBER_CONVERT_FROM_NVALUE(int64_t, int64);
-NAPI_NUMBER_CONVERT_FROM_NVALUE(uint32_t, uint32);
-
-#undef NAPI_NUMBER_CONVERT_FROM_NVALUE
+DEF_NAPI_NUMBER_CONVERT_FROM_NVALUE(double, double);
+DEF_NAPI_NUMBER_CONVERT_FROM_NVALUE(int32_t, int32);
+DEF_NAPI_NUMBER_CONVERT_FROM_NVALUE(int64_t, int64);
+DEF_NAPI_NUMBER_CONVERT_FROM_NVALUE(uint32_t, uint32);
+#undef DEF_NAPI_NUMBER_CONVERT_FROM_NVALUE
 
 napi_status napi_create_string_utf8(napi_env env, const char* str,
                                     size_t length, napi_value* result) {
