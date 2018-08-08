@@ -16,7 +16,8 @@
 #include "jerryscript-ext/handle-scope.h"
 #include "internal/node_api_internal.h"
 
-inline napi_status jerryx_status_to_napi(jerryx_handle_scope_status status) {
+inline napi_status jerryx_status_to_napi_status(
+    jerryx_handle_scope_status status) {
   switch (status) {
     case jerryx_handle_scope_mismatch:
       return napi_handle_scope_mismatch;
@@ -31,7 +32,7 @@ napi_status napi_open_handle_scope(napi_env env, napi_handle_scope* result) {
   jerryx_handle_scope_status status;
   status = jerryx_open_handle_scope((jerryx_handle_scope*)result);
 
-  return jerryx_status_to_napi(status);
+  return jerryx_status_to_napi_status(status);
 }
 
 napi_status napi_open_escapable_handle_scope(
@@ -40,14 +41,14 @@ napi_status napi_open_escapable_handle_scope(
   status = jerryx_open_escapable_handle_scope(
       (jerryx_escapable_handle_scope*)result);
 
-  return jerryx_status_to_napi(status);
+  return jerryx_status_to_napi_status(status);
 }
 
 napi_status napi_close_handle_scope(napi_env env, napi_handle_scope scope) {
   jerryx_handle_scope_status status;
   status = jerryx_close_handle_scope((jerryx_handle_scope)scope);
 
-  return jerryx_status_to_napi(status);
+  return jerryx_status_to_napi_status(status);
 }
 
 napi_status napi_close_escapable_handle_scope(
@@ -56,7 +57,7 @@ napi_status napi_close_escapable_handle_scope(
   status =
       jerryx_close_escapable_handle_scope((jerryx_escapable_handle_scope)scope);
 
-  return jerryx_status_to_napi(status);
+  return jerryx_status_to_napi_status(status);
 }
 
 napi_status napi_escape_handle(napi_env env, napi_escapable_handle_scope scope,
@@ -66,5 +67,5 @@ napi_status napi_escape_handle(napi_env env, napi_escapable_handle_scope scope,
       jerryx_escape_handle((jerryx_escapable_handle_scope)scope,
                            AS_JERRY_VALUE(escapee), (jerry_value_t*)result);
 
-  return jerryx_status_to_napi(status);
+  return jerryx_status_to_napi_status(status);
 }
