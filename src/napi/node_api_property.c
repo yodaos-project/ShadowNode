@@ -13,22 +13,14 @@
  * limitations under the License.
  */
 
-#include "node_api.h"
 #include "jerryscript-ext/handle-scope.h"
 #include "jerryscript.h"
-
-napi_status napi_create_int32(napi_env env, int32_t value, napi_value* result) {
-  jerry_value_t jval = jerry_create_number((double)value);
-  jerryx_create_handle(jval);
-  *result = (napi_value)(uintptr_t)jval;
-  return napi_ok;
-}
-
+#include "internal/node_api_internal.h"
 
 napi_status napi_set_named_property(napi_env env, napi_value object,
                                     const char* utf8name, napi_value value) {
-  jerry_value_t jval = (jerry_value_t)(uintptr_t)object;
-  jerry_value_t jval_prop_val = (jerry_value_t)(uintptr_t)value;
+  jerry_value_t jval = AS_JERRY_VALUE(object);
+  jerry_value_t jval_prop_val = AS_JERRY_VALUE(value);
   jerry_value_t jval_prop_name =
       jerry_create_string_from_utf8((jerry_char_t*)utf8name);
 
