@@ -1,0 +1,4 @@
+---
+exclude_paths:
+  - 'samples/**'
+  - 'test/addons-napi/**'

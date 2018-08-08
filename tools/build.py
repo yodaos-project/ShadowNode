@@ -26,6 +26,7 @@ import json
 import sys
 import re
 import os
+import glob
 
 from common_py import path
 from common_py.system.filesystem import FileSystem as fs
@@ -439,6 +440,21 @@ def build_napi_test_module(options):
     run_make(options, build_root)
 
 
+def build_addons_napi_gyp_modules():
+    node_gyp = fs.join(path.PROJECT_ROOT,
+                       'node_modules',
+                       '.bin',
+                       'node-gyp')
+    print_progress('Build N-API test addons with %s' % node_gyp)
+    dirs = glob.glob('test/addons-napi/*')
+    dirs = [dir_name for dir_name in dirs if os.path.isdir(dir_name)]
+    dirs = [dir_name for dir_name in dirs if os.path.isfile(
+        os.path.join(dir_name, 'binding.gyp'))]
+    for dir_name in dirs:
+        ex.check_run_cmd(node_gyp, ['configure'], cwd=dir_name)
+        ex.check_run_cmd(node_gyp, ['build'], cwd=dir_name)
+
+
 def run_checktest(options):
     checktest_quiet = 'yes'
     if os.getenv('TRAVIS') == "true":
@@ -491,6 +507,7 @@ if __name__ == '__main__':
     if options.run_test:
         print_progress('Build test dependencies')
         build_napi_test_module(options)
+        build_addons_napi_gyp_modules()
 
         print_progress('Run tests')
         if options.buildlib:

@@ -18,6 +18,8 @@ before_install:
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  tools/brew-install-deps.sh; fi
 
 install:
+- nvm install 10.8.0
+- nvm use 10.8.0
 - travis_retry yarn
 - ls node_modules/.bin
 
