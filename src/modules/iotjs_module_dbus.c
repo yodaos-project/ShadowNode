@@ -684,6 +684,5 @@ jerry_value_t InitDBus() {
 
   jerry_release_value(proto);
   jerry_release_value(jdbusConstructor);
-  jerry_release_value(jdbus);
   return jdbus;
 }
