@@ -65,55 +65,39 @@ utf8_string_print (FILE *fp, lit_utf8_byte_t *buffer_p, lit_utf8_size_t sz)
   }
 }
 
-typedef void (*string_print_type) (FILE *fp, ecma_string_t *name_str_p);
-
 static void
-string_print (FILE *fp, ecma_string_t *name_str_p)
+heapdump_string (FILE *fp, ecma_string_t *string_p)
 {
-  fprintf (fp, "{\"id\":%u,\"chars\":\"", ecma_make_string_value (name_str_p));
-
-  lit_utf8_size_t sz = ecma_string_get_utf8_size (name_str_p);
+  // print string
+  ecma_value_t value = ecma_make_string_value (string_p);
+  fprintf (fp, "{\"type\":\"string\",\"id\":%u,\"chars\":\"", value);
+  lit_utf8_size_t sz = ecma_string_get_utf8_size (string_p);
   lit_utf8_byte_t buffer_p[sz];
-  ecma_string_to_utf8_bytes (name_str_p, buffer_p, sz);
+  ecma_string_to_utf8_bytes (string_p, buffer_p, sz);
   utf8_string_print (fp, buffer_p, sz);
+  fprintf (fp, "\"},\n");
 
-  fprintf (fp, "\"}\n");
-}
-
-static void
-string_node_print (FILE *fp, ecma_string_t *str_p)
-{
-  ecma_value_t value = ecma_make_string_value(str_p);
-  lit_utf8_size_t sz = ecma_string_get_utf8_size (str_p);
-  fprintf (fp, "{\"node\":");
-  fprintf (fp, "[%u,%u,%u,%u]",
+  // print string node
+  fprintf (fp, "{\"type\":\"node\",\"node_type\":%d,\"name\":%u,\"id\":%u,\"size\":%u},\n",
            NODE_TYPE_STRING,
            value,
            value,
-           (uint32_t) sizeof (ecma_string_t) + sz);
-  fprintf (fp, "\n,\"references\":[]\n}\n");
+           sz + sizeof(ecma_string_t));
 }
 
 static void
-heapdump_magic_strings (FILE *fp,
-                        string_print_type callback,
-                        bool skip_first_comma)
+heapdump_magic_strings (FILE *fp)
 {
   for (lit_magic_string_id_t id = 0;
        id < LIT_NON_INTERNAL_MAGIC_STRING__COUNT;
        id++)
   {
-    ecma_string_t *string_p = ecma_get_magic_string (id);
-    if (!skip_first_comma || id != 0)
-    {
-      fprintf (fp, ",");
-    }
-    callback (fp, string_p);
+    heapdump_string (fp, ecma_get_magic_string (id));
   }
 }
 
 static void
-heapdump_strings (FILE *fp, string_print_type callback)
+heapdump_literal_strings (FILE *fp)
 {
   ecma_lit_storage_item_t *string_list_p = JERRY_CONTEXT (string_list_first_p);
 
@@ -123,11 +107,10 @@ heapdump_strings (FILE *fp, string_print_type callback)
     {
       if (string_list_p->values[i] != JMEM_CP_NULL)
       {
-        ecma_string_t *value_p;
-        value_p = JMEM_CP_GET_NON_NULL_POINTER (ecma_string_t,
+        ecma_string_t *string_p;
+        string_p = JMEM_CP_GET_NON_NULL_POINTER (ecma_string_t,
                                                 string_list_p->values[i]);
-        fprintf (fp, ",");
-        callback (fp, value_p);
+        heapdump_string (fp, string_p);
       }
     }
 
@@ -137,7 +120,14 @@ heapdump_strings (FILE *fp, string_print_type callback)
 }
 
 static void
-heapdump_numbers (FILE *fp)
+heapdump_number (FILE *fp, ecma_value_t value)
+{
+  fprintf (fp, "{\"type\":\"number\",\"id\":%u},\n",
+           value);
+}
+
+static void
+heapdump_literal_numbers (FILE *fp)
 {
   ecma_lit_storage_item_t *number_list_p = JERRY_CONTEXT (number_list_first_p);
 
@@ -149,44 +139,12 @@ heapdump_numbers (FILE *fp)
       {
         ecma_string_t *value_p = JMEM_CP_GET_NON_NULL_POINTER (ecma_string_t,
             number_list_p->values[i]);
-        fprintf (fp, ",");
-        fprintf (fp, "{\"node\":");
-        fprintf (fp, "[%u,%u,%u,%u]",
-                 NODE_TYPE_NUMBER,
-                 ecma_make_magic_string_value(LIT_MAGIC_STRING_NUMBER),
-                 value_p->u.lit_number,
-                 (uint32_t) sizeof (double));
-        fprintf (fp, "\n,\"references\":[]\n}\n");
+        heapdump_number (fp, value_p->u.lit_number);
       }
     }
 
     number_list_p = JMEM_CP_GET_POINTER (ecma_lit_storage_item_t,
                                          number_list_p->next_cp);
-  }
-}
-
-static void
-heapdump_object_value (ecma_object_t *obj_p,
-                       bool *first_visit,
-                       ecma_string_t *edge_name_p,
-                       v8_edge_type_t edge_type,
-                       void *args)
-{
-  FILE *fp = (FILE*) args;
-  if(fp)
-  {
-    if (first_visit && !*first_visit)
-    {
-      fprintf (fp, ",");
-    }
-    ecma_value_t name_value = ecma_make_string_value (edge_name_p);
-    ecma_value_t to_node = ecma_make_object_value (obj_p);
-    fprintf (fp, "[%u,%u,%u]", edge_type, name_value, to_node);
-  }
-
-  if (first_visit && *first_visit)
-  {
-    *first_visit = false;
   }
 }
 
@@ -238,48 +196,78 @@ heapdump_object (FILE *fp, ecma_object_t *object_p)
     }
   }
 
-  fprintf (fp, "\"node\":[%d,%u,%u,%u]\n",
+  fprintf (fp, "{\"type\":\"node\",\"node_type\":%d,\"name\":%u,\"id\":%u,\"size\":%u},\n",
            node_type,
            ecma_make_string_value (node_name),
            node_id,
            node_self_size);
+  heapdump_string (fp, node_name);
+}
+
+static void
+heapdump_value (FILE *fp, ecma_value_t value)
+{
+  if (ecma_is_value_object (value))
+  {
+    ecma_object_t *object_p = ecma_get_object_from_value (value);
+    heapdump_object (fp, object_p);
+  }
+  else if (ecma_is_value_string (value))
+  {
+    ecma_string_t *string_p = ecma_get_string_from_value (value);
+    heapdump_string (fp, string_p);
+  }
+  else if (ecma_is_value_number (value))
+  {
+    heapdump_number (fp, value);
+  }
+  else
+  {
+    JERRY_UNUSED (value); // TODO
+  }
+}
+
+static void
+heapdump_edge (ecma_object_t *from_p,
+               ecma_value_t to,
+               ecma_string_t *edge_name_p,
+               v8_edge_type_t edge_type,
+               void *args)
+{
+  FILE *fp = (FILE*) args;
+  if(fp)
+  {
+    ecma_value_t from = ecma_make_object_value (from_p);
+    ecma_value_t name_value = ecma_make_string_value (edge_name_p);
+    fprintf (fp, "{\"type\":\"edge\",\"edge_type\":%u,\"name\":%u,\"from\":%u,\"to\":%u},\n",
+             edge_type, name_value, from, to);
+    heapdump_value (fp, to);
+    heapdump_string (fp, edge_name_p);
+  }
 }
 
 void
 heap_profiler_take_snapshot (FILE *fp)
 {
-  fprintf(fp, "{");
-  fprintf(fp, "\"strings\":[\n");
-  heapdump_magic_strings (fp, string_print, true);
-  heapdump_strings (fp, string_print);
-  fprintf(fp, "],\n\"nodes\":[\n");
+  fprintf (fp, "{\n");
+  fprintf (fp, "\"elements\":[\n");
+  heapdump_magic_strings (fp);
+  heapdump_literal_strings (fp);
+  heapdump_literal_numbers (fp);
 
   ecma_object_t *obj_iter_p = JERRY_CONTEXT (ecma_gc_objects_p);
-  bool first = true;
   while (obj_iter_p != NULL)
   {
-    if (!first)
-    {
-      fprintf (fp, ",");
-    }
-    else {
-      first = false;
-    }
-    fprintf (fp, "{");
     heapdump_object (fp, obj_iter_p);
-    fprintf (fp, ",\"references\":[");
     ecma_vist_object_references (obj_iter_p,
-                                 heapdump_object_value,
+                                 heapdump_edge,
                                  (void*) fp);
-    fprintf (fp, "]\n}\n");
     obj_iter_p = ECMA_GET_POINTER (ecma_object_t, obj_iter_p->gc_next_cp);
   }
-  heapdump_magic_strings (fp, string_node_print, false);
-  heapdump_strings (fp, string_node_print);
-  heapdump_numbers (fp);
-  fprintf(fp, "]\n"); // nodes end
 
-  fprintf(fp, "}");
+  fprintf (fp, "{\"type\":\"dummy\"}\n");
+  fprintf (fp, "]\n"); // elements
+  fprintf (fp, "}");
 }
 
 #endif /* JERRY_HEAP_PROFILER */

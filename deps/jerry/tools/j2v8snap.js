@@ -4,15 +4,6 @@
 
 var fs = require('fs');
 
-const NODE_FILED_OFFSET_TYPE = 0;
-const NODE_FIELD_OFFSET_NAME = 1;
-const NODE_FIELD_OFFSET_ID = 2;
-const NODE_FIELD_OFFSET_SELF_SIZE = 3;
-
-const EDGE_FIELD_OFFSET_TYPE = 0;
-const EDGE_FIELD_OFFSET_NAME = 1;
-const EDGE_FIELD_OFFSET_TO_NODE = 2;
-
 const STRING_BASE_OFFSET = 1; // first string is "<dummy string>"
 
 class SnapshotConverter {
@@ -20,91 +11,80 @@ class SnapshotConverter {
     var inputData = fs.readFileSync(jerrySnapshotPath, 'utf8');
     this.jerrySnapshot = JSON.parse(inputData);
     this.outputPath = outputPath;
+    this.strings = ["<dummy>"];
     this.stringMap = new Map();
+    this.nodes = [];
     this.nodeMap = new Map();
-    this.edgeCount = 0;
+    this.edges = [];
+    this.edgeMap = new Map();
     this.nodesOutput = [];
     this.edgesOutput = [];
   }
 
-  parseStrings() {
-    for (var i = 0; i < this.jerrySnapshot.strings.length; i++) {
-      var stringItem = this.jerrySnapshot.strings[i];
-      this.stringMap[stringItem.id] = i + STRING_BASE_OFFSET;
+  addString(string) {
+    if (!this.stringMap.has(string.id)) {
+      this.stringMap.set(string.id, this.strings.length);
+      this.strings.push(string.chars);
+    }
+  }
+  
+  addNode(node) {
+    if (!this.nodeMap.has(node.id)) {
+      this.nodeMap.set(node.id, this.nodes.length);
+      this.edgeMap.set(node.id, []);
+      this.nodes.push(node);
     }
   }
 
-  parseNodes() {
-    var edgesCount = 0;
-    for (var i = 0; i < this.jerrySnapshot.nodes.length; i++) {
-      var nodeItem = this.jerrySnapshot.nodes[i];
-
-      var nodeType = nodeItem.node[NODE_FILED_OFFSET_TYPE];
-      this.nodesOutput.push(nodeType);
-
-      var nodeNameID = nodeItem.node[NODE_FIELD_OFFSET_NAME];
-      // TODO why this happend?
-      if (this.stringMap[nodeNameID] === undefined) {
-        this.stringMap[nodeNameID] = 1; // empty string
-      }
-      this.nodesOutput.push(this.stringMap[nodeNameID]);
-
-      var nodeID = nodeItem.node[NODE_FIELD_OFFSET_ID];
-      this.nodeMap[nodeID] = i;
-      this.nodesOutput.push(nodeID);
-
-      var nodeSelfSize = nodeItem.node[NODE_FIELD_OFFSET_SELF_SIZE];
-      this.nodesOutput.push(nodeSelfSize);
-
-      var nodeEdgeCount = nodeItem.references.length;
-      edgesCount += nodeEdgeCount;
-      this.nodesOutput.push(nodeEdgeCount);
-
-      this.nodesOutput.push(0); // trace node ID
-    }
-    this.edgeCount = edgesCount;
+  addEdge(edge) {
+    // any edge must appear after it's from node,
+    // so this.edgeMap should has edge.from 
+    this.edgeMap.get(edge.from).push(edge);
   }
-
-  parseEdges() {
-    for (var i = 0; i < this.jerrySnapshot.nodes.length; i++) {
-      var nodeItem = this.jerrySnapshot.nodes[i];
-      var edges = nodeItem.references;
-
-      for (var j = 0; j < edges.length; j++) {
-        var edge = edges[j];
-
-        var edgeType = edge[EDGE_FIELD_OFFSET_TYPE];
-        this.edgesOutput.push(edgeType);
-
-        var edgeNameID = edge[EDGE_FIELD_OFFSET_NAME];
-
-        // TODO why this happend?
-        if (this.stringMap[edgeNameID] === undefined) {
-          this.stringMap[edgeNameID] = 1; // empty string
-        }
-        this.edgesOutput.push(this.stringMap[edgeNameID]);
-
-        var edgeToNodeID = edge[EDGE_FIELD_OFFSET_TO_NODE];
-        // v8 node items is a flattern array,
-        // so to_node is to_node_id * node_size
-        this.edgesOutput.push(this.nodeMap[edgeToNodeID] * 6);
-      }
-    }
-  }
-
+    
   parse() {
-    this.parseStrings();
-    this.parseNodes();
-    this.parseEdges();
+    var elements = this.jerrySnapshot.elements;
+    var string_index = STRING_BASE_OFFSET;
+    for (var i=0; i<elements.length; i++) {
+      var element = elements[i];
+      if (element.type === 'string') {
+        this.addString(element);
+      } else if (element.type === 'node') {
+        this.addNode(element);
+      } else if (element.type === 'edge') {
+        this.addEdge(element);
+      }
+    }
+  }
+  
+  genNodeEdges(edges) {
+    for (var i = 0; i < edges.length; i++) {
+      var edge = edges[i];
+      this.edgesOutput.push (edge.edge_type);
+      var name;
+      name = this.stringMap.get(edge.name);
+      this.edgesOutput.push (name);
+      // v8 node items is a flattern array,
+      // so to_node is to_node_id * node_size
+      this.edgesOutput.push (this.nodeMap.get(edge.to) * 6);
+    }
+  }
+
+  genNodes() {
+    for (var [node_id, index] of this.nodeMap) {
+      var node = this.nodes[index];
+      this.nodesOutput.push (node.node_type);
+      this.nodesOutput.push (this.stringMap.get(node.name));
+      this.nodesOutput.push (node.id);
+      this.nodesOutput.push (node.size);
+      this.nodesOutput.push (this.edgeMap.get(node_id).length);
+      this.nodesOutput.push (0); // trace node id
+
+      this.genNodeEdges(this.edgeMap.get(node_id));
+    }
   }
 
   write() {
-    var outputStrings = ['dummy'];
-    for (var i = 0; i < this.jerrySnapshot.strings.length; i++) {
-      var stringItem = this.jerrySnapshot.strings[i];
-      outputStrings.push(stringItem.chars);
-    }
-
     var outputJSON =
     {
       'snapshot':
@@ -186,8 +166,8 @@ class SnapshotConverter {
             'last_assigned_id'
           ]
         },
-        'node_count': this.jerrySnapshot.nodes.length,
-        'edge_count': this.edgeCount,
+        'node_count': this.nodesOutput.length/6,
+        'edge_count': this.edgesOutput.length/3,
         'trace_function_count': 0
       },
       'nodes': this.nodesOutput,
@@ -195,14 +175,15 @@ class SnapshotConverter {
       'trace_function_infos': [],
       'trace_tree': [],
       'samples': [],
-      'strings': outputStrings
+      'strings': this.strings
     };
 
-    fs.writeFileSync(this.outputPath, JSON.stringify(outputJSON));
+    fs.writeFileSync(this.outputPath, JSON.stringify(outputJSON, null, '  '));
   }
 }
 
 var args = process.argv.splice(2);
 var converter = new SnapshotConverter(args[0], args[1]);
 converter.parse();
+converter.genNodes();
 converter.write();

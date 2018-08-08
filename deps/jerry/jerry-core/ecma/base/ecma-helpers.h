@@ -407,8 +407,8 @@ typedef enum
 } v8_edge_type_t;
 
 typedef void
-(*ecma_visit_object_callback_t) (ecma_object_t *object_p,
-                                 bool *first_visit,
+(*ecma_visit_object_callback_t) (ecma_object_t *from_p,
+                                 ecma_value_t to,
                                  ecma_string_t *edge_name,
                                  v8_edge_type_t edge_type,
                                  void *args);
