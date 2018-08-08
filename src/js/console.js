@@ -48,20 +48,12 @@ function stderr(text) {
 Console.prototype.log =
 Console.prototype.debug =
 Console.prototype.info = function() {
-  if (arguments.length === 1) {
-    stdout(arguments[0] + '\n');
-  } else {
     stdout(util.format.apply(this, arguments) + '\n');
-  }
 };
 
 Console.prototype.warn =
 Console.prototype.error = function() {
-  if (arguments.length === 1) {
-    stderr(arguments[0] + '\n');
-  } else {
-    stderr(util.format.apply(this, arguments) + '\n');
-  }
+  stderr(util.format.apply(this, arguments) + '\n');
 };
 
 Console.prototype.time = function(label) {
