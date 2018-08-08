@@ -25,9 +25,9 @@
 #define AS_NAPI_VALUE(jval) (napi_value)(uintptr_t) jval
 
 #define NAPI_WEAK_ASSERT(error_t, assertion) \
-  do { \
-    if (!assertion) \
-      return error_t; \
+  do {                                       \
+    if (!assertion)                          \
+      return error_t;                        \
   } while (0)
 
 
