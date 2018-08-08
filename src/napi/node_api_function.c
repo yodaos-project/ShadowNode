@@ -87,3 +87,61 @@ napi_status napi_create_function(napi_env env, const char *utf8name,
   *result = AS_NAPI_VALUE(jval_func);
   return napi_ok;
 }
+
+napi_status napi_call_function(napi_env env, napi_value recv, napi_value func,
+                               size_t argc, const napi_value *argv,
+                               napi_value *result) {
+  NAPI_TRY_NO_PENDING_EXCEPTION(env);
+
+  jerry_value_t jval_func = AS_JERRY_VALUE(func);
+  jerry_value_t jval_this = AS_JERRY_VALUE(recv);
+
+  NAPI_TRY_TYPE(function, jval_func);
+
+  jerry_value_t jval_ret =
+      jerry_call_function(jval_func, jval_this, (jerry_value_t *)argv, argc);
+  jerryx_create_handle(jval_ret);
+  if (jerry_value_has_error_flag(jval_ret)) {
+    NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));
+    return napi_generic_failure;
+  }
+
+  *result = AS_NAPI_VALUE(jval_ret);
+  return napi_ok;
+}
+
+napi_status napi_get_cb_info(napi_env env, napi_callback_info cbinfo,
+                             size_t *argc, napi_value *argv,
+                             napi_value *thisArg, void **data) {
+  iotjs_callback_info_t *callback_info = (iotjs_callback_info_t *)cbinfo;
+
+  for (size_t i = 0; i < *argc && i < callback_info->argc; ++i) {
+    argv[i] = AS_NAPI_VALUE(callback_info->argv[i]);
+  }
+  *argc = callback_info->argc;
+
+  *thisArg = AS_NAPI_VALUE(callback_info->jval_this);
+  *data = callback_info->function_info->data;
+
+  return napi_ok;
+}
+
+napi_status napi_new_instance(napi_env env, napi_value constructor, size_t argc,
+                              const napi_value *argv, napi_value *result) {
+  NAPI_TRY_NO_PENDING_EXCEPTION(env);
+
+  jerry_value_t jval_cons = AS_JERRY_VALUE(constructor);
+
+  NAPI_TRY_TYPE(function, jval_cons);
+
+  jerry_value_t jval_ret =
+      jerry_construct_object(jval_cons, (jerry_value_t *)argv, argc);
+  jerryx_create_handle(jval_ret);
+  if (jerry_value_has_error_flag(jval_ret)) {
+    NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));
+    return napi_generic_failure;
+  }
+
+  *result = AS_NAPI_VALUE(jval_ret);
+  return napi_ok;
+}
