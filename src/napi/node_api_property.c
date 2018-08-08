@@ -17,23 +17,176 @@
 #include "jerryscript.h"
 #include "internal/node_api_internal.h"
 
-napi_status napi_set_named_property(napi_env env, napi_value object,
-                                    const char* utf8name, napi_value value) {
+napi_status napi_get_property_names(napi_env env, napi_value object,
+                                    napi_value* result) {
   jerry_value_t jval = AS_JERRY_VALUE(object);
-  jerry_value_t jval_prop_val = AS_JERRY_VALUE(value);
-  jerry_value_t jval_prop_name =
-      jerry_create_string_from_utf8((jerry_char_t*)utf8name);
+  NAPI_TRY_TYPE(object, jval);
 
-  jerry_value_t jval_result =
-      jerry_set_property(jval, jval_prop_name, jval_prop_val);
-  jerry_release_value(jval_prop_name);
+  jerry_value_t jval_keys = jerry_get_object_keys(jval);
+  jerryx_create_handle(jval_keys);
+  if (jerry_value_has_error_flag(jval_keys))
+    return napi_invalid_arg;
 
-  if (jerry_value_has_error_flag(jval_result)) {
-    jerry_release_value(jval_result);
+  *result = AS_NAPI_VALUE(jval_keys);
+  return napi_ok;
+}
+
+napi_status napi_set_property(napi_env env, napi_value object, napi_value key,
+                              napi_value value) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+  jerry_value_t jval_key = AS_JERRY_VALUE(key);
+  jerry_value_t jval_val = AS_JERRY_VALUE(value);
+
+  NAPI_TRY_TYPE(object, jval_object);
+  NAPI_TRY_TYPE(string, jval_key);
+
+  jerry_value_t ret = jerry_set_property(jval_object, jval_key, jval_val);
+  if (jerry_value_has_error_flag(ret)) {
+    jerry_release_value(ret);
     return napi_invalid_arg;
   }
 
-  jerry_release_value(jval_result);
+  jerry_release_value(ret);
+  return napi_ok;
+}
+
+napi_status napi_get_property(napi_env env, napi_value object, napi_value key,
+                              napi_value* result) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+  jerry_value_t jval_key = AS_JERRY_VALUE(key);
+
+  NAPI_TRY_TYPE(object, jval_object);
+  NAPI_TRY_TYPE(string, jval_key);
+
+  jerry_value_t jval_ret = jerry_get_property(jval_object, jval_key);
+  jerryx_create_handle(jval_ret);
+  if (jerry_value_has_error_flag(jval_ret))
+    return napi_invalid_arg;
+
+  *result = AS_NAPI_VALUE(jval_ret);
+  return napi_ok;
+}
+
+napi_status napi_has_property(napi_env env, napi_value object, napi_value key,
+                              bool* result) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+  jerry_value_t jval_key = AS_JERRY_VALUE(key);
+
+  NAPI_TRY_TYPE(object, jval_object);
+  NAPI_TRY_TYPE(string, jval_key);
+
+  *result = jerry_has_property(jval_object, jval_key);
+
+  return napi_ok;
+}
+
+napi_status napi_delete_property(napi_env env, napi_value object,
+                                 napi_value key, bool* result) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+  jerry_value_t jval_key = AS_JERRY_VALUE(key);
+
+  NAPI_TRY_TYPE(object, jval_object);
+  NAPI_TRY_TYPE(string, jval_key);
+
+  *result = jerry_delete_property(jval_object, jval_key);
+  return napi_ok;
+}
+
+napi_status napi_has_own_property(napi_env env, napi_value object,
+                                  napi_value key, bool* result) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+  jerry_value_t jval_key = AS_JERRY_VALUE(key);
+
+  NAPI_TRY_TYPE(object, jval_object);
+  NAPI_TRY_TYPE(string, jval_key);
+
+  *result = jerry_has_own_property(jval_object, jval_key);
+  return napi_ok;
+}
+
+napi_status napi_set_named_property(napi_env env, napi_value object,
+                                    const char* utf8Name, napi_value value) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+  NAPI_TRY_TYPE(object, jval_object);
+
+  jerry_value_t jval_key = jerry_create_string_from_utf8((jerry_char_t *)utf8Name);
+  napi_status status =
+      napi_set_property(env, object, AS_NAPI_VALUE(jval_key), value);
+  jerry_release_value(jval_key);
+  return status;
+}
+
+napi_status napi_get_named_property(napi_env env, napi_value object,
+                                    const char* utf8Name, napi_value* result) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+  NAPI_TRY_TYPE(object, jval_object);
+
+  jerry_value_t jval_key = jerry_create_string_from_utf8((jerry_char_t *)utf8Name);
+  napi_status status =
+      napi_get_property(env, object, AS_NAPI_VALUE(jval_key), result);
+  jerry_release_value(jval_key);
+  return status;
+}
+
+napi_status napi_has_named_property(napi_env env, napi_value object,
+                                    const char* utf8Name, bool* result) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+  NAPI_TRY_TYPE(object, jval_object);
+
+  jerry_value_t jval_key = jerry_create_string_from_utf8((jerry_char_t *)utf8Name);
+  napi_status status =
+      napi_has_property(env, object, AS_NAPI_VALUE(jval_key), result);
+  jerry_release_value(jval_key);
+  return status;
+}
+
+napi_status napi_set_element(napi_env env, napi_value object, uint32_t index,
+                             napi_value value) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+  jerry_value_t jval_val = AS_JERRY_VALUE(value);
+
+  NAPI_TRY_TYPE(object, jval_object);
+
+  jerry_value_t res = jerry_set_property_by_index(jval_object, index, jval_val);
+  if (jerry_value_has_error_flag(res)) {
+    jerry_release_value(res);
+    return napi_invalid_arg;
+  }
+
+  jerry_release_value(res);
+  return napi_ok;
+}
+
+napi_status napi_get_element(napi_env env, napi_value object, uint32_t index,
+                             napi_value* result) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+
+  NAPI_TRY_TYPE(object, jval_object);
+
+  jerry_value_t jval_ret = jerry_get_property_by_index(jval_object, index);
+  jerryx_create_handle(jval_ret);
+  if (jerry_value_has_error_flag(jval_ret)) {
+    return napi_invalid_arg;
+  }
+  *result = AS_NAPI_VALUE(jval_ret);
+  return napi_ok;
+}
+
+napi_status napi_has_element(napi_env env, napi_value object, uint32_t index,
+                             bool* result) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+  NAPI_TRY_TYPE(object, jval_object);
+
+  *result = jerry_has_property_by_index(jval_object, index);
+  return napi_ok;
+}
+
+napi_status napi_delete_element(napi_env env, napi_value object, uint32_t index,
+                                bool* result) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+  NAPI_TRY_TYPE(object, jval_object);
+
+  *result = jerry_delete_property_by_index(jval_object, index);
   return napi_ok;
 }
 
@@ -95,9 +248,7 @@ napi_status napi_define_properties(napi_env env, napi_value object,
                                    size_t property_count,
                                    const napi_property_descriptor* properties) {
   jerry_value_t jval_target = AS_JERRY_VALUE(object);
-  if (!jerry_value_is_object(jval_target)) {
-    return napi_object_expected;
-  }
+  NAPI_TRY_TYPE(object, jval_target);
 
   napi_status status;
   jerry_property_descriptor_t prop_desc;
@@ -112,6 +263,7 @@ napi_status napi_define_properties(napi_env env, napi_value object,
       jerryx_create_handle(jval_prop_name);
     } else if (prop.name != NULL) {
       jval_prop_name = AS_JERRY_VALUE(prop.name);
+      NAPI_TRY_TYPE(string, jval_prop_name);
     } else {
       return napi_invalid_arg;
     }
@@ -124,7 +276,7 @@ napi_status napi_define_properties(napi_env env, napi_value object,
         jerry_define_own_property(jval_target, jval_prop_name, &prop_desc);
     if (jerry_value_has_error_flag(return_value)) {
       // TODO: collect error info
-      return napi_generic_failure;
+      return napi_invalid_arg;
     }
     jerry_release_value(return_value);
 
