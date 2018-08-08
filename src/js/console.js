@@ -48,7 +48,7 @@ function stderr(text) {
 Console.prototype.log =
 Console.prototype.debug =
 Console.prototype.info = function() {
-    stdout(util.format.apply(this, arguments) + '\n');
+  stdout(util.format.apply(this, arguments) + '\n');
 };
 
 Console.prototype.warn =
