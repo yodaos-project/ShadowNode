@@ -35,7 +35,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
-var common = require('node/common');
+var common = require('../common');
 var assert = require('assert');
 var net = require('net');
 

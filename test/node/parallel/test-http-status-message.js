@@ -36,7 +36,7 @@
 
 'use strict';
 
-require('node/common');
+require('../common');
 var assert = require('assert');
 var http = require('http');
 var net = require('net');
