@@ -84,6 +84,7 @@ JS_FUNCTION(Compile) {
   const iotjs_environment_t* env = iotjs_environment_get();
   if (iotjs_environment_config(env)->debugger != NULL) {
     jerry_debugger_stop();
+  }
 
   const char* filename = iotjs_string_data(&path);
   uv_fs_t fs_req;
