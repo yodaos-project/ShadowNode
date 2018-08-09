@@ -31,7 +31,6 @@
       return error_t;                        \
   } while (0)
 
-
 #define NAPI_TRY_TYPE(type, jval) \
   NAPI_WEAK_ASSERT(napi_##type##_expected, jerry_value_is_##type(jval))
 
@@ -47,6 +46,10 @@
       return status;             \
     }                            \
   } while (0)
+
+#define JERRYX_CREATE(var, create) \
+  jerry_value_t var = create;      \
+  jerryx_create_handle(var);
 
 /** MARK: - node_api_module.c */
 int napi_module_init_pending(jerry_value_t *exports);
