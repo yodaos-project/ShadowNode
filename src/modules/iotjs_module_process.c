@@ -97,7 +97,7 @@ JS_FUNCTION(Compile) {
   }
 
   size_t size = 0;
-  char* source = iotjs__file_read(iotjs_string_data(&path), &size);
+  char* source = iotjs__file_read(filename, &size);
   if (source == NULL || size == 0) {
     iotjs_string_destroy(&path);
     return JS_CREATE_ERROR(COMMON, "Could not load the source.");
@@ -115,9 +115,9 @@ JS_FUNCTION(CompileSnapshot) {
   iotjs_string_t path = JS_GET_ARG(0, string);
   const iotjs_environment_t* env = iotjs_environment_get();
 
+  const char* filename = iotjs_string_data(&path);
   uv_fs_t fs_req;
-  uv_fs_stat(iotjs_environment_loop(env), &fs_req, iotjs_string_data(&path),
-             NULL);
+  uv_fs_stat(iotjs_environment_loop(env), &fs_req, filename, NULL);,
   uv_fs_req_cleanup(&fs_req);
 
   if (!S_ISREG(fs_req.statbuf.st_mode)) {
@@ -126,7 +126,7 @@ JS_FUNCTION(CompileSnapshot) {
   }
 
   size_t size = 0;
-  char* bytecode = iotjs__file_read(iotjs_string_data(&path), &size);
+  char* bytecode = iotjs__file_read(filename, &size);
   if (bytecode == NULL || size == 0) {
     iotjs_string_destroy(&path);
     return JS_CREATE_ERROR(COMMON, "Could not load the snapshot source.");
