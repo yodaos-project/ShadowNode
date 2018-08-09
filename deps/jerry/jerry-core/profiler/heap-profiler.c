@@ -82,7 +82,7 @@ heapdump_string (FILE *fp, ecma_string_t *string_p)
            NODE_TYPE_STRING,
            value,
            value,
-           sz + sizeof(ecma_string_t));
+           sz + (uint32_t) sizeof(ecma_string_t));
 }
 
 static void
@@ -204,12 +204,25 @@ heapdump_object (FILE *fp, ecma_object_t *object_p)
            node_self_size);
   heapdump_string (fp, node_name);
 
-  if (type == ECMA_OBJECT_TYPE_FUNCTION)
+  if (type == ECMA_OBJECT_TYPE_FUNCTION
+#ifndef CONFIG_DISABLE_ES2015_ARROW_FUNCTION
+      || type == ECMA_OBJECT_TYPE_ARROW_FUNCTION
+#endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
+     )
   {
     if (!ecma_get_object_is_builtin (object_p))
     {
-      ecma_compiled_code_t *bytecode_p;
-      bytecode_p = ecma_op_function_get_compiled_code (object_p);
+      const ecma_compiled_code_t *bytecode_p;
+      if (type == ECMA_OBJECT_TYPE_FUNCTION)
+      {
+        bytecode_p = ecma_op_function_get_compiled_code ((ecma_extended_object_t*) object_p);
+      }
+#ifndef CONFIG_DISABLE_ES2015_ARROW_FUNCTION
+      else
+      {
+        bytecode_p = ecma_op_arrow_function_get_compiled_code ((ecma_arrow_function_t*) object_p);
+      }
+#endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
       fprintf (fp, "{\"type\":\"node\",\"node_type\":%d,\"name\":%u,\"id\":%u,\"size\":%u},\n",
                NODE_TYPE_CODE,
                ecma_make_string_value (node_name),
