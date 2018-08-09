@@ -122,8 +122,11 @@ heapdump_literal_strings (FILE *fp)
 static void
 heapdump_number (FILE *fp, ecma_value_t value)
 {
-  fprintf (fp, "{\"type\":\"number\",\"id\":%u},\n",
-           value);
+  fprintf (fp, "{\"type\":\"node\",\"node_type\":%d,\"name\":%u,\"id\":%u,\"size\":%u},\n",
+           NODE_TYPE_NUMBER,
+           ecma_make_magic_string_value (LIT_MAGIC_STRING_NUMBER),
+           value,
+           (uint32_t) sizeof(ecma_value_t));
 }
 
 static void
@@ -256,7 +259,7 @@ heapdump_value (FILE *fp, ecma_value_t value)
   }
   else
   {
-    JERRY_UNUSED (value); // TODO
+    heapdump_number (fp, value); // treat direct value as number
   }
 }
 

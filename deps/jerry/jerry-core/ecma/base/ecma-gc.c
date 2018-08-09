@@ -102,6 +102,11 @@ ecma_gc_set_object_visited (ecma_object_t *from, /**< from object */
   JERRY_UNUSED (edge_type);
   JERRY_UNUSED (args);
 
+  if (!ecma_is_value_object(to))
+  {
+    return;
+  }
+
   ecma_object_t *object_p = ecma_get_object_from_value (to);
   /* Set reference counter to one if it is zero. */
   if (object_p->type_flags_refs < ECMA_OBJECT_REF_ONE)
@@ -178,7 +183,7 @@ ecma_gc_mark_property (ecma_object_t *object_p,
 
       ecma_value_t value = property_pair_p->values[index].value;
 
-      if (ecma_is_value_object (value))
+      // if (ecma_is_value_object (value))
       {
         ecma_string_t *prop_name_p = ecma_string_from_property_name (property,
             property_pair_p->names_cp[index]);
