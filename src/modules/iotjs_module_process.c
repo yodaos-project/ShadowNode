@@ -97,7 +97,7 @@ JS_FUNCTION(Compile) {
   char* source = iotjs__file_read(iotjs_string_data(&path), &size);
   if (source == NULL || size == 0) {
     iotjs_string_destroy(&path);
-    return JS_CREATE_ERROR(COMMON, "Could not load the ssource.");
+    return JS_CREATE_ERROR(COMMON, "Could not load the source.");
   }
 
   jerry_value_t jres = WrapEval(filename, strlen(filename), source, size);
