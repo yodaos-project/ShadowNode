@@ -47,13 +47,13 @@ try {
 
 var moduledirs = [];
 if (process.env.NODE_PRIORITIZED_PATH) {
-  moduledirs.push(process.env.NODE_PRIORITIZED_PATH);
+  moduledirs.push(`${process.env.NODE_PRIORITIZED_PATH}/`);
 }
 if (cwd) {
   moduledirs.push(`${cwd}/node_modules/`);
 }
 if (process.env.NODE_PATH) {
-  moduledirs.push(process.env.NODE_PATH);
+  moduledirs.push(`${process.env.NODE_PATH}/`);
 }
 if (process.env.HOME) {
   moduledirs.push(`${process.env.HOME}/node_modules/`);
@@ -160,17 +160,20 @@ iotjs_module_t.resolveModPath = function(id, parent) {
   }
 
   var filepath = false;
-  if (id[0] === '.' && parent) {
+  if (id[0] === '/') {
+    filepath = iotjs_module_t._resolveFilepath(id, false);
+  } else if (parent === null) {
+    filepath = iotjs_module_t._resolveFilepath(id, cwd);
+  } else if (id[0] === '.') {
     var root = path.dirname(parent.filename);
     filepath = iotjs_module_t._resolveFilepath(id, root);
-  } else if (id[0] === '/') {
-    filepath = iotjs_module_t._resolveFilepath(id, false);
   } else {
     var dirs = iotjs_module_t.resolveDirectories(id, parent);
     filepath = iotjs_module_t.resolveFilepath(id, dirs);
   }
 
-  if (filepath.indexOf('./') > 0 || filepath.indexOf('../') > 0) {
+  if (filepath &&
+    (filepath.indexOf('./') > 0 || filepath.indexOf('../') > 0)) {
     return iotjs_module_t.normalizePath(filepath);
   }
   return filepath;

@@ -35,7 +35,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'use strict';
-require('node/common');
+require('../common');
 var net = require('net');
 
 var sock = new net.Socket();

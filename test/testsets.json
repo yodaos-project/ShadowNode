@@ -58,7 +58,7 @@
     { "name": "test_module_require.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_module_require2.js",
       "env": {
-        "NODE_PATH": "require2"
+        "NODE_PATH": "require2/node_modules"
       }
     },
     { "name": "test_net_1.js" },
