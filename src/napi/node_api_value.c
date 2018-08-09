@@ -171,5 +171,14 @@ napi_status napi_typeof(napi_env env, napi_value value,
 
 DEF_NAPI_VALUE_IS(array);
 DEF_NAPI_VALUE_IS(arraybuffer);
-DEF_NAPI_VALUE_IS(error);
 DEF_NAPI_VALUE_IS(typedarray);
+
+napi_status napi_is_error(napi_env env, napi_value value, bool* result) {
+  jerry_value_t jval = AS_JERRY_VALUE(value);
+  /**
+   * TODO: Pick jerrysciprt#ba2e49caaa6703dec7a83fb0b8586a91fac060eb to use
+   * function `jerry_value_is_error`
+   */
+  *result = jerry_value_has_error_flag(jval);
+  return napi_ok;
+}
