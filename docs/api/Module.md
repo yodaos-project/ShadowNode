@@ -29,10 +29,10 @@ If a native module named `id` exists, load it and return.
 
 `require` function searches for modules in the following order:
 
-1. Current working directory.
-2. `iotjs_modules` folder under current working directory.
-3. `$HOME/iotjs_modules`
-4. `$IOTJS_PATH/iotjs_modules`
+1. `$NODE_PRIORITIZED_PATH/node_modules` if present.
+1. `node_modules` folder under current working directory.
+2. `$NODE_PATH/node_modules`.
+3. `$HOME/node_modules`.
 
 For each directory in search paths above:
 

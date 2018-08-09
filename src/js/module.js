@@ -45,16 +45,18 @@ try {
   cwd = process.cwd();
 } catch (e) { }
 
-var moduledirs = [''];
-if (process.env.NODE_PATH) {
-  moduledirs.push(process.env.NODE_PATH + '/node_modules/');
-}
-if (process.env.HOME) {
-  moduledirs.push(process.env.HOME + '/node_modules/');
+var moduledirs = [];
+if (process.env.NODE_PRIORITIZED_PATH) {
+  moduledirs.push(`${process.env.NODE_PRIORITIZED_PATH}/node_modules`);
 }
 if (cwd) {
-  moduledirs.push(cwd + '/');
-  moduledirs.push(cwd + '/node_modules/');
+  moduledirs.push(`${cwd}/node_modules/`);
+}
+if (process.env.NODE_PATH) {
+  moduledirs.push(`${process.env.NODE_PATH}/node_modules/`);
+}
+if (process.env.HOME) {
+  moduledirs.push(`${process.env.HOME}/node_modules/`);
 }
 
 function tryPath(modulePath, ext) {
