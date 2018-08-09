@@ -24,6 +24,16 @@
 #define AS_JERRY_VALUE(nvalue) (jerry_value_t)(uintptr_t) nvalue
 #define AS_NAPI_VALUE(jval) (napi_value)(uintptr_t) jval
 
+#define NAPI_WEAK_ASSERT(error_t, assertion) \
+  do {                                       \
+    if (!assertion)                          \
+      return error_t;                        \
+  } while (0)
+
+
+#define NAPI_TRY_TYPE(type, jval) \
+  NAPI_WEAK_ASSERT(napi_##type##_expected, jerry_value_is_##type(jval))
+
 int napi_module_init_pending(jerry_value_t *exports);
 napi_env iotjs_get_current_napi_env();
 bool iotjs_napi_is_exception_pending(iotjs_napi_env_t *env);
