@@ -29,10 +29,10 @@ If a native module named `id` exists, load it and return.
 
 `require` function searches for modules in the following order:
 
-1. `$NODE_PRIORITIZED_PATH/node_modules` if present.
-1. `node_modules` folder under current working directory.
-2. `$NODE_PATH/node_modules`.
-3. `$HOME/node_modules`.
+1. `$NODE_PRIORITIZED_PATH` if present.
+2. `node_modules` folder under current working directory.
+3. `$NODE_PATH` if present.
+4. `$HOME/node_modules`.
 
 For each directory in search paths above:
 
