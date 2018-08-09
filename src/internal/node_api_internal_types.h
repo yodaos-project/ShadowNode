@@ -37,17 +37,24 @@ typedef struct {
 } iotjs_napi_env_t;
 
 typedef struct {
-  napi_env env;
-  void *native_object;
-  napi_finalize finalize_cb;
-  void *finalize_hint;
+  jerry_value_t jval;
+  uint32_t refcount;
+} iotjs_reference_t;
+
+
+#define IOTJS_OBJECT_INFO_FIELDS \
+  napi_env env;                  \
+  void *native_object;           \
+  napi_finalize finalize_cb;     \
+  void *finalize_hint;           \
+  iotjs_reference_t *ref;
+
+typedef struct {
+  IOTJS_OBJECT_INFO_FIELDS;
 } iotjs_object_info_t;
 
 typedef struct {
-  napi_env env;
-  void *native_object;
-  napi_finalize finalize_cb;
-  void *finalize_hint;
+  IOTJS_OBJECT_INFO_FIELDS;
 
   napi_callback cb;
   void *data;

@@ -64,6 +64,8 @@ napi_status iotjs_napi_env_set_fatal_exception(napi_env env, napi_value error);
 
 /** MARK: - node_api_lifetime.c */
 napi_status jerryx_status_to_napi_status(jerryx_handle_scope_status status);
+iotjs_object_info_t *iotjs_get_object_native_info(jerry_value_t jval,
+                                                  size_t native_info_size);
 /** MARK: - END node_api_lifetime.c */
 
 #endif // IOTJS_NODE_API_H

@@ -197,10 +197,10 @@ napi_status iotjs_napi_prop_desc_to_jdesc(napi_env env,
                                           const napi_property_descriptor* ndesc,
                                           jerry_property_descriptor_t* jdesc) {
   napi_status status;
-#define JATTR_FROM_NAPI_ATTR(prop_attr)        \
-  if (ndesc->attributes && napi_##prop_attr) { \
-    jdesc->is_##prop_attr##_defined = true;    \
-    jdesc->is_##prop_attr = true;              \
+#define JATTR_FROM_NAPI_ATTR(prop_attr)       \
+  if (ndesc->attributes & napi_##prop_attr) { \
+    jdesc->is_##prop_attr##_defined = true;   \
+    jdesc->is_##prop_attr = true;             \
   }
 
   JATTR_FROM_NAPI_ATTR(writable);
