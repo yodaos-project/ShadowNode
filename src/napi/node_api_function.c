@@ -77,7 +77,8 @@ napi_status napi_create_function(napi_env env, const char *utf8name,
       jerry_create_external_function(iotjs_napi_function_handler);
   jerryx_create_handle(jval_func);
 
-  iotjs_function_info_t *function_info = IOTJS_ALLOC(iotjs_function_info_t);
+  iotjs_function_info_t *function_info = (iotjs_function_info_t *)
+      iotjs_get_object_native_info(jval_func, sizeof(iotjs_function_info_t));
   function_info->env = env;
   function_info->cb = cb;
   function_info->data = data;
