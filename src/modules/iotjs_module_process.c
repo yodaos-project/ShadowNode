@@ -117,7 +117,7 @@ JS_FUNCTION(CompileSnapshot) {
 
   const char* filename = iotjs_string_data(&path);
   uv_fs_t fs_req;
-  uv_fs_stat(iotjs_environment_loop(env), &fs_req, filename, NULL);,
+  uv_fs_stat(iotjs_environment_loop(env), &fs_req, filename, NULL);
   uv_fs_req_cleanup(&fs_req);
 
   if (!S_ISREG(fs_req.statbuf.st_mode)) {
