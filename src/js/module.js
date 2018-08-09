@@ -247,8 +247,7 @@ iotjs_module_t.prototype.compile = function(snapshot) {
   var __dirname = path.dirname(__filename);
   var fn;
   if (!snapshot) {
-    var source = process.readSource(__filename);
-    fn = process.compile(__filename, source);
+    fn = process.compile(__filename);
   } else {
     fn = process.compileSnapshot(__filename);
     if (typeof fn !== 'function')

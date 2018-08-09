@@ -78,24 +78,30 @@ static jerry_value_t WrapEval(const char* name, size_t name_len,
 
 
 JS_FUNCTION(Compile) {
-  DJS_CHECK_ARGS(2, string, string);
+  DJS_CHECK_ARGS(1, string);
 
-  iotjs_string_t file = JS_GET_ARG(0, string);
-  iotjs_string_t source = JS_GET_ARG(1, string);
-
-  const char* filename = iotjs_string_data(&file);
+  iotjs_string_t path = JS_GET_ARG(0, string);
   const iotjs_environment_t* env = iotjs_environment_get();
+  const char* filename = iotjs_string_data(&path);
 
-  if (iotjs_environment_config(env)->debugger != NULL) {
-    jerry_debugger_stop();
+  uv_fs_t fs_req;
+  uv_fs_stat(iotjs_environment_loop(env), &fs_req, filename, NULL);
+  uv_fs_req_cleanup(&fs_req);
+
+  if (!S_ISREG(fs_req.statbuf.st_mode)) {
+    iotjs_string_destroy(&path);
+    return JS_CREATE_ERROR(COMMON, "ReadSource error, not a regular file");
   }
 
-  jerry_value_t jres =
-      WrapEval(filename, strlen(filename), iotjs_string_data(&source),
-               iotjs_string_size(&source));
+  size_t size = 0;
+  char* source = iotjs__file_read(iotjs_string_data(&path), &size);
+  if (source == NULL || size == 0) {
+    iotjs_string_destroy(&path);
+    return JS_CREATE_ERROR(COMMON, "Could not load the ssource.");
+  }
 
-  iotjs_string_destroy(&file);
-  iotjs_string_destroy(&source);
+  jerry_value_t jres = WrapEval(filename, strlen(filename), source, size);
+  iotjs_string_destroy(&path);
   return jres;
 }
 
@@ -119,9 +125,11 @@ JS_FUNCTION(CompileSnapshot) {
   size_t size = 0;
   char* bytecode = iotjs__file_read(iotjs_string_data(&path), &size);
   if (bytecode == NULL || size == 0) {
+    iotjs_string_destroy(&path);
     return JS_CREATE_ERROR(COMMON, "Could not load the snapshot source.");
   }
 
+  iotjs_string_destroy(&path);
   return jerry_exec_snapshot((uint32_t*)bytecode, size, true);
 }
 
