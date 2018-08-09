@@ -2,6 +2,10 @@
 
 var NODE_DEBUG = process.env.NODE_DEBUG;
 
+function skip() {
+  // Nothing
+}
+
 module.exports = function(tag) {
   function debug(str) {
     var prefix = '\033';
@@ -13,4 +17,5 @@ module.exports = function(tag) {
   if (NODE_DEBUG === tag) {
     return debug;
   }
+  return skip;
 };
