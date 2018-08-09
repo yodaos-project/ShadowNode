@@ -35,6 +35,19 @@
 #define NAPI_TRY_TYPE(type, jval) \
   NAPI_WEAK_ASSERT(napi_##type##_expected, jerry_value_is_##type(jval))
 
+#define NAPI_TRY_NO_PENDING_EXCEPTION(env) \
+  NAPI_WEAK_ASSERT(napi_pending_exception, \
+                   iotjs_napi_is_exception_pending((iotjs_napi_env_t *)env))
+
+#define NAPI_INTERNAL_CALL(call) \
+  do {                           \
+    napi_status status;          \
+    status = call;               \
+    if (status != napi_ok) {     \
+      return status;             \
+    }                            \
+  } while (0)
+
 /** MARK: - node_api_module.c */
 int napi_module_init_pending(jerry_value_t *exports);
 /** MARK: - END node_api_module.c */
