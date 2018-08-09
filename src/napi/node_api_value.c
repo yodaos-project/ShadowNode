@@ -141,20 +141,20 @@ napi_status napi_typeof(napi_env env, napi_value value,
   jerry_value_t jval = AS_JERRY_VALUE(value);
   jerry_type_t type = jerry_value_get_type(jval);
 
-#define CM(jerry, napi) \
-  case jerry:           \
-    *result = napi;     \
+#define MAP(jerry, napi) \
+  case jerry:            \
+    *result = napi;      \
     break;
 
   switch (type) {
-    CM(JERRY_TYPE_UNDEFINED, napi_undefined);
-    CM(JERRY_TYPE_NULL, napi_null);
-    CM(JERRY_TYPE_BOOLEAN, napi_boolean);
-    CM(JERRY_TYPE_NUMBER, napi_number);
-    CM(JERRY_TYPE_STRING, napi_string);
-    CM(JERRY_TYPE_OBJECT, napi_object);
-    CM(JERRY_TYPE_FUNCTION, napi_function);
-#undef CM
+    MAP(JERRY_TYPE_UNDEFINED, napi_undefined);
+    MAP(JERRY_TYPE_NULL, napi_null);
+    MAP(JERRY_TYPE_BOOLEAN, napi_boolean);
+    MAP(JERRY_TYPE_NUMBER, napi_number);
+    MAP(JERRY_TYPE_STRING, napi_string);
+    MAP(JERRY_TYPE_OBJECT, napi_object);
+    MAP(JERRY_TYPE_FUNCTION, napi_function);
+#undef MAP
     default:
       return napi_invalid_arg;
   }
