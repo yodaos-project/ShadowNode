@@ -154,6 +154,7 @@ heapdump_object (FILE *fp, ecma_object_t *object_p)
   ecma_value_t node_id = ecma_make_object_value (object_p);
   ecma_string_t *node_name = ecma_object_get_name (object_p);
   uint32_t node_self_size = ecma_object_get_size (object_p);
+  ecma_object_type_t type = ECMA_OBJECT_TYPE__MAX;
   int node_type;
 
   if (ecma_is_lexical_environment (object_p))
@@ -162,7 +163,7 @@ heapdump_object (FILE *fp, ecma_object_t *object_p)
   }
   else
   {
-    ecma_object_type_t type = ecma_get_object_type (object_p);
+    type = ecma_get_object_type (object_p);
     switch (type)
     {
     case ECMA_OBJECT_TYPE_GENERAL:
@@ -202,6 +203,25 @@ heapdump_object (FILE *fp, ecma_object_t *object_p)
            node_id,
            node_self_size);
   heapdump_string (fp, node_name);
+
+  if (type == ECMA_OBJECT_TYPE_FUNCTION)
+  {
+    if (!ecma_get_object_is_builtin (object_p))
+    {
+      ecma_compiled_code_t *bytecode_p;
+      bytecode_p = ecma_op_function_get_compiled_code (object_p);
+      fprintf (fp, "{\"type\":\"node\",\"node_type\":%d,\"name\":%u,\"id\":%u,\"size\":%u},\n",
+               NODE_TYPE_CODE,
+               ecma_make_string_value (node_name),
+               (ecma_value_t) bytecode_p,
+               bytecode_p->size);
+      ecma_value_t bytecode_name;
+      bytecode_name = ecma_make_magic_string_value(LIT_MAGIC_STRING_BYTECODE);
+      fprintf (fp, "{\"type\":\"edge\",\"edge_type\":%u,\"name\":%u,\"from\":%u,\"to\":%u},\n",
+          EDGE_TYPE_HIDDEN, bytecode_name, node_id, (ecma_value_t) bytecode_p);
+    }
+
+  }
 }
 
 static void
