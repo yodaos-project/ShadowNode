@@ -1,3 +1,5 @@
+/* eslint strict: [2, "never"] */
+
 var NODE_DEBUG = process.env.NODE_DEBUG;
 
 module.exports = function(tag) {
