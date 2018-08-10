@@ -36,6 +36,38 @@ napi_status napi_create_object(napi_env env, napi_value* result) {
   return napi_ok;
 }
 
+#define DEF_NAPI_CREATE_ERROR(type, jerry_error_type)                         \
+  napi_status napi_create_##type(napi_env env, napi_value code,               \
+                                 napi_value msg, napi_value* result) {        \
+    if (env != iotjs_get_current_napi_env())                                  \
+      return napi_invalid_arg;                                                \
+                                                                              \
+    jerry_value_t jval_code = AS_JERRY_VALUE(code);                           \
+    jerry_value_t jval_msg = AS_JERRY_VALUE(msg);                             \
+                                                                              \
+    NAPI_TRY_TYPE(string, jval_code);                                         \
+    NAPI_TRY_TYPE(string, jval_msg);                                          \
+                                                                              \
+    jerry_size_t msg_size = jerry_get_utf8_string_size(jval_msg);             \
+    jerry_char_t raw_msg[msg_size];                                           \
+    jerry_size_t written_size =                                               \
+        jerry_string_to_utf8_char_buffer(jval_msg, raw_msg, msg_size);        \
+    NAPI_WEAK_ASSERT(napi_invalid_arg, written_size == msg_size);             \
+                                                                              \
+    jerry_value_t jval_error = jerry_create_error(jerry_error_type, raw_msg); \
+    jerry_value_clear_error_flag(&jval_error);                                \
+                                                                              \
+    iotjs_jval_set_property_jval(jval_error, "code", jval_code);              \
+    *result = AS_NAPI_VALUE(jval_error);                                      \
+                                                                              \
+    return napi_ok;                                                           \
+  }
+
+DEF_NAPI_CREATE_ERROR(error, JERRY_ERROR_COMMON);
+DEF_NAPI_CREATE_ERROR(type_error, JERRY_ERROR_TYPE);
+DEF_NAPI_CREATE_ERROR(range_error, JERRY_ERROR_RANGE);
+#undef DEF_NAPI_CREATE_ERROR
+
 #define DEF_NAPI_NUMBER_CONVERT_FROM_C_TYPE(type, name)      \
   napi_status napi_create_##name(napi_env env, type value,   \
                                  napi_value* result) {       \
@@ -162,6 +194,15 @@ napi_status napi_typeof(napi_env env, napi_value value,
   return napi_ok;
 }
 
+napi_status napi_instanceof(napi_env env, napi_value object,
+                            napi_value constructor, bool* result) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+  jerry_value_t jval_cons = AS_JERRY_VALUE(constructor);
+
+  *result = jerry_value_instanceof(jval_object, jval_cons);
+  return napi_ok;
+}
+
 #define DEF_NAPI_VALUE_IS(type)                                              \
   napi_status napi_is_##type(napi_env env, napi_value value, bool* result) { \
     jerry_value_t jval = AS_JERRY_VALUE(value);                              \
@@ -180,5 +221,14 @@ napi_status napi_is_error(napi_env env, napi_value value, bool* result) {
    * function `jerry_value_is_error`
    */
   *result = jerry_value_has_error_flag(jval);
+  return napi_ok;
+}
+
+napi_status napi_strict_equals(napi_env env, napi_value lhs, napi_value rhs,
+                               bool* result) {
+  jerry_value_t jval_lhs = AS_JERRY_VALUE(lhs);
+  jerry_value_t jval_rhs = AS_JERRY_VALUE(rhs);
+
+  *result = jerry_value_strict_equal(jval_lhs, jval_rhs);
   return napi_ok;
 }

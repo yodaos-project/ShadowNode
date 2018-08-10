@@ -23,6 +23,54 @@ napi_value SayError(napi_env env, napi_callback_info info) {
   return NULL;
 }
 
+napi_value StrictEquals(napi_env env, napi_callback_info info) {
+  napi_status status;
+
+  size_t argc = 2;
+  napi_value argv[2];
+  napi_value thisArg;
+  void* data;
+  status = napi_get_cb_info(env, info, &argc, argv, &thisArg, &data);
+  if (status != napi_ok)
+    return NULL;
+
+  bool result = false;
+  status = napi_strict_equals(env, argv[0], argv[1], &result);
+  if (status != napi_ok)
+    return NULL;
+
+  napi_value ret;
+  status = napi_get_boolean(env, result, &ret);
+  if (status != napi_ok)
+    return NULL;
+
+  return ret;
+}
+
+napi_value Instanceof(napi_env env, napi_callback_info info) {
+  napi_status status;
+
+  size_t argc = 2;
+  napi_value argv[2];
+  napi_value thisArg;
+  void* data;
+  status = napi_get_cb_info(env, info, &argc, argv, &thisArg, &data);
+  if (status != napi_ok)
+    return NULL;
+
+  bool result = false;
+  status = napi_instanceof(env, argv[0], argv[1], &result);
+  if (status != napi_ok)
+    return NULL;
+
+  napi_value ret;
+  status = napi_get_boolean(env, result, &ret);
+  if (status != napi_ok)
+    return NULL;
+
+  return ret;
+}
+
 napi_value Init(napi_env env, napi_value exports) {
   napi_status status;
 
@@ -40,6 +88,8 @@ napi_value Init(napi_env env, napi_value exports) {
 
   set_named_method(env, exports, "sayHello", SayHello);
   set_named_method(env, exports, "sayError", SayError);
+  set_named_method(env, exports, "strictEquals", StrictEquals);
+  set_named_method(env, exports, "instanceof", Instanceof);
 
   napi_value id;
   status = napi_create_int32(env, 321, &id);

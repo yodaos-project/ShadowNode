@@ -45,11 +45,15 @@ static jerry_value_t iotjs_napi_function_handler(
 
   iotjs_napi_env_t* iotjs_napi_env = (iotjs_napi_env_t*)env;
   if (iotjs_napi_is_exception_pending(iotjs_napi_env)) {
-    if (iotjs_napi_env->pending_exception != NULL) {
-      jval_ret = AS_JERRY_VALUE(iotjs_napi_env->pending_exception);
+    jerry_value_t jval_err = iotjs_napi_env_get_and_clear_exception(env);
+    if (jval_err != (uintptr_t)NULL) {
+      jval_ret = jval_err;
     } else {
-      // TODO: fatal error support, trigger `uncaughtException`
-      jval_ret = AS_JERRY_VALUE(iotjs_napi_env->pending_fatal_exception);
+      jval_err = iotjs_napi_env_get_and_clear_fatal_exception(env);
+      IOTJS_ASSERT(jval_err != (uintptr_t)NULL);
+
+      iotjs_uncaught_exception(jval_err);
+      jval_ret = jval_err;
     }
 
     goto cleanup;
