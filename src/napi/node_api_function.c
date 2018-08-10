@@ -120,13 +120,19 @@ napi_status napi_get_cb_info(napi_env env, napi_callback_info cbinfo,
                              napi_value* thisArg, void** data) {
   iotjs_callback_info_t* callback_info = (iotjs_callback_info_t*)cbinfo;
 
+  NAPI_WEAK_ASSERT(napi_invalid_arg, (argc != NULL));
+
   for (size_t i = 0; i < *argc && i < callback_info->argc; ++i) {
-    argv[i] = AS_NAPI_VALUE(callback_info->argv[i]);
+    if ((argv + i) != NULL)
+      argv[i] = AS_NAPI_VALUE(callback_info->argv[i]);
   }
   *argc = callback_info->argc;
 
-  *thisArg = AS_NAPI_VALUE(callback_info->jval_this);
-  *data = callback_info->function_info->data;
+  if (thisArg != NULL)
+    *thisArg = AS_NAPI_VALUE(callback_info->jval_this);
+
+  if (data != NULL)
+    *data = callback_info->function_info->data;
 
   return napi_ok;
 }
