@@ -5,6 +5,10 @@
 napi_value SayHello(napi_env env, napi_callback_info info) {
   napi_status status;
 
+  size_t argc = 0;
+  // test if `napi_get_cb_info` tolerants NULL pointers.
+  status = napi_get_cb_info(env, info, &argc, NULL, NULL, NULL);
+
   napi_value str;
   status = napi_create_string_utf8(env, "Hello", 5, &str);
   if (status != napi_ok)
