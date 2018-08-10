@@ -6,6 +6,7 @@
         "crypto",
         "child_process",
         "dbus",
+        "debug",
         "dns",
         "dgram",
         "http",
@@ -171,6 +172,9 @@
       "init": "InitDBus",
       "js_file": "js/dbus.js",
       "require": ["fs", "sax"]
+    },
+    "debug": {
+      "js_file": "js/debug.js"
     },
     "dgram": {
       "js_file": "js/dgram.js",

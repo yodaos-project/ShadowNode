@@ -17,6 +17,7 @@
 var Native = require('native');
 var fs = Native.require('fs');
 var path = Native.require('path');
+var debug = Native.require('debug')('module');
 
 function iotjs_module_t(id, parent) {
   this.id = id;
@@ -67,6 +68,7 @@ function tryPath(modulePath, ext) {
 
 iotjs_module_t.tryPath = function(path) {
   try {
+    debug(`try load path ${path}`);
     var stats = fs.statSync(path);
     if (stats && !stats.isDirectory()) {
       return path;
