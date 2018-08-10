@@ -1,14 +1,12 @@
 stages:
 - test
-- deploy
+- name: deploy
+  if: tag IS present
 
 language: c
 os: linux
 dist: trusty
 sudo: required
-
-services:
-- docker
 
 cache:
   directories:
@@ -46,17 +44,14 @@ jobs:
     env:
     - JOBNAME="Linux/x86-64 Build & Correctness Tests"
     - OPTS="host-linux"
-    - RUN_DOCKER=yes
   - stage: test
     env:
     - JOBNAME="Linux/x86-64 without snapshot Build & Correctness Tests"
     - OPTS="no-snapshot"
-    - RUN_DOCKER=yes
   - stage: test
     env:
     - JOBNAME="Linux/x86-64 with N-API Build & Correctness Tests"
     - OPTS="napi"
-    - RUN_DOCKER=yes
   - stage: test
     env:
     - JOBNAME="OSX/x86-64 Build & Correctness Tests"
