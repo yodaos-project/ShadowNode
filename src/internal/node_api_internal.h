@@ -28,6 +28,11 @@
 #define AS_JERRY_VALUE(nvalue) (jerry_value_t)(uintptr_t) nvalue
 #define AS_NAPI_VALUE(jval) (napi_value)(uintptr_t) jval
 
+#define NAPI_ASSERT(assertion, message) \
+  if (!(assertion)) {\
+    napi_fatal_error(__FILE__ ":" TOSTRING(__LINE__), NAPI_AUTO_LENGTH, message, NAPI_AUTO_LENGTH); \
+  }
+
 /**
  * MARK: - N-API Returns machenism:
  * If any non-napi-ok status code is returned in N-API functions, there
@@ -135,8 +140,27 @@
  * handle scope.
  */
 #define JERRYX_CREATE(var, create) \
-  jerry_value_t var = create;      \
+  jerry_value_t var = (create);    \
   jerryx_create_handle(var);
+
+#define NAPI_GET_OBJECT_INFO_BASE(method, object, type) \
+  (type*)method(object, sizeof(type))
+
+#define NAPI_GET_OBJECT_INFO(object)                              \
+  NAPI_GET_OBJECT_INFO_BASE(iotjs_get_object_native_info, object, \
+                            iotjs_object_info_t);
+
+#define NAPI_GET_FUNCTION_INFO(object)                            \
+  NAPI_GET_OBJECT_INFO_BASE(iotjs_get_object_native_info, object, \
+                            iotjs_function_info_t);
+
+#define NAPI_TRY_GET_OBJECT_INFO(object)                              \
+  NAPI_GET_OBJECT_INFO_BASE(iotjs_try_get_object_native_info, object, \
+                            iotjs_object_info_t);
+
+#define NAPI_TRY_GET_FUNCTION_INFO(object)                            \
+  NAPI_GET_OBJECT_INFO_BASE(iotjs_try_get_object_native_info, object, \
+                            iotjs_function_info_t);
 
 /** MARK: - node_api_module.c */
 int napi_module_init_pending(jerry_value_t* exports);
@@ -163,6 +187,8 @@ jerry_value_t iotjs_napi_env_get_and_clear_fatal_exception(napi_env env);
 napi_status jerryx_status_to_napi_status(jerryx_handle_scope_status status);
 iotjs_object_info_t* iotjs_get_object_native_info(jerry_value_t jval,
                                                   size_t native_info_size);
+iotjs_object_info_t* iotjs_try_get_object_native_info(jerry_value_t jval,
+                                                      size_t native_info_size);
 void iotjs_cleanup_napi();
 /** MARK: - END node_api_lifetime.c */
 

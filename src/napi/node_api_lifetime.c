@@ -18,8 +18,10 @@
 
 static void native_info_free(void* native_info) {
   iotjs_object_info_t* info = (iotjs_object_info_t*)native_info;
-  if (info->ref != NULL) {
-    info->ref->jval = AS_JERRY_VALUE(NULL);
+  iotjs_reference_t* comp = info->ref_start;
+  while (comp != NULL) {
+    comp->jval = AS_JERRY_VALUE(NULL);
+    comp = comp->next;
   }
 
   if (info->finalize_cb != NULL) {
@@ -58,6 +60,13 @@ iotjs_object_info_t* iotjs_get_object_native_info(jerry_value_t jval,
     jerry_set_object_native_pointer(jval, info, &native_obj_type_info);
   }
 
+  return info;
+}
+
+iotjs_object_info_t* iotjs_try_get_object_native_info(jerry_value_t jval,
+                                                      size_t native_info_size) {
+  iotjs_object_info_t* info = NULL;
+  jerry_get_object_native_pointer(jval, (void**)&info, NULL);
   return info;
 }
 
@@ -114,21 +123,29 @@ napi_status napi_create_reference(napi_env env, napi_value value,
   NAPI_WEAK_ASSERT(napi_invalid_arg, result != NULL);
 
   jerry_value_t jval = AS_JERRY_VALUE(value);
-  iotjs_object_info_t* info;
-  bool has_native_ptr =
-      jerry_get_object_native_pointer(jval, (void**)&info, NULL);
-  if (!has_native_ptr) {
-    info = IOTJS_ALLOC(iotjs_object_info_t);
-  } else {
-    NAPI_WEAK_ASSERT(napi_invalid_arg, (info->ref == NULL));
-  }
+  iotjs_object_info_t* info = NAPI_GET_OBJECT_INFO(jval);
 
   iotjs_reference_t* ref = IOTJS_ALLOC(iotjs_reference_t);
   ref->refcount = initial_refcount;
   ref->jval = AS_JERRY_VALUE(value);
-  info->ref = ref;
+  ref->next = NULL;
 
-  *result = (napi_ref)ref;
+  if (info->ref_start == NULL) {
+    ref->prev = NULL;
+    info->ref_start = ref;
+    info->ref_end = ref;
+  } else {
+    ref->prev = info->ref_end;
+
+    info->ref_end->next = ref;
+    info->ref_end = ref;
+  }
+
+  for (uint32_t i = 0; i < ref->refcount; ++i) {
+    jerry_acquire_value(ref->jval);
+  }
+
+  NAPI_ASSIGN(result, (napi_ref)ref);
   NAPI_RETURN(napi_ok);
 }
 
@@ -136,13 +153,33 @@ napi_status napi_delete_reference(napi_env env, napi_ref ref) {
   iotjs_reference_t* iot_ref = (iotjs_reference_t*)ref;
   if (iot_ref->jval != AS_JERRY_VALUE(NULL)) {
     jerry_value_t jval = iot_ref->jval;
-    iotjs_object_info_t* info;
-    bool has_native_ptr =
-        jerry_get_object_native_pointer(jval, (void**)&info, NULL);
-    NAPI_WEAK_ASSERT(napi_invalid_arg, has_native_ptr);
-    NAPI_WEAK_ASSERT(napi_invalid_arg, (info->ref == iot_ref));
-    info->ref = NULL;
+    iotjs_object_info_t* info = NAPI_GET_OBJECT_INFO(jval);
+
+    bool found = false;
+    iotjs_reference_t* comp = info->ref_start;
+    while (comp != NULL) {
+      if (comp == iot_ref) {
+        found = true;
+        break;
+      }
+      comp = comp->next;
+    }
+
+    NAPI_WEAK_ASSERT(napi_invalid_arg, found);
+    if (info->ref_start == iot_ref) {
+      info->ref_start = iot_ref->next;
+    }
+    if (info->ref_end == iot_ref) {
+      info->ref_end = iot_ref->prev;
+    }
+    if (iot_ref->prev != NULL) {
+      iot_ref->prev->next = iot_ref->next;
+    }
+    if (iot_ref->next != NULL) {
+      iot_ref->next->prev = iot_ref->prev;
+    }
   }
+
   for (uint32_t i = 0; i < iot_ref->refcount; ++i) {
     jerry_release_value(iot_ref->jval);
   }
