@@ -42,7 +42,7 @@ void jerry_port_fatal(jerry_fatal_code_t code) {
  * Provide log message implementation for the engine.
  */
 void jerry_port_log(jerry_log_level_t level, /**< log level */
-                    const char *format,      /**< format string */
+                    const char* format,      /**< format string */
                     ...) {                   /**< parameters */
   /* Drain log messages since IoT.js has not support log levels yet. */
 } /* jerry_port_log */
@@ -52,7 +52,7 @@ void jerry_port_log(jerry_log_level_t level, /**< log level */
  *
  * @return true
  */
-bool jerry_port_get_time_zone(jerry_time_zone_t *tz_p) {
+bool jerry_port_get_time_zone(jerry_time_zone_t* tz_p) {
   /* We live in UTC. */
   tz_p->offset = 0;
   tz_p->daylight_saving_time = 0;
@@ -101,18 +101,18 @@ void longjmp(jmp_buf buf, int value) {
   __builtin_longjmp(buf, 1);
 } /* longjmp */
 
-int iotjs_entry(int argc, char **argv);
+int iotjs_entry(int argc, char** argv);
 int tuv_cleanup(void);
 
 
 #if USE_IOTJS_THREAD
 struct iotjs_thread_arg {
   int argc;
-  char **argv;
+  char** argv;
 };
 
-pthread_addr_t iotjs_thread(void *thread_arg) {
-  struct iotjs_thread_arg *arg = thread_arg;
+pthread_addr_t iotjs_thread(void* thread_arg) {
+  struct iotjs_thread_arg* arg = thread_arg;
 
 #ifdef CONFIG_DEBUG_VERBOSE
   int ret = iotjs_entry(arg->argc, arg->argv);
@@ -126,7 +126,7 @@ pthread_addr_t iotjs_thread(void *thread_arg) {
   return NULL;
 }
 
-int iotjs(int argc, char *argv[]) {
+int iotjs(int argc, char* argv[]) {
   pthread_attr_t attr;
   int status;
   struct sched_param sparam;
@@ -160,7 +160,7 @@ int iotjs(int argc, char *argv[]) {
 
 #else
 
-static int iotjs(int argc, char *argv[]) {
+static int iotjs(int argc, char* argv[]) {
   int ret = 0;
   ret = iotjs_entry(argc, argv);
 #ifdef CONFIG_DEBUG_VERBOSE

@@ -36,7 +36,7 @@
 
 #define NAPI_TRY_NO_PENDING_EXCEPTION(env) \
   NAPI_WEAK_ASSERT(napi_pending_exception, \
-                   iotjs_napi_is_exception_pending((iotjs_napi_env_t *)env))
+                   iotjs_napi_is_exception_pending((iotjs_napi_env_t*)env))
 
 #define NAPI_INTERNAL_CALL(call) \
   do {                           \
@@ -52,19 +52,19 @@
   jerryx_create_handle(var);
 
 /** MARK: - node_api_module.c */
-int napi_module_init_pending(jerry_value_t *exports);
+int napi_module_init_pending(jerry_value_t* exports);
 /** MARK: - END node_api_module.c */
 
 /** MARK: - node_api_env.c */
 napi_env iotjs_get_current_napi_env();
-bool iotjs_napi_is_exception_pending(iotjs_napi_env_t *env);
+bool iotjs_napi_is_exception_pending(iotjs_napi_env_t* env);
 napi_status iotjs_napi_env_set_exception(napi_env env, napi_value error);
 napi_status iotjs_napi_env_set_fatal_exception(napi_env env, napi_value error);
 /** MARK: - END node_api_env.c */
 
 /** MARK: - node_api_lifetime.c */
 napi_status jerryx_status_to_napi_status(jerryx_handle_scope_status status);
-iotjs_object_info_t *iotjs_get_object_native_info(jerry_value_t jval,
+iotjs_object_info_t* iotjs_get_object_native_info(jerry_value_t jval,
                                                   size_t native_info_size);
 /** MARK: - END node_api_lifetime.c */
 

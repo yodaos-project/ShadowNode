@@ -18,13 +18,13 @@
 #include "internal/node_api_internal.h"
 #include "node_api.h"
 
-static napi_module *mod_pending;
+static napi_module* mod_pending;
 
-void napi_module_register(napi_module *mod) {
+void napi_module_register(napi_module* mod) {
   mod_pending = mod;
 }
 
-int napi_module_init_pending(jerry_value_t *exports) {
+int napi_module_init_pending(jerry_value_t* exports) {
   if (mod_pending == NULL) {
     return napi_module_no_pending;
   }

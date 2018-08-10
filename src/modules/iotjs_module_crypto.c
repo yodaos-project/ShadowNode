@@ -29,7 +29,7 @@ jerry_value_t InitCrypto() {
   mbedtls_entropy_init(&entropy);
   mbedtls_ctr_drbg_init(&drgb_ctx);
   mbedtls_ctr_drbg_seed(&drgb_ctx, mbedtls_entropy_func, &entropy,
-                        (const unsigned char *)CRYPTO_DRGB_PERSONAL_KEY,
+                        (const unsigned char*)CRYPTO_DRGB_PERSONAL_KEY,
                         strlen(CRYPTO_DRGB_PERSONAL_KEY));
 
   jerry_value_t crypto = jerry_create_object();

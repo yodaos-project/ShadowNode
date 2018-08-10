@@ -69,10 +69,10 @@ struct _BIO;
 typedef struct _BIO BIO;
 
 struct _BIO {
-  BIO *prev;  /* previous in chain */
-  BIO *next;  /* next in chain */
-  BIO *pair;  /* BIO paired with */
-  BYTE *mem;  /* memory buffer */
+  BIO* prev;  /* previous in chain */
+  BIO* next;  /* next in chain */
+  BIO* pair;  /* BIO paired with */
+  BYTE* mem;  /* memory buffer */
   int wrSz;   /* write buffer size (mem) */
   int wrIdx;  /* current index for write buffer */
   int rdIdx;  /* current read index */
@@ -96,17 +96,17 @@ enum BIO_TYPE {
   BIO_FILE = 6
 };
 
-BIO *iotjs_ssl_bio_new(int type);
-int iotjs_bio_make_bio_pair(BIO *b1, BIO *b2);
+BIO* iotjs_ssl_bio_new(int type);
+int iotjs_bio_make_bio_pair(BIO* b1, BIO* b2);
 
-size_t iotjs_bio_ctrl_pending(BIO *bio);
-int iotjs_bio_read(BIO *bio, const char *buf, size_t size);
-int iotjs_bio_write(BIO *bio, const char *buf, size_t size);
+size_t iotjs_bio_ctrl_pending(BIO* bio);
+int iotjs_bio_read(BIO* bio, const char* buf, size_t size);
+int iotjs_bio_write(BIO* bio, const char* buf, size_t size);
 
-int iotjs_bio_reset(BIO *bio);
-int iotjs_bio_net_recv(void *ctx, unsigned char *buf, size_t len);
-int iotjs_bio_net_send(void *ctx, const unsigned char *buf, size_t len);
-int iotjs_bio_free_all(BIO *bio);
-int iotjs_bio_free(BIO *bio);
+int iotjs_bio_reset(BIO* bio);
+int iotjs_bio_net_recv(void* ctx, unsigned char* buf, size_t len);
+int iotjs_bio_net_send(void* ctx, const unsigned char* buf, size_t len);
+int iotjs_bio_free_all(BIO* bio);
+int iotjs_bio_free(BIO* bio);
 
 #endif // IOTJS_MODULE_TLS_BIO_H

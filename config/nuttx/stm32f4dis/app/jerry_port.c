@@ -32,7 +32,7 @@ void jerry_port_fatal(jerry_fatal_code_t code) {
  * Provide log message implementation for the engine.
  */
 void jerry_port_log(jerry_log_level_t level, /**< log level */
-                    const char *format,      /**< format string */
+                    const char* format,      /**< format string */
                     ...) {                   /**< parameters */
   /* Drain log messages since IoT.js has not support log levels yet. */
 } /* jerry_port_log */
@@ -42,7 +42,7 @@ void jerry_port_log(jerry_log_level_t level, /**< log level */
  *
  * @return true
  */
-bool jerry_port_get_time_zone(jerry_time_zone_t *tz_p) {
+bool jerry_port_get_time_zone(jerry_time_zone_t* tz_p) {
   /* We live in UTC. */
   tz_p->offset = 0;
   tz_p->daylight_saving_time = 0;

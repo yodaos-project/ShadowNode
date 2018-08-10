@@ -60,13 +60,13 @@
  * Public Functions
  ****************************************************************************/
 
-extern int iotjs_entry(int argc, char *argv[]);
+extern int iotjs_entry(int argc, char* argv[]);
 extern int tuv_cleanup(void);
 
 #ifdef CONFIG_BUILD_KERNEL
-extern int main(int argc, FAR char *argv[])
+extern int main(int argc, FAR char* argv[])
 #else
-extern int iotjs_main(int argc, char *argv[])
+extern int iotjs_main(int argc, char* argv[])
 #endif
 {
   int ret = 0;

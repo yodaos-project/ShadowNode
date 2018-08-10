@@ -20,7 +20,7 @@
 #include "jerryscript.h"
 #include "node_api.h"
 
-typedef napi_value (*jerry_addon_register_func)(void *env,
+typedef napi_value (*jerry_addon_register_func)(void* env,
                                                 jerry_value_t exports);
 
 typedef enum {
@@ -44,10 +44,10 @@ typedef struct {
 
 #define IOTJS_OBJECT_INFO_FIELDS \
   napi_env env;                  \
-  void *native_object;           \
+  void* native_object;           \
   napi_finalize finalize_cb;     \
-  void *finalize_hint;           \
-  iotjs_reference_t *ref;
+  void* finalize_hint;           \
+  iotjs_reference_t* ref;
 
 typedef struct {
   IOTJS_OBJECT_INFO_FIELDS;
@@ -57,15 +57,15 @@ typedef struct {
   IOTJS_OBJECT_INFO_FIELDS;
 
   napi_callback cb;
-  void *data;
+  void* data;
 } iotjs_function_info_t;
 
 typedef struct {
   size_t argc;
-  jerry_value_t *argv;
+  jerry_value_t* argv;
   jerry_value_t jval_this;
 
-  iotjs_function_info_t *function_info;
+  iotjs_function_info_t* function_info;
 } iotjs_callback_info_t;
 
 #endif // IOTJS_NODE_API_TYPES_H
