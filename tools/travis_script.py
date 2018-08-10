@@ -35,12 +35,15 @@ BUILDOPTIONS_SANITIZER = [
     '--target-arch=i686'
 ]
 
+
 def run_docker():
     ex.check_run_cmd('docker', ['run', '-dit', '--privileged',
-                     '--name', DOCKER_NAME, '-v',
-                     '%s:%s' % (TRAVIS_BUILD_PATH, DOCKER_SHADOW_NODE_PATH),
-                     '--add-host', 'test.mosquitto.org:127.0.0.1',
-                     DOCKER_IMAGE])
+                                '--name', DOCKER_NAME, '-v',
+                                '%s:%s' % (TRAVIS_BUILD_PATH,
+                                           DOCKER_SHADOW_NODE_PATH),
+                                '--add-host', 'test.mosquitto.org:127.0.0.1',
+                                DOCKER_IMAGE])
+
 
 def exec_docker(cwd, cmd, env=[]):
     exec_cmd = 'cd %s && ' % cwd + ' '.join(cmd)
@@ -52,19 +55,23 @@ def exec_docker(cwd, cmd, env=[]):
     docker_args += [DOCKER_NAME, 'bash', '-c', exec_cmd]
     ex.check_run_cmd('docker', docker_args)
 
+
 def start_mosquitto_server():
     exec_docker(DOCKER_ROOT_PATH, ['mosquitto', '-d'])
+
 
 def build_jerry():
     exec_docker(DOCKER_SHADOW_NODE_PATH, [
                 './deps/jerry/tools/run-tests.py',
                 '--unittests'], [])
 
+
 def build_iotjs(buildtype, args=[], env=[]):
     exec_docker(DOCKER_SHADOW_NODE_PATH, [
                 './tools/build.py',
                 '--clean',
                 '--buildtype=' + buildtype] + args, env)
+
 
 if __name__ == '__main__':
     if os.getenv('RUN_DOCKER') == 'yes':
@@ -83,11 +90,11 @@ if __name__ == '__main__':
     elif test == "host-darwin":
         for buildtype in BUILDTYPES:
             ex.check_run_cmd('./tools/build.py', [
-                            '--run-test',
-                            '--no-check-valgrind',
-                            '--buildtype=' + buildtype,
-                            '--clean',
-                            '--profile=test/profiles/host-darwin.profile'])
+                '--run-test',
+                '--no-check-valgrind',
+                '--buildtype=' + buildtype,
+                '--clean',
+                '--profile=test/profiles/host-darwin.profile'])
 
     elif test == 'rpi2':
         for buildtype in BUILDTYPES:
