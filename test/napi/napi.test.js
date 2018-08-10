@@ -19,3 +19,7 @@ try {
 assert(error instanceof Error)
 assert.strictEqual(error.code, 'foo')
 assert.strictEqual(error.message, 'bar')
+
+var lhs = {}
+assert.strictEqual(napi_test.strictEquals(lhs, lhs), lhs === lhs);
+assert.strictEqual(napi_test.instanceof(lhs, Object), lhs instanceof Object);

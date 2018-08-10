@@ -162,6 +162,15 @@ napi_status napi_typeof(napi_env env, napi_value value,
   return napi_ok;
 }
 
+napi_status napi_instanceof(napi_env env, napi_value object,
+                            napi_value constructor, bool* result) {
+  jerry_value_t jval_object = AS_JERRY_VALUE(object);
+  jerry_value_t jval_cons = AS_JERRY_VALUE(constructor);
+
+  *result = jerry_value_instanceof(jval_object, jval_cons);
+  return napi_ok;
+}
+
 #define DEF_NAPI_VALUE_IS(type)                                              \
   napi_status napi_is_##type(napi_env env, napi_value value, bool* result) { \
     jerry_value_t jval = AS_JERRY_VALUE(value);                              \
@@ -180,5 +189,14 @@ napi_status napi_is_error(napi_env env, napi_value value, bool* result) {
    * function `jerry_value_is_error`
    */
   *result = jerry_value_has_error_flag(jval);
+  return napi_ok;
+}
+
+napi_status napi_strict_equals(napi_env env, napi_value lhs, napi_value rhs,
+                               bool* result) {
+  jerry_value_t jval_lhs = AS_JERRY_VALUE(lhs);
+  jerry_value_t jval_rhs = AS_JERRY_VALUE(rhs);
+
+  *result = jerry_value_strict_equal(jval_lhs, jval_rhs);
   return napi_ok;
 }
