@@ -27,7 +27,7 @@
 
 #define NAPI_WEAK_ASSERT(error_t, assertion) \
   do {                                       \
-    if (!assertion)                          \
+    if (!(assertion))                        \
       return error_t;                        \
   } while (0)
 
@@ -41,7 +41,7 @@
 #define NAPI_INTERNAL_CALL(call) \
   do {                           \
     napi_status status;          \
-    status = call;               \
+    status = (call);             \
     if (status != napi_ok) {     \
       return status;             \
     }                            \
@@ -58,8 +58,8 @@ int napi_module_init_pending(jerry_value_t* exports);
 /** MARK: - node_api_env.c */
 napi_env iotjs_get_current_napi_env();
 bool iotjs_napi_is_exception_pending(iotjs_napi_env_t* env);
-napi_status iotjs_napi_env_set_exception(napi_env env, napi_value error);
-napi_status iotjs_napi_env_set_fatal_exception(napi_env env, napi_value error);
+jerry_value_t iotjs_napi_env_get_and_clear_exception(napi_env env);
+jerry_value_t iotjs_napi_env_get_and_clear_fatal_exception(napi_env env);
 /** MARK: - END node_api_env.c */
 
 /** MARK: - node_api_lifetime.c */

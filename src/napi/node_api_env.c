@@ -30,22 +30,22 @@ inline bool iotjs_napi_is_exception_pending(iotjs_napi_env_t* env) {
            env->pending_fatal_exception == NULL);
 }
 
-napi_status iotjs_napi_env_set_exception(napi_env env, napi_value error) {
-  if (env != iotjs_get_current_napi_env())
-    return napi_invalid_arg;
+jerry_value_t iotjs_napi_env_get_and_clear_exception(napi_env env) {
   iotjs_napi_env_t* cur_env = (iotjs_napi_env_t*)env;
 
-  cur_env->pending_exception = error;
-  return napi_ok;
+  jerry_value_t jval_ret = AS_JERRY_VALUE(cur_env->pending_exception);
+  cur_env->pending_exception = NULL;
+
+  return jval_ret;
 }
 
-napi_status iotjs_napi_env_set_fatal_exception(napi_env env, napi_value error) {
-  if (env != iotjs_get_current_napi_env())
-    return napi_invalid_arg;
+jerry_value_t iotjs_napi_env_get_and_clear_fatal_exception(napi_env env) {
   iotjs_napi_env_t* cur_env = (iotjs_napi_env_t*)env;
 
-  cur_env->pending_exception = error;
-  return napi_ok;
+  jerry_value_t jval_ret = AS_JERRY_VALUE(cur_env->pending_fatal_exception);
+  cur_env->pending_fatal_exception = NULL;
+
+  return jval_ret;
 }
 
 // Methods to support error handling
@@ -55,7 +55,13 @@ napi_status napi_throw(napi_env env, napi_value error) {
   iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
   if (iotjs_napi_is_exception_pending(curr_env))
     return napi_pending_exception;
-  curr_env->pending_exception = error;
+
+  jerry_value_t jval_err = AS_JERRY_VALUE(error);
+  if (!jerry_value_has_error_flag(jval_err)) {
+    jerry_value_set_error_flag(&jval_err);
+  }
+
+  curr_env->pending_exception = AS_NAPI_VALUE(jval_err);
   return napi_ok;
 }
 
@@ -84,7 +90,13 @@ napi_status napi_fatal_exception(napi_env env, napi_value err) {
   iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
   if (iotjs_napi_is_exception_pending(curr_env))
     return napi_pending_exception;
-  curr_env->pending_fatal_exception = err;
+
+  jerry_value_t jval_err = AS_JERRY_VALUE(err);
+  if (!jerry_value_has_error_flag(jval_err)) {
+    jerry_value_set_error_flag(&jval_err);
+  }
+
+  curr_env->pending_fatal_exception = AS_NAPI_VALUE(jval_err);
   return napi_ok;
 }
 
