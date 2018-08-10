@@ -9,6 +9,7 @@ from check_tidy import check_tidy
 
 platform = Platform()
 
+DOCKER_IMAGE = os.getenv('DOCKER_IMAGE', 'shadownode/base')
 DOCKER_ROOT_PATH = fs.join('/root')
 
 # ShadowNode path in travis
@@ -39,7 +40,7 @@ def run_docker():
                      '--name', DOCKER_NAME, '-v',
                      '%s:%s' % (TRAVIS_BUILD_PATH, DOCKER_SHADOW_NODE_PATH),
                      '--add-host', 'test.mosquitto.org:127.0.0.1',
-                     'iotjs/ubuntu:0.8'])
+                     DOCKER_IMAGE])
 
 def exec_docker(cwd, cmd, env=[]):
     exec_cmd = 'cd %s && ' % cwd + ' '.join(cmd)
@@ -68,11 +69,6 @@ def build_iotjs(buildtype, args=[], env=[]):
 if __name__ == '__main__':
     if os.getenv('RUN_DOCKER') == 'yes':
         run_docker()
-        # install dbus and zlib
-        exec_docker('/', ['apt-get', 'install', '-q', '-y',
-                    'zlib1g-dev',
-                    'dbus',
-                    'libdbus-1-dev'], [])
         start_mosquitto_server()
 
     test = os.getenv('OPTS')
