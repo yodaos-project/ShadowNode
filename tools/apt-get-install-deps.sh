@@ -18,6 +18,6 @@ sudo apt-get update -q
 sudo apt-get install -q -y \
     cmake valgrind clang-format-3.8 \
     zlib1g-dev \
-    dbus libdbus-1-dev
+    dbus libdbus-1-dev \
     mosquitto \
     build-essential
