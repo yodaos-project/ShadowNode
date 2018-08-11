@@ -283,6 +283,23 @@ heapdump_edge (ecma_object_t *from_p,
   }
 }
 
+static void
+heapdump_synthetic (FILE *fp)
+{
+  ecma_value_t to = ecma_make_object_value (JERRY_CONTEXT (ecma_global_lex_env_p));
+  ecma_value_t empty_name = ecma_make_string_value (ecma_get_magic_string (LIT_MAGIC_STRING__EMPTY));
+  fprintf (fp, "{\"type\":\"node\",\"node_type\":%d,\"name\":%u,\"id\":%u,\"size\":%u},\n",
+           NODE_TYPE_STYNTHETIC,
+           empty_name,
+           0,
+           0);
+  fprintf (fp, "{\"type\":\"edge\",\"edge_type\":%u,\"name\":%u,\"from\":%u,\"to\":%u},\n",
+           EDGE_TYPE_SHORTCUT,
+           empty_name,
+           0,
+           to);
+}
+
 void
 heap_profiler_take_snapshot (FILE *fp)
 {
@@ -290,6 +307,7 @@ heap_profiler_take_snapshot (FILE *fp)
 
   fprintf (fp, "{\n");
   fprintf (fp, "\"elements\":[\n");
+  heapdump_synthetic (fp);
   heapdump_magic_strings (fp);
   heapdump_literal_strings (fp);
   heapdump_literal_numbers (fp);
