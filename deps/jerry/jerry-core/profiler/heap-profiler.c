@@ -291,12 +291,12 @@ heapdump_synthetic (FILE *fp)
   fprintf (fp, "{\"type\":\"node\",\"node_type\":%d,\"name\":%u,\"id\":%u,\"size\":%u},\n",
            NODE_TYPE_STYNTHETIC,
            empty_name,
-           0,
-           0);
+           0U,
+           0U);
   fprintf (fp, "{\"type\":\"edge\",\"edge_type\":%u,\"name\":%u,\"from\":%u,\"to\":%u},\n",
            EDGE_TYPE_SHORTCUT,
            empty_name,
-           0,
+           0U,
            to);
 }
 
