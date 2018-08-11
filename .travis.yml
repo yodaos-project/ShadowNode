@@ -54,8 +54,8 @@ jobs:
     - RUN_DOCKER=yes
   - stage: test
     env:
-    - JOBNAME="Linux/x86-64 without snapshot Build & Correctness Tests"
-    - OPTS="no-snapshot"
+    - JOBNAME="Linux/x86-64 with JerryX Build & Correctness Tests"
+    - OPTS="jerryx"
     - RUN_DOCKER=yes
   - stage: test
     env:

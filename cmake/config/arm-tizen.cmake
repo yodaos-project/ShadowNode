@@ -26,5 +26,5 @@ if(NOT "${CMAKE_C_COMPILER}" STREQUAL "")
 endif()
 
 if("${CMAKE_C_COMPILER}" STREQUAL "")
-  set(CMAKE_C_COMPILER arm-linux-gnueabi-gcc)
+  set(CMAKE_C_COMPILER ${CMAKE_TOOLCHAIN_ROOT}/arm-linux-gnueabi-gcc)
 endif()

@@ -160,6 +160,9 @@ def init_options():
     parser.add_argument('--jerry-lto',
         action='store_true', default=False,
         help='Build JerryScript with LTO enabled')
+    parser.add_argument('--jerryx',
+        action='store_true', default=False,
+        help='Build ShadowNode with JerryX')
 
     parser.add_argument('--jerry-heap-section',
         action='store', default=None,
@@ -366,6 +369,10 @@ def build_iotjs(options):
     # --jerry-debugger
     if options.jerry_debugger:
         cmake_opt.append('-DFEATURE_DEBUGGER=ON')
+
+    # --jerryx
+    if options.jerryx:
+        cmake_opt.append('-DENABLE_JERRYX=ON')
 
     # --cmake-param
     cmake_opt.extend(options.cmake_param)

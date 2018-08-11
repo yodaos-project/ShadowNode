@@ -108,6 +108,13 @@ if __name__ == '__main__':
                         '--no-snapshot',
                         '--jerry-lto'])
 
+    elif test == "jerryx":
+        for buildtype in BUILDTYPES:
+            build_iotjs(buildtype, [
+                '--run-test',
+                '--no-check-valgrind',
+                '--jerryx',
+                '--jerry-lto'])
 
     elif test == "coverity":
         ex.check_run_cmd('./tools/build.py', ['--clean'])
