@@ -124,12 +124,12 @@ ecma_alloc_extended_object (size_t size) /**< size of object */
   jmem_stats_allocate_object_bytes (size);
 #endif /* JMEM_STATS */
 
-    ecma_extended_object_t *ext_object_p = (ecma_extended_object_t*) jmem_heap_alloc_block (size);
+  ecma_extended_object_t *ext_object_p = (ecma_extended_object_t*) jmem_heap_alloc_block (size);
 #ifdef JERRY_HEAP_PROFILER
-    ext_object_p->size = (uint32_t) size;
+  ext_object_p->size = (uint32_t) size;
 #endif /* JERRY_HEAP_PROFILER */
 
-    return ext_object_p;
+  return ext_object_p;
 } /* ecma_alloc_extended_object */
 
 /**
