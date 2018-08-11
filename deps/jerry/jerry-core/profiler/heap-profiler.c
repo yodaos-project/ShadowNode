@@ -19,6 +19,7 @@
 #include "ecma-helpers.h"
 #include "ecma-objects.h"
 #include "ecma-function-object.h"
+#include "ecma-gc.h"
 
 #ifdef JERRY_HEAP_PROFILER
 
@@ -285,6 +286,8 @@ heapdump_edge (ecma_object_t *from_p,
 void
 heap_profiler_take_snapshot (FILE *fp)
 {
+  ecma_gc_run (JMEM_FREE_UNUSED_MEMORY_SEVERITY_LOW);
+
   fprintf (fp, "{\n");
   fprintf (fp, "\"elements\":[\n");
   heapdump_magic_strings (fp);
