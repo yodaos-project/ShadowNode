@@ -102,7 +102,7 @@ ecma_gc_set_object_visited (ecma_object_t *from, /**< from object */
   JERRY_UNUSED (edge_type);
   JERRY_UNUSED (args);
 
-  if (!ecma_is_value_object(to))
+  if (!ecma_is_value_object (to))
   {
     return;
   }
@@ -183,22 +183,10 @@ ecma_gc_mark_property (ecma_object_t *object_p,
 
       ecma_value_t value = property_pair_p->values[index].value;
 
-      // if (ecma_is_value_object (value))
-      {
-        ecma_string_t *prop_name_p = ecma_string_from_property_name (property,
-            property_pair_p->names_cp[index]);
-        if (prop_name_p)
-        {
-          callback (object_p, value, prop_name_p, EDGE_TYPE_PROPERTY, callback_args);
-          ecma_deref_ecma_string (prop_name_p);
-        }
-        else
-        {
-          // TODO: when happen?
-          prop_name_p = ecma_get_magic_string (LIT_MAGIC_STRING__EMPTY);
-          callback (object_p, value, prop_name_p, EDGE_TYPE_PROPERTY, callback_args);
-        }
-      }
+      ecma_string_t *prop_name_p = ecma_string_from_property_name (property,
+          property_pair_p->names_cp[index]);
+      callback (object_p, value, prop_name_p, EDGE_TYPE_PROPERTY, callback_args);
+      ecma_deref_ecma_string (prop_name_p);
       break;
     }
     case ECMA_PROPERTY_TYPE_NAMEDACCESSOR:
