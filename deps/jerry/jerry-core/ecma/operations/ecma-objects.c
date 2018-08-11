@@ -1925,7 +1925,7 @@ ecma_object_get_name (ecma_object_t *obj_p)
   {
     lit_magic_string_id_t id;
 #ifdef JERRY_HEAP_PROFILER
-    id = LIT_MAGIC_STRING_LEX_ENV;
+    id = LIT_MAGIC_STRING__LEX_ENV_TO_STRING;
 #else /* !JERRY_HEAP_PROFILER */
     id = LIT_MAGIC_STRING__EMPTY;
 #endif /* JERRY_HEAP_PROFILER */
@@ -1985,7 +1985,7 @@ ecma_object_get_name (ecma_object_t *obj_p)
     case ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION:
     {
 #if defined (JERRY_HEAP_PROFILER)
-      name = ecma_get_magic_string (LIT_MAGIC_STRING_EXTERNAL_FUNCTION);
+      name = ecma_get_magic_string (LIT_MAGIC_STRING__EXTERNAL_FUNCTION_TO_STRING);
 #endif /* JERRY_HEAP_PROFILER */
       break;
     }
@@ -2005,7 +2005,7 @@ ecma_object_get_name (ecma_object_t *obj_p)
     case ECMA_OBJECT_TYPE_ARROW_FUNCTION:
     {
 #ifdef JERRY_HEAP_PROFILER
-      name = ecma_get_magic_string (LIT_MAGIC_STRING_ARROW_FUNCTION);
+      name = ecma_get_magic_string (LIT_MAGIC_STRING__ARROW_FUNCTION_TO_STRING);
 #endif /* JERRY_HEAP_PROFILER */
       break;
     }
