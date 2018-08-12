@@ -3631,7 +3631,7 @@ done:
 }
 
 void
-jerry_heap_profiler_take_snapshot (const char *path)
+jerry_take_heap_snapshot (const char *path)
 {
   jerry_assert_api_available ();
 
