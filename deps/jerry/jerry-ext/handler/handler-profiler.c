@@ -31,7 +31,7 @@ jerryx_handler_heapdump (const jerry_value_t func_obj_val, /**< function object 
   (void) args_p; /* unused */
   (void) args_cnt; /* unused */
 
-  jerry_heap_profiler_take_snapshot ("heapdump.json");
+  jerry_take_heap_snapshot ("heapdump.json");
 
   return jerry_create_undefined ();
 } /* jerryx_handler_gc */
