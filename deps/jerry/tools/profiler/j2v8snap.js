@@ -2,16 +2,16 @@
 
 /* jerry heap snapshot to V8 heap snapshot converter */
 
-var fs = require('fs');
+let fs = require('fs');
 
 const STRING_BASE_OFFSET = 1; // first string is "<dummy string>"
 
 class SnapshotConverter {
   constructor(jerrySnapshotPath, outputPath) {
-    var inputData = fs.readFileSync(jerrySnapshotPath, 'utf8');
+    let inputData = fs.readFileSync(jerrySnapshotPath, 'utf8');
     this.jerrySnapshot = JSON.parse(inputData);
     this.outputPath = outputPath;
-    this.strings = ["<dummy>"];
+    this.strings = ['<dummy>'];
     this.stringMap = new Map();
     this.nodes = [];
     this.nodeMap = new Map();
@@ -43,10 +43,10 @@ class SnapshotConverter {
   }
     
   parse() {
-    var elements = this.jerrySnapshot.elements;
-    var string_index = STRING_BASE_OFFSET;
-    for (var i=0; i<elements.length; i++) {
-      var element = elements[i];
+    let elements = this.jerrySnapshot.elements;
+    let string_index = STRING_BASE_OFFSET;
+    for (let i=0; i<elements.length; i++) {
+      let element = elements[i];
       if (element.type === 'string') {
         this.addString(element);
       } else if (element.type === 'node') {
@@ -58,10 +58,10 @@ class SnapshotConverter {
   }
   
   genNodeEdges(edges) {
-    for (var i = 0; i < edges.length; i++) {
-      var edge = edges[i];
+    for (let i = 0; i < edges.length; i++) {
+      let edge = edges[i];
       this.edgesOutput.push (edge.edge_type);
-      var name;
+      let name;
       name = this.stringMap.get(edge.name);
       this.edgesOutput.push (name);
       // v8 node items is a flattern array,
@@ -71,8 +71,8 @@ class SnapshotConverter {
   }
 
   genNodes() {
-    for (var [node_id, index] of this.nodeMap) {
-      var node = this.nodes[index];
+    for (let [node_id, index] of this.nodeMap) {
+      let node = this.nodes[index];
       this.nodesOutput.push (node.node_type);
       this.nodesOutput.push (this.stringMap.get(node.name));
       this.nodesOutput.push (node.id);
@@ -85,105 +85,19 @@ class SnapshotConverter {
   }
 
   write() {
-    var outputJSON =
-    {
-      'snapshot':
-      {
-        'meta':
-        {
-          'node_fields':
-          [
-            'type',
-            'name',
-            'id',
-            'self_size',
-            'edge_count',
-            'trace_node_id'
-          ],
-          'node_types':
-          [
-            [
-              'hidden',
-              'array',
-              'string',
-              'object',
-              'code',
-              'closure',
-              'regexp',
-              'number',
-              'native',
-              'synthetic',
-              'concatenated string',
-              'sliced string'
-            ],
-            'string',
-            'number',
-            'number',
-            'number',
-            'number',
-            'number'
-          ],
-          'edge_fields':
-          [
-            'type',
-            'name_or_index',
-            'to_node'
-          ],
-          'edge_types':
-          [
-            [
-              'context',
-              'element',
-              'property',
-              'internal',
-              'hidden',
-              'shortcut',
-              'weak'
-            ],
-            'string_or_number',
-            'node'
-          ],
-          'trace_function_info_fields':
-          [
-            'function_id',
-            'name',
-            'script_name',
-            'script_id',
-            'line',
-            'column'
-          ],
-          'trace_node_fields':
-          [
-            'id',
-            'function_info_index',
-            'count',
-            'size',
-            'children'
-          ],
-          'sample_fields':
-          [
-            'timestamp_us',
-            'last_assigned_id'
-          ]
-        },
-        'node_count': this.nodesOutput.length/6,
-        'edge_count': this.edgesOutput.length/3,
-        'trace_function_count': 0
-      },
-      'nodes': this.nodesOutput,
-      'edges': this.edgesOutput,
-      'trace_function_infos': [],
-      'trace_tree': [],
-      'samples': [],
-      'strings': this.strings
-    };
+    let outputJSON = require ('./snapshot-tmpl.json');
+    outputJSON.snapshot.node_count = this.nodesOutput.length/6,
+    outputJSON.snapshot.edge_count = this.edgesOutput.length/3,
+    outputJSON.nodes = this.nodesOutput;
+    outputJSON.edges = this.edgesOutput;
+    outputJSON.strings = this.strings;
 
     fs.writeFileSync(this.outputPath, JSON.stringify(outputJSON, null, '  '));
   }
 }
 
-var args = process.argv.splice(2);
-var converter = new SnapshotConverter(args[0], args[1]);
+let args = process.argv.splice(2);
+let converter = new SnapshotConverter(args[0], args[1]);
 converter.parse();
 converter.genNodes();
 converter.write();
