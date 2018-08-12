@@ -244,27 +244,32 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
 #endif /* JERRY_HEAP_PROFILER */
 
   bool traverse_properties = true;
-
-  ecma_string_t *empty_string_p = ecma_get_magic_string (LIT_MAGIC_STRING__EMPTY);
+  ecma_string_t *ref_string_p = NULL;
 
   if (ecma_is_lexical_environment (object_p))
   {
     ecma_object_t *lex_env_p = ecma_get_lex_env_outer_reference (object_p);
     if (lex_env_p != NULL)
     {
+#ifdef JERRY_HEAP_PROFILER
+      ref_string_p = ecma_get_magic_string (LIT_MAGIC_STRING__LEX_ENV_TO_STRING);
+#endif /* JERRY_HEAP_PROFILER */
       callback (object_p,
                 ecma_make_object_value (lex_env_p),
-                empty_string_p,
+                ref_string_p,
                 EDGE_TYPE_CONTEXT,
                 callback_args);
     }
 
     if (ecma_get_lex_env_type (object_p) != ECMA_LEXICAL_ENVIRONMENT_DECLARATIVE)
     {
+#ifdef JERRY_HEAP_PROFILER
+      ref_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_BIND);
+#endif /* JERRY_HEAP_PROFILER */
       ecma_object_t *binding_object_p = ecma_get_lex_env_binding_object (object_p);
       callback (object_p,
                 ecma_make_object_value (binding_object_p),
-                empty_string_p,
+                ref_string_p,
                 EDGE_TYPE_CONTEXT,
                 callback_args);
 
@@ -276,10 +281,12 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
     ecma_object_t *proto_p = ecma_get_object_prototype (object_p);
     if (proto_p != NULL)
     {
-      ecma_string_t *proto_string_p = ecma_get_magic_string(LIT_MAGIC_STRING_PROTOTYPE);
+#ifdef JERRY_HEAP_PROFILER
+      ref_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_PROTOTYPE);
+#endif /* JERRY_HEAP_PROFILER */
       callback (object_p,
                 ecma_make_object_value (proto_p),
-                proto_string_p,
+                ref_string_p,
                 EDGE_TYPE_PROPERTY,
                 callback_args);
     }
@@ -298,9 +305,12 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
 
           if (ecma_is_value_object (result))
           {
+#ifdef JERRY_HEAP_PROFILER
+            ref_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_PROMISE_UL);
+#endif /* JERRY_HEAP_PROFILER */
             callback (object_p,
                       result,
-                      empty_string_p,
+                      ref_string_p,
                       EDGE_TYPE_PROPERTY,
                       callback_args);
           }
@@ -311,9 +321,12 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
 
           while (ecma_value_p != NULL)
           {
+#ifdef JERRY_HEAP_PROFILER
+            ref_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_THEN);
+#endif /* JERRY_HEAP_PROFILER */
             callback (object_p,
                       *ecma_value_p,
-                      empty_string_p,
+                      ref_string_p,
                       EDGE_TYPE_PROPERTY,
                       callback_args);
             ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
@@ -323,9 +336,12 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
 
           while (ecma_value_p != NULL)
           {
+#ifdef JERRY_HEAP_PROFILER
+            ref_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_REJECT);
+#endif /* JERRY_HEAP_PROFILER */
             callback (object_p,
                       *ecma_value_p,
-                      empty_string_p,
+                      ref_string_p,
                       EDGE_TYPE_PROPERTY,
                       callback_args);
             ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
@@ -346,9 +362,12 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
             ecma_object_t *lex_env_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_object_t,
                                                                         ext_object_p->u.pseudo_array.u2.lex_env_cp);
 
+#ifdef JERRY_HEAP_PROFILER
+            ref_string_p = ecma_get_magic_string (LIT_MAGIC_STRING__LEX_ENV_TO_STRING);
+#endif /* JERRY_HEAP_PROFILER */
             callback (object_p,
                       ecma_make_object_value (lex_env_p),
-                      empty_string_p,
+                      ref_string_p,
                       EDGE_TYPE_CONTEXT,
                       callback_args);
             break;
@@ -357,11 +376,14 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
           case ECMA_PSEUDO_ARRAY_TYPEDARRAY:
           case ECMA_PSEUDO_ARRAY_TYPEDARRAY_WITH_INFO:
           {
+#ifdef JERRY_HEAP_PROFILER
+            ref_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_ARRAY_BUFFER_UL);
+#endif /* JERRY_HEAP_PROFILER */
             ecma_object_t *arraybuffer_p;
             arraybuffer_p = ecma_typedarray_get_arraybuffer (object_p);
             callback (object_p,
                       ecma_make_object_value (arraybuffer_p),
-                      empty_string_p,
+                      ref_string_p,
                       EDGE_TYPE_ELEMENT,
                       callback_args);
             break;
@@ -384,9 +406,12 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
         target_func_obj_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_object_t,
                                                              ext_function_p->u.bound_function.target_function);
 
+#ifdef JERRY_HEAP_PROFILER
+        ref_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_BIND);
+#endif /* JERRY_HEAP_PROFILER */
         callback (object_p,
                   ecma_make_object_value (target_func_obj_p),
-                  empty_string_p,
+                  ref_string_p,
                   EDGE_TYPE_HIDDEN,
                   callback_args);
 
@@ -396,9 +421,12 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
         {
           if (ecma_is_value_object (args_len_or_this))
           {
+#ifdef JERRY_HEAP_PROFILER
+            ref_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_THIS);
+#endif /* JERRY_HEAP_PROFILER */
             callback (object_p,
                       args_len_or_this,
-                      empty_string_p,
+                      ref_string_p,
                       EDGE_TYPE_PROPERTY,
                       callback_args);
           }
@@ -414,11 +442,13 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
         {
           if (ecma_is_value_object (args_p[i]))
           {
+            ref_string_p = ecma_get_ecma_string_from_uint32 (i);
             callback (object_p,
                       args_p[i],
-                      empty_string_p,
+                      ref_string_p,
                       EDGE_TYPE_ELEMENT,
                       callback_args);
+            ecma_deref_ecma_string (ref_string_p);
           }
         }
         break;
@@ -427,7 +457,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
       {
         if (!ecma_get_object_is_builtin (object_p))
         {
-          ecma_string_t *scope_string_p = ecma_get_magic_string(LIT_MAGIC_STRING_SCOPE);
+          ref_string_p = ecma_get_magic_string(LIT_MAGIC_STRING_SCOPE);
           ecma_extended_object_t *ext_func_p = (ecma_extended_object_t *) object_p;
           ecma_object_t *scope_p;
           scope_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_object_t,
@@ -435,7 +465,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
 
           callback (object_p,
                     ecma_make_object_value (scope_p),
-                    scope_string_p,
+                    ref_string_p,
                     EDGE_TYPE_HIDDEN,
                     callback_args);
         }
@@ -449,17 +479,23 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
         scope_p = ECMA_GET_NON_NULL_POINTER (ecma_object_t,
                                              arrow_func_p->scope_cp);
 
+#ifdef JERRY_HEAP_PROFILER
+        ref_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_SCOPE);
+#endif /* JERRY_HEAP_PROFILER */
         callback (object_p,
                   ecma_make_object_value (scope_p),
-                  empty_string_p,
+                  ref_string_p,
                   EDGE_TYPE_HIDDEN,
                   callback_args);
 
         if (ecma_is_value_object (arrow_func_p->this_binding))
         {
+#ifdef JERRY_HEAP_PROFILER
+          ref_string_p = ecma_get_magic_string (LIT_MAGIC_STRING_BIND);
+#endif /* JERRY_HEAP_PROFILER */
           callback (object_p,
                     arrow_func_p->this_binding,
-                    empty_string_p,
+                    ref_string_p,
                     EDGE_TYPE_HIDDEN,
                     callback_args);
         }
