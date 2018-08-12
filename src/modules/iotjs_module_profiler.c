@@ -37,8 +37,8 @@ JS_FUNCTION(StopProfiling) {
 
 jerry_value_t InitProfiler() {
   jerry_value_t profiler = jerry_create_object();
-  iotjs_jval_set_method(profiler, "takeSnapshot", TakeSnapshot);
-  iotjs_jval_set_method(profiler, "startProfiling", StartProfiling);
-  iotjs_jval_set_method(profiler, "stopProfiling", StopProfiling);
+  iotjs_jval_set_method(profiler, IOTJS_MAGIC_STRING_TAKESNAPSHOT, TakeSnapshot);
+  iotjs_jval_set_method(profiler, IOTJS_MAGIC_STRING_STARTPROFILING, StartProfiling);
+  iotjs_jval_set_method(profiler, IOTJS_MAGIC_STRING_STOPPROFILING, StopProfiling);
   return profiler;
 }
