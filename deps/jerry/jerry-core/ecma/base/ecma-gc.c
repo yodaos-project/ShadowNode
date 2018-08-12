@@ -93,13 +93,13 @@ ecma_gc_is_object_visited (ecma_object_t *object_p) /**< object */
 static inline void
 ecma_gc_set_object_visited (ecma_object_t *from, /**< from object */
                             ecma_value_t to, /**< to value */
-                            ecma_string_t *edge_name_p, /**< edge name */
-                            v8_edge_type_t edge_type, /**< v8 edge type */
+                            ecma_string_t *reference_name_p, /**< reference name */
+                            ecma_ref_type_t reference_type, /**< reference type */
                             void *args) /**< callback args */
 {
   JERRY_UNUSED (from);
-  JERRY_UNUSED (edge_name_p);
-  JERRY_UNUSED (edge_type);
+  JERRY_UNUSED (reference_name_p);
+  JERRY_UNUSED (reference_type);
   JERRY_UNUSED (args);
 
   if (!ecma_is_value_object (to))
@@ -185,7 +185,7 @@ ecma_gc_mark_property (ecma_object_t *object_p,
 
       ecma_string_t *prop_name_p = ecma_string_from_property_name (property,
           property_pair_p->names_cp[index]);
-      callback (object_p, value, prop_name_p, EDGE_TYPE_PROPERTY, callback_args);
+      callback (object_p, value, prop_name_p, ECMA_REF_TYPE_PROPERTY, callback_args);
       ecma_deref_ecma_string (prop_name_p);
       break;
     }
@@ -201,7 +201,7 @@ ecma_gc_mark_property (ecma_object_t *object_p,
         callback (object_p,
                   ecma_make_object_value (getter_obj_p),
                   getter_string_p,
-                  EDGE_TYPE_PROPERTY,
+                  ECMA_REF_TYPE_PROPERTY,
                   callback_args);
       }
 
@@ -211,7 +211,7 @@ ecma_gc_mark_property (ecma_object_t *object_p,
         callback (object_p,
                   ecma_make_object_value (setter_obj_p),
                   setter_string_p,
-                  EDGE_TYPE_PROPERTY,
+                  ECMA_REF_TYPE_PROPERTY,
                   callback_args);
       }
       break;
@@ -257,7 +257,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
       callback (object_p,
                 ecma_make_object_value (lex_env_p),
                 ref_string_p,
-                EDGE_TYPE_CONTEXT,
+                ECMA_REF_TYPE_CONTEXT,
                 callback_args);
     }
 
@@ -270,7 +270,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
       callback (object_p,
                 ecma_make_object_value (binding_object_p),
                 ref_string_p,
-                EDGE_TYPE_CONTEXT,
+                ECMA_REF_TYPE_CONTEXT,
                 callback_args);
 
       traverse_properties = false;
@@ -287,7 +287,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
       callback (object_p,
                 ecma_make_object_value (proto_p),
                 ref_string_p,
-                EDGE_TYPE_PROPERTY,
+                ECMA_REF_TYPE_PROPERTY,
                 callback_args);
     }
 
@@ -311,7 +311,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
             callback (object_p,
                       result,
                       ref_string_p,
-                      EDGE_TYPE_PROPERTY,
+                      ECMA_REF_TYPE_PROPERTY,
                       callback_args);
           }
 
@@ -327,7 +327,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
             callback (object_p,
                       *ecma_value_p,
                       ref_string_p,
-                      EDGE_TYPE_PROPERTY,
+                      ECMA_REF_TYPE_PROPERTY,
                       callback_args);
             ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
           }
@@ -342,7 +342,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
             callback (object_p,
                       *ecma_value_p,
                       ref_string_p,
-                      EDGE_TYPE_PROPERTY,
+                      ECMA_REF_TYPE_PROPERTY,
                       callback_args);
             ecma_value_p = ecma_collection_iterator_next (ecma_value_p);
           }
@@ -368,7 +368,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
             callback (object_p,
                       ecma_make_object_value (lex_env_p),
                       ref_string_p,
-                      EDGE_TYPE_CONTEXT,
+                      ECMA_REF_TYPE_CONTEXT,
                       callback_args);
             break;
           }
@@ -384,7 +384,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
             callback (object_p,
                       ecma_make_object_value (arraybuffer_p),
                       ref_string_p,
-                      EDGE_TYPE_ELEMENT,
+                      ECMA_REF_TYPE_ELEMENT,
                       callback_args);
             break;
           }
@@ -412,7 +412,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
         callback (object_p,
                   ecma_make_object_value (target_func_obj_p),
                   ref_string_p,
-                  EDGE_TYPE_HIDDEN,
+                  ECMA_REF_TYPE_HIDDEN,
                   callback_args);
 
         ecma_value_t args_len_or_this = ext_function_p->u.bound_function.args_len_or_this;
@@ -427,7 +427,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
             callback (object_p,
                       args_len_or_this,
                       ref_string_p,
-                      EDGE_TYPE_PROPERTY,
+                      ECMA_REF_TYPE_PROPERTY,
                       callback_args);
           }
           break;
@@ -442,11 +442,11 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
         {
           if (ecma_is_value_object (args_p[i]))
           {
-            ref_string_p = ecma_get_ecma_string_from_uint32 (i);
+            ref_string_p = ecma_get_ecma_string_from_uint32 ((uint32_t) i);
             callback (object_p,
                       args_p[i],
                       ref_string_p,
-                      EDGE_TYPE_ELEMENT,
+                      ECMA_REF_TYPE_ELEMENT,
                       callback_args);
             ecma_deref_ecma_string (ref_string_p);
           }
@@ -466,7 +466,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
           callback (object_p,
                     ecma_make_object_value (scope_p),
                     ref_string_p,
-                    EDGE_TYPE_HIDDEN,
+                    ECMA_REF_TYPE_HIDDEN,
                     callback_args);
         }
         break;
@@ -485,7 +485,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
         callback (object_p,
                   ecma_make_object_value (scope_p),
                   ref_string_p,
-                  EDGE_TYPE_HIDDEN,
+                  ECMA_REF_TYPE_HIDDEN,
                   callback_args);
 
         if (ecma_is_value_object (arrow_func_p->this_binding))
@@ -496,7 +496,7 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
           callback (object_p,
                     arrow_func_p->this_binding,
                     ref_string_p,
-                    EDGE_TYPE_HIDDEN,
+                    ECMA_REF_TYPE_HIDDEN,
                     callback_args);
         }
         break;

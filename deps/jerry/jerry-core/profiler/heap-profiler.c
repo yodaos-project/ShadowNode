@@ -23,6 +23,24 @@
 
 #ifdef JERRY_HEAP_PROFILER
 
+typedef enum
+{
+  NODE_TYPE_HIDDEN = 0,
+  NODE_TYPE_ARRAY = 1,
+  NODE_TYPE_STRING = 2,
+  NODE_TYPE_OBJECT = 3,
+  NODE_TYPE_CODE = 4,
+  NODE_TYPE_CLOSURE = 5,
+  NODE_TYPE_REGEXP = 6,
+  NODE_TYPE_NUMBER = 7,
+  NODE_TYPE_NATIVE = 8,
+  NODE_TYPE_STYNTHETIC = 9,
+  NODE_TYPE_CONCATENATED_STRING = 10,
+  NODE_TYPE_SLICED_STRING = 11,
+  NODE_TYPE_SYMBOL = 12,
+  NODE_TYPE_BIGINT = 13
+} v8_node_type_t;
+
 static void
 utf8_string_print (FILE *fp, lit_utf8_byte_t *buffer_p, lit_utf8_size_t sz)
 {
@@ -235,7 +253,7 @@ heapdump_object (FILE *fp, ecma_object_t *object_p)
       ecma_value_t bytecode_name;
       bytecode_name = ecma_make_magic_string_value(LIT_MAGIC_STRING_BYTECODE);
       fprintf (fp, "{\"type\":\"edge\",\"edge_type\":%u,\"name\":%u,\"from\":%u,\"to\":%u},\n",
-          EDGE_TYPE_HIDDEN, bytecode_name, node_id, (ecma_value_t) bytecode_p);
+          ECMA_REF_TYPE_HIDDEN, bytecode_name, node_id, (ecma_value_t) bytecode_p);
     }
 
   }
@@ -268,7 +286,7 @@ static void
 heapdump_edge (ecma_object_t *from_p,
                ecma_value_t to,
                ecma_string_t *edge_name_p,
-               v8_edge_type_t edge_type,
+               ecma_ref_type_t edge_type,
                void *args)
 {
   FILE *fp = (FILE*) args;
@@ -294,7 +312,7 @@ heapdump_synthetic (FILE *fp)
            0U,
            0U);
   fprintf (fp, "{\"type\":\"edge\",\"edge_type\":%u,\"name\":%u,\"from\":%u,\"to\":%u},\n",
-           EDGE_TYPE_SHORTCUT,
+           ECMA_REF_TYPE_SHORTCUT,
            empty_name,
            0U,
            to);

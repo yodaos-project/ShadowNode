@@ -377,40 +377,23 @@ lit_utf8_size_t ecma_number_to_utf8_string (ecma_number_t num, lit_utf8_byte_t *
 /* ecma-helpers-errol.c */
 lit_utf8_size_t ecma_errol0_dtoa (double val, lit_utf8_byte_t *buffer_p, int32_t *exp_p);
 
+/* reference type from ecma value to ecma value */
 typedef enum
 {
-  NODE_TYPE_HIDDEN = 0,
-  NODE_TYPE_ARRAY = 1,
-  NODE_TYPE_STRING = 2,
-  NODE_TYPE_OBJECT = 3,
-  NODE_TYPE_CODE = 4,
-  NODE_TYPE_CLOSURE = 5,
-  NODE_TYPE_REGEXP = 6,
-  NODE_TYPE_NUMBER = 7,
-  NODE_TYPE_NATIVE = 8,
-  NODE_TYPE_STYNTHETIC = 9,
-  NODE_TYPE_CONCATENATED_STRING = 10,
-  NODE_TYPE_SLICED_STRING = 11,
-  NODE_TYPE_SYMBOL = 12,
-  NODE_TYPE_BIGINT = 13
-} v8_node_type_t;
-
-typedef enum
-{
-  EDGE_TYPE_CONTEXT = 0,
-  EDGE_TYPE_ELEMENT = 1,
-  EDGE_TYPE_PROPERTY = 2,
-  EDGE_TYPE_INTERNAL = 3,
-  EDGE_TYPE_HIDDEN = 4,
-  EDGE_TYPE_SHORTCUT = 5,
-  EDGE_TYPE_WEAK = 6,
-} v8_edge_type_t;
+  ECMA_REF_TYPE_CONTEXT = 0,
+  ECMA_REF_TYPE_ELEMENT = 1,
+  ECMA_REF_TYPE_PROPERTY = 2,
+  ECMA_REF_TYPE_INTERNAL = 3,
+  ECMA_REF_TYPE_HIDDEN = 4,
+  ECMA_REF_TYPE_SHORTCUT = 5,
+  ECMA_REF_TYPE_WEAK = 6,
+} ecma_ref_type_t;
 
 typedef void
 (*ecma_visit_object_callback_t) (ecma_object_t *from_p,
                                  ecma_value_t to,
                                  ecma_string_t *edge_name,
-                                 v8_edge_type_t edge_type,
+                                 ecma_ref_type_t edge_type,
                                  void *args);
 
 void
