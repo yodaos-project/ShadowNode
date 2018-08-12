@@ -70,11 +70,8 @@ Profile.prototype.export = function(cb) {
 /**
  * @method getHeader
  */
-function takeSnapshot() {
-  var path;
-  if (arguments.length >= 1) {
-    path = arguments[0];
-  } else if (arguments.length === 0) {
+function takeSnapshot(path) {
+  if (typeof path !== 'string') {
     path = `${process.cwd()}/Profile-${Date.now()}`;
   }
   return new Snapshot(path);

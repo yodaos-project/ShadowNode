@@ -34,16 +34,12 @@ The profiling data will be stored into a file ${process.cwd()}/Profile-${Date.no
 
 The `profiler.startProfiling(path, duration)` method start a CPU profiler, which will stop after `duration` milliseconds.
 
-### profiler.takeSnapshot()
-* Returns {null}
-
-The `profiler.takeSnapshot()` methd take a Heap profiler file into ${process.cwd()}/Profile-${Date.now()}.
-
-### profiler.takeSnapshot(path)
+### profiler.takeSnapshot([path])
 * `path` {String} profiling data file path
 * Returns {null}
 
 The `profiler.takeSnapshot()` methd take a Heap profiler file which path is `path`.
+If path is not provided, it will be set to `${process.cwd()}/Profile-${Date.now()}`
 
 
 **Example**
