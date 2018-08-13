@@ -38,6 +38,7 @@ For each directory in search paths above:
 
 - If a file `id` exists, load it and return.
 - If a file `id.js` exists, load it and retun.
+- If a file `id.node` exists, load it and retun.
 - If a directory `id` exists, module system consider the directory as a package:
   - If `id/package.json` contains **main** property, load the file named **main** property.
   - If `id/package.json` exists, but neither the **main** property nor the file named **main** property exist, load `index.js`.
