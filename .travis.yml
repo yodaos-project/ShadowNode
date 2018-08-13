@@ -12,6 +12,8 @@ cache:
   yarn: true
   directories:
   - node_modules/
+  - $HOME/.nvm/
+
 
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tools/apt-get-install-deps.sh; fi
