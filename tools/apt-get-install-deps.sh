@@ -14,6 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
+echo "deb http://dl.yarnpkg.com/debian/ stable main" | \
+  sudo tee /etc/apt/sources.list.d/yarn.list
+
 sudo apt-get update -q
 sudo apt-get install -q -y \
     cmake valgrind clang-format-3.8 \
@@ -21,3 +25,5 @@ sudo apt-get install -q -y \
     dbus libdbus-1-dev \
     mosquitto \
     build-essential
+
+sudo apt-get install -y -qq yarn

@@ -9,12 +9,16 @@ dist: trusty
 sudo: required
 
 cache:
+  yarn: true
   directories:
   - node_modules/
 
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tools/apt-get-install-deps.sh; fi
-- npm install
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  tools/brew-install-deps.sh; fi
+
+install:
+- travis_retry yarn
 - ls node_modules/.bin
 
 script:
@@ -57,7 +61,6 @@ jobs:
     - JOBNAME="OSX/x86-64 Build & Correctness Tests"
     - OPTS="host-darwin"
     os: osx
-    install: tools/brew-install-deps.sh
 
   - stage: deploy
     <<: *deploy_job_template

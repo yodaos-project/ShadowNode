@@ -17,14 +17,20 @@
 brew update
 
 PKGS="
-    cmake
-    dbus
-    "
+  cmake
+  dbus
+  "
 
 for pkg in $PKGS
 do
-    if ! ( brew list -1 | grep -q "^${pkg}\$" )
-    then
-        brew install $pkg
-    fi
+  brew install $pkg
+done
+
+PKGS="
+  yarn
+  "
+
+for pkg in $PKGS
+do
+  brew install --ignore-dependencies $pkg
 done
