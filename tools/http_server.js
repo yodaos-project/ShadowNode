@@ -13,7 +13,6 @@ Usage:
 var http = require('http');
 var https = require('https');
 var fs = require('fs');
-var qs = require('querystring');
 var path = require('path');
 
 function handleRequest(req, res) {
@@ -27,10 +26,7 @@ function handleRequest(req, res) {
     });
 
     req.on('end', function() {
-      var parseData = qs.parse(data);
-      var prettyData = JSON.stringify(parseData, null, 2);
-      console.log('Post request with:\n' + prettyData);
-      res.end(prettyData);
+      res.end(data);
     });
   } else { // Send a simple response
     res.end('Everything works');
