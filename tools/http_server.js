@@ -16,28 +16,28 @@ var fs = require('fs');
 var qs = require('querystring');
 var path = require('path');
 
-function handleRequest(req, res){
-  //Process Post Request
-  if(req.method === "POST"){
+function handleRequest(req, res) {
+  // Process Post Request
+  if (req.method === 'POST') {
 
     var data = '';
 
-    req.on('data', function(chunk){
+    req.on('data', function(chunk) {
       data += chunk;
     });
 
-    req.on('end', function(){
+    req.on('end', function() {
       var parseData = qs.parse(data);
       var prettyData = JSON.stringify(parseData, null, 2);
-      console.log("Post request with:\n" + prettyData);
+      console.log('Post request with:\n' + prettyData);
       res.end(prettyData);
     });
-  } else { //Send a simple response
+  } else { // Send a simple response
     res.end('Everything works');
   }
 }
 
-function main (options) {
+function main(options) {
   var handler = http.createServer;
   if (options.ssl) {
     handler = https.createServer;
@@ -49,14 +49,16 @@ function main (options) {
 
   var PORT = options.port;
 
-  console.log(`-> Starting ${options.ssl ? 'https' : 'http'} server at port ${PORT}`);
+  console.log(`-> Starting ${options.ssl ? 'https' : 'http'} \
+server at port ${PORT}`);
 
-  //Create a server
+  // Create a server
   var server = handler(options, handleRequest);
 
-  //Start server
-  server.listen(PORT, function(){
-    console.log(`-> Server listening on: ${options.ssl ? 'https' : 'http'}://localhost:${PORT}`);
+  // Start server
+  server.listen(PORT, function() {
+    console.log(`-> Server listening on: \
+${options.ssl ? 'https' : 'http'}://localhost:${PORT}`);
   });
 }
 
@@ -72,9 +74,9 @@ if (require.main === module) {
   if (process.argv.indexOf('--ssl') > -1) {
     options.ssl = true;
   }
-  var idx = process.argv.indexOf('--port')
+  var idx = process.argv.indexOf('--port');
   if (idx > -1) {
-    options.port = Number(process.argv[idx + 1])
+    options.port = Number(process.argv[idx + 1]);
   }
-  main(options)
+  main(options);
 }
