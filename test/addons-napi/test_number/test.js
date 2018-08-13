@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var test_number = require(`./build/Release/test_number`);
+var test_number = require(`./build/Release/test_number.node`);
 
 
 // testing api calls for number

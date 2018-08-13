@@ -2,7 +2,7 @@
 
 
 var assert = require('assert');
-var binding = require(`./build/Release/binding`);
+var binding = require(`./build/Release/binding.node`);
 
 class Class extends binding.BaseClass {
   varructor() {

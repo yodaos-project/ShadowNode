@@ -3,7 +3,7 @@
 var assert = require('assert');
 
 // Testing api calls for objects
-var test_object = require(`./build/Release/test_object`);
+var test_object = require(`./build/Release/test_object.node`);
 
 
 var object = {

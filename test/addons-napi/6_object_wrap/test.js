@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var addon = require(`./build/Release/binding`);
+var addon = require(`./build/Release/binding.node`);
 
 var obj = new addon.MyObject(9);
 assert.strictEqual(obj.value, 9);

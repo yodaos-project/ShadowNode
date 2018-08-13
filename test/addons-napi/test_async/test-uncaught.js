@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var test_async = require(`./build/Release/test_async`);
+var test_async = require(`./build/Release/test_async.node`);
 
 process.on('uncaughtException', common.mustCall(function(err) {
   try {

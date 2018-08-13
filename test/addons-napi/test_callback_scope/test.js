@@ -2,7 +2,7 @@
 
 
 var assert = require('assert');
-var { runInCallbackScope } = require(`./build/Release/binding`);
+var { runInCallbackScope } = require(`./build/Release/binding.node`);
 
 assert.strictEqual(runInCallbackScope({}, 0, 0, () => 42), 42);
 

@@ -3,7 +3,7 @@
 var assert = require('assert');
 
 // testing api calls for symbol
-var test_symbol = require(`./build/Release/test_symbol`);
+var test_symbol = require(`./build/Release/test_symbol.node`);
 
 assert.notStrictEqual(test_symbol.New(), test_symbol.New());
 assert.notStrictEqual(test_symbol.New('foo'), test_symbol.New('foo'));

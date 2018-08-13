@@ -1,8 +1,8 @@
 'use strict';
 
 
-var storeEnv = require(`./build/Release/store_env`);
-var compareEnv = require(`./build/Release/compare_env`);
+var storeEnv = require(`./build/Release/store_env.node`);
+var compareEnv = require(`./build/Release/compare_env.node`);
 var assert = require('assert');
 
 assert.strictEqual(compareEnv(storeEnv), true,

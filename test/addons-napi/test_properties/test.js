@@ -5,7 +5,7 @@ var readonlyErrorRE =
   /^TypeError: Cannot assign to read only property '.*' of object '#<Object>'$/;
 
 // Testing api calls for defining properties
-var test_object = require(`./build/Release/test_properties`);
+var test_object = require(`./build/Release/test_properties.node`);
 
 assert.strictEqual(test_object.echo('hello'), 'hello');
 

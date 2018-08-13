@@ -89,9 +89,11 @@ for file in test/addons-napi/**/*.js; do
     # `const` => `var`
     "s/const/var/"
     # `${common.buildType}` => `Release`
-    "s/\$.common\.buildType./Release/"
+    's/\$\{common\.buildType\}/Release/'
+    # `./build/Release/binding` => `./build/Release/binding.node`
+    "s/(\.\/build\/Release\/\w+)/\1.node/"
   )
   for exp in "${exps[@]}"; do
-    command $sed_command -i "$exp" "$file"
+    command $sed_command -i -r "$exp" "$file"
   done
 done

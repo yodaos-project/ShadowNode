@@ -10,7 +10,7 @@ var async_hooks = require('async_hooks');
 // before we load the addon in order to avoid this.
 process.emitWarning = () => {};
 
-var { runInCallbackScope } = require(`./build/Release/binding`);
+var { runInCallbackScope } = require(`./build/Release/binding.node`);
 
 let insideHook = false;
 async_hooks.createHook({

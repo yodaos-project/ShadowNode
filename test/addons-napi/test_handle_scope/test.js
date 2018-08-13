@@ -4,7 +4,7 @@ var assert = require('assert');
 
 // testing handle scope api calls
 var testHandleScope =
-    require(`./build/Release/test_handle_scope`);
+    require(`./build/Release/test_handle_scope.node`);
 
 testHandleScope.NewScope();
 

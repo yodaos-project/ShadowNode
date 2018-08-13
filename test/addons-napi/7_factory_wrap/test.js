@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var createObject = require(`./build/Release/binding`);
+var createObject = require(`./build/Release/binding.node`);
 
 var obj = createObject(10);
 assert.strictEqual(obj.plusOne(), 11);

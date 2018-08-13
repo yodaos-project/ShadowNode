@@ -3,7 +3,7 @@
 var assert = require('assert');
 
 // Testing api calls for arrays
-var test_typedarray = require(`./build/Release/test_typedarray`);
+var test_typedarray = require(`./build/Release/test_typedarray.node`);
 
 var byteArray = new Uint8Array(3);
 byteArray[0] = 0;

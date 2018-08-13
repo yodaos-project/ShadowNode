@@ -3,7 +3,7 @@
 
 var assert = require('assert');
 var vm = require('vm');
-var binding = require(`./build/Release/binding`);
+var binding = require(`./build/Release/binding.node`);
 var makeCallback = binding.makeCallback;
 
 function myMultiArgFunc(arg1, arg2, arg3) {

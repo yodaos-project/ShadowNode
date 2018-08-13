@@ -7,7 +7,7 @@ var {
   TestUint64,
   TestWords,
   CreateTooBigBigInt,
-} = require(`./build/Release/test_bigint`);
+} = require(`./build/Release/test_bigint.node`);
 
 [
   0n,

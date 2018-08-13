@@ -3,7 +3,7 @@
 
 var assert = require('assert');
 var async_hooks = require('async_hooks');
-var binding = require(`./build/Release/binding`);
+var binding = require(`./build/Release/binding.node`);
 var makeCallback = binding.makeCallback;
 
 // Check async hooks integration using async context.

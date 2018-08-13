@@ -3,7 +3,7 @@
 var assert = require('assert');
 
 // Testing api calls for a varructor that defines properties
-var TestConstructor = require(`./build/Release/test_constructor`);
+var TestConstructor = require(`./build/Release/test_constructor.node`);
 var test_object = new TestConstructor();
 
 assert.strictEqual(test_object.echo('hello'), 'hello');

@@ -2,7 +2,7 @@
 // Flags: --expose-gc
 
 
-var binding = require(`./build/Release/test_buffer`);
+var binding = require(`./build/Release/test_buffer.node`);
 var assert = require('assert');
 
 assert.strictEqual(binding.newBuffer().toString(), binding.theText);

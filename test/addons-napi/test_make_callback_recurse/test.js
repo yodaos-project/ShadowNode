@@ -3,7 +3,7 @@
 
 var assert = require('assert');
 var domain = require('domain');
-var binding = require(`./build/Release/binding`);
+var binding = require(`./build/Release/binding.node`);
 var makeCallback = binding.makeCallback;
 
 // Make sure this is run in the future.

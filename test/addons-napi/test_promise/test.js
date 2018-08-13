@@ -5,7 +5,7 @@
 // This tests the promise-related n-api calls
 
 var assert = require('assert');
-var test_promise = require(`./build/Release/test_promise`);
+var test_promise = require(`./build/Release/test_promise.node`);
 
 // A resolution
 {

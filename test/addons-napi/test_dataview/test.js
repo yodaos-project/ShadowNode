@@ -3,7 +3,7 @@
 var assert = require('assert');
 
 // Testing api calls for arrays
-var test_dataview = require(`./build/Release/test_dataview`);
+var test_dataview = require(`./build/Release/test_dataview.node`);
 
 // Test for creating dataview
 {

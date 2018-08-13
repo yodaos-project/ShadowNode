@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var addon = require(`./build/Release/binding`);
+var addon = require(`./build/Release/binding.node`);
 
 addon.RunCallback(function(msg) {
   assert.strictEqual(msg, 'hello world');

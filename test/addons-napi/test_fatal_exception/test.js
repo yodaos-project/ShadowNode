@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var test_fatal = require(`./build/Release/test_fatal_exception`);
+var test_fatal = require(`./build/Release/test_fatal_exception.node`);
 
 process.on('uncaughtException', common.mustCall(function(err) {
   assert.strictEqual(err.message, 'fatal error');

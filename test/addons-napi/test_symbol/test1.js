@@ -3,7 +3,7 @@
 var assert = require('assert');
 
 // testing api calls for symbol
-var test_symbol = require(`./build/Release/test_symbol`);
+var test_symbol = require(`./build/Release/test_symbol.node`);
 
 var sym = test_symbol.New('test');
 assert.strictEqual(sym.toString(), 'Symbol(test)');

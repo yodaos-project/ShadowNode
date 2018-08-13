@@ -2,7 +2,7 @@
 
 
 var assert = require('assert');
-var binding = require(`./build/Release/binding`);
+var binding = require(`./build/Release/binding.node`);
 var { fork } = require('child_process');
 var expectedArray = (function(arrayLength) {
   var result = [];

@@ -13,7 +13,7 @@ var theError = new Error('Some error');
 var test_exception = (function() {
   let resultingException;
   try {
-    require(`./build/Release/test_exception`);
+    require(`./build/Release/test_exception.node`);
   } catch (anException) {
     resultingException = anException;
   }

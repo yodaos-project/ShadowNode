@@ -1,7 +1,7 @@
 'use strict';
 
 
-var test_error = require(`./build/Release/test_error`);
+var test_error = require(`./build/Release/test_error.node`);
 var assert = require('assert');
 var theError = new Error('Some error');
 var theTypeError = new TypeError('Some type error');

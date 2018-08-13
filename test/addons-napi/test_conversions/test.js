@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-var test = require(`./build/Release/test_conversions`);
+var test = require(`./build/Release/test_conversions.node`);
 
 var boolExpected = /boolean was expected/;
 var numberExpected = /number was expected/;

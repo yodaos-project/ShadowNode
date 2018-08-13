@@ -2,7 +2,7 @@
 
 var assert = require('assert');
 var async_hooks = require('async_hooks');
-var test_async = require(`./build/Release/test_async`);
+var test_async = require(`./build/Release/test_async.node`);
 
 var events = [];
 let testId;

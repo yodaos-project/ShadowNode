@@ -3,7 +3,7 @@
 var assert = require('assert');
 
 // testing api calls for string
-var test_string = require(`./build/Release/test_string`);
+var test_string = require(`./build/Release/test_string.node`);
 
 var empty = '';
 assert.strictEqual(test_string.TestLatin1(empty), empty);

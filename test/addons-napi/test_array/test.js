@@ -3,7 +3,7 @@
 var assert = require('assert');
 
 // Testing api calls for arrays
-var test_array = require(`./build/Release/test_array`);
+var test_array = require(`./build/Release/test_array.node`);
 
 var array = [
   1,

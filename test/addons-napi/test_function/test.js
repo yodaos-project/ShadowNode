@@ -5,7 +5,7 @@
 var assert = require('assert');
 
 // testing api calls for function
-var test_function = require(`./build/Release/test_function`);
+var test_function = require(`./build/Release/test_function.node`);
 
 function func1() {
   return 1;

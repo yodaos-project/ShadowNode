@@ -1,7 +1,7 @@
 'use strict';
 
 
-var addon = require(`./build/Release/test_general`);
+var addon = require(`./build/Release/test_general.node`);
 var assert = require('assert');
 
 addon.createNapiError();

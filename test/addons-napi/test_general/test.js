@@ -2,7 +2,7 @@
 // Flags: --expose-gc
 
 
-var test_general = require(`./build/Release/test_general`);
+var test_general = require(`./build/Release/test_general.node`);
 var assert = require('assert');
 
 var val1 = '1';

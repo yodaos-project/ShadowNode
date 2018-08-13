@@ -4,7 +4,7 @@
 
 var assert = require('assert');
 
-var test_reference = require(`./build/Release/test_reference`);
+var test_reference = require(`./build/Release/test_reference.node`);
 
 // This test script uses external values with finalizer callbacks
 // in order to track when values get garbage-collected. Each invocation
