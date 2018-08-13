@@ -2,13 +2,13 @@
 
 /* jerry heap snapshot to V8 heap snapshot converter */
 
-let fs = require('fs');
+const fs = require('fs');
 
 const STRING_BASE_OFFSET = 1; // first string is "<dummy string>"
 
 class SnapshotConverter {
   constructor(jerrySnapshotPath, outputPath) {
-    let inputData = fs.readFileSync(jerrySnapshotPath, 'utf8');
+    const inputData = fs.readFileSync(jerrySnapshotPath, 'utf8');
     this.jerrySnapshot = JSON.parse(inputData);
     this.outputPath = outputPath;
     this.strings = ['<dummy>'];
@@ -43,10 +43,9 @@ class SnapshotConverter {
   }
     
   parse() {
-    let elements = this.jerrySnapshot.elements;
-    let string_index = STRING_BASE_OFFSET;
+    const elements = this.jerrySnapshot.elements;
     for (let i=0; i<elements.length; i++) {
-      let element = elements[i];
+      const element = elements[i];
       if (element.type === 'string') {
         this.addString(element);
       } else if (element.type === 'node') {
@@ -59,26 +58,25 @@ class SnapshotConverter {
   
   genNodeEdges(edges) {
     for (let i = 0; i < edges.length; i++) {
-      let edge = edges[i];
-      this.edgesOutput.push (edge.edge_type);
-      let name;
-      name = this.stringMap.get(edge.name);
-      this.edgesOutput.push (name);
+      const edge = edges[i];
+      this.edgesOutput.push(edge.edge_type);
+      const name = this.stringMap.get(edge.name);
+      this.edgesOutput.push(name);
       // v8 node items is a flattern array,
       // so to_node is to_node_id * node_size
-      this.edgesOutput.push (this.nodeMap.get(edge.to) * 6);
+      this.edgesOutput.push(this.nodeMap.get(edge.to) * 6);
     }
   }
 
   genNodes() {
-    for (let [node_id, index] of this.nodeMap) {
-      let node = this.nodes[index];
-      this.nodesOutput.push (node.node_type);
-      this.nodesOutput.push (this.stringMap.get(node.name));
-      this.nodesOutput.push (node.id);
-      this.nodesOutput.push (node.size);
-      this.nodesOutput.push (this.edgeMap.get(node_id).length);
-      this.nodesOutput.push (0); // trace node id
+    for (const [node_id, index] of this.nodeMap) {
+      const node = this.nodes[index];
+      this.nodesOutput.push(node.node_type);
+      this.nodesOutput.push(this.stringMap.get(node.name));
+      this.nodesOutput.push(node.id);
+      this.nodesOutput.push(node.size);
+      this.nodesOutput.push(this.edgeMap.get(node_id).length);
+      this.nodesOutput.push(0); // trace node id
 
       this.genNodeEdges(this.edgeMap.get(node_id));
     }
@@ -96,8 +94,8 @@ class SnapshotConverter {
   }
 }
 
-let args = process.argv.splice(2);
-let converter = new SnapshotConverter(args[0], args[1]);
+const args = process.argv.splice(2);
+const converter = new SnapshotConverter(args[0], args[1]);
 converter.parse();
 converter.genNodes();
 converter.write();
