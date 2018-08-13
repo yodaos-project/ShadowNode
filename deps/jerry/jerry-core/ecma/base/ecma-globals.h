@@ -712,8 +712,8 @@ typedef struct
   ecma_object_t object; /**< object header */
 
 #ifdef JERRY_HEAP_PROFILER
-#define EXT_OBJ_SIZE_TYPE uint32_t
-  EXT_OBJ_SIZE_TYPE size;
+  uint32_t size;
+  uint32_t pad; // 8 byte align
 #endif /* JERRY_HEAP_PROFILER */
 
   /*

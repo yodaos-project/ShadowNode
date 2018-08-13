@@ -31,6 +31,9 @@ JERRY_STATIC_ASSERT (sizeof (ecma_string_t) == sizeof (uint64_t),
 #ifndef JERRY_HEAP_PROFILER
 JERRY_STATIC_ASSERT (sizeof (ecma_extended_object_t) - sizeof (ecma_object_t) <= sizeof (uint64_t),
                      size_of_ecma_extended_object_part_must_be_less_than_or_equal_to_8_bytes);
+#else /* JERRY_HEAP_PROFILER */
+JERRY_STATIC_ASSERT (sizeof (ecma_extended_object_t) - sizeof (ecma_object_t) - sizeof (uint64_t) <= sizeof (uint64_t),
+                     size_of_ecma_extended_object_part_must_be_less_than_or_equal_to_8_bytes);
 #endif /* JERRY_HEAP_PROFILER */
 
 /** \addtogroup ecma ECMA

@@ -2044,7 +2044,7 @@ ecma_object_get_size (ecma_object_t *obj_p)
   }
 
   ecma_extended_object_t *ext_obj_p = (ecma_extended_object_t *) obj_p;
-  return ext_obj_p->size - (uint32_t) sizeof (EXT_OBJ_SIZE_TYPE);
+  return ext_obj_p->size - (uint32_t) sizeof (uint64_t);
 }
 #endif /* JERRY_HEAP_PROFILER */
 
