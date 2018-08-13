@@ -13,15 +13,23 @@ cache:
   directories:
   - node_modules/
 
+addons:
+  hosts:
+  - example.com
+
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tools/apt-get-install-deps.sh; fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  tools/brew-install-deps.sh; fi
 
 install:
+- nvm install 10.8.0
+- nvm use 10.8.0
 - travis_retry yarn
 - ls node_modules/.bin
 
 script:
+- sudo $(which node) tools/http_server.js --port 80 &
+- sudo $(which node) tools/http_server.js --ssl --port 443 &
 - npm run lint
 - tools/travis_script.py
 
@@ -67,4 +75,3 @@ jobs:
   - stage: deploy
     <<: *deploy_job_template
     os: osx
-    install: tools/brew-install-deps.sh
