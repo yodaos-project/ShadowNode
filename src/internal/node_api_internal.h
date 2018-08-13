@@ -36,7 +36,11 @@
 
 #define NAPI_TRY_NO_PENDING_EXCEPTION(env) \
   NAPI_WEAK_ASSERT(napi_pending_exception, \
-                   iotjs_napi_is_exception_pending((iotjs_napi_env_t*)env))
+                   !iotjs_napi_is_exception_pending((iotjs_napi_env_t*)env))
+
+#define NAPI_ASSIGN(result, value) \
+  if ((result) != NULL)            \
+    *(result) = (value);
 
 #define NAPI_INTERNAL_CALL(call) \
   do {                           \

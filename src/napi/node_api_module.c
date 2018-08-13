@@ -38,11 +38,10 @@ int napi_module_init_pending(jerry_value_t* exports) {
 
   napi_env env = iotjs_get_current_napi_env();
 
-  jerryx_escapable_handle_scope scope;
-  jerryx_open_escapable_handle_scope(&scope);
+  jerryx_handle_scope scope;
+  jerryx_open_handle_scope(&scope);
 
   jerry_value_t jval_exports = jerry_create_object();
-  jerryx_create_handle(jval_exports);
   napi_value nvalue_ret = (*Init)(env, jval_exports);
 
   if (nvalue_ret == NULL) {
@@ -52,8 +51,9 @@ int napi_module_init_pending(jerry_value_t* exports) {
     jerry_value_t jval_ret = AS_JERRY_VALUE(nvalue_ret);
     if (jval_ret != jval_exports) {
       jerry_release_value(jval_exports);
+      jerryx_remove_handle(scope, jval_ret, &jval_ret);
     }
-    jerryx_remove_handle(scope, jval_ret, exports);
+    *exports = jval_ret;
   }
 
   jerryx_close_handle_scope(scope);

@@ -27,7 +27,7 @@ napi_status napi_get_property_names(napi_env env, napi_value object,
   if (jerry_value_has_error_flag(jval_keys))
     return napi_invalid_arg;
 
-  *result = AS_NAPI_VALUE(jval_keys);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_keys));
   return napi_ok;
 }
 
@@ -63,7 +63,7 @@ napi_status napi_get_property(napi_env env, napi_value object, napi_value key,
   if (jerry_value_has_error_flag(jval_ret))
     return napi_invalid_arg;
 
-  *result = AS_NAPI_VALUE(jval_ret);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_ret));
   return napi_ok;
 }
 
@@ -75,7 +75,7 @@ napi_status napi_has_property(napi_env env, napi_value object, napi_value key,
   NAPI_TRY_TYPE(object, jval_object);
   NAPI_TRY_TYPE(string, jval_key);
 
-  *result = jerry_has_property(jval_object, jval_key);
+  NAPI_ASSIGN(result, jerry_has_property(jval_object, jval_key));
 
   return napi_ok;
 }
@@ -88,7 +88,7 @@ napi_status napi_delete_property(napi_env env, napi_value object,
   NAPI_TRY_TYPE(object, jval_object);
   NAPI_TRY_TYPE(string, jval_key);
 
-  *result = jerry_delete_property(jval_object, jval_key);
+  NAPI_ASSIGN(result, jerry_delete_property(jval_object, jval_key));
   return napi_ok;
 }
 
@@ -100,7 +100,7 @@ napi_status napi_has_own_property(napi_env env, napi_value object,
   NAPI_TRY_TYPE(object, jval_object);
   NAPI_TRY_TYPE(string, jval_key);
 
-  *result = jerry_has_own_property(jval_object, jval_key);
+  NAPI_ASSIGN(result, jerry_has_own_property(jval_object, jval_key));
   return napi_ok;
 }
 
@@ -171,7 +171,7 @@ napi_status napi_get_element(napi_env env, napi_value object, uint32_t index,
   if (jerry_value_has_error_flag(jval_ret)) {
     return napi_invalid_arg;
   }
-  *result = AS_NAPI_VALUE(jval_ret);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_ret));
   return napi_ok;
 }
 
@@ -180,7 +180,7 @@ napi_status napi_has_element(napi_env env, napi_value object, uint32_t index,
   jerry_value_t jval_object = AS_JERRY_VALUE(object);
   NAPI_TRY_TYPE(object, jval_object);
 
-  *result = jerry_has_property_by_index(jval_object, index);
+  NAPI_ASSIGN(result, jerry_has_property_by_index(jval_object, index));
   return napi_ok;
 }
 
@@ -189,7 +189,7 @@ napi_status napi_delete_element(napi_env env, napi_value object, uint32_t index,
   jerry_value_t jval_object = AS_JERRY_VALUE(object);
   NAPI_TRY_TYPE(object, jval_object);
 
-  *result = jerry_delete_property_by_index(jval_object, index);
+  NAPI_ASSIGN(result, jerry_delete_property_by_index(jval_object, index));
   return napi_ok;
 }
 
@@ -252,6 +252,7 @@ napi_status napi_define_properties(napi_env env, napi_value object,
                                    const napi_property_descriptor* properties) {
   jerry_value_t jval_target = AS_JERRY_VALUE(object);
   NAPI_TRY_TYPE(object, jval_target);
+  NAPI_WEAK_ASSERT(napi_invalid_arg, properties != NULL);
 
   napi_status status;
   jerry_property_descriptor_t prop_desc;

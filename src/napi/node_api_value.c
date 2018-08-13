@@ -19,20 +19,20 @@
 
 napi_status napi_create_array(napi_env env, napi_value* result) {
   JERRYX_CREATE(jval, jerry_create_array(0));
-  *result = AS_NAPI_VALUE(jval);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
   return napi_ok;
 }
 
 napi_status napi_create_array_with_length(napi_env env, size_t length,
                                           napi_value* result) {
   JERRYX_CREATE(jval, jerry_create_array(length));
-  *result = AS_NAPI_VALUE(jval);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
   return napi_ok;
 }
 
 napi_status napi_create_object(napi_env env, napi_value* result) {
   JERRYX_CREATE(jval, jerry_create_object());
-  *result = AS_NAPI_VALUE(jval);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
   return napi_ok;
 }
 
@@ -54,11 +54,11 @@ napi_status napi_create_object(napi_env env, napi_value* result) {
         jerry_string_to_utf8_char_buffer(jval_msg, raw_msg, msg_size);        \
     NAPI_WEAK_ASSERT(napi_invalid_arg, written_size == msg_size);             \
                                                                               \
-    jerry_value_t jval_error = jerry_create_error(jerry_error_type, raw_msg); \
+    JERRYX_CREATE(jval_error, jerry_create_error(jerry_error_type, raw_msg)); \
     jerry_value_clear_error_flag(&jval_error);                                \
                                                                               \
     iotjs_jval_set_property_jval(jval_error, "code", jval_code);              \
-    *result = AS_NAPI_VALUE(jval_error);                                      \
+    NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_error));                           \
                                                                               \
     return napi_ok;                                                           \
   }
@@ -71,9 +71,8 @@ DEF_NAPI_CREATE_ERROR(range_error, JERRY_ERROR_RANGE);
 #define DEF_NAPI_NUMBER_CONVERT_FROM_C_TYPE(type, name)      \
   napi_status napi_create_##name(napi_env env, type value,   \
                                  napi_value* result) {       \
-    jerry_value_t jval = jerry_create_number((double)value); \
-    jerryx_create_handle(jval);                              \
-    *result = AS_NAPI_VALUE(jval);                           \
+    JERRYX_CREATE(jval, jerry_create_number((double)value)); \
+    NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));                \
     return napi_ok;                                          \
   }
 
@@ -87,8 +86,9 @@ DEF_NAPI_NUMBER_CONVERT_FROM_C_TYPE(double, double);
   napi_status napi_get_value_##name(napi_env env, napi_value value, \
                                     type* result) {                 \
     jerry_value_t jval = AS_JERRY_VALUE(value);                     \
+    NAPI_TRY_TYPE(number, jval);                                    \
     double num_val = jerry_get_number_value(jval);                  \
-    *result = num_val;                                              \
+    NAPI_ASSIGN(result, num_val);                                   \
     return napi_ok;                                                 \
   }
 
@@ -100,57 +100,58 @@ DEF_NAPI_NUMBER_CONVERT_FROM_NVALUE(uint32_t, uint32);
 
 napi_status napi_create_string_utf8(napi_env env, const char* str,
                                     size_t length, napi_value* result) {
-  jerry_value_t jval =
-      jerry_create_string_sz_from_utf8((jerry_char_t*)str, length);
-  jerryx_create_handle(jval);
-  *result = AS_NAPI_VALUE(jval);
+  if (length == NAPI_AUTO_LENGTH) {
+    length = strlen(str);
+  }
+  JERRYX_CREATE(jval,
+                jerry_create_string_sz_from_utf8((jerry_char_t*)str, length));
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
   return napi_ok;
 }
 
 napi_status napi_get_array_length(napi_env env, napi_value value,
                                   uint32_t* result) {
   jerry_value_t jval = AS_JERRY_VALUE(value);
-  *result = jerry_get_array_length(jval);
+  NAPI_ASSIGN(result, jerry_get_array_length(jval));
   return napi_ok;
 }
 
 napi_status napi_get_prototype(napi_env env, napi_value object,
                                napi_value* result) {
   jerry_value_t jval = AS_JERRY_VALUE(object);
-  jerry_value_t jval_proto = jerry_get_prototype(jval);
-  *result = AS_NAPI_VALUE(jval_proto);
+  JERRYX_CREATE(jval_proto, jerry_get_prototype(jval));
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_proto));
   return napi_ok;
 }
 
 napi_status napi_get_value_bool(napi_env env, napi_value value, bool* result) {
   jerry_value_t jval = AS_JERRY_VALUE(value);
-  if (!jerry_value_is_boolean(jval))
-    return napi_boolean_expected;
-  *result = jerry_get_boolean_value(jval);
+  NAPI_TRY_TYPE(boolean, jval);
+  NAPI_ASSIGN(result, jerry_get_boolean_value(jval));
   return napi_ok;
 }
 
 napi_status napi_get_boolean(napi_env env, bool value, napi_value* result) {
   JERRYX_CREATE(jval, jerry_create_boolean(value));
-  *result = AS_NAPI_VALUE(jval);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
   return napi_ok;
 }
 
 napi_status napi_get_global(napi_env env, napi_value* result) {
   JERRYX_CREATE(jval, jerry_get_global_object());
-  *result = AS_NAPI_VALUE(jval);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
   return napi_ok;
 }
 
 napi_status napi_get_null(napi_env env, napi_value* result) {
   JERRYX_CREATE(jval, jerry_create_null());
-  *result = AS_NAPI_VALUE(jval);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
   return napi_ok;
 }
 
 napi_status napi_get_undefined(napi_env env, napi_value* result) {
   JERRYX_CREATE(jval, jerry_create_undefined());
-  *result = AS_NAPI_VALUE(jval);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
   return napi_ok;
 }
 
@@ -158,8 +159,8 @@ napi_status napi_get_undefined(napi_env env, napi_value* result) {
   napi_status napi_coerce_to_##type(napi_env env, napi_value value, \
                                     napi_value* result) {           \
     jerry_value_t jval = AS_JERRY_VALUE(value);                     \
-    jerry_value_t jval_result = jerry_value_to_##alias(jval);       \
-    *result = AS_NAPI_VALUE(jval_result);                           \
+    JERRYX_CREATE(jval_result, jerry_value_to_##alias(jval));       \
+    NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_result));                \
     return napi_ok;                                                 \
   }
 
@@ -173,9 +174,9 @@ napi_status napi_typeof(napi_env env, napi_value value,
   jerry_value_t jval = AS_JERRY_VALUE(value);
   jerry_type_t type = jerry_value_get_type(jval);
 
-#define MAP(jerry, napi) \
-  case jerry:            \
-    *result = napi;      \
+#define MAP(jerry, napi)       \
+  case jerry:                  \
+    NAPI_ASSIGN(result, napi); \
     break;
 
   switch (type) {
@@ -199,14 +200,14 @@ napi_status napi_instanceof(napi_env env, napi_value object,
   jerry_value_t jval_object = AS_JERRY_VALUE(object);
   jerry_value_t jval_cons = AS_JERRY_VALUE(constructor);
 
-  *result = jerry_value_instanceof(jval_object, jval_cons);
+  NAPI_ASSIGN(result, jerry_value_instanceof(jval_object, jval_cons));
   return napi_ok;
 }
 
 #define DEF_NAPI_VALUE_IS(type)                                              \
   napi_status napi_is_##type(napi_env env, napi_value value, bool* result) { \
     jerry_value_t jval = AS_JERRY_VALUE(value);                              \
-    *result = jerry_value_is_##type(jval);                                   \
+    NAPI_ASSIGN(result, jerry_value_is_##type(jval));                        \
     return napi_ok;                                                          \
   }
 
@@ -220,7 +221,7 @@ napi_status napi_is_error(napi_env env, napi_value value, bool* result) {
    * TODO: Pick jerrysciprt#ba2e49caaa6703dec7a83fb0b8586a91fac060eb to use
    * function `jerry_value_is_error`
    */
-  *result = jerry_value_has_error_flag(jval);
+  NAPI_ASSIGN(result, jerry_value_has_error_flag(jval));
   return napi_ok;
 }
 
@@ -229,6 +230,6 @@ napi_status napi_strict_equals(napi_env env, napi_value lhs, napi_value rhs,
   jerry_value_t jval_lhs = AS_JERRY_VALUE(lhs);
   jerry_value_t jval_rhs = AS_JERRY_VALUE(rhs);
 
-  *result = jerry_value_strict_equal(jval_lhs, jval_rhs);
+  NAPI_ASSIGN(result, jerry_value_strict_equal(jval_lhs, jval_rhs));
   return napi_ok;
 }

@@ -89,7 +89,7 @@ napi_status napi_create_function(napi_env env, const char* utf8name,
   jerry_set_object_native_pointer(jval_func, function_info,
                                   &native_obj_type_info);
 
-  *result = AS_NAPI_VALUE(jval_func);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_func));
   return napi_ok;
 }
 
@@ -111,7 +111,7 @@ napi_status napi_call_function(napi_env env, napi_value recv, napi_value func,
     return napi_generic_failure;
   }
 
-  *result = AS_NAPI_VALUE(jval_ret);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_ret));
   return napi_ok;
 }
 
@@ -122,17 +122,22 @@ napi_status napi_get_cb_info(napi_env env, napi_callback_info cbinfo,
 
   NAPI_WEAK_ASSERT(napi_invalid_arg, (argc != NULL));
 
-  for (size_t i = 0; i < *argc && i < callback_info->argc; ++i) {
-    if ((argv + i) != NULL)
-      argv[i] = AS_NAPI_VALUE(callback_info->argv[i]);
+  for (size_t i = 0; i < *argc; ++i) {
+    if (i < callback_info->argc) {
+      NAPI_ASSIGN(argv + i, AS_NAPI_VALUE(callback_info->argv[i]));
+    } else {
+      NAPI_ASSIGN(argv + i, AS_NAPI_VALUE(jerry_create_undefined()));
+    }
   }
-  *argc = callback_info->argc;
+  NAPI_ASSIGN(argc, callback_info->argc);
 
-  if (thisArg != NULL)
-    *thisArg = AS_NAPI_VALUE(callback_info->jval_this);
+  if (thisArg != NULL) {
+    NAPI_ASSIGN(thisArg, AS_NAPI_VALUE(callback_info->jval_this));
+  }
 
-  if (data != NULL)
-    *data = callback_info->function_info->data;
+  if (data != NULL) {
+    NAPI_ASSIGN(data, callback_info->function_info->data);
+  }
 
   return napi_ok;
 }
@@ -153,6 +158,6 @@ napi_status napi_new_instance(napi_env env, napi_value constructor, size_t argc,
     return napi_generic_failure;
   }
 
-  *result = AS_NAPI_VALUE(jval_ret);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_ret));
   return napi_ok;
 }
