@@ -420,24 +420,15 @@ def build_iotjs(options):
 
 
 def build_napi_test_module(options):
-    print_progress('Build NAPI test module')
+    node_gyp = fs.join(path.PROJECT_ROOT,
+                       'node_modules',
+                       '.bin',
+                       'node-gyp')
+    print_progress('Build NAPI test module with %s' % node_gyp)
 
-    # Set NAPI test module cmake options.
     project_root = fs.join(path.PROJECT_ROOT, 'test', 'napi')
-    build_root = fs.join(project_root, 'build')
-    cmake_opt = [
-        '-B%s' % build_root,
-        '-H%s' % project_root,
-        "-DCMAKE_TOOLCHAIN_FILE='%s'" % options.cmake_toolchain_file,
-        '-DCMAKE_BUILD_TYPE=%s' % options.buildtype.capitalize(),
-        '-DTARGET_ARCH=%s' % options.target_arch,
-        '-DTARGET_OS=%s' % options.target_os,
-        '-DPLATFORM_DESCRIPTOR=%s' % options.target_tuple,
-        '-DINSTALL_PREFIX=%s' % options.install_prefix,
-    ]
-    # Run cmake.
-    ex.check_run_cmd('cmake', cmake_opt)
-    run_make(options, build_root)
+    ex.check_run_cmd(node_gyp, ['configure'], cwd=project_root)
+    ex.check_run_cmd(node_gyp, ['build'], cwd=project_root)
 
 
 def build_addons_napi_gyp_modules():
