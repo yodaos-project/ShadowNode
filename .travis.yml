@@ -75,4 +75,3 @@ jobs:
   - stage: deploy
     <<: *deploy_job_template
     os: osx
-    install: tools/brew-install-deps.sh

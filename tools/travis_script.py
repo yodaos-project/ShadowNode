@@ -22,18 +22,15 @@ if __name__ == '__main__':
     if test == 'host-linux':
         build_jerry()
         for buildtype in BUILDTYPES:
-            ex.check_run_cmd('./tools/build.py', [
-                '--cmake-param=-DENABLE_MODULE_ASSERT=ON',
+            build_iotjs(buildtype, [
                 '--run-test',
                 '--no-check-valgrind'])
 
     elif test == "host-darwin":
         for buildtype in BUILDTYPES:
-            ex.check_run_cmd('./tools/build.py', [
+            build_iotjs(buildtype, [
                 '--run-test',
                 '--no-check-valgrind',
-                '--buildtype=' + buildtype,
-                '--clean',
                 '--profile=test/profiles/host-darwin.profile'])
 
     elif test == 'rpi2':
@@ -56,8 +53,7 @@ if __name__ == '__main__':
             build_iotjs(buildtype, [
                 '--run-test',
                 '--no-check-valgrind',
-                '--napi',
-                '--jerry-lto'])
+                '--napi'])
 
     elif test == "coverity":
         ex.check_run_cmd('./tools/build.py', ['--clean'])
