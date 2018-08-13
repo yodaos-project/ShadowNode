@@ -15,6 +15,9 @@ cache:
 
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tools/apt-get-install-deps.sh; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  tools/brew-install-deps.sh; fi
+
+install:
 - yarn
 - ls node_modules/.bin
 
@@ -58,7 +61,6 @@ jobs:
     - JOBNAME="OSX/x86-64 Build & Correctness Tests"
     - OPTS="host-darwin"
     os: osx
-    install: tools/brew-install-deps.sh
 
   - stage: deploy
     <<: *deploy_job_template
