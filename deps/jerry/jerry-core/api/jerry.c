@@ -25,6 +25,7 @@
 #include "ecma-arraybuffer-object.h"
 #include "ecma-builtin-helpers.h"
 #include "ecma-builtins.h"
+#include "ecma-comparison.h"
 #include "ecma-exceptions.h"
 #include "ecma-eval.h"
 #include "ecma-function-object.h"
@@ -792,6 +793,36 @@ jerry_value_is_undefined (const jerry_value_t value) /**< api value */
 
   return ecma_is_value_undefined (jerry_get_arg_value (value));
 } /* jerry_value_is_undefined */
+
+/**
+ * Perform strict equality check on the specified two operands.
+ *
+ * @return true  - if the two operands are strictly equal,
+ *         false - otherwise.
+ */
+bool
+jerry_value_strict_equal(const jerry_value_t lhs, const jerry_value_t rhs)
+{
+  jerry_assert_api_available();
+
+  return ecma_op_strict_equality_compare(lhs, rhs);
+}
+
+
+/**
+ * Perform instanceof check on the specified two operands.
+ *
+ * @return true  - if the left hand side is instance of right hand side,
+ *         false - otherwise.
+ */
+bool
+jerry_value_instanceof(const jerry_value_t value, const jerry_value_t proto)
+{
+  jerry_assert_api_available();
+
+  ecma_value_t ret = ecma_op_object_has_instance(ecma_get_object_from_value(proto), value);
+  return ecma_is_value_true(ret);
+}
 
 /**
  * Perform the base type of the JavaScript value.

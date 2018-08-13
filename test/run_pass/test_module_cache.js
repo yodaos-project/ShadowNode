@@ -14,8 +14,9 @@
  */
 
 var assert = require('assert');
+var path = require('path');
 
-var dir = process.cwd() + '/run_pass/require1/';
+var dir = path.join(__dirname, '../run_pass/require1/');
 var dirDoubleDot = dir + '../require1/';
 var dirDot = dir + './';
 

@@ -70,19 +70,6 @@ extern void force_terminate();
 #define TARGET_OS "unknown"
 #endif
 
-#ifndef NODE_MAJOR_VERSION
-#define NODE_MAJOR_VERSION "0"
-#endif
-#ifndef NODE_MINOR_VERSION
-#define NODE_MINOR_VERSION "0"
-#endif
-#ifndef NODE_PATCH_VERSION
-#define NODE_PATCH_VERSION "0"
-#endif
-#define IOTJS_VERSION \
-  NODE_MAJOR_VERSION  \
-  "." NODE_MINOR_VERSION "." NODE_PATCH_VERSION
-
 #if !defined(STRINGIFY)
 #define STRINGIFY(x) #x
 #endif
@@ -91,6 +78,18 @@ extern void force_terminate();
 #define TOSTRING(x) STRINGIFY(x)
 #endif
 
+#ifndef NODE_MAJOR_VERSION
+#define NODE_MAJOR_VERSION 0
+#endif
+#ifndef NODE_MINOR_VERSION
+#define NODE_MINOR_VERSION 0
+#endif
+#ifndef NODE_PATCH_VERSION
+#define NODE_PATCH_VERSION 0
+#endif
+#define IOTJS_VERSION          \
+  TOSTRING(NODE_MAJOR_VERSION) \
+  "." TOSTRING(NODE_MINOR_VERSION) "." TOSTRING(NODE_PATCH_VERSION)
 
 #if !defined(TARGET_BOARD)
 #define TARGET_BOARD "unknown"

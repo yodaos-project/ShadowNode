@@ -193,6 +193,10 @@ def init_options():
         action='store_true', default=False,
         help='Enable JerryScript-debugger')
 
+    parser.add_argument('--napi',
+        action='store_true', default=False,
+        help='Build ShadowNode with N-API enabled')
+
     # Unit testing and benchmarking options
     parser.add_argument('--run-test',
         nargs='?', default=False, const="quiet", choices=["full", "quiet"],
@@ -243,6 +247,11 @@ def adjust_options(options):
 
     if options.target_board in ['rpi2', 'artik10', 'artik05x']:
         options.no_check_valgrind = True
+
+    if options.napi:
+        options.jerryx = True
+        if options.testsets is None:
+            options.testsets = 'test/napi-testsets.json'
 
     # Then add calculated options.
     options.host_tuple = '%s-%s' % (platform.arch(), platform.os())
@@ -370,6 +379,10 @@ def build_iotjs(options):
     if options.jerry_debugger:
         cmake_opt.append('-DFEATURE_DEBUGGER=ON')
 
+    # --napi
+    if options.napi:
+        cmake_opt.append('-DENABLE_NAPI=ON')
+
     # --jerryx
     if options.jerryx:
         cmake_opt.append('-DENABLE_JERRYX=ON')
@@ -408,6 +421,27 @@ def build_iotjs(options):
         run_make(options, options.build_root, 'install')
     else:
         run_make(options, options.build_root)
+
+
+def build_napi_test_module(options):
+    print_progress('Build NAPI test module')
+
+    # Set NAPI test module cmake options.
+    project_root = fs.join(path.PROJECT_ROOT, 'test', 'napi')
+    build_root = fs.join(project_root, 'build')
+    cmake_opt = [
+        '-B%s' % build_root,
+        '-H%s' % project_root,
+        "-DCMAKE_TOOLCHAIN_FILE='%s'" % options.cmake_toolchain_file,
+        '-DCMAKE_BUILD_TYPE=%s' % options.buildtype.capitalize(),
+        '-DTARGET_ARCH=%s' % options.target_arch,
+        '-DTARGET_OS=%s' % options.target_os,
+        '-DPLATFORM_DESCRIPTOR=%s' % options.target_tuple,
+        '-DINSTALL_PREFIX=%s' % options.install_prefix,
+    ]
+    # Run cmake.
+    ex.check_run_cmd('cmake', cmake_opt)
+    run_make(options, build_root)
 
 
 def run_checktest(options):
@@ -460,6 +494,9 @@ if __name__ == '__main__':
 
     # Run tests.
     if options.run_test:
+        print_progress('Build test dependencies')
+        build_napi_test_module(options)
+
         print_progress('Run tests')
         if options.buildlib:
             print("Skip unit tests - build target is library\n")

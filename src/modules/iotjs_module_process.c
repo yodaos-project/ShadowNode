@@ -22,6 +22,9 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
+#ifdef ENABLE_NAPI
+#include "internal/node_api_internal.h"
+#endif
 #include "mbedtls/version.h"
 
 #ifdef __APPLE__
@@ -75,24 +78,33 @@ static jerry_value_t WrapEval(const char* name, size_t name_len,
 
 
 JS_FUNCTION(Compile) {
-  DJS_CHECK_ARGS(2, string, string);
+  DJS_CHECK_ARGS(1, string);
 
-  iotjs_string_t file = JS_GET_ARG(0, string);
-  iotjs_string_t source = JS_GET_ARG(1, string);
-
-  const char* filename = iotjs_string_data(&file);
+  iotjs_string_t path = JS_GET_ARG(0, string);
   const iotjs_environment_t* env = iotjs_environment_get();
-
   if (iotjs_environment_config(env)->debugger != NULL) {
     jerry_debugger_stop();
   }
 
-  jerry_value_t jres =
-      WrapEval(filename, strlen(filename), iotjs_string_data(&source),
-               iotjs_string_size(&source));
+  const char* filename = iotjs_string_data(&path);
+  uv_fs_t fs_req;
+  uv_fs_stat(iotjs_environment_loop(env), &fs_req, filename, NULL);
+  uv_fs_req_cleanup(&fs_req);
 
-  iotjs_string_destroy(&file);
-  iotjs_string_destroy(&source);
+  if (!S_ISREG(fs_req.statbuf.st_mode)) {
+    iotjs_string_destroy(&path);
+    return JS_CREATE_ERROR(COMMON, "ReadSource error, not a regular file");
+  }
+
+  size_t size = 0;
+  char* source = iotjs__file_read(filename, &size);
+  if (source == NULL || size == 0) {
+    iotjs_string_destroy(&path);
+    return JS_CREATE_ERROR(COMMON, "Could not load the source.");
+  }
+
+  jerry_value_t jres = WrapEval(filename, strlen(filename), source, size);
+  iotjs_string_destroy(&path);
   return jres;
 }
 
@@ -103,9 +115,9 @@ JS_FUNCTION(CompileSnapshot) {
   iotjs_string_t path = JS_GET_ARG(0, string);
   const iotjs_environment_t* env = iotjs_environment_get();
 
+  const char* filename = iotjs_string_data(&path);
   uv_fs_t fs_req;
-  uv_fs_stat(iotjs_environment_loop(env), &fs_req, iotjs_string_data(&path),
-             NULL);
+  uv_fs_stat(iotjs_environment_loop(env), &fs_req, filename, NULL);
   uv_fs_req_cleanup(&fs_req);
 
   if (!S_ISREG(fs_req.statbuf.st_mode)) {
@@ -114,11 +126,13 @@ JS_FUNCTION(CompileSnapshot) {
   }
 
   size_t size = 0;
-  char* bytecode = iotjs__file_read(iotjs_string_data(&path), &size);
+  char* bytecode = iotjs__file_read(filename, &size);
   if (bytecode == NULL || size == 0) {
+    iotjs_string_destroy(&path);
     return JS_CREATE_ERROR(COMMON, "Could not load the snapshot source.");
   }
 
+  iotjs_string_destroy(&path);
   return jerry_exec_snapshot((uint32_t*)bytecode, size, true);
 }
 
@@ -413,27 +427,51 @@ JS_FUNCTION(ForceGC) {
   return jerry_create_boolean(true);
 }
 
-JS_FUNCTION(DLOpen) {
+JS_FUNCTION(OpenNativeModule) {
   iotjs_string_t location = JS_GET_ARG(0, string);
-  void (*initfn)(jerry_value_t);
 
   void* handle = dlopen(iotjs_string_data(&location), RTLD_LAZY);
+  iotjs_string_destroy(&location);
+
   if (handle == NULL) {
-    fprintf(stderr, "dlopen: error(%s)\n", dlerror());
-    return jerry_create_number(-1);
+    char* err_msg = dlerror();
+    jerry_value_t jval_error =
+        jerry_create_error(JERRY_ERROR_COMMON, (jerry_char_t*)err_msg);
+    return jval_error;
   }
 
-  initfn = dlsym(handle, "iotjs_module_register");
+  jerry_value_t exports;
+
+#ifdef ENABLE_NAPI
+  int status = napi_module_init_pending(&exports);
+  if (status == napi_module_load_ok) {
+    return exports;
+  }
+  if (status == napi_module_no_nm_register_func) {
+    jerry_value_t jval_error = jerry_create_error(
+        JERRY_ERROR_COMMON,
+        (jerry_char_t*)"Native module has no nm_register_func");
+    return jval_error;
+  }
+#endif
+
+  void (*init_fn)(jerry_value_t);
+  init_fn = dlsym(handle, "iotjs_module_register");
   // check for dlsym
-  char* error = dlerror();
-  if (error != NULL) {
-    fprintf(stderr, "dlsym: error(%s)\n", error);
+  if (init_fn == NULL) {
+    char* err_msg = dlerror();
     dlclose(handle);
-    return jerry_create_number(-1);
+    char* msg_tpl = "dlopen(%s)";
+    char msg[strlen(err_msg) + 8];
+    sprintf(msg, msg_tpl, err_msg);
+
+    jerry_value_t jval_error =
+        jerry_create_error(JERRY_ERROR_COMMON, (jerry_char_t*)msg);
+    return jval_error;
   }
 
-  jerry_value_t exports = jerry_create_object();
-  (*initfn)(exports);
+  exports = jerry_create_object();
+  (*init_fn)(exports);
   return exports;
 }
 
@@ -603,7 +641,8 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_GC, ForceGC);
 
   // native module
-  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_DLOPEN, DLOpen);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_OPENNATIVEMODULE,
+                        OpenNativeModule);
 
   // snapshot
   iotjs_jval_set_method(process, IOTJS_MAGIC_STRING_COMPILESNAPSHOT,

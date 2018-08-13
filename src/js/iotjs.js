@@ -15,6 +15,8 @@
 
 (function() {
   this.global = this;
+  // update the process.env firstly
+  updateEnviron();
 
   function Module(id) {
     this.id = id;
@@ -517,7 +519,6 @@
       process.env[key] = val;
     });
   }
-  updateEnviron();
 
   // compatible with stdout
   process.stdout = {

@@ -119,8 +119,7 @@ void iotjs_environment_print_help() {
 }
 
 void iotjs_environment_print_version() {
-  fprintf(stdout, "v" NODE_MAJOR_VERSION "." NODE_MINOR_VERSION
-                  "." NODE_PATCH_VERSION "\n");
+  fprintf(stdout, "v" IOTJS_VERSION "\n");
 }
 
 /**

@@ -183,7 +183,9 @@ def check_tidy(src_dir, options=None):
                   'ble_hci_socket_bindings.js',
                   'ble_characteristic.js',
                   'test_ble_setservices.js',
-                  '.eslintrc.js'
+                  '.eslintrc.js',
+                  'include/node_api.h',
+                  'include/node_api_types.h'
                   ]
 
     style = StyleChecker()
@@ -191,6 +193,13 @@ def check_tidy(src_dir, options=None):
 
     file_filter = FileFilter(allowed_exts, allowed_files, skip_files)
     files = fs.files_under(src_dir, skip_dirs, file_filter)
+    excluded_files = [file_path
+                      for file_path in files
+                      for skip_file in skip_files
+                      if file_path.endswith(skip_file)]
+    files = [file_path
+             for file_path in files
+             if file_path not in excluded_files]
 
     clang.check(files)
     style.check(files)

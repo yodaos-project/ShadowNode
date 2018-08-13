@@ -20,7 +20,9 @@ import argparse
 import json
 import signal
 import subprocess
+import sys
 import time
+import os
 
 from collections import OrderedDict
 from common_py import path
@@ -148,6 +150,7 @@ class TestRunner(object):
         self.coverage = options.coverage
         self.skip_modules = []
         self.results = {}
+        self.testsets = options.testsets
 
         if options.skip_modules:
             self.skip_modules = options.skip_modules.split(",")
@@ -172,11 +175,13 @@ class TestRunner(object):
             "timeout": 0
         }
 
-        with open(fs.join(path.TEST_ROOT, "testsets.json")) as testsets_file:
-            testsets = json.load(testsets_file, object_pairs_hook=OrderedDict)
+        for testset_path in self.testsets:
+            with open(testset_path) as testsets_file:
+                testsets = json.load(testsets_file,
+                                     object_pairs_hook=OrderedDict)
 
-        for testset, tests in testsets.items():
-            self.run_testset(testset, tests)
+            for testset, tests in testsets.items():
+                self.run_testset(testset, tests)
 
         Reporter.report_final(self.results)
 
@@ -194,7 +199,12 @@ class TestRunner(object):
 
             append_coverage_code(testfile, self.coverage)
 
-            exitcode, output, runtime = self.run_test(testfile, timeout)
+            options = {
+                "root": fs.join(path.TEST_ROOT, testset),
+                "env": test.get("env"),
+                "timeout": timeout,
+            }
+            exitcode, output, runtime = self.run_test(testfile, options)
             expected_failure = test.get("expected-failure", False)
 
             remove_coverage_code(testfile, self.coverage)
@@ -217,7 +227,9 @@ class TestRunner(object):
                 self.results["fail"] += 1
 
 
-    def run_test(self, testfile, timeout):
+    def run_test(self, testfile, options):
+        "run the specify test case"
+
         command = [self.iotjs, testfile]
 
         if self.valgrind:
@@ -229,12 +241,19 @@ class TestRunner(object):
 
             command = ["valgrind"] + valgrind_options + command
 
-        signal.alarm(timeout)
+        my_env = os.environ.copy()
+        if options["env"] != None:
+            for key, val in options["env"].items():
+                if key == u"NODE_PATH":
+                    my_env[key] = fs.join(options["root"], val)
+
+        signal.alarm(options["timeout"])
 
         try:
             start = time.time()
             process = subprocess.Popen(args=command,
                                        cwd=path.TEST_ROOT,
+                                       env=my_env,
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT)
 
@@ -297,6 +316,9 @@ def get_args():
                         help="check tests with Valgrind")
     parser.add_argument("--coverage", action="store_true", default=False,
                         help="measure JavaScript coverage")
+    parser.add_argument('--testsets', action='append',
+                        default=[fs.join(path.TEST_ROOT, 'testsets.json')],
+                        help='Test alternative testsets')
 
     return parser.parse_args()
 
@@ -306,7 +328,8 @@ def main():
 
     testrunner = TestRunner(options)
     testrunner.run()
-
+    if testrunner.results["fail"] > 0:
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

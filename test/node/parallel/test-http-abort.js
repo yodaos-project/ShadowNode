@@ -12,9 +12,9 @@ function getHandle(url) {
 }
 
 // test http_client
-test('http://developer.rokid.com/#/');
+test('http://example.com/');
 // test https_client
-test('https://developer.rokid.com/#/');
+test('https://example.com/');
 
 function test(url) {
   var isAborted = false;

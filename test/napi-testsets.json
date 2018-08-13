@@ -1,0 +1,5 @@
+{
+  "napi": [
+    { "name": "napi.test.js" }
+  ]
+}
