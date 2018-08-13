@@ -204,10 +204,10 @@ heapdump_object (FILE *fp, ecma_object_t *object_p)
       node_type = NODE_TYPE_ARRAY;
       break;
     case ECMA_OBJECT_TYPE_BOUND_FUNCTION:
-      node_type = NODE_TYPE_CLOSURE; // ?
+      node_type = NODE_TYPE_CLOSURE;
       break;
     case ECMA_OBJECT_TYPE_PSEUDO_ARRAY:
-      node_type = NODE_TYPE_ARRAY; // ?
+      node_type = NODE_TYPE_ARRAY;
       break;
 #ifndef CONFIG_DISABLE_ES2015_ARROW_FUNCTION
     case ECMA_OBJECT_TYPE_ARROW_FUNCTION:
