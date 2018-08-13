@@ -128,7 +128,7 @@ heapdump_literal_strings (FILE *fp)
       {
         ecma_string_t *string_p;
         string_p = JMEM_CP_GET_NON_NULL_POINTER (ecma_string_t,
-                                                string_list_p->values[i]);
+                                                 string_list_p->values[i]);
         heapdump_string (fp, string_p);
       }
     }
