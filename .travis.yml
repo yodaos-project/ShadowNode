@@ -26,8 +26,8 @@ install:
 - ls node_modules/.bin
 
 script:
-- node tools/http_server.js --port 80 &
-- node tools/http_server.js --ssl --port 443 &
+- sudo node tools/http_server.js --port 80 &
+- sudo node tools/http_server.js --ssl --port 443 &
 - npm run lint
 - tools/travis_script.py
 
