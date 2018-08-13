@@ -129,16 +129,19 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
 iotjs_module_t._resolveFilepath = function(id, root) {
   var modulePath = root ? path.join(root, id) : id;
   var filepath;
-  var ext = '.js';
+  var exts = [ '.js', '.node' ];
 
-  // id[.ext]
-  if (filepath = tryPath(modulePath, ext)) {
-    return filepath;
-  }
+  for (var idx = 0; idx < exts.length; ++idx) {
+    var ext = exts[idx];
+    // id[.ext]
+    if (filepath = tryPath(modulePath, ext)) {
+      return filepath;
+    }
 
-  // id/index[.ext]
-  if (filepath = tryPath(modulePath + '/index', ext)) {
-    return filepath;
+    // id/index[.ext]
+    if (filepath = tryPath(modulePath + '/index', ext)) {
+      return filepath;
+    }
   }
 
   // 3. package path id/
