@@ -4,8 +4,6 @@
 
 const fs = require('fs');
 
-const STRING_BASE_OFFSET = 1; // first string is "<dummy string>"
-
 class SnapshotConverter {
   constructor(jerrySnapshotPath, outputPath) {
     const inputData = fs.readFileSync(jerrySnapshotPath, 'utf8');
@@ -27,7 +25,7 @@ class SnapshotConverter {
       this.strings.push(string.chars);
     }
   }
-  
+
   addNode(node) {
     if (!this.nodeMap.has(node.id)) {
       this.nodeMap.set(node.id, this.nodes.length);
@@ -38,13 +36,13 @@ class SnapshotConverter {
 
   addEdge(edge) {
     // any edge must appear after it's from node,
-    // so this.edgeMap should has edge.from 
+    // so this.edgeMap should has edge.from
     this.edgeMap.get(edge.from).push(edge);
   }
-    
+
   parse() {
     const elements = this.jerrySnapshot.elements;
-    for (let i=0; i<elements.length; i++) {
+    for (let i = 0; i < elements.length; i++) {
       const element = elements[i];
       if (element.type === 'string') {
         this.addString(element);
@@ -55,7 +53,7 @@ class SnapshotConverter {
       }
     }
   }
-  
+
   genNodeEdges(edges) {
     for (let i = 0; i < edges.length; i++) {
       const edge = edges[i];
@@ -83,9 +81,9 @@ class SnapshotConverter {
   }
 
   write() {
-    let outputJSON = require ('./snapshot-tmpl.json');
-    outputJSON.snapshot.node_count = this.nodesOutput.length/6,
-    outputJSON.snapshot.edge_count = this.edgesOutput.length/3,
+    const outputJSON = require('./snapshot-tmpl.json');
+    outputJSON.snapshot.node_count = this.nodesOutput.length / 6,
+    outputJSON.snapshot.edge_count = this.edgesOutput.length / 3,
     outputJSON.nodes = this.nodesOutput;
     outputJSON.edges = this.edgesOutput;
     outputJSON.strings = this.strings;
