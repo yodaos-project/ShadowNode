@@ -55,10 +55,27 @@ Add Javascript code like docs/api/Profiler.md, Iot.js will generate a Profiler f
 
 Users can generate collapse stack trace file.
 ```shell
-tools/profiler/cl.py Profiler-123 Profiler-123.dump > col.txt
+$ ./deps/jerry/tools/profiler/cl.py Profiler-123 Profiler-123.dump > col.txt
 ```
 
 Then generate flame graph html file.
 ```shell
-tools/profiler/flamegraph.pl col.txt > prof.html
+$ ./deps/jerry/tools/profiler/flamegraph.pl col.txt > prof.html
 ```
+
+## Heap Profiler
+Adding below arguments when building and running IoT.js will enable Heap Profiler.
+
+```shell
+$ ./tools/build.py --jerry-heap-profiler
+```
+
+Add JavaScript code like [Profiler docs](..//api/Profiler.md), Iot.js will generate a Jerry Heap Profiler file, say Profiler-123.
+
+Users can generate v8 heap snapshot file.
+```shell
+$ node deps/jerry/tools/profiler/j2v8snap.js Profiler-123 v8.heapsnapshot
+```
+
+Then open in Chrome browser following below site.
+[V8 heap profiling docs](https://developer.chrome.com/devtools/docs/heap-profiling)

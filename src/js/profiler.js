@@ -3,9 +3,8 @@
 /**
  * @class Snapshot
  */
-function Snapshot() {
-  // native.takeSnapshot();
-  throw new Error('not implemented');
+function Snapshot(path) {
+  native.takeSnapshot(path);
 }
 
 /**
@@ -71,8 +70,11 @@ Profile.prototype.export = function(cb) {
 /**
  * @method getHeader
  */
-function takeSnapshot() {
-  return new Snapshot();
+function takeSnapshot(path) {
+  if (typeof path !== 'string') {
+    path = `${process.cwd()}/Profile-${Date.now()}`;
+  }
+  return new Snapshot(path);
 }
 
 /**

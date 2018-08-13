@@ -539,6 +539,8 @@ bool jerry_enable_cpu_profiling (void);
 bool jerry_start_cpu_profiling (const char *path, double duration);
 bool jerry_stop_cpu_profiling (void);
 
+void jerry_take_heap_snapshot (const char *path);
+
 /**
  * @}
  */

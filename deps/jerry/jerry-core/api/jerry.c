@@ -43,6 +43,7 @@
 #include "jmem.h"
 #include "js-parser.h"
 #include "re-compiler.h"
+#include "heap-profiler.h"
 
 JERRY_STATIC_ASSERT (sizeof (jerry_value_t) == sizeof (ecma_value_t),
                      size_of_jerry_value_t_must_be_equal_to_size_of_ecma_value_t);
@@ -3658,6 +3659,26 @@ done:
   return true;
 #undef CMDLINE_SIZE
 #endif
+}
+
+void
+jerry_take_heap_snapshot (const char *path)
+{
+  jerry_assert_api_available ();
+
+#ifndef JERRY_HEAP_PROFILER
+  JERRY_UNUSED (path);
+#else /* !JERRY_HEAP_PROFILER */
+  FILE *fp = fopen (path, "w");
+  if (fp == NULL)
+  {
+    return;
+  }
+
+  heap_profiler_take_snapshot (fp);
+
+  fclose (fp);
+#endif /* JERRY_HEAP_PROFILER */
 }
 
 /**

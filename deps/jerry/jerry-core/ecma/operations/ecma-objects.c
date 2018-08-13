@@ -1889,6 +1889,165 @@ ecma_object_class_is (ecma_object_t *object_p, /**< object */
   return false;
 } /* ecma_object_class_is */
 
+static ecma_string_t*
+get_object_constructor_name (ecma_object_t *object_p)
+{
+  ecma_object_t *proto_p = ecma_get_object_prototype (object_p);
+  if (proto_p != NULL)
+  {
+    ecma_string_t *constructor_string = ecma_get_magic_string(LIT_MAGIC_STRING_CONSTRUCTOR);
+    ecma_property_t *property_p = ecma_find_named_property (proto_p, constructor_string);
+
+    if (property_p != NULL &&
+        ECMA_PROPERTY_GET_TYPE (*property_p) == ECMA_PROPERTY_TYPE_NAMEDDATA)
+    {
+      ecma_property_value_t *prop_value = ecma_get_named_data_property (proto_p, constructor_string);
+      if (ecma_is_value_object (prop_value->value))
+      {
+        ecma_object_t *constructor_obj_p = ecma_get_object_from_value(prop_value->value);
+        ecma_object_type_t type = ecma_get_object_type (constructor_obj_p);
+        // function object will not recurse infinitively
+        JERRY_ASSERT (type == ECMA_OBJECT_TYPE_FUNCTION);
+
+        return ecma_object_get_name (constructor_obj_p);
+      }
+    }
+  }
+  return NULL;
+}
+
+ecma_string_t *
+ecma_object_get_name (ecma_object_t *obj_p)
+{
+  JERRY_ASSERT (obj_p != NULL);
+
+  if (ecma_is_lexical_environment (obj_p))
+  {
+    lit_magic_string_id_t id;
+#ifdef JERRY_HEAP_PROFILER
+    id = LIT_MAGIC_STRING__LEX_ENV_TO_STRING;
+#else /* !JERRY_HEAP_PROFILER */
+    id = LIT_MAGIC_STRING__EMPTY;
+#endif /* JERRY_HEAP_PROFILER */
+    return ecma_get_magic_string (id);
+  }
+
+  ecma_object_type_t type = ecma_get_object_type (obj_p);
+
+  if (ecma_get_object_is_builtin (obj_p))
+  {
+    if (type == ECMA_OBJECT_TYPE_CLASS)
+    {
+      lit_magic_string_id_t id = ecma_object_get_class_name (obj_p);
+      return ecma_get_magic_string (id);
+    }
+
+    ecma_extended_object_t *builtin_obj_p = (ecma_extended_object_t *) obj_p;
+    lit_magic_string_id_t id;
+    ecma_built_in_props_t builtin = builtin_obj_p->u.built_in;
+    if (type == ECMA_OBJECT_TYPE_FUNCTION && ecma_builtin_function_is_routine (obj_p))
+    {
+      id = ecma_builtin_routine_get_name (builtin.id, builtin.routine_id);
+    }
+    else
+    {
+      id = ecma_builtin_get_name (builtin.id);
+    }
+    return ecma_get_magic_string (id);
+  }
+
+  ecma_string_t *name = NULL;
+  switch (type)
+  {
+    case ECMA_OBJECT_TYPE_GENERAL:
+    {
+      name = get_object_constructor_name (obj_p);
+      break;
+    }
+    case ECMA_OBJECT_TYPE_CLASS:
+    {
+      lit_magic_string_id_t id = ecma_object_get_class_name (obj_p);
+      name = ecma_get_magic_string (id);
+      break;
+    }
+    case ECMA_OBJECT_TYPE_FUNCTION:
+    {
+#ifdef JERRY_FUNCTION_NAME
+      ecma_extended_object_t *func_obj_p = (ecma_extended_object_t *) obj_p;
+      const ecma_compiled_code_t *bytecode_data_p = ecma_op_function_get_compiled_code (func_obj_p);
+      if (bytecode_data_p->name != ECMA_VALUE_EMPTY)
+      {
+        return ecma_get_string_from_value (bytecode_data_p->name);
+      }
+#endif /* JERRY_FUNCTION_NAME */
+      break;
+    }
+    case ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION:
+    {
+#if defined (JERRY_HEAP_PROFILER)
+      name = ecma_get_magic_string (LIT_MAGIC_STRING__EXTERNAL_FUNCTION_TO_STRING);
+#endif /* JERRY_HEAP_PROFILER */
+      break;
+    }
+    case ECMA_OBJECT_TYPE_ARRAY:
+    {
+      break;
+    }
+    case ECMA_OBJECT_TYPE_BOUND_FUNCTION:
+    {
+      break;
+    }
+    case ECMA_OBJECT_TYPE_PSEUDO_ARRAY:
+    {
+      break;
+    }
+#if !defined (CONFIG_DISABLE_ES2015_ARROW_FUNCTION)
+    case ECMA_OBJECT_TYPE_ARROW_FUNCTION:
+    {
+#ifdef JERRY_HEAP_PROFILER
+      name = ecma_get_magic_string (LIT_MAGIC_STRING__ARROW_FUNCTION_TO_STRING);
+#endif /* JERRY_HEAP_PROFILER */
+      break;
+    }
+#endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
+    default:
+    {
+      JERRY_UNREACHABLE ();
+    }
+  }
+
+  if (name == NULL)
+  {
+    lit_magic_string_id_t id = ecma_object_get_class_name (obj_p);
+    name = ecma_get_magic_string (id);
+  }
+
+  return name;
+}
+
+#ifdef JERRY_HEAP_PROFILER
+uint32_t
+ecma_object_get_size (ecma_object_t *obj_p)
+{
+  JERRY_ASSERT (obj_p != NULL);
+
+  if (ecma_is_lexical_environment (obj_p))
+  {
+    return sizeof (ecma_object_t);
+  }
+
+  ecma_object_type_t type = ecma_get_object_type (obj_p);
+
+  if (type == ECMA_OBJECT_TYPE_GENERAL && !ecma_get_object_is_builtin (obj_p))
+  {
+    return sizeof (ecma_object_t);
+  }
+
+  ecma_extended_object_t *ext_obj_p = (ecma_extended_object_t *) obj_p;
+  return ext_obj_p->size - (uint32_t) sizeof (uint64_t);
+}
+#endif /* JERRY_HEAP_PROFILER */
+
 /**
  * @}
  * @}

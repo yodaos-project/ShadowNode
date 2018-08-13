@@ -53,6 +53,11 @@ ecma_collection_header_t * ecma_op_object_get_property_names (ecma_object_t *obj
 lit_magic_string_id_t ecma_object_get_class_name (ecma_object_t *obj_p);
 bool ecma_object_class_is (ecma_object_t *object_p, uint32_t class_id);
 
+ecma_string_t *ecma_object_get_name (ecma_object_t *obj_p);
+#ifdef JERRY_HEAP_PROFILER
+uint32_t ecma_object_get_size (ecma_object_t *obj_p);
+#endif /* JERRY_HEAP_PROFILER */
+
 /**
  * @}
  * @}

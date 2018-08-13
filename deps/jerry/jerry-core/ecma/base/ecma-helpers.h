@@ -377,6 +377,30 @@ lit_utf8_size_t ecma_number_to_utf8_string (ecma_number_t num, lit_utf8_byte_t *
 /* ecma-helpers-errol.c */
 lit_utf8_size_t ecma_errol0_dtoa (double val, lit_utf8_byte_t *buffer_p, int32_t *exp_p);
 
+/* reference type from ecma value to ecma value */
+typedef enum
+{
+  ECMA_REF_TYPE_CONTEXT = 0,
+  ECMA_REF_TYPE_ELEMENT = 1,
+  ECMA_REF_TYPE_PROPERTY = 2,
+  ECMA_REF_TYPE_INTERNAL = 3,
+  ECMA_REF_TYPE_HIDDEN = 4,
+  ECMA_REF_TYPE_SHORTCUT = 5,
+  ECMA_REF_TYPE_WEAK = 6,
+} ecma_ref_type_t;
+
+typedef void
+(*ecma_visit_object_callback_t) (ecma_object_t *from_p,
+                                 ecma_value_t to,
+                                 ecma_string_t *edge_name,
+                                 ecma_ref_type_t edge_type,
+                                 void *args);
+
+void
+ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from */
+              ecma_visit_object_callback_t callback, /**< visit object callback */
+              void *callback_args); /** callback args */
+
 /**
  * @}
  * @}
