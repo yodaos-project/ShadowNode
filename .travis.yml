@@ -12,6 +12,8 @@ cache:
   yarn: true
   directories:
   - node_modules/
+  - $HOME/.nvm/
+
 
 addons:
   hosts:
