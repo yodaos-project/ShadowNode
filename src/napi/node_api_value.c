@@ -16,6 +16,7 @@
 #include "jerryscript-ext/handle-scope.h"
 #include "jerryscript.h"
 #include "internal/node_api_internal.h"
+#include "modules/iotjs_module_buffer.h"
 
 napi_status napi_create_array(napi_env env, napi_value* result) {
   JERRYX_CREATE(jval, jerry_create_array(0));
@@ -27,6 +28,30 @@ napi_status napi_create_array_with_length(napi_env env, size_t length,
                                           napi_value* result) {
   JERRYX_CREATE(jval, jerry_create_array(length));
   NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
+  NAPI_RETURN(napi_ok);
+}
+
+napi_status napi_create_buffer(napi_env env, size_t size, void** data,
+                               napi_value* result) {
+  JERRYX_CREATE(jval_buf, iotjs_bufferwrap_create_buffer(size));
+  iotjs_bufferwrap_t* buf_wrap = iotjs_bufferwrap_from_jbuffer(jval_buf);
+
+  NAPI_ASSIGN(data, iotjs_bufferwrap_buffer(buf_wrap));
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_buf));
+
+  NAPI_RETURN(napi_ok);
+}
+
+napi_status napi_create_buffer_copy(napi_env env, size_t size, const void* data,
+                                    void** result_data, napi_value* result) {
+  JERRYX_CREATE(jval_buf, iotjs_bufferwrap_create_buffer(size));
+  iotjs_bufferwrap_t* buf_wrap = iotjs_bufferwrap_from_jbuffer(jval_buf);
+
+  iotjs_bufferwrap_copy(buf_wrap, (char*)data, size);
+
+  NAPI_ASSIGN(result_data, iotjs_bufferwrap_buffer(buf_wrap));
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_buf));
+
   NAPI_RETURN(napi_ok);
 }
 
@@ -112,6 +137,16 @@ napi_status napi_get_array_length(napi_env env, napi_value value,
                                   uint32_t* result) {
   jerry_value_t jval = AS_JERRY_VALUE(value);
   NAPI_ASSIGN(result, jerry_get_array_length(jval));
+  NAPI_RETURN(napi_ok);
+}
+
+napi_status napi_get_buffer_info(napi_env env, napi_value value, void** data,
+                                 size_t* length) {
+  jerry_value_t jval = AS_JERRY_VALUE(value);
+  iotjs_bufferwrap_t* buf_wrap = iotjs_bufferwrap_from_jbuffer(jval);
+  NAPI_ASSIGN(data, iotjs_bufferwrap_buffer(buf_wrap));
+  NAPI_ASSIGN(length, iotjs_bufferwrap_length(buf_wrap));
+
   NAPI_RETURN(napi_ok);
 }
 
@@ -213,6 +248,20 @@ napi_status napi_instanceof(napi_env env, napi_value object,
 DEF_NAPI_VALUE_IS(array);
 DEF_NAPI_VALUE_IS(arraybuffer);
 DEF_NAPI_VALUE_IS(typedarray);
+
+napi_status napi_is_buffer(napi_env env, napi_value value, bool* result) {
+  jerry_value_t jval_global = jerry_get_global_object();
+  jerry_value_t jval_buffer =
+      iotjs_jval_get_property(jval_global, IOTJS_MAGIC_STRING_BUFFER);
+
+  napi_status status =
+      napi_instanceof(env, value, AS_NAPI_VALUE(jval_buffer), result);
+
+  jerry_release_value(jval_buffer);
+  jerry_release_value(jval_global);
+
+  return status;
+}
 
 napi_status napi_is_error(napi_env env, napi_value value, bool* result) {
   jerry_value_t jval = AS_JERRY_VALUE(value);
