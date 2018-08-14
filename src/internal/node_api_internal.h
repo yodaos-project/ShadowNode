@@ -90,7 +90,7 @@
 /**
  * In most N-API functions, there is an in-out pointer parameter to retrieve
  * return values, yet this pointer could be NULL anyway - it has to be ensured
- * not write any unexpected value to NULL pointer.
+ * no value were unexpectedly written to NULL pointer.
  */
 #define NAPI_ASSIGN(result, value) \
   if ((result) != NULL)            \
