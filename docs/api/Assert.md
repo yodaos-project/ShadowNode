@@ -191,7 +191,7 @@ assert.strictEqual(1, '1');
 
 ### throws(block[, expected, message])
 * `block` {Function} The function that throws an error.
-* `expected` {Function} The expected error type.
+* `expected` {Function|RegExp|Object|Error} The expected error type.
 * `message` {any} Message to be displayed.
 
 Tests if the given `block` throws an `expected` error. Otherwise throws an exception
@@ -208,6 +208,26 @@ assert.throws(
   },
   assert.AssertionError
 );
+// OK
+
+assert.throws(() => {
+  throw new Error('foobar');
+}, /foobar/);
+// OK
+
+assert.throws(() => {
+  var e = new Error('foobar');
+  e.code = 'ENO';
+  throw e;
+}, {
+  message: 'foobar',
+  code: 'ENO',
+});
+// OK
+
+assert.throws(() => {
+  throw new Error('foobar');
+}, err => err.message === 'foobar');
 // OK
 
 assert.throws(
