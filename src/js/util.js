@@ -47,6 +47,10 @@ function isBuffer(arg) {
   return arg instanceof Buffer;
 }
 
+function isRegExp(arg) {
+  return arg instanceof RegExp;
+}
+
 
 function inherits(ctor, superCtor) {
   ctor.prototype = Object.create(superCtor.prototype, {
@@ -257,6 +261,7 @@ exports.isObject = isObject;
 exports.isFinite = isFinite;
 exports.isFunction = isFunction;
 exports.isBuffer = isBuffer;
+exports.isRegExp = isRegExp;
 exports.isArray = Array.isArray;
 exports.exceptionWithHostPort = exceptionWithHostPort;
 exports.errnoException = errnoException;

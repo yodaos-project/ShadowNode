@@ -87,6 +87,18 @@ assert.throws(
   assert.AssertionError
 );
 
+assert.throws(() => {
+  throw new Error('foobar');
+}, /foobar/);
+
+assert.throws(() => {
+  throw new Error('foobar');
+}, err => {
+  assert(err instanceof Error);
+  assert.strictEqual(err.message, 'foobar');
+  return true;
+});
+
 try {
   assert.assert(false, 'assert test');
 } catch (e) {
