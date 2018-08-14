@@ -16,6 +16,8 @@
 #include "iotjs_def.h"
 #include "internal/node_api_internal.h"
 
+static const char* NAPI_GENERIC_ERROR_MESSAGE = "Unexpected error.";
+
 static iotjs_napi_env_t current_env = {
   .pending_exception = NULL,
   .pending_fatal_exception = NULL,
@@ -28,6 +30,31 @@ inline napi_env iotjs_get_current_napi_env() {
 inline bool iotjs_napi_is_exception_pending(iotjs_napi_env_t* env) {
   return !(env->pending_exception == NULL &&
            env->pending_fatal_exception == NULL);
+}
+
+void iotjs_napi_set_error_info(napi_env env, napi_status error_code,
+                               const char* error_message,
+                               uint32_t engine_error_code,
+                               void* engine_reserved) {
+  iotjs_napi_env_t* cur_env = (iotjs_napi_env_t*)env;
+
+  if (error_message == NULL && error_code != napi_ok) {
+    error_message = NAPI_GENERIC_ERROR_MESSAGE;
+  }
+
+  cur_env->extended_error_info.error_code = error_code;
+  cur_env->extended_error_info.error_message = error_message;
+  cur_env->extended_error_info.engine_error_code = engine_error_code;
+  cur_env->extended_error_info.engine_reserved = engine_reserved;
+}
+
+void iotjs_napi_clear_error_info(napi_env env) {
+  iotjs_napi_env_t* cur_env = (iotjs_napi_env_t*)env;
+
+  cur_env->extended_error_info.error_code = napi_ok;
+  cur_env->extended_error_info.error_message = NULL;
+  cur_env->extended_error_info.engine_error_code = 0;
+  cur_env->extended_error_info.engine_reserved = NULL;
 }
 
 jerry_value_t iotjs_napi_env_get_and_clear_exception(napi_env env) {
@@ -50,11 +77,9 @@ jerry_value_t iotjs_napi_env_get_and_clear_fatal_exception(napi_env env) {
 
 // Methods to support error handling
 napi_status napi_throw(napi_env env, napi_value error) {
-  if (env != iotjs_get_current_napi_env())
-    return napi_invalid_arg;
+  NAPI_TRY_ENV(env);
   iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
-  if (iotjs_napi_is_exception_pending(curr_env))
-    return napi_pending_exception;
+  NAPI_TRY_NO_PENDING_EXCEPTION(curr_env);
 
   jerry_value_t jval_err = AS_JERRY_VALUE(error);
   if (!jerry_value_has_error_flag(jval_err)) {
@@ -62,16 +87,17 @@ napi_status napi_throw(napi_env env, napi_value error) {
   }
 
   curr_env->pending_exception = AS_NAPI_VALUE(jval_err);
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }
 
 #define DEF_NAPI_THROWS(type, jerry_error_type)                   \
   napi_status napi_throw_##type(napi_env env, const char* code,   \
                                 const char* msg) {                \
-    if (env != iotjs_get_current_napi_env())                      \
-      return napi_invalid_arg;                                    \
-    if (iotjs_napi_is_exception_pending((iotjs_napi_env_t*)env))  \
-      return napi_pending_exception;                              \
+    NAPI_TRY_ENV(env);                                            \
+    NAPI_TRY_NO_PENDING_EXCEPTION(env);                           \
+                                                                  \
+    NAPI_WEAK_ASSERT(napi_invalid_arg, msg != NULL);              \
+    NAPI_WEAK_ASSERT(napi_invalid_arg, code != NULL);             \
                                                                   \
     jerry_value_t jval_error =                                    \
         jerry_create_error(jerry_error_type, (jerry_char_t*)msg); \
@@ -85,11 +111,9 @@ DEF_NAPI_THROWS(range_error, JERRY_ERROR_RANGE);
 #undef DEF_NAPI_THROWS
 
 napi_status napi_fatal_exception(napi_env env, napi_value err) {
-  if (env != iotjs_get_current_napi_env())
-    return napi_invalid_arg;
+  NAPI_TRY_ENV(env);
+  NAPI_TRY_NO_PENDING_EXCEPTION(env);
   iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
-  if (iotjs_napi_is_exception_pending(curr_env))
-    return napi_pending_exception;
 
   jerry_value_t jval_err = AS_JERRY_VALUE(err);
   if (!jerry_value_has_error_flag(jval_err)) {
@@ -97,42 +121,39 @@ napi_status napi_fatal_exception(napi_env env, napi_value err) {
   }
 
   curr_env->pending_fatal_exception = AS_NAPI_VALUE(jval_err);
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }
 
 
 // Methods to support catching exceptions
 napi_status napi_is_exception_pending(napi_env env, bool* result) {
-  if (env != iotjs_get_current_napi_env())
-    return napi_invalid_arg;
-  *result = iotjs_napi_is_exception_pending((iotjs_napi_env_t*)env);
-  return napi_ok;
+  NAPI_TRY_ENV(env);
+  NAPI_ASSIGN(result, iotjs_napi_is_exception_pending((iotjs_napi_env_t*)env));
+  NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_get_and_clear_last_exception(napi_env env,
                                               napi_value* result) {
-  if (env != iotjs_get_current_napi_env())
-    return napi_invalid_arg;
+  NAPI_TRY_ENV(env);
   iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
 
   if (curr_env->pending_exception != NULL) {
-    *result = curr_env->pending_exception;
+    NAPI_ASSIGN(result, curr_env->pending_exception);
     curr_env->pending_exception = NULL;
   } else if (curr_env->pending_fatal_exception != NULL) {
-    *result = curr_env->pending_fatal_exception;
+    NAPI_ASSIGN(result, curr_env->pending_fatal_exception);
     curr_env->pending_fatal_exception = NULL;
   }
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }
 
 
 napi_status napi_get_last_error_info(napi_env env,
                                      const napi_extended_error_info** result) {
-  if (env != iotjs_get_current_napi_env())
-    return napi_invalid_arg;
+  NAPI_TRY_ENV(env);
   iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
   napi_extended_error_info* error_info = &curr_env->extended_error_info;
 
-  *result = error_info;
+  NAPI_ASSIGN(result, error_info);
   return napi_ok;
 }

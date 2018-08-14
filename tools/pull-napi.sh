@@ -86,8 +86,10 @@ for file in test/addons-napi/**/*.js; do
   declare -a exps=(
     # `const common = require('../../common');` => ``
     "s/const common = require.'\.\.\/\.\.\/common'.;//"
-    # `const` => `var`
-    "s/const/var/"
+    # `const ` => `var `
+    "s/const /var /"
+    # `let ` => `var `
+    "s/let /var /"
     # `${common.buildType}` => `Release`
     's/\$\{common\.buildType\}/Release/'
     # `./build/Release/binding` => `./build/Release/binding.node`

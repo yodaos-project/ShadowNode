@@ -31,7 +31,7 @@ assert.strictEqual(test_function.TestCall(func4, 1), 2);
 assert.strictEqual(test_function.TestName.name, 'Name');
 assert.strictEqual(test_function.TestNameShort.name, 'Name_');
 
-let tracked_function = test_function.MakeTrackedFunction(common.mustCall());
+var tracked_function = test_function.MakeTrackedFunction(common.mustCall());
 assert(!!tracked_function);
 tracked_function = null;
 global.gc();

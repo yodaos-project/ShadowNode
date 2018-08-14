@@ -5,7 +5,7 @@ var async_hooks = require('async_hooks');
 var test_async = require(`./build/Release/test_async.node`);
 
 var events = [];
-let testId;
+var testId;
 var initAsyncId = async_hooks.executionAsyncId();
 
 async_hooks.createHook({

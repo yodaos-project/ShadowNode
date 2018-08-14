@@ -25,28 +25,94 @@
 #define AS_JERRY_VALUE(nvalue) (jerry_value_t)(uintptr_t) nvalue
 #define AS_NAPI_VALUE(jval) (napi_value)(uintptr_t) jval
 
-#define NAPI_WEAK_ASSERT(error_t, assertion) \
-  do {                                       \
-    if (!(assertion))                        \
-      return error_t;                        \
+/**
+ * MARK: - N-API Returns machenism:
+ * If any non-napi-ok status code is returned in N-API functions, there
+ * should be an error code and error message temporarily stored in napi-env
+ * and can be fetched by `napi_get_last_error_info` until next napi function
+ * called.
+ */
+#define NAPI_RETURN_WITH_MSG(status, message)                                \
+  {                                                                          \
+    iotjs_napi_set_error_info(iotjs_get_current_napi_env(), status, message, \
+                              0, NULL);                                      \
+    return status;                                                           \
+  }
+
+#define NAPI_RETURN_NO_MSG(status)                                           \
+  {                                                                          \
+    iotjs_napi_set_error_info(iotjs_get_current_napi_env(), status, NULL, 0, \
+                              NULL);                                         \
+    return status;                                                           \
+  }
+
+#define GET_3TH_ARG(arg1, arg2, arg3, ...) arg3
+#define NAPI_RETURN_MACRO_CHOOSER(...) \
+  GET_3TH_ARG(__VA_ARGS__, NAPI_RETURN_WITH_MSG, NAPI_RETURN_NO_MSG, )
+
+#define NAPI_RETURN(...) NAPI_RETURN_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
+/** MARK: - END N-API Returns */
+
+/** MARK: - N-API Asserts */
+/**
+ * A weak assertion, which don't crash the program on failed assertion
+ * rather returning a napi error code back to caller.
+ */
+#define NAPI_WEAK_ASSERT(error_t, assertion)                     \
+  do {                                                           \
+    if (!(assertion))                                            \
+      NAPI_RETURN(error_t, "Assertion (" #assertion ") failed"); \
   } while (0)
 
+/**
+ * A convenience weak assertion on jerry value type.
+ */
 #define NAPI_TRY_TYPE(type, jval) \
   NAPI_WEAK_ASSERT(napi_##type##_expected, jerry_value_is_##type(jval))
 
+/**
+ * A convenience weak assertion on N-API Env matching.
+ */
+#define NAPI_TRY_ENV(env)                                 \
+  if (env != iotjs_get_current_napi_env()) {              \
+    NAPI_RETURN(napi_invalid_arg, "N-API env not match.") \
+  }
+
+/**
+ * A convenience weak assertion expecting there is no pending exception
+ * unhandled.
+ */
 #define NAPI_TRY_NO_PENDING_EXCEPTION(env) \
   NAPI_WEAK_ASSERT(napi_pending_exception, \
-                   iotjs_napi_is_exception_pending((iotjs_napi_env_t*)env))
+                   !iotjs_napi_is_exception_pending((iotjs_napi_env_t*)env))
+/** MARK: - N-API Asserts */
 
+/**
+ * In most N-API functions, there is an in-out pointer parameter to retrieve
+ * return values, yet this pointer could be NULL anyway - it has to be ensured
+ * no value were unexpectedly written to NULL pointer.
+ */
+#define NAPI_ASSIGN(result, value) \
+  if ((result) != NULL)            \
+    *(result) = (value);
+
+/**
+ * A convenience macro to call N-API functions internally and handle it's
+ * non-napi-ok status code.
+ */
 #define NAPI_INTERNAL_CALL(call) \
   do {                           \
     napi_status status;          \
     status = (call);             \
     if (status != napi_ok) {     \
-      return status;             \
+      NAPI_RETURN(status);       \
     }                            \
   } while (0)
 
+/**
+ * A convenience macro to create jerry-values and add it to current top
+ * handle scope.
+ */
 #define JERRYX_CREATE(var, create) \
   jerry_value_t var = create;      \
   jerryx_create_handle(var);
@@ -57,6 +123,11 @@ int napi_module_init_pending(jerry_value_t* exports);
 
 /** MARK: - node_api_env.c */
 napi_env iotjs_get_current_napi_env();
+void iotjs_napi_set_error_info(napi_env env, napi_status error_code,
+                               const char* error_message,
+                               uint32_t engine_error_code,
+                               void* engine_reserved);
+void iotjs_napi_clear_error_info(napi_env env);
 bool iotjs_napi_is_exception_pending(iotjs_napi_env_t* env);
 jerry_value_t iotjs_napi_env_get_and_clear_exception(napi_env env);
 jerry_value_t iotjs_napi_env_get_and_clear_fatal_exception(napi_env env);

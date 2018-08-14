@@ -272,6 +272,9 @@ class TestRunner(object):
     def skip_test(self, test):
         skip_list = test.get("skip", [])
 
+        if skip_list is False:
+            return False
+
         # Skip by the `skip` attribute in testsets.json file.
         for i in ["all", Platform().os(), self.stability]:
             if i in skip_list:

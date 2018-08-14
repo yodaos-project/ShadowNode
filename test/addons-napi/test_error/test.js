@@ -100,7 +100,7 @@ common.expectsError(
     message: 'TypeError [type error]'
   });
 
-let error = test_error.createError();
+var error = test_error.createError();
 assert.ok(error instanceof Error, 'expected error to be an instance of Error');
 assert.strictEqual(error.message, 'error');
 
