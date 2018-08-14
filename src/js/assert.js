@@ -48,8 +48,8 @@ function AssertionError(options) {
   } else {
     this.message = getMessage(this);
   }
+  Error.captureStackTrace(this, AssertionError);
 }
-
 util.inherits(AssertionError, Error);
 
 
@@ -114,13 +114,10 @@ function throws(block, expected, message) {
     actual = e;
   }
 
-  message = (expected && expected.name ? '(' + expected.name + ').' : '.') +
-            (message ? ' ' + message : '.');
-
   if (!actual) {
     fail(actual, expected, 'Missing expected exception' + message);
   }
-  if (expected && !(actual instanceof expected)) {
+  if (expected && expectedException(actual, expected, message) !== true) {
     throw actual;
   }
 }
@@ -142,6 +139,47 @@ function doesNotThrow(block, message) {
   }
 }
 
+function expectedException(actual, expected, msg) {
+  if (typeof expected !== 'function') {
+    if (util.isRegExp(expected))
+      return expected.test(actual);
+
+    // Handle primitives properly.
+    if (typeof actual !== 'object' || actual === null) {
+      throw new AssertionError({
+        actual: actual,
+        expected: expected,
+        message: msg,
+        operator: 'throws',
+      });
+    }
+
+    var keys = Object.keys(expected);
+    // Special handle errors to make sure the name and the message are compared
+    // as well.
+    if (expected instanceof Error) {
+      keys.push('name', 'message');
+    }
+    for (var idx = 0; idx < keys.length; ++idx) {
+      var key = keys[idx];
+      if (typeof actual[key] === 'string' &&
+          util.isRegExp(expected[key]) &&
+          expected[key].test(actual[key])) {
+        continue;
+      }
+      strictEqual(actual[key], expected[key], msg);
+    }
+    return true;
+  }
+  // Guard instanceof against arrow functions as they don't have a prototype.
+  if (expected.prototype !== undefined && actual instanceof expected) {
+    return true;
+  }
+  if (Error.isPrototypeOf(expected)) {
+    return false;
+  }
+  return expected.call({}, actual) === true;
+}
 
 assert.AssertionError = AssertionError;
 assert.assert = assert;
