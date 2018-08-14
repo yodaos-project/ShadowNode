@@ -41,7 +41,7 @@ napi_status napi_define_class(napi_env env, const char* utf8name, size_t length,
 
   NAPI_ASSIGN(result, nval);
 
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_wrap(napi_env env, napi_value js_object, void* native_object,
@@ -73,7 +73,7 @@ napi_status napi_unwrap(napi_env env, napi_value js_object, void** result) {
       iotjs_get_object_native_info(jval, sizeof(iotjs_object_info_t));
 
   NAPI_ASSIGN(result, object_info->native_object);
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_remove_wrap(napi_env env, napi_value js_object,
@@ -88,5 +88,5 @@ napi_status napi_remove_wrap(napi_env env, napi_value js_object,
   object_info->finalize_cb = NULL;
   object_info->finalize_hint = NULL;
 
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }

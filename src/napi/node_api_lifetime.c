@@ -37,11 +37,11 @@ inline napi_status jerryx_status_to_napi_status(
     jerryx_handle_scope_status status) {
   switch (status) {
     case jerryx_handle_scope_mismatch:
-      return napi_handle_scope_mismatch;
+      NAPI_RETURN(napi_handle_scope_mismatch, NULL);
     case jerryx_escape_called_twice:
-      return napi_escape_called_twice;
+      NAPI_RETURN(napi_escape_called_twice, NULL);
     default:
-      return napi_ok;
+      NAPI_RETURN(napi_ok);
   }
 }
 
@@ -129,7 +129,7 @@ napi_status napi_create_reference(napi_env env, napi_value value,
   info->ref = ref;
 
   *result = (napi_ref)ref;
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_delete_reference(napi_env env, napi_ref ref) {
@@ -147,7 +147,7 @@ napi_status napi_delete_reference(napi_env env, napi_ref ref) {
     jerry_release_value(iot_ref->jval);
   }
   free(iot_ref);
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_reference_ref(napi_env env, napi_ref ref, uint32_t* result) {
@@ -158,7 +158,7 @@ napi_status napi_reference_ref(napi_env env, napi_ref ref, uint32_t* result) {
   iot_ref->refcount += 1;
 
   NAPI_ASSIGN(result, iot_ref->refcount);
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_reference_unref(napi_env env, napi_ref ref, uint32_t* result) {
@@ -169,12 +169,12 @@ napi_status napi_reference_unref(napi_env env, napi_ref ref, uint32_t* result) {
   iot_ref->refcount -= 1;
 
   NAPI_ASSIGN(result, iot_ref->refcount);
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_get_reference_value(napi_env env, napi_ref ref,
                                      napi_value* result) {
   iotjs_reference_t* iot_ref = (iotjs_reference_t*)ref;
   NAPI_ASSIGN(result, AS_NAPI_VALUE(iot_ref->jval));
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }

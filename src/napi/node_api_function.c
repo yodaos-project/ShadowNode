@@ -71,6 +71,11 @@ static jerry_value_t iotjs_napi_function_handler(
 
 cleanup:
   jerryx_close_handle_scope(scope);
+  /**
+   * Clear N-API env extended error info on end of external function
+   * execution to prevent error info been passed to next external function.
+   */
+  iotjs_napi_clear_error_info(env);
   return jval_ret;
 }
 
@@ -90,7 +95,7 @@ napi_status napi_create_function(napi_env env, const char* utf8name,
                                   &native_obj_type_info);
 
   NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_func));
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_call_function(napi_env env, napi_value recv, napi_value func,
@@ -108,11 +113,12 @@ napi_status napi_call_function(napi_env env, napi_value recv, napi_value func,
   jerryx_create_handle(jval_ret);
   if (jerry_value_has_error_flag(jval_ret)) {
     NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));
-    return napi_generic_failure;
+    NAPI_RETURN(napi_generic_failure,
+                "Unexpected error flag on jerry_call_function.");
   }
 
   NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_ret));
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_get_cb_info(napi_env env, napi_callback_info cbinfo,
@@ -139,7 +145,7 @@ napi_status napi_get_cb_info(napi_env env, napi_callback_info cbinfo,
     NAPI_ASSIGN(data, callback_info->function_info->data);
   }
 
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_new_instance(napi_env env, napi_value constructor, size_t argc,
@@ -155,9 +161,10 @@ napi_status napi_new_instance(napi_env env, napi_value constructor, size_t argc,
   jerryx_create_handle(jval_ret);
   if (jerry_value_has_error_flag(jval_ret)) {
     NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));
-    return napi_generic_failure;
+    NAPI_RETURN(napi_generic_failure,
+                "Unexpected error flag on jerry_construct_object.");
   }
 
   NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_ret));
-  return napi_ok;
+  NAPI_RETURN(napi_ok);
 }

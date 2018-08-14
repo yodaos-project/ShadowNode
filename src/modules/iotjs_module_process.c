@@ -450,7 +450,7 @@ JS_FUNCTION(OpenNativeModule) {
   if (status == napi_module_no_nm_register_func) {
     jerry_value_t jval_error = jerry_create_error(
         JERRY_ERROR_COMMON,
-        (jerry_char_t*)"Native module has no nm_register_func");
+        (jerry_char_t*)"Module has no declared entry point.");
     return jval_error;
   }
 #endif
