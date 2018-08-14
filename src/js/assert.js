@@ -48,8 +48,8 @@ function AssertionError(options) {
   } else {
     this.message = getMessage(this);
   }
+  Error.captureStackTrace(this, AssertionError);
 }
-
 util.inherits(AssertionError, Error);
 
 
@@ -114,9 +114,6 @@ function throws(block, expected, message) {
     actual = e;
   }
 
-  message = (expected && expected.name ? '(' + expected.name + ').' : '.') +
-            (message ? ' ' + message : '.');
-
   if (!actual) {
     fail(actual, expected, 'Missing expected exception' + message);
   }
@@ -171,7 +168,7 @@ function expectedException(actual, expected, msg) {
           expected[key].test(actual[key])) {
         continue;
       }
-      strictEqual(actual, expected, msg);
+      strictEqual(actual[key], expected[key], msg);
     }
     return true;
   }

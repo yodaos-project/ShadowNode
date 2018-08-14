@@ -93,6 +93,12 @@ assert.throws(() => {
 
 assert.throws(() => {
   throw new Error('foobar');
+}, {
+  message: 'foobar',
+});
+
+assert.throws(() => {
+  throw new Error('foobar');
 }, err => {
   assert(err instanceof Error);
   assert.strictEqual(err.message, 'foobar');
