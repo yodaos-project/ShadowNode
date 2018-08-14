@@ -6,7 +6,7 @@ var binding = require(`./build/Release/binding.node`);
 var { fork } = require('child_process');
 var expectedArray = (function(arrayLength) {
   var result = [];
-  for (let index = 0; index < arrayLength; index++) {
+  for (var index = 0; index < arrayLength; index++) {
     result.push(arrayLength - 1 - index);
   }
   return result;
@@ -16,7 +16,7 @@ var expectedArray = (function(arrayLength) {
 // thread-safe function after we have received two values. This causes the
 // process to exit and the environment cleanup handler to be invoked.
 if (process.argv[2] === 'child') {
-  let callCount = 0;
+  var callCount = 0;
   binding.StartThread((value) => {
     callCount++;
     console.log(value);
@@ -60,7 +60,7 @@ function testWithJSMarshaller({
 
 function testUnref(queueSize) {
   return new Promise((resolve, reject) => {
-    let output = '';
+    var output = '';
     var child = fork(__filename, ['child', queueSize], {
       stdio: [process.stdin, 'pipe', process.stderr, 'ipc']
     });
@@ -77,7 +77,7 @@ function testUnref(queueSize) {
 }
 
 new Promise(function testWithoutJSMarshaller(resolve) {
-  let callCount = 0;
+  var callCount = 0;
   binding.StartThreadNoNative(function testCallback() {
     callCount++;
 
@@ -121,7 +121,7 @@ new Promise(function testWithoutJSMarshaller(resolve) {
 .then((result) => assert.deepStrictEqual(result, expectedArray))
 
 // Start the thread in blocking mode, and assert that all values are passed.
-// Quit early, but let the thread finish.
+// Quit early, but var the thread finish.
 .then(() => testWithJSMarshaller({
   threadStarter: 'StartThread',
   maxQueueSize: binding.MAX_QUEUE_SIZE,
@@ -130,7 +130,7 @@ new Promise(function testWithoutJSMarshaller(resolve) {
 .then((result) => assert.deepStrictEqual(result, expectedArray))
 
 // Start the thread in blocking mode with an infinite queue, and assert that all
-// values are passed. Quit early, but let the thread finish.
+// values are passed. Quit early, but var the thread finish.
 .then(() => testWithJSMarshaller({
   threadStarter: 'StartThread',
   maxQueueSize: 0,
@@ -139,7 +139,7 @@ new Promise(function testWithoutJSMarshaller(resolve) {
 .then((result) => assert.deepStrictEqual(result, expectedArray))
 
 // Start the thread in non-blocking mode, and assert that all values are passed.
-// Quit early, but let the thread finish.
+// Quit early, but var the thread finish.
 .then(() => testWithJSMarshaller({
   threadStarter: 'StartThreadNonblocking',
   maxQueueSize: binding.MAX_QUEUE_SIZE,
@@ -148,7 +148,7 @@ new Promise(function testWithoutJSMarshaller(resolve) {
 .then((result) => assert.deepStrictEqual(result, expectedArray))
 
 // Start the thread in blocking mode, and assert that all values are passed.
-// Quit early, but let the thread finish. Launch a secondary thread to test the
+// Quit early, but var the thread finish. Launch a secondary thread to test the
 // reference counter incrementing functionality.
 .then(() => testWithJSMarshaller({
   threadStarter: 'StartThread',
@@ -159,7 +159,7 @@ new Promise(function testWithoutJSMarshaller(resolve) {
 .then((result) => assert.deepStrictEqual(result, expectedArray))
 
 // Start the thread in non-blocking mode, and assert that all values are passed.
-// Quit early, but let the thread finish. Launch a secondary thread to test the
+// Quit early, but var the thread finish. Launch a secondary thread to test the
 // reference counter incrementing functionality.
 .then(() => testWithJSMarshaller({
   threadStarter: 'StartThreadNonblocking',

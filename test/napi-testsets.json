@@ -1,4 +1,13 @@
 {
+  "addons-napi": [
+    { "name": "2_function_arguments/test.js", "skip": false },
+    { "name": "3_callbacks/test.js", "skip": false },
+    { "name": "4_object_factory/test.js", "skip": false },
+    { "name": "5_function_factory/test.js", "skip": false },
+    { "name": "test_general/testGlobals.js", "skip": false },
+    { "name": "test_general/testInstanceOf.js", "skip": false },
+    { "name": "test_general/testNapiStatus.js", "skip": false }
+  ],
   "napi": [
     { "name": "napi.test.js" }
   ]

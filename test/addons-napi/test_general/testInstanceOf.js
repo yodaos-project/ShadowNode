@@ -77,8 +77,8 @@ if (typeof Symbol !== 'undefined' && 'hasInstance' in Symbol &&
   function MySubClass() {}
   MySubClass.prototype = new MyClass();
 
-  let x = new MySubClass();
-  let y = new MySubClass();
+  var x = new MySubClass();
+  var y = new MySubClass();
   x.mark = true;
 
   compareToNative(x, MySubClass);

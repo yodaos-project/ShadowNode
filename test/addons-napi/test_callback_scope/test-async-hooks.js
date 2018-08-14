@@ -12,7 +12,7 @@ process.emitWarning = () => {};
 
 var { runInCallbackScope } = require(`./build/Release/binding.node`);
 
-let insideHook = false;
+var insideHook = false;
 async_hooks.createHook({
   before: common.mustCall((id) => {
     assert.strictEqual(id, 1000);

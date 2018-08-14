@@ -59,7 +59,7 @@ assert.strictEqual(test_general.testNapiTypeof(null), 'null');
 
 // Ensure that garbage collecting an object with a wrapped native item results
 // in the finalize callback being called.
-let w = {};
+var w = {};
 test_general.wrap(w);
 w = null;
 global.gc();
@@ -85,7 +85,7 @@ test_general.wrap(y);
 
 // Ensure that removing a wrap and garbage collecting does not fire the
 // finalize callback.
-let z = {};
+var z = {};
 test_general.testFinalizeWrap(z);
 test_general.removeWrap(z);
 z = null;

@@ -51,7 +51,7 @@ arrayTypes.forEach((currentType) => {
   assert.ok(theArray instanceof currentType,
             'Type of new array should match that of the template. ' +
             `Expected type: ${currentType.name}, ` +
-            `actual type: ${template.varructor.name}`);
+            `actual type: ${template.constructor.name}`);
   assert.notStrictEqual(theArray, template);
   assert.strictEqual(theArray.buffer, buffer);
 });

@@ -11,7 +11,7 @@ var theError = new Error('Some error');
 // phase are propagated through require() into JavaScript.
 // https://github.com/nodejs/node/issues/19437
 var test_exception = (function() {
-  let resultingException;
+  var resultingException;
   try {
     require(`./build/Release/test_exception.node`);
   } catch (anException) {
@@ -25,7 +25,7 @@ var test_exception = (function() {
   var throwTheError = () => { throw theError; };
 
   // Test that the native side successfully captures the exception
-  let returnedError = test_exception.returnException(throwTheError);
+  var returnedError = test_exception.returnException(throwTheError);
   assert.strictEqual(theError, returnedError);
 
   // Test that the native side passes the exception through
@@ -50,7 +50,7 @@ var test_exception = (function() {
 
 {
   // Test that no exception appears that was not thrown by us
-  let caughtError;
+  var caughtError;
   try {
     test_exception.allowException(common.mustCall());
   } catch (anError) {
@@ -69,7 +69,7 @@ var test_exception = (function() {
 
 // Make sure that exceptions that occur during finalization are propagated.
 function testFinalize(binding) {
-  let x = test_exception[binding]();
+  var x = test_exception[binding]();
   x = null;
   assert.throws(() => { global.gc(); }, /Error during Finalize/);
 

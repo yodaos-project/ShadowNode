@@ -12,7 +12,7 @@ global.gc();
 assert.strictEqual(binding.getDeleterCallCount(), 1);
 assert.strictEqual(binding.copyBuffer().toString(), binding.theText);
 
-let buffer = binding.staticBuffer();
+var buffer = binding.staticBuffer();
 assert.strictEqual(binding.bufferHasInstance(buffer), true);
 assert.strictEqual(binding.bufferInfo(buffer), true);
 buffer = null;
