@@ -146,13 +146,12 @@ function expectedException(actual, expected, msg) {
 
     // Handle primitives properly.
     if (typeof actual !== 'object' || actual === null) {
-      var err = new AssertionError({
+      throw new AssertionError({
         actual: actual,
         expected: expected,
         message: msg,
         operator: 'throws',
       });
-      throw err;
     }
 
     var keys = Object.keys(expected);
