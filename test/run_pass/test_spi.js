@@ -34,11 +34,11 @@ if (process.platform === 'linux') {
 // ------ Test API existance
 assert.equal(typeof Spi, 'function',
              'spi module does not export construction function');
-assert.assert(spi.MODE,
+assert.ok(spi.MODE,
               'spi module does not provide \'MODE\' property');
-assert.assert(spi.CHIPSELECT,
+assert.ok(spi.CHIPSELECT,
               'spi module does not provide \'CHIPSELECT\' property');
-assert.assert(spi.BITORDER,
+assert.ok(spi.BITORDER,
               'spi module does not provide \'BITORDER\' property');
 assert.equal(typeof spi.open, 'function',
              'spi does not provide \'open\' function');
@@ -50,7 +50,7 @@ var tx = new Buffer(data);
 var rx = new Buffer(data.length);
 
 var spi1 = spi.open(configuration, function(err) {
-  assert.assert(err === null, 'spi.open failed: ' + err);
+  assert.ok(err === null, 'spi.open failed: ' + err);
 
   assert.equal(typeof spi1.transfer, 'function',
                'spibus does not provide \'transfer\' function');
@@ -62,10 +62,10 @@ var spi1 = spi.open(configuration, function(err) {
                'spibus does not provide \'closeSync\' function');
 
   spi1.transfer(tx, rx, function(err) {
-    assert.assert(err === null, 'spibus.transfer failed: ' + err);
+    assert.ok(err === null, 'spibus.transfer failed: ' + err);
 
     spi1.close(function(err) {
-      assert.assert(err === null, 'spibus.close failed: ' + err);
+      assert.ok(err === null, 'spibus.close failed: ' + err);
       testSync();
     });
   });
@@ -73,7 +73,7 @@ var spi1 = spi.open(configuration, function(err) {
 
 function testSync() {
   var spi2 = spi.open(configuration, function(err) {
-    assert.assert(err === null, 'spi.open for sync test failed: ' + err);
+    assert.ok(err === null, 'spi.open for sync test failed: ' + err);
     spi2.transferSync(tx, rx);
     spi2.closeSync();
   });

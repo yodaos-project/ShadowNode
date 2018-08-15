@@ -4,7 +4,7 @@ The following shows Assert module APIs available for each platform.
 
 |  | Linux<br/>(Ubuntu) | Raspbian<br/>(Raspberry Pi) | NuttX<br/>(STM32F4-Discovery) | TizenRT<br/>(Artik053) |
 | :---: | :---: | :---: | :---: | :---: |
-| assert.assert | O | O | O | O |
+| assert.ok | O | O | O | O |
 | assert.doesNotThrow | O | O | O | O |
 | assert.equal | O | O | O | O |
 | assert.fail | O | O | O | O |
@@ -36,6 +36,13 @@ Assert module will produce `AssertionError` in case of an assertion failure. `As
 * `value` {any} Value to test.
 * `message` {any} Message displayed in the thrown error.
 
+An alias of assert.ok().
+
+
+### assert.ok(value[, message])
+* `value` {any} Value to test.
+* `message` {any} Message displayed in the thrown error.
+
 Checks if the `value` is truthy. If it is not, throws an AssertionError, with the given optional `message`.
 
 **Example**
@@ -43,24 +50,24 @@ Checks if the `value` is truthy. If it is not, throws an AssertionError, with th
 ```js
 var assert = require('assert');
 
-assert.assert(1);
+assert.ok(1);
 // OK
 
-assert.assert(true);
+assert.ok(true);
 // OK
 
-assert.assert(false);
+assert.ok(false);
 // throws "AssertionError: false == true"
 
-assert.assert(0);
+assert.ok(0);
 // throws "AssertionError: 0 == true"
 
-assert.assert(false, "it's false");
+assert.ok(false, "it's false");
 // throws "AssertionError: it's false"
 ```
 
 
-### doesNotThrow(block[, message])
+### assert.doesNotThrow(block[, message])
 * `block` {Function}
 * `message` {any} Message to be displayed.
 
@@ -74,21 +81,21 @@ var assert = require('assert');
 
 assert.doesNotThrow(
   function() {
-    assert.assert(1);
+    assert.ok(1);
   }
 );
 // OK
 
 assert.doesNotThrow(
   function() {
-    assert.assert(0);
+    assert.ok(0);
   }
 )
 // throws "AssertionError: Got unwanted exception."
 ```
 
 
-### equal(actual, expected[, message])
+### assert.equal(actual, expected[, message])
 * `actual` {any} The actual value.
 * `expected` {any} The expected value.
 * `message` {any} Message to be displayed.
@@ -106,7 +113,7 @@ assert.equal(1, '1');
 ```
 
 
-### fail(actual, expected, message, operator)
+### assert.fail(actual, expected, message, operator)
 * `actual` {any} The actual value.
 * `expected` {any} The expected value.
 * `message` {any} Message to be displayed.
@@ -124,7 +131,7 @@ assert.fail(1, 2, undefined, '>');
 ```
 
 
-### notEqual(actual, expected[, message])
+### assert.notEqual(actual, expected[, message])
 * `actual` {any} The actual value.
 * `expected` {any} The expected value.
 * `message` {any} Message to be displayed.
@@ -141,7 +148,7 @@ assert.notEqual(1, 2);
 ```
 
 
-### notStrictEqual(actual, expected[, message])
+### assert.notStrictEqual(actual, expected[, message])
 * `actual` {any} The actual value.
 * `expected` {any} The expected value.
 * `message` {any} Message to be displayed.
@@ -165,7 +172,7 @@ assert.notStrictEqual(1, '1');
 ```
 
 
-### strictEqual(actual, expected[, message])
+### assert.strictEqual(actual, expected[, message])
 * `actual` {any} The actual value.
 * `expected` {any} The expected value.
 * `message` {any} Message to be displayed.
@@ -189,7 +196,7 @@ assert.strictEqual(1, '1');
 ```
 
 
-### throws(block[, expected, message])
+### assert.throws(block[, expected, message])
 * `block` {Function} The function that throws an error.
 * `expected` {Function|RegExp|Object|Error} The expected error type.
 * `message` {any} Message to be displayed.

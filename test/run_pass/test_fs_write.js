@@ -48,7 +48,7 @@ fs.open(dstFilePath, 'w+', function(err, fd) {
           throw err;
         }
         var init_buffers = Buffer.concat([buff1, buff2]);
-        assert.assert(result.equals(init_buffers));
+        assert.ok(result.equals(init_buffers));
 
         fs.close(fd, function(err) {
           if (err) {

@@ -189,7 +189,7 @@ readRequest.on('response', function(incomingMessage) {
   incomingMessage.on('readable', function() {
     var inc = incomingMessage.read();
     assert.equal(inc instanceof Buffer, true);
-    assert.assert(inc.toString('utf8').length > 0);
+    assert.ok(inc.toString('utf8').length > 0);
   });
 });
 

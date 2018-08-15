@@ -182,7 +182,7 @@ function expectedException(actual, expected, msg) {
 }
 
 assert.AssertionError = AssertionError;
-assert.assert = assert;
+assert.ok = assert;
 assert.fail = fail;
 // eslint-disable-next-line no-restricted-properties
 assert.equal = equal;
