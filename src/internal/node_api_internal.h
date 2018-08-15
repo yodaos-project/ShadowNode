@@ -22,6 +22,9 @@
 #include "internal/node_api_internal_types.h"
 #include "node_api.h"
 
+#define GET_3TH_ARG(arg1, arg2, arg3, ...) arg3
+#define GET_4TH_ARG(arg1, arg2, arg3, arg4, ...) arg4
+
 #define AS_JERRY_VALUE(nvalue) (jerry_value_t)(uintptr_t) nvalue
 #define AS_NAPI_VALUE(jval) (napi_value)(uintptr_t) jval
 
@@ -46,7 +49,6 @@
     return status;                                                           \
   }
 
-#define GET_3TH_ARG(arg1, arg2, arg3, ...) arg3
 #define NAPI_RETURN_MACRO_CHOOSER(...) \
   GET_3TH_ARG(__VA_ARGS__, NAPI_RETURN_WITH_MSG, NAPI_RETURN_NO_MSG, )
 
@@ -58,20 +60,36 @@
  * A weak assertion, which don't crash the program on failed assertion
  * rather returning a napi error code back to caller.
  */
-#define NAPI_WEAK_ASSERT(error_t, assertion)                     \
+#define NAPI_WEAK_ASSERT_NO_MSG(error_t, assertion)              \
   do {                                                           \
     if (!(assertion))                                            \
       NAPI_RETURN(error_t, "Assertion (" #assertion ") failed"); \
   } while (0)
 
+#define NAPI_WEAK_ASSERT_MSG(error_t, assertion, message) \
+  do {                                                    \
+    if (!(assertion))                                     \
+      NAPI_RETURN(error_t, message);                      \
+  } while (0)
+
+#define NAPI_WEAK_ASSERT_MACRO_CHOOSER(...) \
+  GET_4TH_ARG(__VA_ARGS__, NAPI_WEAK_ASSERT_MSG, NAPI_WEAK_ASSERT_NO_MSG, )
+
+/**
+ * NAPI_WEAK_ASSERT
+ * - error_t: napi status code
+ * - assertion: assertion expression
+ * - message: (optional) an optional message about the assertion error
+ */
+#define NAPI_WEAK_ASSERT(...) \
+  NAPI_WEAK_ASSERT_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
+
 /**
  * A convenience weak assertion on jerry value type.
  */
-#define NAPI_TRY_TYPE(type, jval)                                 \
-  do {                                                            \
-    if (!(jerry_value_is_##type(jval)))                           \
-      NAPI_RETURN(napi_##type##_expected, #type " was expected"); \
-  } while (0)
+#define NAPI_TRY_TYPE(type, jval)                                       \
+  NAPI_WEAK_ASSERT(napi_##type##_expected, jerry_value_is_##type(jval), \
+                   #type " was expected")
 
 /**
  * A convenience weak assertion on N-API Env matching.
