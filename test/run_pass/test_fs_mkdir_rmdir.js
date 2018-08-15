@@ -76,7 +76,7 @@ function unlink(path) {
           var dirname = root + '/permission_test';
           try {
             fs.mkdirSync(dirname);
-            assert.assert(false);
+            assert.ok(false);
           } catch (e) {
             assert.equal(e instanceof Error, true);
             assert.equal(e instanceof assert.AssertionError, false);

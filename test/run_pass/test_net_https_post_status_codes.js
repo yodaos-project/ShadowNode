@@ -41,7 +41,7 @@ var getResponseHandler = function(res) {
 
   var endHandler = function() {
     var response = JSON.parse(res_body);
-    assert.assert(response.data, 'Recieved incorrect response from server');
+    assert.ok(response.data, 'Recieved incorrect response from server');
     isRequest1Finished = true;
   };
   res.on('end', endHandler);
