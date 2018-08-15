@@ -65,9 +65,11 @@ static jerry_value_t iotjs_napi_function_handler(
    * jerryscript also represented by NULL
    */
   jval_ret = AS_JERRY_VALUE(nvalue_ret);
+  /** jval returned from N-API functions is scoped */
+  jerry_acquire_value(jval_ret);
+
 
 cleanup:
-  jerryx_remove_handle(scope, jval_ret, &jval_ret);
   jerryx_close_handle_scope(scope);
   /**
    * Clear N-API env extended error info on end of external function
@@ -111,7 +113,7 @@ napi_status napi_call_function(napi_env env, napi_value recv, napi_value func,
   jerryx_create_handle(jval_ret);
   if (jerry_value_has_error_flag(jval_ret)) {
     NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));
-    NAPI_RETURN(napi_generic_failure,
+    NAPI_RETURN(napi_pending_exception,
                 "Unexpected error flag on jerry_call_function.");
   }
 

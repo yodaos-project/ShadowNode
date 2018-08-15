@@ -86,6 +86,7 @@ napi_status napi_throw(napi_env env, napi_value error) {
     jerry_value_set_error_flag(&jval_err);
   }
 
+  jerry_acquire_value(jval_err);
   curr_env->pending_exception = AS_NAPI_VALUE(jval_err);
   /** should not clear last error info */
   return napi_ok;
@@ -120,6 +121,7 @@ napi_status napi_fatal_exception(napi_env env, napi_value err) {
     jerry_value_set_error_flag(&jval_err);
   }
 
+  jerry_acquire_value(jval_err);
   curr_env->pending_fatal_exception = AS_NAPI_VALUE(jval_err);
   /** should not clear last error info */
   return napi_ok;
