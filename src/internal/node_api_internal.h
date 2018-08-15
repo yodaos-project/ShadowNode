@@ -67,8 +67,11 @@
 /**
  * A convenience weak assertion on jerry value type.
  */
-#define NAPI_TRY_TYPE(type, jval) \
-  NAPI_WEAK_ASSERT(napi_##type##_expected, jerry_value_is_##type(jval))
+#define NAPI_TRY_TYPE(type, jval)                                 \
+  do {                                                            \
+    if (!(jerry_value_is_##type(jval)))                           \
+      NAPI_RETURN(napi_##type##_expected, #type " was expected"); \
+  } while (0)
 
 /**
  * A convenience weak assertion on N-API Env matching.
@@ -137,6 +140,7 @@ jerry_value_t iotjs_napi_env_get_and_clear_fatal_exception(napi_env env);
 napi_status jerryx_status_to_napi_status(jerryx_handle_scope_status status);
 iotjs_object_info_t* iotjs_get_object_native_info(jerry_value_t jval,
                                                   size_t native_info_size);
+void iotjs_cleanup_napi();
 /** MARK: - END node_api_lifetime.c */
 
 #endif // IOTJS_NODE_API_H

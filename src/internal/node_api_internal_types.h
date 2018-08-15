@@ -30,10 +30,20 @@ typedef enum {
   napi_module_no_nm_register_func,
 } napi_module_load_status;
 
+typedef void (*iotjs_cleanup_hook_fn)(void* arg);
+typedef struct iotjs_cleanup_hook_s iotjs_cleanup_hook_t;
+struct iotjs_cleanup_hook_s {
+  iotjs_cleanup_hook_fn fn;
+  void* arg;
+  iotjs_cleanup_hook_t* next;
+};
+
 typedef struct {
   napi_value pending_exception;
   napi_value pending_fatal_exception;
   napi_extended_error_info extended_error_info;
+
+  iotjs_cleanup_hook_t* cleanup_hook;
 } iotjs_napi_env_t;
 
 typedef struct {

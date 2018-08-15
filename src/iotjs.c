@@ -19,6 +19,9 @@
 #include "iotjs_handlewrap.h"
 #include "iotjs_js.h"
 #include "iotjs_string_ext.h"
+#ifdef ENABLE_NAPI
+#include "internal/node_api_internal.h"
+#endif
 
 #include "jerryscript-debugger.h"
 #ifndef __NUTTX__
@@ -176,6 +179,10 @@ static int iotjs_start(iotjs_environment_t* env) {
 
   // Release builtin modules.
   iotjs_module_list_cleanup();
+
+#ifdef ENABLE_NAPI
+  iotjs_cleanup_napi();
+#endif
 
   return exit_code;
 }

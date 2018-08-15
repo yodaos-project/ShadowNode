@@ -236,6 +236,8 @@ napi_status iotjs_napi_prop_desc_to_jdesc(napi_env env,
         return status;                                                         \
       jdesc->is_##access##_defined = true;                                     \
       jdesc->access##ter = AS_JERRY_VALUE(access##ter);                        \
+      /** jerryscript asserts xor is_writable_defined and accessors */         \
+      jdesc->is_writable_defined = false;                                      \
     }                                                                          \
   } while (0)
 
