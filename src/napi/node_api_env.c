@@ -90,19 +90,19 @@ napi_status napi_throw(napi_env env, napi_value error) {
   NAPI_RETURN(napi_ok);
 }
 
-#define DEF_NAPI_THROWS(type, jerry_error_type)                   \
-  napi_status napi_throw_##type(napi_env env, const char* code,   \
-                                const char* msg) {                \
-    NAPI_TRY_ENV(env);                                            \
-    NAPI_TRY_NO_PENDING_EXCEPTION(env);                           \
-                                                                  \
-    NAPI_WEAK_ASSERT(napi_invalid_arg, msg != NULL);              \
-    NAPI_WEAK_ASSERT(napi_invalid_arg, code != NULL);             \
-                                                                  \
-    jerry_value_t jval_error =                                    \
-        jerry_create_error(jerry_error_type, (jerry_char_t*)msg); \
-    iotjs_jval_set_property_string_raw(jval_error, "code", code); \
-    return napi_throw(env, AS_NAPI_VALUE(jval_error));            \
+#define DEF_NAPI_THROWS(type, jerry_error_type)                              \
+  napi_status napi_throw_##type(napi_env env, const char* code,              \
+                                const char* msg) {                           \
+    NAPI_TRY_ENV(env);                                                       \
+    NAPI_TRY_NO_PENDING_EXCEPTION(env);                                      \
+                                                                             \
+    NAPI_WEAK_ASSERT(napi_invalid_arg, msg != NULL);                         \
+    NAPI_WEAK_ASSERT(napi_invalid_arg, code != NULL);                        \
+                                                                             \
+    JERRYX_CREATE(jval_error,                                                \
+                  jerry_create_error(jerry_error_type, (jerry_char_t*)msg)); \
+    iotjs_jval_set_property_string_raw(jval_error, "code", code);            \
+    return napi_throw(env, AS_NAPI_VALUE(jval_error));                       \
   }
 
 DEF_NAPI_THROWS(error, JERRY_ERROR_COMMON);
