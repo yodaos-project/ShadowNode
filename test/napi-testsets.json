@@ -26,8 +26,8 @@
     { "name": "test_env_sharing/test.js", "skip": false },
     { "name": "test_error/test.js", "skip": ["all"], "reason": "class net implemented" },
     { "name": "test_exception/test.js", "skip": ["all"] },
-    { "name": "test_fatal/test.js", "skip": ["all"] },
-    { "name": "test_fatal/test2.js", "skip": ["all"] },
+    { "name": "test_fatal/test.js", "skip": ["all"], "reason": "child_process.spawnSync not implemented" },
+    { "name": "test_fatal/test2.js", "skip": ["all"], "reason": "child_process.spawnSync not implemented" },
     { "name": "test_fatal_exception/test.js", "skip": ["all"] },
     { "name": "test_function/test.js", "skip": ["all"], "reason": "function.name not implemented" },
     { "name": "test_general/test.js", "skip": ["all"], "reason": "class net implemented" },
@@ -55,6 +55,8 @@
     { "name": "test_uv_loop/test.js", "skip": ["all"], "reason": "uv api not implemented" }
   ],
   "napi": [
+    { "name": "napi_fatal_error_1.test.js", "skip": false, "expected-failure": true },
+    { "name": "napi_fatal_error_2.test.js", "skip": false, "expected-failure": true },
     { "name": "napi_string.test.js", "skip": false },
     { "name": "napi.test.js", "skip": false }
   ]
