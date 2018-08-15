@@ -120,7 +120,7 @@ napi_status napi_create_reference(napi_env env, napi_value value,
   if (!has_native_ptr) {
     info = IOTJS_ALLOC(iotjs_object_info_t);
   } else {
-    NAPI_WEAK_ASSERT(napi_invalid_arg, (info->ref != NULL));
+    NAPI_WEAK_ASSERT(napi_invalid_arg, (info->ref == NULL));
   }
 
   iotjs_reference_t* ref = IOTJS_ALLOC(iotjs_reference_t);
@@ -177,4 +177,70 @@ napi_status napi_get_reference_value(napi_env env, napi_ref ref,
   iotjs_reference_t* iot_ref = (iotjs_reference_t*)ref;
   NAPI_ASSIGN(result, AS_NAPI_VALUE(iot_ref->jval));
   NAPI_RETURN(napi_ok);
+}
+
+napi_status napi_add_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
+                                      void* arg) {
+  NAPI_TRY_ENV(env);
+  iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
+  iotjs_cleanup_hook_t* memo = NULL;
+  iotjs_cleanup_hook_t* hook = curr_env->cleanup_hook;
+
+  while (hook != NULL) {
+    if (fun == hook->fn) {
+      NAPI_WEAK_ASSERT(napi_invalid_arg, arg != hook->arg);
+    }
+    memo = hook;
+    hook = hook->next;
+  }
+
+  iotjs_cleanup_hook_t* new_hook = IOTJS_ALLOC(iotjs_cleanup_hook_t);
+  new_hook->fn = fun;
+  new_hook->arg = arg;
+  new_hook->next = NULL;
+
+  if (memo == NULL) {
+    curr_env->cleanup_hook = new_hook;
+  } else {
+    memo->next = new_hook;
+  }
+
+  NAPI_RETURN(napi_ok);
+}
+
+napi_status napi_remove_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
+                                         void* arg) {
+  NAPI_TRY_ENV(env);
+  iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
+  iotjs_cleanup_hook_t* memo = NULL;
+  iotjs_cleanup_hook_t* hook = curr_env->cleanup_hook;
+  bool found = false;
+  while (hook != NULL) {
+    if (fun == hook->fn && arg == hook->arg) {
+      found = true;
+      break;
+    }
+    memo = hook;
+    hook = hook->next;
+  }
+
+  NAPI_WEAK_ASSERT(napi_invalid_arg, found);
+  if (memo == NULL) {
+    curr_env->cleanup_hook = hook->next;
+  } else {
+    memo->next = hook->next;
+  }
+  free(hook);
+  NAPI_RETURN(napi_ok);
+}
+
+void iotjs_cleanup_napi() {
+  iotjs_napi_env_t* env = (iotjs_napi_env_t*)iotjs_get_current_napi_env();
+  iotjs_cleanup_hook_t* hook = env->cleanup_hook;
+  while (hook != NULL) {
+    hook->fn(hook->arg);
+    iotjs_cleanup_hook_t* memo = hook;
+    hook = hook->next;
+    free(memo);
+  }
 }

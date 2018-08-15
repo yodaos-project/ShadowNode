@@ -26,9 +26,12 @@ napi_status napi_define_class(napi_env env, const char* utf8name, size_t length,
   napi_value nval;
   NAPI_INTERNAL_CALL(
       napi_create_function(env, utf8name, length, constructor, data, &nval));
+
+  // `prototype` is undefined in `napi_create_function` results
   napi_value nval_prototype;
+  NAPI_INTERNAL_CALL(napi_create_object(env, &nval_prototype));
   NAPI_INTERNAL_CALL(
-      napi_get_named_property(env, nval, "prototype", &nval_prototype));
+      napi_set_named_property(env, nval, "prototype", nval_prototype));
 
   for (size_t i = 0; i < property_count; ++i) {
     napi_property_descriptor prop = properties[i];
