@@ -55,6 +55,22 @@ napi_status napi_create_buffer_copy(napi_env env, size_t size, const void* data,
   NAPI_RETURN(napi_ok);
 }
 
+napi_status napi_create_external(napi_env env, void* data,
+                                 napi_finalize finalize_cb, void* finalize_hint,
+                                 napi_value* result) {
+  napi_value nval;
+  NAPI_INTERNAL_CALL(napi_create_object(env, &nval));
+  iotjs_object_info_t* info =
+      iotjs_get_object_native_info(AS_JERRY_VALUE(nval),
+                                   sizeof(iotjs_object_info_t));
+  info->native_object = data;
+  info->finalize_cb = finalize_cb;
+  info->finalize_hint = finalize_hint;
+
+  NAPI_ASSIGN(result, nval);
+  NAPI_RETURN(napi_ok);
+}
+
 napi_status napi_create_object(napi_env env, napi_value* result) {
   JERRYX_CREATE(jval, jerry_create_object());
   NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
@@ -158,6 +174,15 @@ napi_status napi_get_prototype(napi_env env, napi_value object,
   NAPI_RETURN(napi_ok);
 }
 
+napi_status napi_get_value_external(napi_env env, napi_value value,
+                                    void** result) {
+  iotjs_object_info_t* info =
+      iotjs_get_object_native_info(AS_JERRY_VALUE(value),
+                                   sizeof(iotjs_object_info_t));
+  NAPI_ASSIGN(result, info->native_object);
+  NAPI_RETURN(napi_ok);
+}
+
 napi_status napi_get_value_bool(napi_env env, napi_value value, bool* result) {
   jerry_value_t jval = AS_JERRY_VALUE(value);
   NAPI_TRY_TYPE(boolean, jval);
@@ -168,6 +193,24 @@ napi_status napi_get_value_bool(napi_env env, napi_value value, bool* result) {
 napi_status napi_get_boolean(napi_env env, bool value, napi_value* result) {
   JERRYX_CREATE(jval, jerry_create_boolean(value));
   NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
+  NAPI_RETURN(napi_ok);
+}
+
+napi_status napi_get_value_string_utf8(napi_env env, napi_value value,
+                                       char* buf, size_t bufsize,
+                                       size_t* result) {
+  jerry_value_t jval = AS_JERRY_VALUE(value);
+  NAPI_TRY_TYPE(string, jval);
+
+  if (buf == NULL) {
+    size_t str_size = jerry_get_utf8_string_size(jval);
+    NAPI_ASSIGN(result, str_size);
+    NAPI_RETURN(napi_ok);
+  }
+
+  jerry_size_t written_size =
+      jerry_string_to_utf8_char_buffer(jval, (jerry_char_t*)buf, bufsize);
+  NAPI_ASSIGN(result, written_size);
   NAPI_RETURN(napi_ok);
 }
 
