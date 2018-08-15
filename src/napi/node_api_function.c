@@ -66,10 +66,10 @@ static jerry_value_t iotjs_napi_function_handler(
     /** jval returned from N-API functions is scoped */
     jval_ret = AS_JERRY_VALUE(nvalue_ret);
   }
-  jerryx_remove_handle(scope, jval_ret, &jval_ret);
 
 
 cleanup:
+  jerryx_remove_handle(scope, jval_ret, &jval_ret);
   jerryx_close_handle_scope(scope);
   /**
    * Clear N-API env extended error info on end of external function
@@ -126,9 +126,8 @@ napi_status napi_get_cb_info(napi_env env, napi_callback_info cbinfo,
                              napi_value* thisArg, void** data) {
   iotjs_callback_info_t* callback_info = (iotjs_callback_info_t*)cbinfo;
 
-  NAPI_WEAK_ASSERT(napi_invalid_arg, (argc != NULL));
-
-  for (size_t i = 0; i < *argc; ++i) {
+  size_t _argc = argc == NULL ? 0 : *argc;
+  for (size_t i = 0; i < _argc; ++i) {
     if (i < callback_info->argc) {
       NAPI_ASSIGN(argv + i, AS_NAPI_VALUE(callback_info->argv[i]));
     } else {

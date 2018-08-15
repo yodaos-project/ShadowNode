@@ -120,7 +120,7 @@ napi_status napi_create_reference(napi_env env, napi_value value,
   if (!has_native_ptr) {
     info = IOTJS_ALLOC(iotjs_object_info_t);
   } else {
-    NAPI_WEAK_ASSERT(napi_invalid_arg, (info->ref != NULL));
+    NAPI_WEAK_ASSERT(napi_invalid_arg, (info->ref == NULL));
   }
 
   iotjs_reference_t* ref = IOTJS_ALLOC(iotjs_reference_t);
