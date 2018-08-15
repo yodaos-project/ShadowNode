@@ -236,7 +236,7 @@ napi_status napi_get_undefined(napi_env env, napi_value* result) {
   napi_status napi_coerce_to_##type(napi_env env, napi_value value, \
                                     napi_value* result) {           \
     jerry_value_t jval = AS_JERRY_VALUE(value);                     \
-    NAPI_TRY_TYPE(alias, jval);                                   \
+    NAPI_TRY_TYPE(alias, jval);                                     \
     JERRYX_CREATE(jval_result, jerry_value_to_##alias(jval));       \
     NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_result));                \
     NAPI_RETURN(napi_ok);                                           \
