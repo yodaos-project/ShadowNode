@@ -8,3 +8,15 @@ try {
   assert(err != null);
   assert.strictEqual(err.message, 'foobar')
 }
+
+try {
+  test.ThrowCreatedError();
+  assert.fail('fail path');
+} catch (err) {
+  assert(err != null);
+  assert.strictEqual(err.message, 'foobar')
+}
+
+var err = test.GetError();
+assert(err != null);
+assert.strictEqual(err.message, 'foobar')

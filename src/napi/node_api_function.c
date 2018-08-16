@@ -69,15 +69,16 @@ static jerry_value_t iotjs_napi_function_handler(
    * jerryscript also represented by NULL
    */
   jval_ret = AS_JERRY_VALUE(nvalue_ret);
+  /**
+   * - for N-API created value: value is scoped, would be released on :cleanup
+   * - for passed-in params: value would be automatically release on end of
+   * invocation
+   * - for error values: error values has been acquired on thrown
+   */
+  jerry_acquire_value(jval_ret);
 
 
 cleanup:
-  /**
-   * for N-API created value: value is scoped, would be released on :cleanup
-   * for passed-in params: value would be automatically release on end of
-   * invocation
-   */
-  jerry_acquire_value(jval_ret);
   jerryx_close_handle_scope(scope);
   /**
    * Clear N-API env extended error info on end of external function
@@ -116,24 +117,13 @@ napi_status napi_call_function(napi_env env, napi_value recv, napi_value func,
 
   NAPI_TRY_TYPE(function, jval_func);
 
-  jerry_value_t jval_ret =
-      jerry_call_function(jval_func, jval_this, (jerry_value_t*)argv, argc);
+  JERRYX_CREATE(jval_ret, jerry_call_function(jval_func, jval_this,
+                                              (jerry_value_t*)argv, argc));
   if (jerry_value_has_error_flag(jval_ret)) {
-    iotjs_callback_info_t* callback = iotjs_napi_get_current_callback(env);
-    NAPI_WEAK_ASSERT(napi_generic_failure, callback != NULL,
-                     "No callback information could be retrieved.");
-
-    /**
-     * error values can not be managed by user opened handle scopes since
-     * it's lifetime is aligned with external callback
-     */
-    jerryx_create_handle_in_scope(jval_ret, callback->handle_scope);
     NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));
     NAPI_RETURN(napi_pending_exception,
                 "Unexpected error flag on jerry_call_function.");
   }
-  /** non-error values are managed by user space handle scopes */
-  jerryx_create_handle(jval_ret);
 
   NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_ret));
   NAPI_RETURN(napi_ok);
