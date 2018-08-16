@@ -56,8 +56,9 @@
 #define DECLARE_NAPI_GETTER(name, func) \
   { (name), 0, 0, (func), 0, 0, napi_default, 0 }
 
-#define set_named_method(env, target, prop_name, handler)            \
+#define SET_NAMED_METHOD(env, target, prop_name, handler)            \
   do {                                                               \
+    napi_status status;                                              \
     napi_value fn;                                                   \
     status = napi_create_function(env, NULL, 0, handler, NULL, &fn); \
     if (status != napi_ok)                                           \

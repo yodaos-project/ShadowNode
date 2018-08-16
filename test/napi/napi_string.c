@@ -81,9 +81,9 @@ static napi_value Utf8Length(napi_env env, napi_callback_info info) {
 napi_value Init(napi_env env, napi_value exports) {
   napi_status status;
 
-  set_named_method(env, exports, "TestUtf8", TestUtf8);
-  set_named_method(env, exports, "TestUtf8Insufficient", TestUtf8Insufficient);
-  set_named_method(env, exports, "Utf8Length", Utf8Length);
+  SET_NAMED_METHOD(env, exports, "TestUtf8", TestUtf8);
+  SET_NAMED_METHOD(env, exports, "TestUtf8Insufficient", TestUtf8Insufficient);
+  SET_NAMED_METHOD(env, exports, "Utf8Length", Utf8Length);
 
   return exports;
 }

@@ -79,10 +79,10 @@ napi_value Instanceof(napi_env env, napi_callback_info info) {
 napi_value Init(napi_env env, napi_value exports) {
   napi_status status;
 
-  set_named_method(env, exports, "sayHello", SayHello);
-  set_named_method(env, exports, "sayError", SayError);
-  set_named_method(env, exports, "strictEquals", StrictEquals);
-  set_named_method(env, exports, "instanceof", Instanceof);
+  SET_NAMED_METHOD(env, exports, "sayHello", SayHello);
+  SET_NAMED_METHOD(env, exports, "sayError", SayError);
+  SET_NAMED_METHOD(env, exports, "strictEquals", StrictEquals);
+  SET_NAMED_METHOD(env, exports, "instanceof", Instanceof);
 
   napi_value id;
   status = napi_create_int32(env, 321, &id);
