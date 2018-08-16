@@ -94,8 +94,14 @@ napi_status napi_create_object(napi_env env, napi_value* result) {
         jerry_string_to_utf8_char_buffer(jval_msg, raw_msg, msg_size);        \
     NAPI_WEAK_ASSERT(napi_invalid_arg, written_size == msg_size);             \
                                                                               \
-    JERRYX_CREATE(jval_error, jerry_create_error(jerry_error_type, raw_msg)); \
+    jerry_value_t jval_error = jerry_create_error(jerry_error_type, raw_msg); \
     jerry_value_clear_error_flag(&jval_error);                                \
+    /**                                                                       \
+     * reference count of error flag cleared jerry_value_t is separated       \
+     * from its error reference, so it has be added to scope after clearing   \
+     * error flag.                                                            \
+     */                                                                       \
+    jerryx_create_handle(jval_error);                                         \
                                                                               \
     iotjs_jval_set_property_jval(jval_error, "code", jval_code);              \
     NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_error));                           \

@@ -14,7 +14,12 @@
  */
 
 #include "iotjs_def.h"
+#include <execinfo.h>
 #include "internal/node_api_internal.h"
+
+#ifndef NAPI_FATAL_BACKTRACE_LEN
+#define NAPI_FATAL_BACKTRACE_LEN 10
+#endif
 
 static const char* NAPI_GENERIC_ERROR_MESSAGE = "Unexpected error.";
 
@@ -30,6 +35,17 @@ inline napi_env iotjs_get_current_napi_env() {
 inline bool iotjs_napi_is_exception_pending(iotjs_napi_env_t* env) {
   return !(env->pending_exception == NULL &&
            env->pending_fatal_exception == NULL);
+}
+
+inline void iotjs_napi_set_current_callback(
+    napi_env env, iotjs_callback_info_t* callback_info) {
+  iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
+  curr_env->current_callback_info = callback_info;
+}
+
+inline iotjs_callback_info_t* iotjs_napi_get_current_callback(napi_env env) {
+  iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
+  return curr_env->current_callback_info;
 }
 
 void iotjs_napi_set_error_info(napi_env env, napi_status error_code,
@@ -82,6 +98,13 @@ napi_status napi_throw(napi_env env, napi_value error) {
   NAPI_TRY_NO_PENDING_EXCEPTION(curr_env);
 
   jerry_value_t jval_err = AS_JERRY_VALUE(error);
+  /**
+   * `jerry_value_set_error_flag` creates a new error reference and its
+   * reference count is separated from its original value, so we have to
+   * acquire the original value before `jerry_value_set_error_flag`
+   */
+  jval_err = jerry_acquire_value(jval_err);
+
   if (!jerry_value_has_error_flag(jval_err)) {
     jerry_value_set_error_flag(&jval_err);
   }
@@ -116,6 +139,13 @@ napi_status napi_fatal_exception(napi_env env, napi_value err) {
   iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
 
   jerry_value_t jval_err = AS_JERRY_VALUE(err);
+  /**
+   * `jerry_value_set_error_flag` creates a new error reference and its
+   * reference count is separated from its original value, so we have to
+   * acquire the original value before `jerry_value_set_error_flag`
+   */
+  jval_err = jerry_acquire_value(jval_err);
+
   if (!jerry_value_has_error_flag(jval_err)) {
     jerry_value_set_error_flag(&jval_err);
   }
@@ -139,13 +169,21 @@ napi_status napi_get_and_clear_last_exception(napi_env env,
   NAPI_TRY_ENV(env);
   iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
 
+  napi_value error;
   if (curr_env->pending_exception != NULL) {
-    NAPI_ASSIGN(result, curr_env->pending_exception);
+    error = curr_env->pending_exception;
     curr_env->pending_exception = NULL;
-  } else if (curr_env->pending_fatal_exception != NULL) {
-    NAPI_ASSIGN(result, curr_env->pending_fatal_exception);
+  } else {
+    error = curr_env->pending_fatal_exception;
     curr_env->pending_fatal_exception = NULL;
   }
+
+  /**
+   * the error object has been aquired on thrown, it has to be released
+   * before returning
+   */
+  jerry_release_value(AS_JERRY_VALUE(error));
+  NAPI_ASSIGN(result, error);
   /** should not clear last error info */
   return napi_ok;
 }
@@ -159,4 +197,16 @@ napi_status napi_get_last_error_info(napi_env env,
 
   NAPI_ASSIGN(result, error_info);
   return napi_ok;
+}
+
+void napi_fatal_error(const char* location, size_t location_len,
+                      const char* message, size_t message_len) {
+  printf("FATAL ERROR: %s %s\n", location, message);
+  void* bt[NAPI_FATAL_BACKTRACE_LEN];
+  int size = backtrace(bt, NAPI_FATAL_BACKTRACE_LEN);
+  char** bt_strs = backtrace_symbols(bt, size);
+  for (int idx = 0; idx < size; ++idx) {
+    fprintf(stderr, "%s\n", bt_strs[idx]);
+  }
+  abort();
 }

@@ -303,7 +303,7 @@ jerryx_handle_scope_add_handle_to (jerryx_handle_t *handle, jerryx_handle_scope 
 /**
  * Add given jerry value to the scope.
  */
-void
+jerry_value_t
 jerryx_create_handle_in_scope (jerry_value_t jval, jerryx_handle_scope scope)
 {
   size_t handle_count = scope->handle_count;
@@ -321,6 +321,7 @@ jerryx_create_handle_in_scope (jerry_value_t jval, jerryx_handle_scope scope)
 
 deferred:
   scope->handle_count += 1;
+  return jval;
 }
 
 
@@ -330,6 +331,5 @@ deferred:
 jerry_value_t
 jerryx_create_handle (jerry_value_t jval)
 {
-  jerryx_create_handle_in_scope (jval, jerryx_handle_scope_get_current ());
-  return jval;
+  return jerryx_create_handle_in_scope (jval, jerryx_handle_scope_get_current ());
 }

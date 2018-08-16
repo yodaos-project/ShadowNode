@@ -27,22 +27,26 @@ static jerry_value_t iotjs_napi_function_handler(
     const jerry_value_t args_p[], const jerry_length_t args_cnt) {
   iotjs_function_info_t* function_info;
   jerry_get_object_native_pointer(function_obj, (void*)&function_info, NULL);
-  iotjs_callback_info_t* callback_info = IOTJS_ALLOC(iotjs_callback_info_t);
-  callback_info->argc = args_cnt;
-  callback_info->argv = (jerry_value_t*)args_p;
-  callback_info->jval_this = this_val;
-  callback_info->function_info = function_info;
-
   napi_env env = function_info->env;
-  jerry_value_t jval_ret;
 
   jerryx_handle_scope scope;
   jerryx_open_handle_scope(&scope);
 
+  iotjs_callback_info_t* callback_info = IOTJS_ALLOC(iotjs_callback_info_t);
+  callback_info->argc = args_cnt;
+  callback_info->argv = (jerry_value_t*)args_p;
+  callback_info->jval_this = this_val;
+
+  callback_info->handle_scope = scope;
+  callback_info->function_info = function_info;
+
+  iotjs_napi_set_current_callback(env, callback_info);
   napi_value nvalue_ret =
       function_info->cb(env, (napi_callback_info)callback_info);
+  iotjs_napi_set_current_callback(env, NULL);
   free(callback_info);
 
+  jerry_value_t jval_ret;
   iotjs_napi_env_t* iotjs_napi_env = (iotjs_napi_env_t*)env;
   if (iotjs_napi_is_exception_pending(iotjs_napi_env)) {
     jerry_value_t jval_err = iotjs_napi_env_get_and_clear_exception(env);
@@ -65,9 +69,16 @@ static jerry_value_t iotjs_napi_function_handler(
    * jerryscript also represented by NULL
    */
   jval_ret = AS_JERRY_VALUE(nvalue_ret);
+  /**
+   * - for N-API created value: value is scoped, would be released on :cleanup
+   * - for passed-in params: value would be automatically release on end of
+   * invocation
+   * - for error values: error values has been acquired on thrown
+   */
+  jerry_acquire_value(jval_ret);
+
 
 cleanup:
-  jerryx_remove_handle(scope, jval_ret, &jval_ret);
   jerryx_close_handle_scope(scope);
   /**
    * Clear N-API env extended error info on end of external function
@@ -106,12 +117,11 @@ napi_status napi_call_function(napi_env env, napi_value recv, napi_value func,
 
   NAPI_TRY_TYPE(function, jval_func);
 
-  jerry_value_t jval_ret =
-      jerry_call_function(jval_func, jval_this, (jerry_value_t*)argv, argc);
-  jerryx_create_handle(jval_ret);
+  JERRYX_CREATE(jval_ret, jerry_call_function(jval_func, jval_this,
+                                              (jerry_value_t*)argv, argc));
   if (jerry_value_has_error_flag(jval_ret)) {
     NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));
-    NAPI_RETURN(napi_generic_failure,
+    NAPI_RETURN(napi_pending_exception,
                 "Unexpected error flag on jerry_call_function.");
   }
 

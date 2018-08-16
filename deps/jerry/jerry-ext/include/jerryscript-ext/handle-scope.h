@@ -95,6 +95,8 @@ jerryx_remove_handle (jerryx_escapable_handle_scope scope,
 jerry_value_t
 jerryx_create_handle (jerry_value_t jval);
 
+jerry_value_t
+jerryx_create_handle_in_scope (jerry_value_t jval, jerryx_handle_scope scope);
 
 /** MARK: - handle-scope-allocator.c */
 jerryx_handle_scope_t *

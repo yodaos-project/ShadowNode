@@ -144,11 +144,16 @@ int napi_module_init_pending(jerry_value_t* exports);
 
 /** MARK: - node_api_env.c */
 napi_env iotjs_get_current_napi_env();
+void iotjs_napi_set_current_callback(napi_env env,
+                                     iotjs_callback_info_t* callback_info);
+iotjs_callback_info_t* iotjs_napi_get_current_callback(napi_env env);
+
 void iotjs_napi_set_error_info(napi_env env, napi_status error_code,
                                const char* error_message,
                                uint32_t engine_error_code,
                                void* engine_reserved);
 void iotjs_napi_clear_error_info(napi_env env);
+
 bool iotjs_napi_is_exception_pending(iotjs_napi_env_t* env);
 jerry_value_t iotjs_napi_env_get_and_clear_exception(napi_env env);
 jerry_value_t iotjs_napi_env_get_and_clear_fatal_exception(napi_env env);

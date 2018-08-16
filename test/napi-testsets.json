@@ -26,8 +26,8 @@
     { "name": "test_env_sharing/test.js", "skip": false },
     { "name": "test_error/test.js", "skip": ["all"], "reason": "class net implemented" },
     { "name": "test_exception/test.js", "skip": ["all"] },
-    { "name": "test_fatal/test.js", "skip": ["all"] },
-    { "name": "test_fatal/test2.js", "skip": ["all"] },
+    { "name": "test_fatal/test.js", "skip": ["all"], "reason": "child_process.spawnSync not implemented" },
+    { "name": "test_fatal/test2.js", "skip": ["all"], "reason": "child_process.spawnSync not implemented" },
     { "name": "test_fatal_exception/test.js", "skip": ["all"] },
     { "name": "test_function/test.js", "skip": ["all"], "reason": "function.name not implemented" },
     { "name": "test_general/test.js", "skip": ["all"], "reason": "class net implemented" },
@@ -35,7 +35,7 @@
     { "name": "test_general/testInstanceOf.js", "skip": false },
     { "name": "test_general/testNapiRun.js", "skip": ["all"], "reason": "run arbitrary script net implemented" },
     { "name": "test_general/testNapiStatus.js", "skip": false },
-    { "name": "test_handle_scope/test.js", "skip": ["all"], "reason": "close all handle scope not closed in N-API functions" },
+    { "name": "test_handle_scope/test.js", "skip": false },
     { "name": "test_make_callback/test-async-hooks.js", "skip": ["all"], "reason":"async_hook not implemented" },
     { "name": "test_make_callback/test.js", "skip": ["all"], "reason": "async api not implemented" },
     { "name": "test_make_callback_recurse/test.js", "skip": ["all"], "reason": "async api not implemented" },
@@ -55,6 +55,13 @@
     { "name": "test_uv_loop/test.js", "skip": ["all"], "reason": "uv api not implemented" }
   ],
   "napi": [
+    { "name": "napi_arguments_return_this.test.js", "skip": false },
+    { "name": "napi_arguments_return.test.js", "skip": false },
+    { "name": "napi_arguments_throw.test.js", "skip": false },
+    { "name": "napi_error_rethrow.test.js", "skip": false },
+    { "name": "napi_error_throw.test.js", "skip": false },
+    { "name": "napi_fatal_error_1.test.js", "skip": false, "expected-failure": true },
+    { "name": "napi_fatal_error_2.test.js", "skip": false, "expected-failure": true },
     { "name": "napi_string.test.js", "skip": false },
     { "name": "napi.test.js", "skip": false }
   ]
