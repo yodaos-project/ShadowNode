@@ -55,6 +55,7 @@
     { "name": "test_uv_loop/test.js", "skip": ["all"], "reason": "uv api not implemented" }
   ],
   "napi": [
-    { "name": "napi.test.js" }
+    { "name": "napi_string.test.js", "skip": false },
+    { "name": "napi.test.js", "skip": false }
   ]
 }
