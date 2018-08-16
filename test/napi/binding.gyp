@@ -5,6 +5,10 @@
       "sources": [ "napi.test.c" ]
     },
     {
+      "target_name": "napi_error",
+      "sources": [ "napi_error.c" ]
+    },
+    {
       "target_name": "napi_fatal_error",
       "sources": [ "napi_fatal_error.c" ]
     },

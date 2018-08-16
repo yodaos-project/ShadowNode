@@ -65,11 +65,14 @@ static jerry_value_t iotjs_napi_function_handler(
    * jerryscript also represented by NULL
    */
   jval_ret = AS_JERRY_VALUE(nvalue_ret);
-  /** jval returned from N-API functions is scoped */
-  jerry_acquire_value(jval_ret);
 
 
 cleanup:
+  /**
+   * for N-API created value: value is scoped, would be released on :cleanup
+   * for passed-in params: value would be automatically release on end of invocation
+   */
+  jerry_acquire_value(jval_ret);
   jerryx_close_handle_scope(scope);
   /**
    * Clear N-API env extended error info on end of external function
