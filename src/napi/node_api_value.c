@@ -202,8 +202,8 @@ napi_status napi_get_value_string_utf8(napi_env env, napi_value value,
   jerry_value_t jval = AS_JERRY_VALUE(value);
   NAPI_TRY_TYPE(string, jval);
 
+  size_t str_size = jerry_get_utf8_string_size(jval);
   if (buf == NULL) {
-    size_t str_size = jerry_get_utf8_string_size(jval);
     /** null terminator is excluded */
     NAPI_ASSIGN(result, str_size);
     NAPI_RETURN(napi_ok);
@@ -211,8 +211,13 @@ napi_status napi_get_value_string_utf8(napi_env env, napi_value value,
 
   jerry_size_t written_size =
       jerry_string_to_utf8_char_buffer(jval, (jerry_char_t*)buf, bufsize);
+  NAPI_WEAK_ASSERT(napi_generic_failure,
+                   str_size == 0 || (bufsize > 0 && written_size != 0),
+                   "Insufficient buffer not supported yet.");
   /** expects one more byte to write null terminator  */
-  buf[written_size] = '\0';
+  if (bufsize > written_size) {
+    buf[written_size] = '\0';
+  }
   NAPI_ASSIGN(result, written_size);
   NAPI_RETURN(napi_ok);
 }
