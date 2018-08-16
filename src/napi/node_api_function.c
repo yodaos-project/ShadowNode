@@ -60,13 +60,11 @@ static jerry_value_t iotjs_napi_function_handler(
   }
 
   // TODO: check if nvalue_ret is escaped
-  if (nvalue_ret == NULL) {
-    jval_ret = jerry_create_undefined();
-  } else {
-    /** jval returned from N-API functions is scoped */
-    jval_ret = AS_JERRY_VALUE(nvalue_ret);
-  }
-
+  /**
+   * Do not turn NULL pointer into undefined since number value `0` in
+   * jerryscript also represented by NULL
+   */
+  jval_ret = AS_JERRY_VALUE(nvalue_ret);
 
 cleanup:
   jerryx_remove_handle(scope, jval_ret, &jval_ret);
