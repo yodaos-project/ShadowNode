@@ -204,12 +204,15 @@ napi_status napi_get_value_string_utf8(napi_env env, napi_value value,
 
   if (buf == NULL) {
     size_t str_size = jerry_get_utf8_string_size(jval);
+    /** null terminator is excluded */
     NAPI_ASSIGN(result, str_size);
     NAPI_RETURN(napi_ok);
   }
 
   jerry_size_t written_size =
       jerry_string_to_utf8_char_buffer(jval, (jerry_char_t*)buf, bufsize);
+  /** expects one more byte to write null terminator  */
+  buf[written_size] = '\0';
   NAPI_ASSIGN(result, written_size);
   NAPI_RETURN(napi_ok);
 }
