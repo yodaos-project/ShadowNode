@@ -39,14 +39,6 @@ struct iotjs_cleanup_hook_s {
 };
 
 typedef struct {
-  napi_value pending_exception;
-  napi_value pending_fatal_exception;
-  napi_extended_error_info extended_error_info;
-
-  iotjs_cleanup_hook_t* cleanup_hook;
-} iotjs_napi_env_t;
-
-typedef struct {
   jerry_value_t jval;
   uint32_t refcount;
 } iotjs_reference_t;
@@ -75,7 +67,19 @@ typedef struct {
   jerry_value_t* argv;
   jerry_value_t jval_this;
 
+  jerryx_handle_scope handle_scope;
   iotjs_function_info_t* function_info;
 } iotjs_callback_info_t;
+
+typedef struct {
+  napi_value pending_exception;
+  napi_value pending_fatal_exception;
+  napi_extended_error_info extended_error_info;
+
+  /** Common function context */
+  iotjs_callback_info_t* current_callback_info;
+
+  iotjs_cleanup_hook_t* cleanup_hook;
+} iotjs_napi_env_t;
 
 #endif // IOTJS_NODE_API_TYPES_H

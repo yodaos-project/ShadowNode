@@ -37,6 +37,17 @@ inline bool iotjs_napi_is_exception_pending(iotjs_napi_env_t* env) {
            env->pending_fatal_exception == NULL);
 }
 
+inline void iotjs_napi_set_current_callback(
+    napi_env env, iotjs_callback_info_t* callback_info) {
+  iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
+  curr_env->current_callback_info = callback_info;
+}
+
+inline iotjs_callback_info_t* iotjs_napi_get_current_callback(napi_env env) {
+  iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
+  return curr_env->current_callback_info;
+}
+
 void iotjs_napi_set_error_info(napi_env env, napi_status error_code,
                                const char* error_message,
                                uint32_t engine_error_code,
