@@ -2,16 +2,12 @@
 #include "common.h"
 
 static napi_value ThrowError(napi_env env, napi_callback_info info) {
-  napi_status status;
-
   NAPI_CALL(env, napi_throw_error(env, NULL, "foobar"));
 
   return NULL;
 }
 
 static napi_value RethrowError(napi_env env, napi_callback_info info) {
-  napi_status status;
-
   NAPI_CALL(env, napi_throw_error(env, NULL, "foobar"));
 
   napi_value err;

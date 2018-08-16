@@ -55,6 +55,9 @@
     { "name": "test_uv_loop/test.js", "skip": ["all"], "reason": "uv api not implemented" }
   ],
   "napi": [
+    { "name": "napi_arguments_return_this.test.js", "skip": false },
+    { "name": "napi_arguments_return.test.js", "skip": false },
+    { "name": "napi_arguments_throw.test.js", "skip": ["all"], "reason": "unhandled lifetime with throwing passed-in error objects" },
     { "name": "napi_error_rethrow.test.js", "skip": false },
     { "name": "napi_error_throw.test.js", "skip": false },
     { "name": "napi_fatal_error_1.test.js", "skip": false, "expected-failure": true },

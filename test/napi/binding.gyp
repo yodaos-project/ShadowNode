@@ -5,6 +5,10 @@
       "sources": [ "napi.test.c" ]
     },
     {
+      "target_name": "napi_arguments",
+      "sources": [ "napi_arguments.c" ]
+    },
+    {
       "target_name": "napi_error",
       "sources": [ "napi_error.c" ]
     },
