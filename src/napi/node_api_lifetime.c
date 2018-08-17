@@ -150,15 +150,15 @@ napi_status napi_create_reference(napi_env env, napi_value value,
 }
 
 napi_status napi_delete_reference(napi_env env, napi_ref ref) {
-  iotjs_reference_t* iot_ref = (iotjs_reference_t*)ref;
-  if (iot_ref->jval != AS_JERRY_VALUE(NULL)) {
-    jerry_value_t jval = iot_ref->jval;
+  iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
+  if (iotjs_ref->jval != AS_JERRY_VALUE(NULL)) {
+    jerry_value_t jval = iotjs_ref->jval;
     iotjs_object_info_t* info = NAPI_GET_OBJECT_INFO(jval);
 
     bool found = false;
     iotjs_reference_t* comp = info->ref_start;
     while (comp != NULL) {
-      if (comp == iot_ref) {
+      if (comp == iotjs_ref) {
         found = true;
         break;
       }
@@ -166,53 +166,53 @@ napi_status napi_delete_reference(napi_env env, napi_ref ref) {
     }
 
     NAPI_WEAK_ASSERT(napi_invalid_arg, found);
-    if (info->ref_start == iot_ref) {
-      info->ref_start = iot_ref->next;
+    if (info->ref_start == iotjs_ref) {
+      info->ref_start = iotjs_ref->next;
     }
-    if (info->ref_end == iot_ref) {
-      info->ref_end = iot_ref->prev;
+    if (info->ref_end == iotjs_ref) {
+      info->ref_end = iotjs_ref->prev;
     }
-    if (iot_ref->prev != NULL) {
-      iot_ref->prev->next = iot_ref->next;
+    if (iotjs_ref->prev != NULL) {
+      iotjs_ref->prev->next = iotjs_ref->next;
     }
-    if (iot_ref->next != NULL) {
-      iot_ref->next->prev = iot_ref->prev;
+    if (iotjs_ref->next != NULL) {
+      iotjs_ref->next->prev = iotjs_ref->prev;
     }
   }
 
-  for (uint32_t i = 0; i < iot_ref->refcount; ++i) {
-    jerry_release_value(iot_ref->jval);
+  for (uint32_t i = 0; i < iotjs_ref->refcount; ++i) {
+    jerry_release_value(iotjs_ref->jval);
   }
-  free(iot_ref);
+  free(iotjs_ref);
   NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_reference_ref(napi_env env, napi_ref ref, uint32_t* result) {
-  iotjs_reference_t* iot_ref = (iotjs_reference_t*)ref;
-  NAPI_WEAK_ASSERT(napi_invalid_arg, (iot_ref->jval != AS_JERRY_VALUE(NULL)));
+  iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
+  NAPI_WEAK_ASSERT(napi_invalid_arg, (iotjs_ref->jval != AS_JERRY_VALUE(NULL)));
 
-  jerry_acquire_value(iot_ref->jval);
-  iot_ref->refcount += 1;
+  jerry_acquire_value(iotjs_ref->jval);
+  iotjs_ref->refcount += 1;
 
-  NAPI_ASSIGN(result, iot_ref->refcount);
+  NAPI_ASSIGN(result, iotjs_ref->refcount);
   NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_reference_unref(napi_env env, napi_ref ref, uint32_t* result) {
-  iotjs_reference_t* iot_ref = (iotjs_reference_t*)ref;
-  NAPI_WEAK_ASSERT(napi_invalid_arg, (iot_ref->refcount > 0));
+  iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
+  NAPI_WEAK_ASSERT(napi_invalid_arg, (iotjs_ref->refcount > 0));
 
-  jerry_release_value(iot_ref->jval);
-  iot_ref->refcount -= 1;
+  jerry_release_value(iotjs_ref->jval);
+  iotjs_ref->refcount -= 1;
 
-  NAPI_ASSIGN(result, iot_ref->refcount);
+  NAPI_ASSIGN(result, iotjs_ref->refcount);
   NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_get_reference_value(napi_env env, napi_ref ref,
                                      napi_value* result) {
-  iotjs_reference_t* iot_ref = (iotjs_reference_t*)ref;
-  NAPI_ASSIGN(result, AS_NAPI_VALUE(iot_ref->jval));
+  iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(iotjs_ref->jval));
   NAPI_RETURN(napi_ok);
 }
 

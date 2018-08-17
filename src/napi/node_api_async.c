@@ -55,8 +55,9 @@ napi_status napi_create_async_work(napi_env env, napi_value async_resource,
   NAPI_WEAK_ASSERT(napi_invalid_arg, execute != NULL);
   NAPI_WEAK_ASSERT(napi_invalid_arg, complete != NULL);
 
-  uv_work_t* work_req = IOTJS_ALLOC(uv_work_t);
   iotjs_async_work_t* async_work = IOTJS_ALLOC(iotjs_async_work_t);
+  uv_work_t* work_req = &async_work->work_req;
+
   async_work->env = env;
   async_work->async_resource = async_resource;
   async_work->async_resource_name = async_resource_name;
@@ -75,14 +76,13 @@ napi_status napi_delete_async_work(napi_env env, napi_async_work work) {
   uv_work_t* work_req = (uv_work_t*)work;
   iotjs_async_work_t* async_work = (iotjs_async_work_t*)work_req->data;
   free(async_work);
-  free(work_req);
   NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_queue_async_work(napi_env env, napi_async_work work) {
   NAPI_TRY_ENV(env);
-  iotjs_environment_t* iot_env = iotjs_environment_get();
-  uv_loop_t* loop = iotjs_environment_loop(iot_env);
+  iotjs_environment_t* iotjs_env = iotjs_environment_get();
+  uv_loop_t* loop = iotjs_environment_loop(iotjs_env);
 
   uv_work_t* work_req = (uv_work_t*)work;
 

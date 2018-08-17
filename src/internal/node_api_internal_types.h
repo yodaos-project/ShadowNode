@@ -18,6 +18,7 @@
 #define IOTJS_NODE_API_TYPES_H
 
 #include "jerryscript.h"
+#include <uv.h>
 #include "node_api.h"
 
 typedef napi_value (*jerry_addon_register_func)(void* env,
@@ -94,6 +95,8 @@ struct iotjs_napi_env_s {
 };
 
 struct iotjs_async_work_s {
+  uv_work_t work_req;
+
   napi_env env;
   napi_value async_resource;
   napi_value async_resource_name;
