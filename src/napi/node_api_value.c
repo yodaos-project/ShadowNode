@@ -60,9 +60,7 @@ napi_status napi_create_external(napi_env env, void* data,
                                  napi_value* result) {
   napi_value nval;
   NAPI_INTERNAL_CALL(napi_create_object(env, &nval));
-  iotjs_object_info_t* info =
-      iotjs_get_object_native_info(AS_JERRY_VALUE(nval),
-                                   sizeof(iotjs_object_info_t));
+  iotjs_object_info_t* info = NAPI_GET_OBJECT_INFO(AS_JERRY_VALUE(nval));
   info->native_object = data;
   info->finalize_cb = finalize_cb;
   info->finalize_hint = finalize_hint;
@@ -182,9 +180,7 @@ napi_status napi_get_prototype(napi_env env, napi_value object,
 
 napi_status napi_get_value_external(napi_env env, napi_value value,
                                     void** result) {
-  iotjs_object_info_t* info =
-      iotjs_get_object_native_info(AS_JERRY_VALUE(value),
-                                   sizeof(iotjs_object_info_t));
+  iotjs_object_info_t* info = NAPI_GET_OBJECT_INFO(AS_JERRY_VALUE(value));
   NAPI_ASSIGN(result, info->native_object);
   NAPI_RETURN(napi_ok);
 }
@@ -265,6 +261,14 @@ napi_status napi_typeof(napi_env env, napi_value value,
                         napi_valuetype* result) {
   jerry_value_t jval = AS_JERRY_VALUE(value);
   jerry_type_t type = jerry_value_get_type(jval);
+
+  iotjs_object_info_t* info = NAPI_TRY_GET_OBJECT_INFO(jval);
+  if (type == JERRY_TYPE_OBJECT && info != NULL &&
+      ((info->native_object != NULL) || (info->finalize_cb != NULL) ||
+       (info->finalize_hint != NULL))) {
+    NAPI_ASSIGN(result, napi_external);
+    NAPI_RETURN(napi_ok);
+  }
 
 #define MAP(jerry, napi)       \
   case jerry:                  \

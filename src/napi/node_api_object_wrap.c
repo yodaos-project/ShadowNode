@@ -53,8 +53,7 @@ napi_status napi_wrap(napi_env env, napi_value js_object, void* native_object,
   jerry_value_t jval = AS_JERRY_VALUE(js_object);
   NAPI_TRY_TYPE(object, jval);
 
-  iotjs_object_info_t* object_info =
-      iotjs_get_object_native_info(jval, sizeof(iotjs_object_info_t));
+  iotjs_object_info_t* object_info = NAPI_GET_OBJECT_INFO(jval);
 
   NAPI_WEAK_ASSERT(napi_invalid_arg, (object_info->native_object == NULL));
   NAPI_WEAK_ASSERT(napi_invalid_arg, (object_info->finalize_cb == NULL));
@@ -72,8 +71,7 @@ napi_status napi_unwrap(napi_env env, napi_value js_object, void** result) {
   jerry_value_t jval = AS_JERRY_VALUE(js_object);
   NAPI_TRY_TYPE(object, jval);
 
-  iotjs_object_info_t* object_info =
-      iotjs_get_object_native_info(jval, sizeof(iotjs_object_info_t));
+  iotjs_object_info_t* object_info = NAPI_GET_OBJECT_INFO(jval);
 
   NAPI_ASSIGN(result, object_info->native_object);
   NAPI_RETURN(napi_ok);
@@ -82,8 +80,7 @@ napi_status napi_unwrap(napi_env env, napi_value js_object, void** result) {
 napi_status napi_remove_wrap(napi_env env, napi_value js_object,
                              void** result) {
   jerry_value_t jval = AS_JERRY_VALUE(js_object);
-  iotjs_object_info_t* object_info =
-      iotjs_get_object_native_info(jval, sizeof(iotjs_object_info_t));
+  iotjs_object_info_t* object_info = NAPI_GET_OBJECT_INFO(jval);
 
   NAPI_ASSIGN(result, object_info->native_object);
 

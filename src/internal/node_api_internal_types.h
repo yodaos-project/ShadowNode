@@ -18,10 +18,21 @@
 #define IOTJS_NODE_API_TYPES_H
 
 #include "jerryscript.h"
+#include <uv.h>
 #include "node_api.h"
 
 typedef napi_value (*jerry_addon_register_func)(void* env,
                                                 jerry_value_t exports);
+typedef void (*iotjs_cleanup_hook_fn)(void* arg);
+
+
+typedef struct iotjs_async_work_s iotjs_async_work_t;
+typedef struct iotjs_callback_info_s iotjs_callback_info_t;
+typedef struct iotjs_cleanup_hook_s iotjs_cleanup_hook_t;
+typedef struct iotjs_function_info_s iotjs_function_info_t;
+typedef struct iotjs_napi_env_s iotjs_napi_env_t;
+typedef struct iotjs_object_info_s iotjs_object_info_t;
+typedef struct iotjs_reference_s iotjs_reference_t;
 
 typedef enum {
   napi_module_load_ok = 0,
@@ -30,48 +41,49 @@ typedef enum {
   napi_module_no_nm_register_func,
 } napi_module_load_status;
 
-typedef void (*iotjs_cleanup_hook_fn)(void* arg);
-typedef struct iotjs_cleanup_hook_s iotjs_cleanup_hook_t;
 struct iotjs_cleanup_hook_s {
   iotjs_cleanup_hook_fn fn;
   void* arg;
   iotjs_cleanup_hook_t* next;
 };
 
-typedef struct {
+struct iotjs_reference_s {
   jerry_value_t jval;
   uint32_t refcount;
-} iotjs_reference_t;
 
+  iotjs_reference_t* prev;
+  iotjs_reference_t* next;
+};
 
 #define IOTJS_OBJECT_INFO_FIELDS \
   napi_env env;                  \
   void* native_object;           \
   napi_finalize finalize_cb;     \
   void* finalize_hint;           \
-  iotjs_reference_t* ref;
+  iotjs_reference_t* ref_start;  \
+  iotjs_reference_t* ref_end;
 
-typedef struct {
+struct iotjs_object_info_s {
   IOTJS_OBJECT_INFO_FIELDS;
-} iotjs_object_info_t;
+};
 
-typedef struct {
+struct iotjs_function_info_s {
   IOTJS_OBJECT_INFO_FIELDS;
 
   napi_callback cb;
   void* data;
-} iotjs_function_info_t;
+};
 
-typedef struct {
+struct iotjs_callback_info_s {
   size_t argc;
   jerry_value_t* argv;
   jerry_value_t jval_this;
 
   jerryx_handle_scope handle_scope;
   iotjs_function_info_t* function_info;
-} iotjs_callback_info_t;
+};
 
-typedef struct {
+struct iotjs_napi_env_s {
   napi_value pending_exception;
   napi_value pending_fatal_exception;
   napi_extended_error_info extended_error_info;
@@ -80,6 +92,17 @@ typedef struct {
   iotjs_callback_info_t* current_callback_info;
 
   iotjs_cleanup_hook_t* cleanup_hook;
-} iotjs_napi_env_t;
+};
+
+struct iotjs_async_work_s {
+  uv_work_t work_req;
+
+  napi_env env;
+  napi_value async_resource;
+  napi_value async_resource_name;
+  napi_async_execute_callback execute;
+  napi_async_complete_callback complete;
+  void* data;
+};
 
 #endif // IOTJS_NODE_API_TYPES_H
