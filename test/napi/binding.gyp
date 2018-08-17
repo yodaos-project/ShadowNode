@@ -21,6 +21,10 @@
       "sources": [ "napi_fatal_error.c" ]
     },
     {
+      "target_name": "napi_reference",
+      "sources": [ "napi_reference.c" ]
+    },
+    {
       "target_name": "napi_string",
       "sources": [ "napi_string.c" ]
     }
