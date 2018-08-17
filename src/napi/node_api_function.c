@@ -25,8 +25,10 @@ static const jerry_object_native_info_t native_obj_type_info = { .free_cb =
 static jerry_value_t iotjs_napi_function_handler(
     const jerry_value_t function_obj, const jerry_value_t this_val,
     const jerry_value_t args_p[], const jerry_length_t args_cnt) {
-  iotjs_function_info_t* function_info = NAPI_TRY_GET_FUNCTION_INFO(function_obj);
-  NAPI_ASSERT(function_info != NULL, "Unexpected null function info on JerryScript callback.");
+  iotjs_function_info_t* function_info =
+      NAPI_TRY_GET_FUNCTION_INFO(function_obj);
+  NAPI_ASSERT(function_info != NULL,
+              "Unexpected null function info on JerryScript callback.");
 
   napi_env env = function_info->env;
 
@@ -117,8 +119,12 @@ napi_status napi_call_function(napi_env env, napi_value recv, napi_value func,
 
   NAPI_TRY_TYPE(function, jval_func);
 
+  jerry_value_t jval_argv[argc];
+  for (size_t idx = 0; idx < argc; ++idx) {
+    jval_argv[idx] = AS_JERRY_VALUE(argv[idx]);
+  }
   JERRYX_CREATE(jval_ret, jerry_call_function(jval_func, jval_this,
-                                              (jerry_value_t*)argv, argc));
+                                              jval_argv, argc));
   if (jerry_value_has_error_flag(jval_ret)) {
     NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));
     NAPI_RETURN(napi_pending_exception,

@@ -9,6 +9,10 @@
       "sources": [ "napi_arguments.c" ]
     },
     {
+      "target_name": "napi_async",
+      "sources": [ "napi_async.cc" ]
+    },
+    {
       "target_name": "napi_error",
       "sources": [ "napi_error.c" ]
     },

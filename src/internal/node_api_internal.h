@@ -28,9 +28,10 @@
 #define AS_JERRY_VALUE(nvalue) (jerry_value_t)(uintptr_t) nvalue
 #define AS_NAPI_VALUE(jval) (napi_value)(uintptr_t) jval
 
-#define NAPI_ASSERT(assertion, message) \
-  if (!(assertion)) {\
-    napi_fatal_error(__FILE__ ":" TOSTRING(__LINE__), NAPI_AUTO_LENGTH, message, NAPI_AUTO_LENGTH); \
+#define NAPI_ASSERT(assertion, message)                                 \
+  if (!(assertion)) {                                                   \
+    napi_fatal_error(__FILE__ ":" TOSTRING(__LINE__), NAPI_AUTO_LENGTH, \
+                     message, NAPI_AUTO_LENGTH);                        \
   }
 
 /**

@@ -25,6 +25,7 @@ typedef napi_value (*jerry_addon_register_func)(void* env,
 typedef void (*iotjs_cleanup_hook_fn)(void* arg);
 
 
+typedef struct iotjs_async_work_s iotjs_async_work_t;
 typedef struct iotjs_callback_info_s iotjs_callback_info_t;
 typedef struct iotjs_cleanup_hook_s iotjs_cleanup_hook_t;
 typedef struct iotjs_function_info_s iotjs_function_info_t;
@@ -90,6 +91,15 @@ struct iotjs_napi_env_s {
   iotjs_callback_info_t* current_callback_info;
 
   iotjs_cleanup_hook_t* cleanup_hook;
+};
+
+struct iotjs_async_work_s {
+  napi_env env;
+  napi_value async_resource;
+  napi_value async_resource_name;
+  napi_async_execute_callback execute;
+  napi_async_complete_callback complete;
+  void* data;
 };
 
 #endif // IOTJS_NODE_API_TYPES_H

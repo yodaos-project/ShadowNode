@@ -33,3 +33,11 @@ napi_status napi_get_version(napi_env env, uint32_t* result) {
   NAPI_ASSIGN(result, NAPI_VERSION);
   NAPI_RETURN(napi_ok);
 }
+
+napi_status napi_get_uv_event_loop(napi_env env, uv_loop_t** loop) {
+  NAPI_TRY_ENV(env);
+  iotjs_environment_t* iot_env = iotjs_environment_get();
+  uv_loop_t* iot_loop = iotjs_environment_loop(iot_env);
+  NAPI_ASSIGN(loop, iot_loop);
+  NAPI_RETURN(napi_ok);
+}
