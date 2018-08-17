@@ -12,9 +12,9 @@ static napi_value GetFinalizeCount(napi_env env, napi_callback_info info) {
 }
 
 static void FinalizeExternal(napi_env env, void* data, void* hint) {
-  int *actual_value = data;
+  int* actual_value = data;
   NAPI_ASSERT_RETURN_VOID(env, actual_value == &test_value,
-      "The correct pointer was passed to the finalizer");
+                          "The correct pointer was passed to the finalizer");
   finalize_count++;
 }
 
@@ -22,26 +22,20 @@ static napi_value CreateExternal(napi_env env, napi_callback_info info) {
   int* data = &test_value;
 
   napi_value result;
-  NAPI_CALL(env,
-      napi_create_external(env,
-                           data,
-                           NULL, /* finalize_cb */
-                           NULL, /* finalize_hint */
-                           &result));
+  NAPI_CALL(env, napi_create_external(env, data, NULL, /* finalize_cb */
+                                      NULL,            /* finalize_hint */
+                                      &result));
 
   finalize_count = 0;
   return result;
 }
 
-static napi_value
-CreateExternalWithFinalize(napi_env env, napi_callback_info info) {
+static napi_value CreateExternalWithFinalize(napi_env env,
+                                             napi_callback_info info) {
   napi_value result;
-  NAPI_CALL(env,
-      napi_create_external(env,
-                           &test_value,
-                           FinalizeExternal,
-                           NULL, /* finalize_hint */
-                           &result));
+  NAPI_CALL(env, napi_create_external(env, &test_value, FinalizeExternal,
+                                      NULL, /* finalize_hint */
+                                      &result));
 
   finalize_count = 0;
   return result;
@@ -63,14 +57,14 @@ static napi_value CheckExternal(napi_env env, napi_callback_info info) {
   NAPI_CALL(env, napi_get_value_external(env, arg, &data));
 
   NAPI_ASSERT(env, data != NULL && *(int*)data == test_value,
-      "An external data value of 1 was expected.");
+              "An external data value of 1 was expected.");
 
   return NULL;
 }
 
 static napi_value CreateReference(napi_env env, napi_callback_info info) {
   NAPI_ASSERT(env, test_reference == NULL,
-      "The test allows only one reference at a time.");
+              "The test allows only one reference at a time.");
 
   size_t argc = 2;
   napi_value args[2];
@@ -80,18 +74,18 @@ static napi_value CreateReference(napi_env env, napi_callback_info info) {
   uint32_t initial_refcount;
   NAPI_CALL(env, napi_get_value_uint32(env, args[1], &initial_refcount));
 
-  NAPI_CALL(env,
-      napi_create_reference(env, args[0], initial_refcount, &test_reference));
+  NAPI_CALL(env, napi_create_reference(env, args[0], initial_refcount,
+                                       &test_reference));
 
   NAPI_ASSERT(env, test_reference != NULL,
-      "A reference should have been created.");
+              "A reference should have been created.");
 
   return NULL;
 }
 
 static napi_value DeleteReference(napi_env env, napi_callback_info info) {
   NAPI_ASSERT(env, test_reference != NULL,
-      "A reference must have been created.");
+              "A reference must have been created.");
 
   NAPI_CALL(env, napi_delete_reference(env, test_reference));
   test_reference = NULL;
@@ -100,7 +94,7 @@ static napi_value DeleteReference(napi_env env, napi_callback_info info) {
 
 static napi_value IncrementRefcount(napi_env env, napi_callback_info info) {
   NAPI_ASSERT(env, test_reference != NULL,
-      "A reference must have been created.");
+              "A reference must have been created.");
 
   uint32_t refcount;
   NAPI_CALL(env, napi_reference_ref(env, test_reference, &refcount));
@@ -112,7 +106,7 @@ static napi_value IncrementRefcount(napi_env env, napi_callback_info info) {
 
 static napi_value DecrementRefcount(napi_env env, napi_callback_info info) {
   NAPI_ASSERT(env, test_reference != NULL,
-      "A reference must have been created.");
+              "A reference must have been created.");
 
   uint32_t refcount;
   NAPI_CALL(env, napi_reference_unref(env, test_reference, &refcount));
@@ -124,7 +118,7 @@ static napi_value DecrementRefcount(napi_env env, napi_callback_info info) {
 
 static napi_value GetReferenceValue(napi_env env, napi_callback_info info) {
   NAPI_ASSERT(env, test_reference != NULL,
-      "A reference must have been created.");
+              "A reference must have been created.");
 
   napi_value result;
   NAPI_CALL(env, napi_get_reference_value(env, test_reference, &result));
@@ -136,7 +130,7 @@ static napi_value Init(napi_env env, napi_value exports) {
     DECLARE_NAPI_GETTER("finalizeCount", GetFinalizeCount),
     DECLARE_NAPI_PROPERTY("createExternal", CreateExternal),
     DECLARE_NAPI_PROPERTY("createExternalWithFinalize",
-        CreateExternalWithFinalize),
+                          CreateExternalWithFinalize),
     DECLARE_NAPI_PROPERTY("checkExternal", CheckExternal),
     DECLARE_NAPI_PROPERTY("createReference", CreateReference),
     DECLARE_NAPI_PROPERTY("deleteReference", DeleteReference),
@@ -145,8 +139,10 @@ static napi_value Init(napi_env env, napi_value exports) {
     DECLARE_NAPI_GETTER("referenceValue", GetReferenceValue),
   };
 
-  NAPI_CALL(env, napi_define_properties(
-      env, exports, sizeof(descriptors) / sizeof(*descriptors), descriptors));
+  NAPI_CALL(env,
+            napi_define_properties(env, exports,
+                                   sizeof(descriptors) / sizeof(*descriptors),
+                                   descriptors));
 
   return exports;
 }
