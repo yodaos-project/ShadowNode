@@ -169,8 +169,7 @@ napi_status napi_new_instance(napi_env env, napi_value constructor, size_t argc,
     jval_argv[idx] = AS_JERRY_VALUE(argv[idx]);
   }
 
-  JERRYX_CREATE(jval_ret,
-      jerry_construct_object(jval_cons, jval_argv, argc));
+  JERRYX_CREATE(jval_ret, jerry_construct_object(jval_cons, jval_argv, argc));
   if (jerry_value_has_error_flag(jval_ret)) {
     NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));
     NAPI_RETURN(napi_pending_exception,

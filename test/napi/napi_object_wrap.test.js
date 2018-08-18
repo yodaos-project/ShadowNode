@@ -1,7 +1,8 @@
+'use strict';
 var assert = require('assert');
 var test = require('./build/Release/napi_object_wrap.node');
 
-function context () {
+function context() {
   var obj = {};
   assert.strictEqual(test.Wrap(obj), obj);
 }
