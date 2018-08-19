@@ -54,6 +54,7 @@ create_object_nested (int times)
   {
     obj = create_object_nested (times - 1);
   }
+  TEST_ASSERT(jerryx_handle_scope_get_current() == scope);
 
   // If leaves `escaped` uninitialized, there will be a style error on linux thrown by compiler
   jerry_value_t escaped = 0;
@@ -76,6 +77,8 @@ test_handle_scope_val (void)
     jerry_value_t obj = create_object_nested (JERRYX_SCOPE_PRELIST_SIZE * 2);
     (void) obj;
   }
+
+  TEST_ASSERT(jerryx_handle_scope_get_current() == scope);
 
   jerry_gc();
   TEST_ASSERT (native_free_cb_call_count == 0);

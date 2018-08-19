@@ -198,6 +198,9 @@ jerryx_handle_scope_free (jerryx_handle_scope_t *scope)
   }
 
   kJerryXHandleScopePool.count -= 1;
+  if (scope == kJerryXHandleScopeCurrent) {
+    kJerryXHandleScopeCurrent = jerryx_handle_scope_get_parent(scope);
+  }
 
   if (!jerryx_handle_scope_is_in_prelist (scope))
   {
