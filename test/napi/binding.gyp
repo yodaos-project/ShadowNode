@@ -25,6 +25,10 @@
       "sources": [ "napi_fatal_error.c" ]
     },
     {
+      "target_name": "napi_object_wrap",
+      "sources": [ "napi_object_wrap.c" ]
+    },
+    {
       "target_name": "napi_reference",
       "sources": [ "napi_reference.c" ]
     },

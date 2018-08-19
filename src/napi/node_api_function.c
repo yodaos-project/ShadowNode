@@ -19,9 +19,6 @@
 #include "internal/node_api_internal.h"
 #include "node_api.h"
 
-static const jerry_object_native_info_t native_obj_type_info = { .free_cb =
-                                                                     free };
-
 static jerry_value_t iotjs_napi_function_handler(
     const jerry_value_t function_obj, const jerry_value_t this_val,
     const jerry_value_t args_p[], const jerry_length_t args_cnt) {
@@ -102,8 +99,6 @@ napi_status napi_create_function(napi_env env, const char* utf8name,
   function_info->env = env;
   function_info->cb = cb;
   function_info->data = data;
-  jerry_set_object_native_pointer(jval_func, function_info,
-                                  &native_obj_type_info);
 
   NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_func));
   NAPI_RETURN(napi_ok);
@@ -169,12 +164,15 @@ napi_status napi_new_instance(napi_env env, napi_value constructor, size_t argc,
 
   NAPI_TRY_TYPE(function, jval_cons);
 
-  jerry_value_t jval_ret =
-      jerry_construct_object(jval_cons, (jerry_value_t*)argv, argc);
-  jerryx_create_handle(jval_ret);
+  jerry_value_t jval_argv[argc];
+  for (size_t idx = 0; idx < argc; ++idx) {
+    jval_argv[idx] = AS_JERRY_VALUE(argv[idx]);
+  }
+
+  JERRYX_CREATE(jval_ret, jerry_construct_object(jval_cons, jval_argv, argc));
   if (jerry_value_has_error_flag(jval_ret)) {
     NAPI_INTERNAL_CALL(napi_throw(env, AS_NAPI_VALUE(jval_ret)));
-    NAPI_RETURN(napi_generic_failure,
+    NAPI_RETURN(napi_pending_exception,
                 "Unexpected error flag on jerry_construct_object.");
   }
 

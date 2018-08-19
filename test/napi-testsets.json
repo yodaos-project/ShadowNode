@@ -64,6 +64,7 @@
     { "name": "napi_error_throw.test.js", "skip": false },
     { "name": "napi_fatal_error_1.test.js", "skip": false, "expected-failure": true },
     { "name": "napi_fatal_error_2.test.js", "skip": false, "expected-failure": true },
+    { "name": "napi_object_wrap.test.js", "skip": false },
     { "name": "napi_reference.test.js", "skip": false },
     { "name": "napi_string.test.js", "skip": false },
     { "name": "napi.test.js", "skip": false }

@@ -64,7 +64,7 @@ napi_status napi_wrap(napi_env env, napi_value js_object, void* native_object,
   object_info->finalize_cb = finalize_cb;
   object_info->finalize_hint = finalize_hint;
 
-  return napi_create_reference(env, js_object, 1, result);
+  return napi_create_reference(env, js_object, 0, result);
 }
 
 napi_status napi_unwrap(napi_env env, napi_value js_object, void** result) {
