@@ -58,9 +58,9 @@ Console.prototype.info = function() {
 Console.prototype.warn =
 Console.prototype.error = function() {
   if (arguments.length === 1) {
-    stdout(util.formatValue(arguments[0]) + '\n');
+    stderr(util.formatValue(arguments[0]) + '\n');
   } else {
-    stdout(util.format.apply(this, arguments) + '\n');
+    stderr(util.format.apply(this, arguments) + '\n');
   }
 };
 
