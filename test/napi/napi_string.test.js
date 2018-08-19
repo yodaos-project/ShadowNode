@@ -1,3 +1,4 @@
+'use strict';
 var assert = require('assert');
 var test = require('./build/Release/napi_string.node');
 

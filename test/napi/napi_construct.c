@@ -3,8 +3,8 @@
 
 static napi_ref ConstructRef;
 
-static void cleanup (void* data) {
-  napi_env env = (napi_env) data;
+static void cleanup(void* data) {
+  napi_env env = (napi_env)data;
   napi_delete_reference(env, ConstructRef);
 }
 
@@ -34,7 +34,8 @@ napi_value Constructor(napi_env env, napi_callback_info info) {
 
 NAPI_MODULE_INIT() {
   napi_value construct;
-  NAPI_CALL(env, napi_create_function(env, "Constructor", NAPI_AUTO_LENGTH, Construct, NULL, &construct));
+  NAPI_CALL(env, napi_create_function(env, "Constructor", NAPI_AUTO_LENGTH,
+                                      Construct, NULL, &construct));
   NAPI_CALL(env, napi_create_reference(env, construct, 1, &ConstructRef));
   NAPI_CALL(env, napi_add_env_cleanup_hook(env, cleanup, env));
 
