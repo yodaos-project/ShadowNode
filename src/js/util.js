@@ -263,4 +263,5 @@ exports.errnoException = errnoException;
 exports.stringToNumber = stringToNumber;
 exports.inherits = inherits;
 exports.format = format;
+exports.formatValue = formatValue;
 exports.deprecate = deprecate;
