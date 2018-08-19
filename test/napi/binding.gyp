@@ -13,6 +13,10 @@
       "sources": [ "napi_async.cc" ]
     },
     {
+      "target_name": "napi_construct",
+      "sources": [ "napi_construct.c" ]
+    },
+    {
       "target_name": "napi_error",
       "sources": [ "napi_error.c" ]
     },

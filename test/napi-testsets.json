@@ -59,6 +59,7 @@
     { "name": "napi_arguments_return.test.js", "skip": false },
     { "name": "napi_arguments_throw.test.js", "skip": false },
     { "name": "napi_async.test.js", "skip": false },
+    { "name": "napi_construct.test.js", "skip": false },
     { "name": "napi_error_rethrow.test.js", "skip": false },
     { "name": "napi_error_throw.test.js", "skip": false },
     { "name": "napi_fatal_error_1.test.js", "skip": false, "expected-failure": true },
