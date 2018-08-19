@@ -1,5 +1,5 @@
 'use strict';
-
+var common = require('../../common');
 var assert = require('assert');
 var test = require(`./build/Release/test_conversions.node`);
 

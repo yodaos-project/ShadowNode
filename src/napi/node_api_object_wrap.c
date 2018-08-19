@@ -21,8 +21,6 @@ napi_status napi_define_class(napi_env env, const char* utf8name, size_t length,
                               size_t property_count,
                               const napi_property_descriptor* properties,
                               napi_value* result) {
-  NAPI_WEAK_ASSERT(napi_invalid_arg, properties != NULL);
-
   napi_value nval;
   NAPI_INTERNAL_CALL(
       napi_create_function(env, utf8name, length, constructor, data, &nval));

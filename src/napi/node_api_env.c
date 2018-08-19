@@ -179,12 +179,15 @@ napi_status napi_get_and_clear_last_exception(napi_env env,
     curr_env->pending_fatal_exception = NULL;
   }
 
+  jerry_value_t jval_err = AS_JERRY_VALUE(error);
+  jerry_value_clear_error_flag(&jval_err);
+
   /**
    * the error object has been aquired on thrown, it has to be released
    * before returning
    */
-  jerry_release_value(AS_JERRY_VALUE(error));
-  NAPI_ASSIGN(result, error);
+  jerry_release_value(jval_err);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_err));
   /** should not clear last error info */
   return napi_ok;
 }

@@ -1,6 +1,6 @@
 'use strict';
 
-
+var common = require('../../common');
 var assert = require('assert');
 
 // addon is referenced through the eval expression in testFile

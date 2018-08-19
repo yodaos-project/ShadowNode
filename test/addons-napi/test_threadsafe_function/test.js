@@ -1,6 +1,6 @@
 'use strict';
 
-
+var common = require('../../common');
 var assert = require('assert');
 var binding = require(`./build/Release/binding.node`);
 var { fork } = require('child_process');

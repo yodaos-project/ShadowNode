@@ -87,10 +87,11 @@ napi_status napi_create_object(napi_env env, napi_value* result) {
     NAPI_TRY_TYPE(string, jval_msg);                                          \
                                                                               \
     jerry_size_t msg_size = jerry_get_utf8_string_size(jval_msg);             \
-    jerry_char_t raw_msg[msg_size];                                           \
+    jerry_char_t raw_msg[msg_size + 1];                                       \
     jerry_size_t written_size =                                               \
         jerry_string_to_utf8_char_buffer(jval_msg, raw_msg, msg_size);        \
     NAPI_WEAK_ASSERT(napi_invalid_arg, written_size == msg_size);             \
+    raw_msg[msg_size] = '\0';                                                 \
                                                                               \
     jerry_value_t jval_error = jerry_create_error(jerry_error_type, raw_msg); \
     jerry_value_clear_error_flag(&jval_error);                                \

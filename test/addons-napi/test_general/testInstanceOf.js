@@ -1,7 +1,7 @@
 'use strict';
 var fs = require('fs');
 
-
+var common = require('../../common');
 var assert = require('assert');
 
 // addon is referenced through the eval expression in testFile

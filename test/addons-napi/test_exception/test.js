@@ -1,7 +1,7 @@
 'use strict';
 // Flags: --expose-gc
 
-
+var common = require('../../common');
 var assert = require('assert');
 var theError = new Error('Some error');
 

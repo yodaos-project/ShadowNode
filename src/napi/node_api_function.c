@@ -55,6 +55,8 @@ static jerry_value_t iotjs_napi_function_handler(
       jval_err = iotjs_napi_env_get_and_clear_fatal_exception(env);
       IOTJS_ASSERT(jval_err != (uintptr_t)NULL);
 
+      /** Argument cannot have error flag */
+      jerry_value_clear_error_flag(&jval_err);
       iotjs_uncaught_exception(jval_err);
       jval_ret = jval_err;
     }

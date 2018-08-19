@@ -1,6 +1,6 @@
 'use strict';
 
-
+var common = require('../../common');
 var assert = require('assert');
 var { runInCallbackScope } = require(`./build/Release/binding.node`);
 

@@ -1,6 +1,6 @@
 'use strict';
 
-
+var common = require('../../common');
 
 // This tests the promise-related n-api calls
 
