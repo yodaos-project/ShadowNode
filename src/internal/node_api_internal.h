@@ -111,7 +111,7 @@
  */
 #define NAPI_TRY_NO_PENDING_EXCEPTION(env) \
   NAPI_WEAK_ASSERT(napi_pending_exception, \
-                   !iotjs_napi_is_exception_pending((iotjs_napi_env_t*)env))
+                   !iotjs_napi_is_exception_pending(env))
 /** MARK: - N-API Asserts */
 
 /**
@@ -179,7 +179,7 @@ void iotjs_napi_set_error_info(napi_env env, napi_status error_code,
                                void* engine_reserved);
 void iotjs_napi_clear_error_info(napi_env env);
 
-bool iotjs_napi_is_exception_pending(iotjs_napi_env_t* env);
+bool iotjs_napi_is_exception_pending(napi_env env);
 jerry_value_t iotjs_napi_env_get_and_clear_exception(napi_env env);
 jerry_value_t iotjs_napi_env_get_and_clear_fatal_exception(napi_env env);
 /** MARK: - END node_api_env.c */

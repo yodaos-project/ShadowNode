@@ -42,6 +42,17 @@ static void iotjs_uv_work_after_cb(uv_work_t* req, int status) {
     jerryx_open_handle_scope(&scope);
     async_work->complete(async_work->env, cb_status, async_work->data);
     jerryx_close_handle_scope(scope);
+
+    if (iotjs_napi_is_exception_pending(async_work->env)) {
+      jerry_value_t jval_err;
+      jval_err = iotjs_napi_env_get_and_clear_exception(async_work->env);
+      if (jval_err == (uintptr_t)NULL) {
+        jval_err =
+            iotjs_napi_env_get_and_clear_fatal_exception(async_work->env);
+      }
+      iotjs_uncaught_exception(jval_err);
+      jerry_release_value(jval_err);
+    }
   }
 }
 
