@@ -1,6 +1,6 @@
 'use strict';
 
-
+var common = require('../../common');
 var addon = require(`./build/Release/test_general.node`);
 var assert = require('assert');
 

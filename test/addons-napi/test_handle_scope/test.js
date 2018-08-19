@@ -1,5 +1,5 @@
 'use strict';
-
+var common = require('../../common');
 var assert = require('assert');
 
 // testing handle scope api calls

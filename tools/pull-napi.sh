@@ -84,8 +84,6 @@ for file in test/addons-napi/**/*.js; do
   [ -f "$file" ] && echo "$file"
 
   declare -a exps=(
-    # `const common = require('../../common');` => ``
-    "s/const common = require.'\.\.\/\.\.\/common'.;//"
     # `const ` => `var `
     "s/const /var /"
     # `let ` => `var `
