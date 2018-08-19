@@ -2,8 +2,11 @@
 /deps/**
 /samples/**
 /tools/**
-/test/**
 /benchmark/**
 /node_modules/**
 /src/js/ble*
 /src/js/iotjs.js
+
+test/*
+!test/common/
+!test/napi/

@@ -47,8 +47,7 @@ static jerry_value_t iotjs_napi_function_handler(
   free(callback_info);
 
   jerry_value_t jval_ret;
-  iotjs_napi_env_t* iotjs_napi_env = (iotjs_napi_env_t*)env;
-  if (iotjs_napi_is_exception_pending(iotjs_napi_env)) {
+  if (iotjs_napi_is_exception_pending(env)) {
     jerry_value_t jval_err = iotjs_napi_env_get_and_clear_exception(env);
     if (jval_err != (uintptr_t)NULL) {
       jval_ret = jval_err;

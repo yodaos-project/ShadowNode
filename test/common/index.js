@@ -1,7 +1,8 @@
+'use strict';
 var assert = require('assert');
 var mustCallChecks = [];
 
-module.exports.mustCall = function mustCall (fn, criteria) {
+module.exports.mustCall = function mustCall(fn, criteria) {
   if (typeof fn === 'number') {
     criteria = fn;
     fn = noop;
@@ -13,7 +14,7 @@ module.exports.mustCall = function mustCall (fn, criteria) {
   }
 
   if (typeof criteria !== 'number')
-    throw new TypeError(`Invalid ${field} value: ${criteria}`);
+    throw new TypeError(`Invalid value: ${criteria}`);
 
   var context = {
     expect: criteria,
@@ -30,13 +31,17 @@ module.exports.mustCall = function mustCall (fn, criteria) {
     ++context.actual;
     return fn.apply(this, arguments);
   };
-}
+};
 
-function noop () {}
+function noop() {}
 
-function runCallChecks () {
-  mustCallChecks.forEach(it => {
-    assert.strictEqual(it.actual, it.expect, `Expect function ${it.name} been called ${it.expect} times, got ${it.actual}
+function runCallChecks() {
+  mustCallChecks.forEach((it) => {
+    assert.strictEqual(
+      it.actual,
+      it.expect,
+      `Expect function ${it.name} been called ${it.expect} times, \
+got ${it.actual}
 ${it.stack}`);
-  })
+  });
 }
