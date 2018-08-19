@@ -1,6 +1,10 @@
 # N-API
 
-Most N-API api in ShadowNode are aligned with definition of Node.js version 10.8. Yet there are some that may not implemented nor not supported. Documents of supported API can be found in[Node.js N-API](https://nodejs.org/docs/latest-v10.x/api/n-api.html) document. Following is a list of api that can not be used in ShadowNode.
+Most N-API api in ShadowNode are aligned with definition of Node.js version 10.8. Yet there are some that may not implemented nor not supported. Documents of supported API can be found in [Node.js N-API](https://nodejs.org/docs/latest-v10.x/api/n-api.html) document. Following is a list of api that can not be used in ShadowNode.
+
+## How to build
+
+Use [node-gyp](https://github.com/nodejs/node-gyp) whenever possible, since N-API is designed to be ABI stable.
 
 ## API not supported in ShadowNode
 
