@@ -43,6 +43,17 @@ void iotjs_uncaught_exception(jerry_value_t jexception) {
   jerry_value_t jres =
       iotjs_jhelper_call(jonuncaughtexception, process, &args, &throws);
 
+  if (throws) {
+    jerry_value_t jres_msg = iotjs_jval_get_property(jres, "message");
+    jerry_size_t msg_size = jerry_get_utf8_string_size(jres_msg);
+    jerry_char_t jmsg_buf[msg_size + 1];
+    jerry_string_to_utf8_char_buffer(jres_msg, jmsg_buf, msg_size);
+    jmsg_buf[msg_size]= '\0';
+    printf("Unexpected error on uncaughtException callback: %s\n", jmsg_buf);
+
+    jerry_release_value(jres_msg);
+  }
+
   iotjs_jargs_destroy(&args);
   jerry_release_value(jres);
   jerry_release_value(jonuncaughtexception);
