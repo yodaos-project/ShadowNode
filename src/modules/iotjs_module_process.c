@@ -105,6 +105,7 @@ JS_FUNCTION(Compile) {
 
   jerry_value_t jres = WrapEval(filename, strlen(filename), source, size);
   iotjs_string_destroy(&path);
+  iotjs_buffer_release(source);
   return jres;
 }
 
