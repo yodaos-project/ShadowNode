@@ -10,6 +10,8 @@ var DBUS_TYPES = {
   'session': 1,
 };
 
+var _busInstance = null;
+
 function initEnv() {
   try {
     var lines = fs.readFileSync(
@@ -41,7 +43,7 @@ function convertData2Array(data) {
  */
 function Bus(name) {
   EventEmitter.call(this);
-  this.name = name;
+  this.name = name || 'session';
   this.dbus = new DBus();
   this.dbus.getBus(DBUS_TYPES[this.name]);
   this.dbus.setSignalHandler(this.handleSignal.bind(this));
@@ -148,6 +150,14 @@ Bus.prototype.addSignalFilter = function(sender, objectPath,
 Bus.prototype.reconnect = function() {
   this.dbus.releaseBus();
   this.dbus.getBus(DBUS_TYPES[this.name]);
+};
+
+/**
+ * Destroy the current bus instance
+ */
+Bus.prototype.destroy = function() {
+  this.dbus.releaseBus();
+  _busInstance = false;
 };
 
 /**
@@ -505,7 +515,13 @@ ServiceInterface.prototype.update = function() {
  * @param {String} name
  */
 function getBus(name) {
-  return new Bus(name);
+  if (_busInstance === false) {
+    throw new Error('dbus connection has been destroyed');
+  }
+  if (_busInstance === null) {
+    _busInstance = new Bus(name);
+  }
+  return _busInstance;
 }
 
 /**
@@ -515,8 +531,7 @@ function getBus(name) {
  * @param {String} service
  */
 function registerService(name, service) {
-  var bus = new Bus(name);
-  return bus.getService(service);
+  return getBus(name).getService(service);
 }
 
 /**

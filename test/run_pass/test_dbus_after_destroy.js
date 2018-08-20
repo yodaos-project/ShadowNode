@@ -1,0 +1,9 @@
+'use strict';
+
+var assert = require('assert');
+var bus = require('dbus').getBus('session');
+bus.destroy();
+
+assert.throws(() => {
+  require('dbus').getBus('session');
+}, Error);

@@ -10,6 +10,8 @@ typedef struct {
   DBusConnection* connection;
   bool initialized;
   uv_async_t connection_handle;
+  uv_poll_t watcher;
+
 } IOTJS_VALIDATED_STRUCT(iotjs_dbus_t);
 
 typedef struct iotjs_dbus_method_data_s {
@@ -17,9 +19,14 @@ typedef struct iotjs_dbus_method_data_s {
   DBusPendingCall* pending;
 } iotjs_dbus_method_data_t;
 
-static JNativeInfoType this_module_native_info = { .free_cb = NULL };
+static iotjs_dbus_t* iotjs_dbus_create(const jerry_value_t jdbus);
+// static void iotjs_dbus_destroy(iotjs_dbus_t* dbus);
 
-static iotjs_dbus_t* iotjs_dbus_create(const jerry_value_t jdbus) {
+static JNativeInfoType this_module_native_info = {
+  .free_cb = NULL
+};
+
+iotjs_dbus_t* iotjs_dbus_create(const jerry_value_t jdbus) {
   iotjs_dbus_t* dbus = IOTJS_ALLOC(iotjs_dbus_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_dbus_t, dbus);
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, jdbus,
@@ -27,7 +34,7 @@ static iotjs_dbus_t* iotjs_dbus_create(const jerry_value_t jdbus) {
   return dbus;
 }
 
-// static void iotjs_dbus_destroy(iotjs_dbus_t* dbus) {
+// void iotjs_dbus_destroy(iotjs_dbus_t* dbus) {
 //   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_dbus_t, dbus);
 //   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
 //   IOTJS_RELEASE(dbus);
@@ -46,7 +53,7 @@ static void iotjs_dbus_watcher_handle(uv_poll_t* watcher, int status,
 
 static void iotjs_dbus_watcher_close(void* data) {
   uv_poll_t* watcher = (uv_poll_t*)data;
-  if (watcher == NULL)
+  if (watcher == NULL || uv_is_closing((uv_handle_t*)watcher))
     return;
 
   watcher->data = NULL;
@@ -72,14 +79,14 @@ static dbus_bool_t iotjs_dbus_watch_add(DBusWatch* watch, void* data) {
   if (flags & DBUS_WATCH_WRITABLE)
     events |= UV_WRITABLE;
 
+  iotjs_dbus_t* dbus = (iotjs_dbus_t*)data;
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_dbus_t, dbus);
+
   // Initializing watcher
-  uv_poll_t* watcher = (uv_poll_t*)malloc(sizeof(uv_poll_t));
-  watcher->data = (void*)watch;
-
-  uv_poll_init(uv_default_loop(), watcher, fd);
-  uv_poll_start(watcher, events, iotjs_dbus_watcher_handle);
-  dbus_watch_set_data(watch, (void*)watcher, iotjs_dbus_watcher_close);
-
+  _this->watcher.data = (void*)watch;
+  uv_poll_init(uv_default_loop(), &_this->watcher, fd);
+  uv_poll_start(&_this->watcher, events, iotjs_dbus_watcher_handle);
+  dbus_watch_set_data(watch, (void*)&_this->watcher, iotjs_dbus_watcher_close);
   return true;
 }
 
@@ -140,7 +147,7 @@ static void iotjs_dbus_connection_cb(uv_async_t* handle) {
 }
 
 static void iotjs_dbus_connection_close_cb(void* data) {
-  // TODO
+  fprintf(stdout, "the dbus connection is closed\n");
 }
 
 /**
@@ -414,11 +421,11 @@ JS_FUNCTION(GetBus) {
   dbus_connection_set_exit_on_disconnect(_this->connection, false);
   dbus_connection_set_watch_functions(_this->connection, iotjs_dbus_watch_add,
                                       iotjs_dbus_watch_remove,
-                                      iotjs_dbus_watch_handle, NULL, NULL);
+                                      iotjs_dbus_watch_handle, (void*)dbus, NULL);
   dbus_connection_set_timeout_functions(_this->connection,
                                         iotjs_dbus_timeout_add,
                                         iotjs_dbus_timeout_remove,
-                                        iotjs_dbus_timeout_toggled, NULL, NULL);
+                                        iotjs_dbus_timeout_toggled, (void*)dbus, NULL);
   dbus_connection_set_wakeup_main_function(_this->connection,
                                            iotjs_dbus_connection_wakeup,
                                            &_this->connection_handle,
@@ -432,6 +439,11 @@ JS_FUNCTION(ReleaseBus) {
   JS_DECLARE_THIS_PTR(dbus, dbus);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_dbus_t, dbus);
   dbus_connection_unref(_this->connection);
+  jerry_release_value(_this->signal_handler);
+  jerry_release_value(_this->jcallback);
+
+  iotjs_dbus_watcher_close((void*)&_this->watcher);
+  uv_close((uv_handle_t*)&_this->connection_handle, NULL);
   return jerry_create_undefined();
 }
 
@@ -609,7 +621,7 @@ JS_FUNCTION(AddSignalFilter) {
   dbus_error_init(&err);
   dbus_bus_add_match(_this->connection, rule_str, &err);
   dbus_connection_flush(_this->connection);
-  dbus_free((void*)rule_str);
+  iotjs_string_destroy(&rule);
 
   if (dbus_error_is_set(&err)) {
     return JS_CREATE_ERROR(COMMON, "failed to add rule");
