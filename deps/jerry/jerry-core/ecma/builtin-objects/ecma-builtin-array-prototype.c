@@ -1963,6 +1963,7 @@ ecma_builtin_array_prototype_object_every (ecma_value_t this_arg, /**< this argu
           ret_value = ECMA_VALUE_FALSE;
         }
 
+        ecma_free_value(current_index);
         ECMA_FINALIZE (call_value);
       }
 
@@ -2061,6 +2062,7 @@ ecma_builtin_array_prototype_object_some (ecma_value_t this_arg, /**< this argum
           ret_value = ECMA_VALUE_TRUE;
         }
 
+        ecma_free_value(current_index);
         ECMA_FINALIZE (call_value);
       }
 
@@ -2151,6 +2153,7 @@ ecma_builtin_array_prototype_object_for_each (ecma_value_t this_arg, /**< this a
         ecma_value_t call_args[] = {current_value, current_index, obj_this};
         ECMA_TRY_CATCH (call_value, ecma_op_function_call (func_object_p, arg2, call_args, 3), ret_value);
 
+        ecma_free_value(current_index);
         ECMA_FINALIZE (call_value);
       }
 
@@ -2256,6 +2259,7 @@ ecma_builtin_array_prototype_object_map (ecma_value_t this_arg, /**< this argume
                                                               false);
         JERRY_ASSERT (ecma_is_value_true (put_comp));
 
+        ecma_free_value(current_index);
         ECMA_FINALIZE (mapped_value);
       }
 
@@ -2357,6 +2361,7 @@ ecma_builtin_array_prototype_object_filter (ecma_value_t this_arg, /**< this arg
         ecma_value_t call_args[] = { get_value, current_index, obj_this };
         /* 9.c.ii */
         ECMA_TRY_CATCH (call_value, ecma_op_function_call (func_object_p, arg2, call_args, 3), ret_value);
+        ecma_free_value(current_index);
 
         /* 9.c.iii */
         if (ecma_op_to_boolean (call_value))
@@ -2531,6 +2536,7 @@ ecma_builtin_array_prototype_object_reduce (ecma_value_t this_arg, /**< this arg
           ecma_free_value (accumulator);
           accumulator = ecma_copy_value (call_value);
 
+          ecma_free_value(current_index);
           ECMA_FINALIZE (call_value);
         }
 
@@ -2685,6 +2691,7 @@ ecma_builtin_array_prototype_object_reduce_right (ecma_value_t this_arg, /**< th
           ecma_free_value (accumulator);
           accumulator = ecma_copy_value (call_value);
 
+          ecma_free_value(current_index);
           ECMA_FINALIZE (call_value);
         }
 
@@ -2710,6 +2717,250 @@ ecma_builtin_array_prototype_object_reduce_right (ecma_value_t this_arg, /**< th
   return ret_value;
 } /* ecma_builtin_array_prototype_object_reduce_right */
 
+/**
+ * The Array.prototype object's 'find' routine
+ *
+ * See also:
+ *          ECMA-262 v5, 15.4.4.22
+ *
+ * @return ecma value
+ *         Returned value must be freed with ecma_free_value.
+ */
+static ecma_value_t
+ecma_builtin_array_prototype_object_find (ecma_value_t this_arg, /**< this argument */
+                                         ecma_value_t arg1, /**< callbackfn */
+                                         ecma_value_t arg2) /**< this' of the callback function */
+{
+  ecma_value_t ret_value = ECMA_VALUE_EMPTY;
+
+  ECMA_TRY_CATCH (obj_this, ecma_op_to_object (this_arg), ret_value);
+
+  ecma_object_t *obj_p = ecma_get_object_from_value (obj_this);
+
+  ECMA_TRY_CATCH (len_value,
+                  ecma_op_object_get_by_magic_id (obj_p, LIT_MAGIC_STRING_LENGTH),
+                  ret_value);
+
+  ECMA_OP_TO_NUMBER_TRY_CATCH (len_number, len_value, ret_value);
+
+  uint32_t len = ecma_number_to_uint32 (len_number);
+
+  if (!ecma_op_is_callable (arg1))
+  {
+    ret_value = ecma_raise_type_error (ECMA_ERR_MSG ("Callback function is not callable."));
+  }
+  else
+  {
+    ecma_object_t *func_object_p;
+    func_object_p = ecma_get_object_from_value (arg1);
+    ecma_value_t current_index;
+
+    for (uint32_t index = 0; index < len && ecma_is_value_empty (ret_value); index++)
+    {
+      ecma_string_t *index_str_p = ecma_new_ecma_string_from_uint32 (index);
+
+      ECMA_TRY_CATCH (current_value, ecma_op_object_find (obj_p, index_str_p), ret_value);
+
+      if (!ecma_is_value_found (current_value))
+      {
+        current_value = ECMA_VALUE_UNDEFINED;
+      }
+      current_index = ecma_make_uint32_value (index);
+      ecma_value_t call_args[] = { current_value, current_index, obj_this };
+
+      ECMA_TRY_CATCH (is_find, ecma_op_function_call (func_object_p, arg2, call_args, 3), ret_value);
+      if (ecma_op_to_boolean(is_find))
+      {
+        ret_value = ecma_copy_value(current_value);
+      }
+      ecma_free_value(current_index);
+      ECMA_FINALIZE (is_find);
+      ECMA_FINALIZE (current_value);
+      ecma_deref_ecma_string (index_str_p);
+    }
+
+  }
+
+  ECMA_OP_TO_NUMBER_FINALIZE (len_number);
+  ECMA_FINALIZE (len_value);
+  ECMA_FINALIZE (obj_this);
+
+  return ecma_is_value_empty(ret_value) ? ECMA_VALUE_UNDEFINED : ret_value;
+} /* ecma_builtin_array_prototype_object_find */
+
+/**
+ * The Array.prototype object's 'findIndex' routine
+ *
+ * See also:
+ *          ECMA-262 v5, 15.4.4.22
+ *
+ * @return ecma value
+ *         Returned value must be freed with ecma_free_value.
+ */
+static ecma_value_t
+ecma_builtin_array_prototype_object_find_index (ecma_value_t this_arg, /**< this argument */
+                                         ecma_value_t arg1, /**< callbackfn */
+                                         ecma_value_t arg2) /**< this' of the callback function */
+{
+  ecma_value_t ret_value = ECMA_VALUE_EMPTY;
+
+  ECMA_TRY_CATCH (obj_this,
+                  ecma_op_to_object (this_arg),
+                  ret_value);
+
+  ecma_object_t *obj_p = ecma_get_object_from_value (obj_this);
+
+  ECMA_TRY_CATCH (len_value,
+                  ecma_op_object_get_by_magic_id (obj_p, LIT_MAGIC_STRING_LENGTH),
+                  ret_value);
+
+  ECMA_OP_TO_NUMBER_TRY_CATCH (len_number, len_value, ret_value);
+
+  uint32_t len = ecma_number_to_uint32 (len_number);
+
+  if (!ecma_op_is_callable (arg1))
+  {
+    ret_value = ecma_raise_type_error (ECMA_ERR_MSG ("Callback function is not callable."));
+  }
+  else
+  {
+    ecma_object_t *func_object_p;
+    func_object_p = ecma_get_object_from_value (arg1);
+    ecma_value_t current_index;
+
+    for (uint32_t index = 0; index < len && ecma_is_value_empty (ret_value); index++)
+    {
+      ecma_string_t *index_str_p = ecma_new_ecma_string_from_uint32 (index);
+
+      ECMA_TRY_CATCH (current_value, ecma_op_object_find (obj_p, index_str_p), ret_value);
+
+      if (!ecma_is_value_found (current_value))
+      {
+        current_value = ECMA_VALUE_UNDEFINED;
+      }
+      current_index = ecma_make_uint32_value (index);
+      ecma_value_t call_args[] = { current_value, current_index, obj_this };
+
+      ECMA_TRY_CATCH (is_find, ecma_op_function_call (func_object_p, arg2, call_args, 3), ret_value);
+      if (ecma_op_to_boolean(is_find))
+      {
+        ret_value = ecma_copy_value(current_index);
+      }
+      ecma_free_value(current_index);
+      ECMA_FINALIZE (is_find);
+      ECMA_FINALIZE (current_value);
+      ecma_deref_ecma_string (index_str_p);
+    }
+
+  }
+
+  ECMA_OP_TO_NUMBER_FINALIZE (len_number);
+  ECMA_FINALIZE (len_value);
+  ECMA_FINALIZE (obj_this);
+
+  if (ecma_is_value_empty(ret_value))
+  {
+    ret_value = ecma_make_int32_value(-1);
+  }
+  return ret_value;
+} /* ecma_builtin_array_prototype_object_fill */
+
+/**
+ * The Array.prototype object's 'fill' routine
+ *
+ * See also:
+ *          ECMA-262 v5, 15.4.4.22
+ *
+ * @return ecma value
+ *         Returned value must be freed with ecma_free_value.
+ */
+static ecma_value_t
+ecma_builtin_array_prototype_object_fill (ecma_value_t this_arg, /**< this argument */
+                                         ecma_value_t arg1, /**< value to fill */
+                                         ecma_value_t arg2, /**< start index */
+                                         ecma_value_t arg3) /**< end index */
+{
+  ecma_value_t ret_value = ECMA_VALUE_EMPTY;
+
+  ECMA_TRY_CATCH (obj_this,
+                  ecma_op_to_object (this_arg),
+                  ret_value);
+
+  ecma_object_t *obj_p = ecma_get_object_from_value (obj_this);
+
+  ECMA_TRY_CATCH (len_value,
+                  ecma_op_object_get_by_magic_id (obj_p, LIT_MAGIC_STRING_LENGTH),
+                  ret_value);
+
+  ECMA_OP_TO_NUMBER_TRY_CATCH (len_number, len_value, ret_value);
+
+  const uint32_t len = ecma_number_to_uint32 (len_number);
+
+  uint32_t start = 0, end = len;
+
+  ECMA_OP_TO_NUMBER_TRY_CATCH (start_num, arg2, ret_value);
+
+  start = ecma_builtin_helper_array_index_normalize (start_num, len);
+
+  if (ecma_is_value_undefined (arg3))
+  {
+    end = len;
+  }
+  else
+  {
+    ECMA_OP_TO_NUMBER_TRY_CATCH (end_num, arg3, ret_value);
+
+    end = ecma_builtin_helper_array_index_normalize (end_num, len);
+
+    ECMA_OP_TO_NUMBER_FINALIZE (end_num);
+  }
+
+  ECMA_OP_TO_NUMBER_FINALIZE (start_num);
+
+  JERRY_ASSERT (start <= len && end <= len);
+
+  for (uint32_t k = start; k < end && ecma_is_value_empty (ret_value); k++)
+  {
+      ecma_string_t *index_str_p = ecma_new_ecma_string_from_uint32 (k);
+      ECMA_TRY_CATCH (current_value, ecma_op_object_find (obj_p, index_str_p), ret_value);
+      if (ecma_is_value_found (current_value))
+      {
+        ecma_free_value(current_value);
+      }
+      ECMA_FINALIZE (current_value);
+
+      ecma_value_t put_comp = ecma_builtin_helper_def_prop (obj_p,
+                                                            index_str_p,
+                                                            arg1,
+                                                            true, /* Writable */
+                                                            true, /* Enumerable */
+                                                            true, /* Configurable */
+                                                            false);
+      JERRY_ASSERT (ecma_is_value_true (put_comp));
+      ecma_deref_ecma_string (index_str_p);
+  }
+
+  if (ecma_is_value_empty(ret_value))
+  {
+    ret_value = ecma_copy_value(obj_this);
+  }
+
+  ECMA_OP_TO_NUMBER_FINALIZE (len_number);
+  ECMA_FINALIZE (len_value);
+  ECMA_FINALIZE (obj_this);
+  
+  return ret_value;
+} /* ecma_builtin_array_prototype_object_fill */
+
+static ecma_value_t
+ecma_builtin_array_prototype_object_copy_within (ecma_value_t this_arg, /**< this argument */
+                                         ecma_value_t arg1, /**< start index */
+                                         ecma_value_t arg2) /**< end index */
+{
+  ecma_value_t ret_value = ECMA_VALUE_EMPTY;
+  JERRY_ASSERT(false);
+  return ret_value;
+}
 /**
  * @}
  * @}
