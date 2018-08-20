@@ -23,8 +23,7 @@ if __name__ == '__main__':
         build_jerry()
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
-                '--run-test',
-                '--no-check-valgrind'])
+                '--run-test'])
 
     elif test == "host-darwin":
         for buildtype in BUILDTYPES:
@@ -44,7 +43,6 @@ if __name__ == '__main__':
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
                         '--run-test',
-                        '--no-check-valgrind',
                         '--no-snapshot',
                         '--jerry-lto'])
 
