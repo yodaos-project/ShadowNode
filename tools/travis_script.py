@@ -43,6 +43,7 @@ if __name__ == '__main__':
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
                         '--run-test',
+                        '--no-check-valgrind',
                         '--no-snapshot',
                         '--jerry-lto'])
 
