@@ -63,7 +63,8 @@ ROUTINE (LIT_MAGIC_STRING_REDUCE_RIGHT_UL, ecma_builtin_array_prototype_object_r
 ROUTINE (LIT_MAGIC_STRING_FIND, ecma_builtin_array_prototype_object_find, 2, 1)
 ROUTINE (LIT_MAGIC_STRING_FIND_INDEX, ecma_builtin_array_prototype_object_find_index, 2, 1)
 ROUTINE (LIT_MAGIC_STRING_FILL, ecma_builtin_array_prototype_object_fill, 3, 1)
-ROUTINE (LIT_MAGIC_STRING_COPY_WITHIN, ecma_builtin_array_prototype_object_copy_within, 2, 1)
+ROUTINE (LIT_MAGIC_STRING_COPY_WITHIN, ecma_builtin_array_prototype_object_copy_within, 3, 1)
+ROUTINE (LIT_MAGIC_STRING_INCLUDES, ecma_builtin_array_prototype_object_includes, 2, 1)
 
 #endif /* !CONFIG_DISABLE_ARRAY_BUILTIN */
 

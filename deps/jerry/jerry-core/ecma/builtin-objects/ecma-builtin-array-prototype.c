@@ -2860,7 +2860,7 @@ ecma_builtin_array_prototype_object_find_index (ecma_value_t this_arg, /**< this
 
   if (ecma_is_value_empty(ret_value))
   {
-    ret_value = ecma_make_int32_value(-1);
+    ret_value = ecma_make_number_value(ECMA_NUMBER_MINUS_ONE);
   }
   return ret_value;
 } /* ecma_builtin_array_prototype_object_fill */
@@ -2954,11 +2954,26 @@ ecma_builtin_array_prototype_object_fill (ecma_value_t this_arg, /**< this argum
 
 static ecma_value_t
 ecma_builtin_array_prototype_object_copy_within (ecma_value_t this_arg, /**< this argument */
-                                         ecma_value_t arg1, /**< start index */
-                                         ecma_value_t arg2) /**< end index */
+                                         ecma_value_t arg1, /**< target */
+                                         ecma_value_t arg2, /**< start index */
+                                         ecma_value_t arg3) /**< end index */
 {
   ecma_value_t ret_value = ECMA_VALUE_EMPTY;
-  JERRY_ASSERT(false);
+  return ret_value;
+}
+
+static ecma_value_t
+ecma_builtin_array_prototype_object_includes (ecma_value_t this_arg, /**< this argument */
+                                         ecma_value_t arg1, /**< element */
+                                         ecma_value_t arg2) /**< fromIndex */
+{
+  ecma_value_t ret_value = ECMA_VALUE_EMPTY;
+  ecma_value_t index_ret = ecma_builtin_array_prototype_object_index_of(this_arg, arg1, arg2);
+  ECMA_OP_TO_NUMBER_TRY_CATCH (index, index_ret, ret_value);
+  uint32_t start = ecma_number_to_uint32 (index);
+  ret_value = index < 0 ? ECMA_VALUE_FALSE : ECMA_VALUE_TRUE;
+  ECMA_OP_TO_NUMBER_FINALIZE (index);
+  ecma_free_value(index_ret);
   return ret_value;
 }
 /**
