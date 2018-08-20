@@ -234,9 +234,6 @@ class TestRunner(object):
 
         if self.valgrind:
             valgrind_options = [
-                # workaround to avoid valgrind bug
-                # http://valgrind.org/docs/manual/faq.html#faq.exit_errors
-                "--run-libc-freeres=no",
                 "--leak-check=full",
                 "--error-exitcode=5",
                 "--undef-value-errors=no"

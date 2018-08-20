@@ -200,7 +200,7 @@ def init_options():
 
     # Unit testing and benchmarking options
     parser.add_argument('--run-test',
-        nargs='?', default=False, const="full", choices=["full", "quiet"],
+        nargs='?', default=False, const="quiet", choices=["full", "quiet"],
         help='Execute tests after build, optional argument specifies '
              'the level of output for the testrunner')
     parser.add_argument('--no-init-submodule',
