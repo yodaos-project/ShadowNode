@@ -265,6 +265,7 @@ Bus.prototype.getService = function(name) {
  * @param {String} name
  */
 function Service(bus, name) {
+  this._bus = bus;
   this._dbus = bus.dbus;
   this._dbus.setMessageHandler(this.handleMessage.bind(this));
   this._dbus.requestName(name);
