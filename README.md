@@ -64,7 +64,7 @@ as possible, and the following are the status:
 
 - [Assert](docs/api/Assert.md)
 - [Buffer](docs/api/Buffer.md)
-- [C/C++ Addon API](docs/N-API.md)
+- [C/C++ Addon API](docs/api/N-API.md)
 - [Child Process](docs/api/Child-Process.md)
 - [Crypto](docs/api/Crypto.md)
 - [DNS](docs/api/DNS.md)
