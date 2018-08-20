@@ -265,6 +265,11 @@ Bus.prototype.getService = function(name) {
  * @param {String} name
  */
 function Service(bus, name) {
+  Object.defineProperty(this, '_bus', {
+    value: bus,
+    writable: false,
+    enumerable: false,
+  });
   this._dbus = bus.dbus;
   this._dbus.setMessageHandler(this.handleMessage.bind(this));
   this._dbus.requestName(name);
