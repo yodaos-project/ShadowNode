@@ -144,7 +144,7 @@ def alarm_handler(signum, frame):
 class TestRunner(object):
     def __init__(self, options):
         self.iotjs = fs.abspath(options.iotjs)
-        self.quiet = options.quiet
+        self.quiet = False #options.quiet
         self.timeout = options.timeout
         self.valgrind = options.valgrind
         self.coverage = options.coverage
