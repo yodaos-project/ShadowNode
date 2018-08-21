@@ -1,7 +1,6 @@
 'use strict';
 
 var fs = require('fs');
-var sax = require('sax');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var DBus = native.DBus;
@@ -139,9 +138,9 @@ Bus.prototype.addSignalFilter = function(sender, objectPath,
     interfaceName + '\',path=\'' +
     objectPath + '\'';
   this.dbus.addSignalFilter(rule);
-  process.nextTick(function() {
-    if (typeof callback === 'function') callback();
-  });
+  if (typeof callback === 'function') {
+    process.nextTick(callback);
+  }
 };
 
 /**
@@ -167,7 +166,7 @@ function xml2js(buf) {
   var json = {};
   var curr = json;
   var history = [];
-  var parser = sax.parser(true);
+  var parser = require('sax').parser(true);
   parser.onopentag = function(node) {
     if (!Array.isArray(curr)) {
       curr[node.name] = {
@@ -204,7 +203,7 @@ Bus.prototype.introspect = function(serviceName, objectPath, callback) {
       interfaces: {}
     };
     if (!text)
-      throw new Error('no introspectable found');
+      return callback(new Error('no introspectable found'));
 
     var json = xml2js(text).node;
     object.path = json.attributes.name;
@@ -473,7 +472,7 @@ ServiceInterface.prototype.addMethod = function(name, opts, handler) {
  * @method addProperty
  */
 ServiceInterface.prototype.addProperty = function() {
-  // TODO no supported
+  throw new Error('addProperty not implemented');
 };
 
 /**
@@ -494,7 +493,7 @@ ServiceInterface.prototype.emit = function(name, val) {
   var iface = this._name;
   var signal = this._signals[name];
   if (!signal) {
-    throw new Error('signal ' + name + ' are not found.');
+    throw new Error(`signal ${name} are not found.`);
   }
   var types = signal.opts.types || [];
   // TODO(Yorkie): only support 1 argument for signal
@@ -506,7 +505,7 @@ ServiceInterface.prototype.emit = function(name, val) {
  * @method update
  */
 ServiceInterface.prototype.update = function() {
-  // Do nothing, just for comp.
+  console.error('update is deprecated, please remove');
 };
 
 /**
