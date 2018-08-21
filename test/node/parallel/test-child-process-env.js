@@ -35,14 +35,7 @@ Object.setPrototypeOf(env, {
   'FOO': 'BAR'
 });
 
-var child;
-if (false) {
-  child = spawn('cmd.exe', ['/c', 'set'],
-                Object.assign({}, process.env, { env: env }));
-} else {
-  child = spawn('/usr/bin/env', [],
-                Object.assign({}, process.env, { env: env }));
-}
+var child = spawn('/usr/bin/env', [], Object.assign({}, process.env, env));
 
 var response = '';
 child.stdout.setEncoding('utf8');
