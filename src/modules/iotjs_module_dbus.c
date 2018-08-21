@@ -203,7 +203,7 @@ static bool iotjs_dbus_encode_jobject(jerry_value_t val, DBusMessageIter* iter,
       jerry_char_t buffer[size + 1];
       jerry_string_to_utf8_char_buffer(val, buffer, size);
 
-      char* data = (char*)malloc(size + 1);
+      char* data = iotjs_buffer_allocate(size + 1);
       memset(data, 0, size + 1);
       strncpy(data, (char*)buffer, size);
 
@@ -393,7 +393,7 @@ static void iotjs_dbus_call_method(DBusPendingCall* pending, void* data) {
 }
 
 static void iotjs_dbus_after_call_method(void* data) {
-  free(data);
+  IOTJS_RELEASE(data);
 }
 
 JS_FUNCTION(DbusConstructor) {
@@ -515,8 +515,7 @@ JS_FUNCTION(CallMethod) {
     return JS_CREATE_ERROR(COMMON, "failed to call method: Out of Memory");
   }
 
-  iotjs_dbus_method_data_t* method_data =
-      malloc(sizeof(iotjs_dbus_method_data_t));
+  iotjs_dbus_method_data_t* method_data = IOTJS_ALLOC(iotjs_dbus_method_data_t);
   // TODO(Yorkie): check if malloc is succeed.
   method_data->jcallback = jerry_acquire_value(jcallback);
   method_data->pending = pending;
@@ -636,7 +635,6 @@ JS_FUNCTION(AddSignalFilter) {
   dbus_bus_add_match(_this->connection, rule_str, &err);
   dbus_connection_flush(_this->connection);
   iotjs_string_destroy(&rule);
-  // dbus_free((void*)rule_str);
 
   if (dbus_error_is_set(&err)) {
     return JS_CREATE_ERROR(COMMON, "failed to add rule");
