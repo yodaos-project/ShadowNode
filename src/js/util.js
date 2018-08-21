@@ -250,6 +250,34 @@ function deprecate(fn, msg, code) {
   return deprecated;
 }
 
+// FIXME: use Symbol on implementation done
+var customPromisifySymbol = 'util:promisify:custom';
+promisify.custom = customPromisifySymbol;
+function promisify(original) {
+  if (typeof original != 'function') {
+    throw new TypeError('expect a function on promisify');
+  }
+  if (typeof original[customPromisifySymbol] == 'function') {
+    return original[customPromisifySymbol];
+  }
+  return function promisified() {
+    var args = Array.prototype.slice.call(arguments, 0);
+
+    return new Promise((resolve, reject) => {
+      args.push(callback);
+      original.apply(this, args);
+
+      function callback(err, result) {
+        if (err != null) {
+          reject(err);
+          return;
+        }
+        resolve(result);
+      }
+    });
+  };
+}
+
 
 exports.isNull = isNull;
 exports.isUndefined = isUndefined;
@@ -270,3 +298,4 @@ exports.inherits = inherits;
 exports.format = format;
 exports.formatValue = formatValue;
 exports.deprecate = deprecate;
+exports.promisify = promisify;
