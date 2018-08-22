@@ -54,7 +54,6 @@ void iotjs_dbus_destroy(iotjs_dbus_t* dbus) {
   IOTJS_DBUS_RELEASE_HANDLE();
   iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
   IOTJS_RELEASE(dbus);
-  printf("the dbus instance is destroyed.\n");
 }
 
 static void iotjs_dbus_watcher_handle(uv_poll_t* watcher, int status,
