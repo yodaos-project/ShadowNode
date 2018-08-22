@@ -471,9 +471,9 @@ ServiceInterface.prototype.addMethod = function(name, opts, handler) {
 /**
  * @method addProperty
  */
-ServiceInterface.prototype.addProperty = function() {
-  throw new Error('addProperty not implemented');
-};
+// ServiceInterface.prototype.addProperty = function() {
+//   NOT IMPLEMENTED
+// };
 
 /**
  * @method addSignal
@@ -504,9 +504,9 @@ ServiceInterface.prototype.emit = function(name, val) {
 /**
  * @method update
  */
-ServiceInterface.prototype.update = function() {
-  console.error('update is deprecated, please remove');
-};
+ServiceInterface.prototype.update = util.deprecate(function() {
+  // Nothing to do
+}, 'update is deprecated, please remove this call.');
 
 /**
  * @module dbus
