@@ -244,7 +244,7 @@ class TestRunner(object):
         my_env = os.environ.copy()
         if options["env"] != None:
             for key, val in options["env"].items():
-                if key == u"NODE_PATH" or key == u"DISPLAY":
+                if key == u"NODE_PATH":
                     my_env[key] = fs.join(options["root"], val)
 
         signal.alarm(options["timeout"])
