@@ -55,11 +55,11 @@ JS_FUNCTION(HashUpdate) {
   JS_DECLARE_THIS_PTR(crypto_hash, hash);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_crypto_hash_t, hash);
 
-  jerry_value_t value = jargv[0];
-  jerry_size_t size = jerry_get_string_size(value);
-  jerry_char_t buf[size];
-  jerry_string_to_char_buffer(value, buf, size);
-  mbedtls_md_update(&_this->ctx, (const unsigned char*)buf, size);
+  jerry_value_t jval = jargv[0];
+  iotjs_bufferwrap_t* buf_wrap = iotjs_bufferwrap_from_jbuffer(jval);
+  size_t size = iotjs_bufferwrap_length(buf_wrap);
+  char* buf = iotjs_bufferwrap_buffer(buf_wrap);
+  mbedtls_md_update(&_this->ctx, (unsigned char*)buf, size);
   return jerry_create_null();
 }
 
