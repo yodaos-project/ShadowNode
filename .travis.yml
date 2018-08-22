@@ -32,7 +32,7 @@ install:
 script:
 - sudo $(which node) tools/http_server.js --port 80 &
 - sudo $(which node) tools/http_server.js --ssl --port 443 &
-- dbus-launch
+- export $(dbus-launch)
 - npm run lint
 - tools/travis_script.py
 
