@@ -16,6 +16,7 @@
         "DISPLAY": ":0"
       }
     },
+    { "name": "test_dbus_define.js" },
     { "name": "test_dbus_introspectable.js",
       "env": {
         "DISPLAY": ":0"
