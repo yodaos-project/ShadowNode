@@ -299,6 +299,7 @@ static DBusHandlerResult iotjs_dbus_handle_message(DBusConnection* conn,
       (jerry_char_t*)dbus_message_get_interface(msg);
   const jerry_char_t* member = (jerry_char_t*)dbus_message_get_member(msg);
 
+  dbus_message_ref(msg);
   jerry_value_t jmsg = iotjs_dbus_decode_message(msg);
   jerry_set_object_native_pointer(jmsg, msg, &dbus_module_native_info);
 
@@ -587,6 +588,7 @@ JS_FUNCTION(SendMessageReply) {
 
   iotjs_string_t signature = JS_GET_ARG(2, string);
   DBusMessageIter iter;
+  DBusMessage* from;
   DBusMessage* reply;
   dbus_uint32_t serial = 0;
 
@@ -594,7 +596,8 @@ JS_FUNCTION(SendMessageReply) {
   const jerry_object_native_info_t* type;
   jerry_get_object_native_pointer(jargv[0], &data, &type);
 
-  reply = dbus_message_new_method_return((DBusMessage*)data);
+  from = (DBusMessage*)data;
+  reply = dbus_message_new_method_return(from);
 
   dbus_message_iter_init_append(reply, &iter);
   iotjs_dbus_encode_jobject(jargv[1], &iter, iotjs_string_data(&signature));
@@ -602,6 +605,7 @@ JS_FUNCTION(SendMessageReply) {
   dbus_connection_send(_this->connection, reply, &serial);
   dbus_connection_flush(_this->connection);
   dbus_message_unref(reply);
+  dbus_message_unref(from);
   return jerry_create_null();
 }
 

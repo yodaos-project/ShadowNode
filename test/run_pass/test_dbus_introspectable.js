@@ -13,7 +13,9 @@ myiface.addMethod('test', {
 });
 myiface.addMethod('test2', {
   in: [dbus.Define(String)], out: [dbus.Define(String)] }, (arg1, cb) => {
-  cb(null, arg1 + '>!');
+  setTimeout(() => {
+    cb(null, arg1 + '>!');
+  }, 2000);
 });
 myiface.update();
 
