@@ -21,7 +21,7 @@ addons:
 
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tools/apt-get-install-deps.sh; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  tools/brew-install-deps.sh; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tools/brew-install-deps.sh; fi
 
 install:
 - nvm install 10.8.0
@@ -30,10 +30,15 @@ install:
 - ls node_modules/.bin
 
 script:
+- npm run lint
+# start http & https service
 - sudo $(which node) tools/http_server.js --port 80 &
 - sudo $(which node) tools/http_server.js --ssl --port 443 &
-- export $(dbus-launch)
-- npm run lint
+# start dbus service
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export $(dbus-launch); fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew service start dbus; fi
+# check the environment
+- export
 - tools/travis_script.py
 
 fast_finish: true
