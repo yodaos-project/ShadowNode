@@ -550,7 +550,7 @@ exports.Define = function(type) {
   } else if (type === Object) {
     return 'a{sv}';
   } else {
-    return 'v'
+    return 'v';
   }
 };
 
