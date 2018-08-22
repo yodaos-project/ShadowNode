@@ -43,3 +43,4 @@ setTimeout(function() {
   assert.equal(plan, 2);
   bus.destroy();
 }, 500);
+
