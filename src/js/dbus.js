@@ -541,10 +541,16 @@ function registerService(name, service) {
 exports.Define = function(type) {
   if (type === String) {
     return 's';
-  } else if (type === 'Number') {
-    return 'i';
+  } else if (type === Number) {
+    return 'd';
+  } else if (type === Boolean) {
+    return 'b';
+  } else if (type === Array) {
+    return 'av';
+  } else if (type === Object) {
+    return 'a{sv}';
   } else {
-    return type;
+    return 'v'
   }
 };
 
