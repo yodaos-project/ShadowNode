@@ -12,8 +12,12 @@ function Hash(algorithm) {
 }
 
 Hash.prototype.update = function(buf, inputEncoding) {
-  if (Buffer.isBuffer(buf) && inputEncoding) {
-    buf = buf.toString(inputEncoding);
+  if (typeof buf !== 'string' && !Buffer.isBuffer(buf)) {
+    throw new TypeError(
+      'Expect buffer or string on first argument of cipher.update.');
+  }
+  if (typeof buf === 'string') {
+    buf = Buffer.from(buf, inputEncoding);
   }
   this._handle.update(buf);
   return this;
