@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 2.8)
 project(IOTJS C)
 
 set(IOTJS_VERSION_MAJOR 0)
-set(IOTJS_VERSION_MINOR 9)
+set(IOTJS_VERSION_MINOR 10)
 set(IOTJS_VERSION_PATCH 0)
 
 # Do a few default checks
