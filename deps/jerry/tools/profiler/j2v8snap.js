@@ -1,6 +1,6 @@
 'use strict';
 
-/* jerry heap snapshot to google V8 heap snapshot converter */
+/* jerry heap snapshot to V8 heap snapshot converter */
 
 const fs = require('fs');
 
