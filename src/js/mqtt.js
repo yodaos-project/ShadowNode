@@ -75,6 +75,7 @@ MqttClient.prototype.connect = function() {
   this._socket.once('error', this._ondisconnect.bind(this));
   this._socket.once('end', this._ondisconnect.bind(this));
   this._lastConnectTime = Date.now();
+  this._lastChunk = null;
   return this;
 };
 
@@ -113,6 +114,10 @@ MqttClient.prototype._ondisconnect = function(err) {
 };
 
 MqttClient.prototype._ondata = function(chunk) {
+  if (this._lastChunk) {
+    chunk = Buffer.concat([this._lastChunk, chunk]);
+    this._lastChunk = null;
+  }
   var res;
   try {
     res = this._handle._readPacket(chunk);
@@ -134,19 +139,30 @@ MqttClient.prototype._ondata = function(chunk) {
   } else if (res.type === MQTT_PUBLISH) {
     var msg;
     try {
-      msg = this._handle._deserialize(res.buffer);
+      msg = this._handle._deserialize(chunk);
     } catch (err) {
       this.disconnect(err);
       return;
     }
-    this.emit('message', msg.topic, msg.payload);
-    if (msg.qos > 0) {
-      // send publish ack
-      try {
-        var ack = this._handle._getAck(msg.id, msg.qos);
-        this._write(ack);
-      } catch (err) {
-        this.disconnect(err);
+    if (msg.payload_missing_size > 0) {
+      this._lastChunk = chunk;
+    } else {
+      this.emit('message', msg.topic, msg.payload);
+      if (msg.qos > 0) {
+        // send publish ack
+        try {
+          var ack = this._handle._getAck(msg.id, msg.qos);
+          this._write(ack);
+        } catch (err) {
+          this.disconnect(err);
+          return;
+        }
+      }
+      if (msg.payload_missing_size < 0) {
+        var end = chunk.byteLength;
+        var start = end + msg.payload_missing_size;
+        var leftChunk = chunk.slice(start, end);
+        this._ondata(leftChunk);
       }
     }
   } else {
