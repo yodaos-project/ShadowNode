@@ -114,6 +114,7 @@ MqttClient.prototype._ondisconnect = function(err) {
 };
 
 MqttClient.prototype._ondata = function(chunk) {
+  // one packet in multi chunks
   if (this._lastChunk) {
     chunk = Buffer.concat([this._lastChunk, chunk]);
     this._lastChunk = null;
@@ -158,6 +159,7 @@ MqttClient.prototype._ondata = function(chunk) {
           return;
         }
       }
+      // multi packets in one chunk
       if (msg.payload_missing_size < 0) {
         var end = chunk.byteLength;
         var start = end + msg.payload_missing_size;
