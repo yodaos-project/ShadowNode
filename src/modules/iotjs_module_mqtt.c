@@ -32,11 +32,16 @@ JS_FUNCTION(MqttConstructor) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_mqtt_t, mqtt);
 
   jerry_value_t opts = JS_GET_ARG(0, object);
-  jerry_value_t version = iotjs_jval_get_property(opts, "protocolVersion");
-  jerry_value_t keepalive = iotjs_jval_get_property(opts, "keepalive");
-  jerry_value_t username = iotjs_jval_get_property(opts, "username");
-  jerry_value_t password = iotjs_jval_get_property(opts, "password");
-  jerry_value_t clientId = iotjs_jval_get_property(opts, "clientId");
+  jerry_value_t version =
+      iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_PROTOCOL_VERSION);
+  jerry_value_t keepalive =
+      iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_KEEPALIVE);
+  jerry_value_t username =
+      iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_USERNAME);
+  jerry_value_t password =
+      iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_PASSWORD);
+  jerry_value_t clientId =
+      iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_CLIENT_ID);
 
   MQTTPacket_connectData options = MQTTPacket_connectData_initializer;
   options.willFlag = 0;
@@ -180,11 +185,13 @@ JS_FUNCTION(MqttGetConnect) {
 JS_FUNCTION(MqttGetPublish) {
   iotjs_string_t topic = JS_GET_ARG(0, string);
   jerry_value_t opts = JS_GET_ARG(1, object);
-  jerry_value_t msg_id = iotjs_jval_get_property(opts, "id");
-  jerry_value_t msg_qos = iotjs_jval_get_property(opts, "qos");
-  jerry_value_t msg_dup = iotjs_jval_get_property(opts, "dup");
-  jerry_value_t msg_retain = iotjs_jval_get_property(opts, "retain");
-  jerry_value_t msg_payload_ = iotjs_jval_get_property(opts, "payload");
+  jerry_value_t msg_id = iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_ID);
+  jerry_value_t msg_qos = iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_QOS);
+  jerry_value_t msg_dup = iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_DUP);
+  jerry_value_t msg_retain =
+      iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_RETAIN);
+  jerry_value_t msg_payload_ =
+      iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_PAYLOAD);
   iotjs_bufferwrap_t* msg_payload = iotjs_bufferwrap_from_jbuffer(msg_payload_);
 
   MQTTString top = MQTTString_initializer;
@@ -273,10 +280,11 @@ JS_FUNCTION(MqttGetAck) {
 
 JS_FUNCTION(MqttGetSubscribe) {
   jerry_value_t opts = JS_GET_ARG(1, object);
-  jerry_value_t msg_id_ = iotjs_jval_get_property(opts, "id");
+  jerry_value_t msg_id_ = iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_ID);
   unsigned short msg_id = iotjs_jval_as_number(msg_id_);
   jerry_release_value(msg_id_);
-  jerry_value_t msg_qos_ = iotjs_jval_get_property(opts, "qos");
+  jerry_value_t msg_qos_ =
+      iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_QOS);
   int qos = (int)iotjs_jval_as_number(msg_qos_);
   jerry_release_value(msg_qos_);
 
@@ -322,7 +330,7 @@ JS_FUNCTION(MqttGetUnsubscribe) {
   jerry_value_t jtopics = jargv[0];
   uint32_t size = jerry_get_array_length(jtopics);
   jerry_value_t opts = JS_GET_ARG(1, object);
-  jerry_value_t msg_id_ = iotjs_jval_get_property(opts, "id");
+  jerry_value_t msg_id_ = iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_ID);
   unsigned short msg_id = iotjs_jval_as_number(msg_id_);
   jerry_release_value(msg_id_);
 
@@ -401,21 +409,24 @@ JS_FUNCTION(MqttDeserialize) {
   int payload_missing_size = payload_size - payload_real_size;
 
   jerry_value_t msg = jerry_create_object();
-  iotjs_jval_set_property_number(msg, "id", msgId);
-  iotjs_jval_set_property_number(msg, "qos", qos);
-  iotjs_jval_set_property_number(msg, "headerSize", header_size);
-  iotjs_jval_set_property_number(msg, "payloadRealSize", payload_real_size);
-  iotjs_jval_set_property_number(msg, "payloadMissingSize",
+  iotjs_jval_set_property_number(msg, IOTJS_MAGIC_STRING_ID, msgId);
+  iotjs_jval_set_property_number(msg, IOTJS_MAGIC_STRING_QOS, qos);
+  iotjs_jval_set_property_number(msg, IOTJS_MAGIC_STRING_HEADER_SIZE,
+                                 header_size);
+  iotjs_jval_set_property_number(msg, IOTJS_MAGIC_STRING_PAYLOAD_REAL_SIZE,
+                                 payload_real_size);
+  iotjs_jval_set_property_number(msg, IOTJS_MAGIC_STRING_PAYLOAD_MISSING_SIZE,
                                  payload_missing_size);
-  iotjs_jval_set_property_number(msg, "payloadSize", payload_size);
-  iotjs_jval_set_property_boolean(msg, "dup", dup);
-  iotjs_jval_set_property_boolean(msg, "retain", retain);
+  iotjs_jval_set_property_number(msg, IOTJS_MAGIC_STRING_PAYLOAD_SIZE,
+                                 payload_size);
+  iotjs_jval_set_property_boolean(msg, IOTJS_MAGIC_STRING_DUP, dup);
+  iotjs_jval_set_property_boolean(msg, IOTJS_MAGIC_STRING_RETAIN, retain);
 
   size_t topic_len = (size_t)topic.lenstring.len;
   char* topic_data = topic.lenstring.data;
   iotjs_string_t topic_str =
       iotjs_string_create_with_size(topic_data, topic_len);
-  iotjs_jval_set_property_string(msg, "topic", &topic_str);
+  iotjs_jval_set_property_string(msg, IOTJS_MAGIC_STRING_TOPIC, &topic_str);
   iotjs_string_destroy(&topic_str);
 
   // don't generate payload if pyload is incomplete currently
@@ -425,7 +436,8 @@ JS_FUNCTION(MqttDeserialize) {
     iotjs_bufferwrap_t* payload_wrap =
         iotjs_bufferwrap_from_jbuffer(payload_buffer);
     iotjs_bufferwrap_copy(payload_wrap, (const char*)payload, size);
-    iotjs_jval_set_property_jval(msg, "payload", payload_buffer);
+    iotjs_jval_set_property_jval(msg, IOTJS_MAGIC_STRING_PAYLOAD,
+                                 payload_buffer);
     jerry_release_value(payload_buffer);
   }
   return msg;
