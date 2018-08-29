@@ -22,6 +22,8 @@ var MQTT_PINGRESP = 13;
 var MQTT_DISCONNECT = 14;
 /* eslint-enable */
 
+var ttlTimeout = 10 * 1000;
+
 function noop() {}
 
 /**
@@ -52,6 +54,7 @@ function MqttClient(endpoint, options) {
   this._lastConnectTime = 0;
   this._msgId = 0;
   this._ttl = null;
+  this._timeoutTTL = null;
   this._handle = new native.MqttHandle(this._options);
 }
 util.inherits(MqttClient, EventEmitter);
@@ -103,6 +106,8 @@ MqttClient.prototype._onend = function() {
 };
 
 MqttClient.prototype._ondisconnect = function(err) {
+  clearTimeout(this._ttl);
+  clearTimeout(this._timeoutTTL);
   if (err) {
     this.emit('error', err);
   }
@@ -145,7 +150,7 @@ MqttClient.prototype._ondata = function(chunk) {
       this.disconnect(err);
       return;
     }
-    if (msg.payload_missing_size > 0) {
+    if (msg.payloadMissingSize > 0) {
       this._lastChunk = chunk;
     } else {
       this.emit('message', msg.topic, msg.payload);
@@ -160,13 +165,15 @@ MqttClient.prototype._ondata = function(chunk) {
         }
       }
       // multi packets in one chunk
-      if (msg.payload_missing_size < 0) {
+      if (msg.payloadMissingSize < 0) {
         var end = chunk.byteLength;
-        var start = end + msg.payload_missing_size;
+        var start = end + msg.payloadMissingSize;
         var leftChunk = chunk.slice(start, end);
         this._ondata(leftChunk);
       }
     }
+  } else if (res.type === MQTT_PINGRESP) {
+    this._onKeepAlive();
   } else {
     // FIXME handle other message type
     this.emit('unhandledMessage', res);
@@ -195,14 +202,24 @@ MqttClient.prototype._write = function(buffer, callback) {
  * @method _keepAlive
  */
 MqttClient.prototype._keepAlive = function() {
-  try {
-    var buf = this._handle._getPingReq();
-    this._write(buf);
-  } catch (err) {
-    this.emit('error', err);
-    return;
-  }
-  this._ttl = setTimeout(this._keepAlive.bind(this), this._options.keepalive);
+  this._ttl = setTimeout(() => {
+    try {
+      var buf = this._handle._getPingReq();
+      this._write(buf);
+    } catch (err) {
+      err.message = 'Keepalive Write Error:' + err.message;
+      this.disconnect(err);
+      return;
+    }
+    this._timeoutTTL = setTimeout(() => {
+      this.disconnect(new Error('keepalive timeout'));
+    }, ttlTimeout);
+  }, this._options.keepalive);
+};
+
+MqttClient.prototype._onKeepAlive = function() {
+  clearTimeout(this._timeoutTTL);
+  this._keepAlive();
 };
 
 MqttClient.prototype.disconnect = function(err) {
@@ -212,7 +229,6 @@ MqttClient.prototype.disconnect = function(err) {
   if (!this._isConnected) {
     return;
   }
-  clearTimeout(this._ttl);
   clearTimeout(this._reconnectingTimer);
   try {
     var buf = this._handle._getDisconnect();

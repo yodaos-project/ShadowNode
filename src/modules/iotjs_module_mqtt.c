@@ -97,10 +97,10 @@ static void iotjs_mqtt_alloc_buf(unsigned char** buf, int expected_size,
 
 JS_FUNCTION(MqttReadPacket) {
   iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(jargv[0]);
-  unsigned char *buf = (unsigned char*)iotjs_bufferwrap_buffer(wrap);
+  unsigned char* buf = (unsigned char*)iotjs_bufferwrap_buffer(wrap);
   int buf_size = (int)iotjs_bufferwrap_length(wrap);
 
-  MQTTHeader header = {0};
+  MQTTHeader header = { 0 };
   header.byte = buf[0];
   int type = header.bits.type;
 
@@ -110,38 +110,34 @@ JS_FUNCTION(MqttReadPacket) {
       unsigned char present;
       unsigned char code;
       int r = MQTTDeserialize_connack(&present, &code, buf, buf_size);
-      if (r !=1) {
+      if (r != 1) {
         ret = JS_CREATE_ERROR(COMMON, "CONNACK Decode Failed");
         break;
       }
-      if (code == 0x01) {
+      if (code == MQTT_UNNACCEPTABLE_PROTOCOL) {
         ret = JS_CREATE_ERROR(COMMON, "Unacceptable Protocol Version");
         break;
       }
-      if (code == 0x02) {
+      if (code == MQTT_CLIENTID_REJECTED) {
         ret = JS_CREATE_ERROR(COMMON, "Identifier Rejected");
         break;
       }
-      if (code == 0x03) {
+      if (code == MQTT_SERVER_UNAVAILABLE) {
         ret = JS_CREATE_ERROR(COMMON, "Server Unavailable");
         break;
       }
-      if (code == 0x04) {
+      if (code == MQTT_BAD_USERNAME_OR_PASSWORD) {
         ret = JS_CREATE_ERROR(COMMON, "Bad User Name Or Password");
         break;
       }
-      if (code == 0x05) {
+      if (code == MQTT_NOT_AUTHORIZED) {
         ret = JS_CREATE_ERROR(COMMON, "Not Authorized");
         break;
       }
-      if (code != 0x00) {
+      if (code != MQTT_CONNECTION_ACCEPTED) {
         char err_str[64];
         sprintf(err_str, "Unknown CONNACK Code %d", code);
         ret = JS_CREATE_ERROR(COMMON, err_str);
-        break;
-      }
-      if (r != 1 || code != 0) {
-        ret = JS_CREATE_ERROR(COMMON, "CONNACK failed with server.");
         break;
       }
     } else if (type == SUBACK) {
@@ -156,7 +152,7 @@ JS_FUNCTION(MqttReadPacket) {
     }
     ret = jerry_create_object();
     iotjs_jval_set_property_jval(ret, "type", jerry_create_number(type));
-  } while(0);
+  } while (0);
   return ret;
 }
 
@@ -395,9 +391,8 @@ JS_FUNCTION(MqttDeserialize) {
   unsigned char* buf = (unsigned char*)iotjs_bufferwrap_buffer(wrap);
   int buf_size = (int)iotjs_bufferwrap_length(wrap);
 
-  int r = MQTTDeserialize_publish(&dup, &qos, &retain, &msgId, &topic,
-                                  &payload, &payload_size,
-                                  buf, buf_size);
+  int r = MQTTDeserialize_publish(&dup, &qos, &retain, &msgId, &topic, &payload,
+                                  &payload_size, buf, buf_size);
   if (r != 1) {
     return JS_CREATE_ERROR(COMMON, "failed to deserialize publish message.");
   }
@@ -408,31 +403,30 @@ JS_FUNCTION(MqttDeserialize) {
   jerry_value_t msg = jerry_create_object();
   iotjs_jval_set_property_number(msg, "id", msgId);
   iotjs_jval_set_property_number(msg, "qos", qos);
-  iotjs_jval_set_property_number(msg, "header_size", header_size);
-  iotjs_jval_set_property_number(msg, "payload_real_size", payload_real_size);
-  iotjs_jval_set_property_number(msg, "payload_missing_size",
+  iotjs_jval_set_property_number(msg, "headerSize", header_size);
+  iotjs_jval_set_property_number(msg, "payloadRealSize", payload_real_size);
+  iotjs_jval_set_property_number(msg, "payloadMissingSize",
                                  payload_missing_size);
-  iotjs_jval_set_property_number(msg, "payload_size", payload_size);
+  iotjs_jval_set_property_number(msg, "payloadSize", payload_size);
   iotjs_jval_set_property_boolean(msg, "dup", dup);
   iotjs_jval_set_property_boolean(msg, "retain", retain);
 
   size_t topic_len = (size_t)topic.lenstring.len;
-  char * topic_data = topic.lenstring.data;
+  char* topic_data = topic.lenstring.data;
   iotjs_string_t topic_str =
-    iotjs_string_create_with_size(topic_data, topic_len);
+      iotjs_string_create_with_size(topic_data, topic_len);
   iotjs_jval_set_property_string(msg, "topic", &topic_str);
   iotjs_string_destroy(&topic_str);
 
-  // don't generate payload if payload is incomplete currently
+  // don't generate payload if pyload is incomplete currently
   if (payload_missing_size <= 0) {
     size_t size = (size_t)payload_size;
     jerry_value_t payload_buffer = iotjs_bufferwrap_create_buffer(size);
-    iotjs_bufferwrap_t* payload_wrap
-      = iotjs_bufferwrap_from_jbuffer(payload_buffer);
+    iotjs_bufferwrap_t* payload_wrap =
+        iotjs_bufferwrap_from_jbuffer(payload_buffer);
     iotjs_bufferwrap_copy(payload_wrap, (const char*)payload, size);
     iotjs_jval_set_property_jval(msg, "payload", payload_buffer);
     jerry_release_value(payload_buffer);
-
   }
   return msg;
 }
