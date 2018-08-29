@@ -22,8 +22,6 @@ var MQTT_PINGRESP = 13;
 var MQTT_DISCONNECT = 14;
 /* eslint-enable */
 
-var ttlTimeout = 10 * 1000;
-
 function noop() {}
 
 /**
@@ -47,14 +45,15 @@ function MqttClient(endpoint, options) {
     resubscribe: true,
     protocolId: 'MQTT',
     protocolVersion: 4,
+    pingReqTimeout: 10 * 1000,
   }, options);
   this._isConnected = false;
   this._reconnecting = false;
   this._reconnectingTimer = null;
   this._lastConnectTime = 0;
   this._msgId = 0;
-  this._ttl = null;
-  this._timeoutTTL = null;
+  this._keepAliveTimer = null;
+  this._keepAliveTimeout = null;
   this._handle = new native.MqttHandle(this._options);
 }
 util.inherits(MqttClient, EventEmitter);
@@ -106,8 +105,8 @@ MqttClient.prototype._onend = function() {
 };
 
 MqttClient.prototype._ondisconnect = function(err) {
-  clearTimeout(this._ttl);
-  clearTimeout(this._timeoutTTL);
+  clearTimeout(this._keepAliveTimer);
+  clearTimeout(this._keepAliveTimeout);
   if (err) {
     this.emit('error', err);
   }
@@ -202,23 +201,24 @@ MqttClient.prototype._write = function(buffer, callback) {
  * @method _keepAlive
  */
 MqttClient.prototype._keepAlive = function() {
-  this._ttl = setTimeout(() => {
+  var self = this;
+  self._keepAliveTimer = setTimeout(function() {
     try {
-      var buf = this._handle._getPingReq();
-      this._write(buf);
+      var buf = self._handle._getPingReq();
+      self._write(buf);
     } catch (err) {
       err.message = 'Keepalive Write Error:' + err.message;
-      this.disconnect(err);
+      self.disconnect(err);
       return;
     }
-    this._timeoutTTL = setTimeout(() => {
-      this.disconnect(new Error('keepalive timeout'));
-    }, ttlTimeout);
-  }, this._options.keepalive);
+    self._keepAliveTimeout = setTimeout(function() {
+      self.disconnect(new Error('keepalive timeout'));
+    }, self._options.pingReqTimeout);
+  }, self._options.keepalive);
 };
 
 MqttClient.prototype._onKeepAlive = function() {
-  clearTimeout(this._timeoutTTL);
+  clearTimeout(this._keepAliveTimeout);
   this._keepAlive();
 };
 
