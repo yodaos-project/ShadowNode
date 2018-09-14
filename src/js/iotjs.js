@@ -76,13 +76,13 @@
       if (/.*:/.test(line)) {
         file = line.slice(0, -1);
       } else {
-        var m = line.match(/(\+ ([a-zA-Z0-9_]*))? \[(\d+),(\d+)\] (\d+)/);
+        var m = line.match(/(\+ ([a-zA-Z0-9_]*))?( \[(\d+),(\d+)\])? (\d+)/);
         if (m) {
-          var cp = m[5];
+          var cp = m[6];
           bcTable[cp] = {
             name: m[2] || 'anonymous',
-            line: m[3],
-            column: m[4],
+            line: m[4],
+            column: m[5],
             source: file,
           };
         }
