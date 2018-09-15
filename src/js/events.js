@@ -30,7 +30,7 @@ EventEmitter.init = function() {
       this._events === Object.getPrototypeOf(this)._events) {
     this._events = Object.create(null);
   }
-}
+};
 
 
 EventEmitter.prototype.emit = function(type) {
