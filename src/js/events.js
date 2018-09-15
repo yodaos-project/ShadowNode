@@ -18,16 +18,24 @@ var util = require('util');
 
 
 function EventEmitter() {
-  this._events = {};
+  EventEmitter.init.call(this);
 }
 
 module.exports = EventEmitter;
 module.exports.EventEmitter = EventEmitter;
 
 
+EventEmitter.init = function() {
+  if (this._events === undefined ||
+      this._events === Object.getPrototypeOf(this)._events) {
+    this._events = Object.create(null);
+  }
+}
+
+
 EventEmitter.prototype.emit = function(type) {
   if (!this._events) {
-    this._events = {};
+    this._events = Object.create(null);
   }
 
   // About to emit 'error' event but there are no listeners for it.
@@ -60,7 +68,7 @@ EventEmitter.prototype.addListener = function(type, listener) {
   }
 
   if (!this._events) {
-    this._events = {};
+    this._events = Object.create(null);
   }
   if (!this._events[type]) {
     this._events[type] = [];
@@ -122,7 +130,7 @@ EventEmitter.prototype.removeListener = function(type, listener) {
 
 EventEmitter.prototype.removeAllListeners = function(type) {
   if (arguments.length === 0) {
-    this._events = {};
+    this._events = Object.create(null);
   } else {
     delete this._events[type];
   }
