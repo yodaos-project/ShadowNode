@@ -162,6 +162,7 @@
     { "name": "test-net-end-without-connect.js" },
     { "name": "test-net-keepalive.js" },
     { "name": "test-timers-clear-null-does-not-throw-error.js" },
-    { "name": "test-http-abort.js" }
+    { "name": "test-http-abort.js" },
+    { "name": "test-child-process-env.js" }
   ]
 }
