@@ -71,6 +71,7 @@ iotjs_object_info_t* iotjs_try_get_object_native_info(jerry_value_t jval,
 }
 
 napi_status napi_open_handle_scope(napi_env env, napi_handle_scope* result) {
+  NAPI_TRY_ENV(env);
   NAPI_WEAK_ASSERT(napi_invalid_arg, result != NULL);
 
   jerryx_handle_scope_status status;
@@ -81,6 +82,7 @@ napi_status napi_open_handle_scope(napi_env env, napi_handle_scope* result) {
 
 napi_status napi_open_escapable_handle_scope(
     napi_env env, napi_escapable_handle_scope* result) {
+  NAPI_TRY_ENV(env);
   NAPI_WEAK_ASSERT(napi_invalid_arg, result != NULL);
 
   jerryx_handle_scope_status status;
@@ -91,6 +93,7 @@ napi_status napi_open_escapable_handle_scope(
 }
 
 napi_status napi_close_handle_scope(napi_env env, napi_handle_scope scope) {
+  NAPI_TRY_ENV(env);
   jerryx_handle_scope_status status;
   status = jerryx_close_handle_scope((jerryx_handle_scope)scope);
 
@@ -99,6 +102,7 @@ napi_status napi_close_handle_scope(napi_env env, napi_handle_scope scope) {
 
 napi_status napi_close_escapable_handle_scope(
     napi_env env, napi_escapable_handle_scope scope) {
+  NAPI_TRY_ENV(env);
   jerryx_handle_scope_status status;
   status =
       jerryx_close_escapable_handle_scope((jerryx_escapable_handle_scope)scope);
@@ -108,6 +112,7 @@ napi_status napi_close_escapable_handle_scope(
 
 napi_status napi_escape_handle(napi_env env, napi_escapable_handle_scope scope,
                                napi_value escapee, napi_value* result) {
+  NAPI_TRY_ENV(env);
   NAPI_WEAK_ASSERT(napi_invalid_arg, result != NULL);
 
   jerryx_handle_scope_status status;
@@ -120,6 +125,7 @@ napi_status napi_escape_handle(napi_env env, napi_escapable_handle_scope scope,
 
 napi_status napi_create_reference(napi_env env, napi_value value,
                                   uint32_t initial_refcount, napi_ref* result) {
+  NAPI_TRY_ENV(env);
   NAPI_WEAK_ASSERT(napi_invalid_arg, result != NULL);
 
   jerry_value_t jval = AS_JERRY_VALUE(value);
@@ -150,6 +156,7 @@ napi_status napi_create_reference(napi_env env, napi_value value,
 }
 
 napi_status napi_delete_reference(napi_env env, napi_ref ref) {
+  NAPI_TRY_ENV(env);
   iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
   if (iotjs_ref->jval != AS_JERRY_VALUE(NULL)) {
     jerry_value_t jval = iotjs_ref->jval;
@@ -188,6 +195,7 @@ napi_status napi_delete_reference(napi_env env, napi_ref ref) {
 }
 
 napi_status napi_reference_ref(napi_env env, napi_ref ref, uint32_t* result) {
+  NAPI_TRY_ENV(env);
   iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
   NAPI_WEAK_ASSERT(napi_invalid_arg, (iotjs_ref->jval != AS_JERRY_VALUE(NULL)));
 
@@ -199,6 +207,7 @@ napi_status napi_reference_ref(napi_env env, napi_ref ref, uint32_t* result) {
 }
 
 napi_status napi_reference_unref(napi_env env, napi_ref ref, uint32_t* result) {
+  NAPI_TRY_ENV(env);
   iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
   NAPI_WEAK_ASSERT(napi_invalid_arg, (iotjs_ref->refcount > 0));
 
@@ -211,6 +220,7 @@ napi_status napi_reference_unref(napi_env env, napi_ref ref, uint32_t* result) {
 
 napi_status napi_get_reference_value(napi_env env, napi_ref ref,
                                      napi_value* result) {
+  NAPI_TRY_ENV(env);
   iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
   NAPI_ASSIGN(result, AS_NAPI_VALUE(iotjs_ref->jval));
   NAPI_RETURN(napi_ok);
@@ -269,6 +279,11 @@ napi_status napi_remove_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
   }
   free(hook);
   NAPI_RETURN(napi_ok);
+}
+
+void iotjs_setup_napi() {
+  iotjs_napi_env_t* env = (iotjs_napi_env_t*)iotjs_get_current_napi_env();
+  env->main_thread = uv_thread_self();
 }
 
 void iotjs_cleanup_napi() {

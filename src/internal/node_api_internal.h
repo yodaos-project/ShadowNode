@@ -101,9 +101,21 @@
  * A convenience weak assertion on N-API Env matching.
  */
 #define NAPI_TRY_ENV(env)                                 \
+  NAPI_TRY_THREAD(env);                                   \
   if (env != iotjs_get_current_napi_env()) {              \
     NAPI_RETURN(napi_invalid_arg, "N-API env not match.") \
   }
+
+/**
+ * A convenience weak assertion on if current executing thread matches main loop
+ * thread.
+ */
+#define NAPI_TRY_THREAD(env)                                               \
+  do {                                                                     \
+    uv_thread_t current = uv_thread_self();                                \
+    NAPI_ASSERT(uv_thread_equal(iotjs_get_napi_env_thread(env), &current), \
+                "Expected to be ran on main thread.");                     \
+  } while (0);
 
 /**
  * A convenience weak assertion expecting there is no pending exception
@@ -169,6 +181,7 @@ int napi_module_init_pending(jerry_value_t* exports);
 
 /** MARK: - node_api_env.c */
 napi_env iotjs_get_current_napi_env();
+uv_thread_t* iotjs_get_napi_env_thread(napi_env env);
 void iotjs_napi_set_current_callback(napi_env env,
                                      iotjs_callback_info_t* callback_info);
 iotjs_callback_info_t* iotjs_napi_get_current_callback(napi_env env);
@@ -190,6 +203,7 @@ iotjs_object_info_t* iotjs_get_object_native_info(jerry_value_t jval,
                                                   size_t native_info_size);
 iotjs_object_info_t* iotjs_try_get_object_native_info(jerry_value_t jval,
                                                       size_t native_info_size);
+void iotjs_setup_napi();
 void iotjs_cleanup_napi();
 /** MARK: - END node_api_lifetime.c */
 

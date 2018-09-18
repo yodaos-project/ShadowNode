@@ -92,6 +92,7 @@ cleanup:
 napi_status napi_create_function(napi_env env, const char* utf8name,
                                  size_t length, napi_callback cb, void* data,
                                  napi_value* result) {
+  NAPI_TRY_ENV(env);
   jerry_value_t jval_func =
       jerry_create_external_function(iotjs_napi_function_handler);
   jerryx_create_handle(jval_func);
@@ -108,6 +109,7 @@ napi_status napi_create_function(napi_env env, const char* utf8name,
 napi_status napi_call_function(napi_env env, napi_value recv, napi_value func,
                                size_t argc, const napi_value* argv,
                                napi_value* result) {
+  NAPI_TRY_ENV(env);
   NAPI_TRY_NO_PENDING_EXCEPTION(env);
 
   jerry_value_t jval_func = AS_JERRY_VALUE(func);
@@ -134,6 +136,7 @@ napi_status napi_call_function(napi_env env, napi_value recv, napi_value func,
 napi_status napi_get_cb_info(napi_env env, napi_callback_info cbinfo,
                              size_t* argc, napi_value* argv,
                              napi_value* thisArg, void** data) {
+  NAPI_TRY_ENV(env);
   iotjs_callback_info_t* callback_info = (iotjs_callback_info_t*)cbinfo;
 
   size_t _argc = argc == NULL ? 0 : *argc;
@@ -159,6 +162,7 @@ napi_status napi_get_cb_info(napi_env env, napi_callback_info cbinfo,
 
 napi_status napi_new_instance(napi_env env, napi_value constructor, size_t argc,
                               const napi_value* argv, napi_value* result) {
+  NAPI_TRY_ENV(env);
   NAPI_TRY_NO_PENDING_EXCEPTION(env);
 
   jerry_value_t jval_cons = AS_JERRY_VALUE(constructor);
