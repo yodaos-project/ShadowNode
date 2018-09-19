@@ -32,6 +32,10 @@ inline napi_env iotjs_get_current_napi_env() {
   return (napi_env)&current_env;
 }
 
+inline uv_thread_t* iotjs_get_napi_env_thread(napi_env env) {
+  return &((iotjs_napi_env_t*)env)->main_thread;
+}
+
 inline bool iotjs_napi_is_exception_pending(napi_env env) {
   iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
   return !(curr_env->pending_exception == NULL &&
