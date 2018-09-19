@@ -1,13 +1,13 @@
-#include <node_api.h>
 #include <uv.h>
+#include <node_api.h>
 #include <stdlib.h>
 #include "common.h"
 
 static uv_thread_t pt;
 static napi_env global_env;
 
-void * thread_work(void* data) {
-  napi_value callback = (napi_value) data;
+void* thread_work(void* data) {
+  napi_value callback = (napi_value)data;
   napi_call_function(global_env, NULL, callback, 0, NULL, NULL);
 
   return NULL;
@@ -29,7 +29,8 @@ napi_value SayHelloFromOtherThread(napi_env env, napi_callback_info info) {
 }
 
 napi_value Init(napi_env env, napi_value exports) {
-  SET_NAMED_METHOD(env, exports, "sayHelloFromOtherThread", SayHelloFromOtherThread);
+  SET_NAMED_METHOD(env, exports, "sayHelloFromOtherThread",
+                   SayHelloFromOtherThread);
 
   return exports;
 }
