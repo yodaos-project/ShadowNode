@@ -5,16 +5,6 @@ var assert = require('assert');
 var binding = require(`./build/Release/napi_make_callback.node`);
 var makeCallback = binding.makeCallback;
 
-setTimeout(() => {
-  process.nextTick(() => {
-    throw new Error('tick')
-  })
-  makeCallback(process, function () {
-    throw new Error('foobar')
-  })
-}, 0);
-
-
 function myMultiArgFunc(arg1, arg2, arg3) {
   assert.strictEqual(arg1, 1);
   assert.strictEqual(arg2, 2);
