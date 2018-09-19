@@ -226,6 +226,18 @@ napi_status napi_get_reference_value(napi_env env, napi_ref ref,
   NAPI_RETURN(napi_ok);
 }
 
+napi_status napi_open_callback_scope(napi_env env, napi_value resource_object,
+                                     napi_async_context context,
+                                     napi_callback_scope* result) {
+  NAPI_TRY_ENV(env);
+  return napi_open_handle_scope(env, (napi_handle_scope*)result);
+}
+
+napi_status napi_close_callback_scope(napi_env env, napi_callback_scope scope) {
+  NAPI_TRY_ENV(env);
+  return napi_close_handle_scope(env, (napi_handle_scope)scope);
+}
+
 napi_status napi_add_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
                                       void* arg) {
   NAPI_TRY_ENV(env);
