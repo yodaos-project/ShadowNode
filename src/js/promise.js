@@ -111,7 +111,7 @@ function finale(self) {
   if (self._state === STATE_REJECTED && self._deferreds.length === 0) {
     process.nextTick(function() {
       if (!self._handled) {
-        Promise._unhandledRejectionFn(self._value);
+        Promise._unhandledRejectionFn(self._value, self);
       }
     });
   }
@@ -254,8 +254,12 @@ Promise._immediateFn = function _immediateFn(fn) {
   setTimeout(fn, 0);
 };
 
-Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
-  console.warn('Possible Unhandled Promise Rejection:', err);
+Promise._unhandledRejectionFn = function _unhandledRejectionFn(err, promise) {
+  if (process.listeners('unhandledRejection').length === 0) {
+    console.error('UnhandledPromiseRejection:', err.stack);
+    return process.exit(1);
+  }
+  process.emit('unhandledRejection', err, promise);
 };
 
 module.exports = Promise;
