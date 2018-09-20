@@ -119,3 +119,39 @@ napi_status napi_cancel_async_work(napi_env env, napi_async_work work) {
   }
   NAPI_RETURN(napi_ok);
 }
+
+napi_status napi_async_init(napi_env env, napi_value async_resource,
+                            napi_value async_resource_name,
+                            napi_async_context* result) {
+  NAPI_TRY_ENV(env);
+
+  iotjs_async_context_t* ctx = IOTJS_ALLOC(iotjs_async_context_t);
+  ctx->env = env;
+  ctx->async_resource = async_resource;
+  ctx->async_resource_name = async_resource_name;
+
+  NAPI_ASSIGN(result, (napi_async_context)ctx);
+  return napi_ok;
+}
+
+napi_status napi_async_destroy(napi_env env, napi_async_context async_context) {
+  NAPI_TRY_ENV(env);
+
+  iotjs_async_context_t* ctx = (iotjs_async_context_t*)async_context;
+  IOTJS_RELEASE(ctx);
+
+  return napi_ok;
+}
+
+napi_status napi_make_callback(napi_env env, napi_async_context async_context,
+                               napi_value recv, napi_value func, size_t argc,
+                               const napi_value* argv, napi_value* result) {
+  NAPI_TRY_ENV(env);
+
+  napi_status status = napi_call_function(env, recv, func, argc, argv, result);
+  if (!iotjs_napi_is_exception_pending(env)) {
+    iotjs_process_next_tick();
+  }
+
+  return status;
+}
