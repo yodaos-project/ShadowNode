@@ -107,4 +107,10 @@ struct iotjs_async_work_s {
   void* data;
 };
 
+struct iotjs_async_context_s {
+  napi_env env;
+  napi_value async_resource;
+  napi_value async_resource_name;
+};
+
 #endif // IOTJS_NODE_API_TYPES_H
