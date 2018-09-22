@@ -21,6 +21,7 @@ napi_status napi_define_class(napi_env env, const char* utf8name, size_t length,
                               size_t property_count,
                               const napi_property_descriptor* properties,
                               napi_value* result) {
+  NAPI_TRY_ENV(env);
   napi_value nval;
   NAPI_INTERNAL_CALL(
       napi_create_function(env, utf8name, length, constructor, data, &nval));
@@ -48,6 +49,7 @@ napi_status napi_define_class(napi_env env, const char* utf8name, size_t length,
 napi_status napi_wrap(napi_env env, napi_value js_object, void* native_object,
                       napi_finalize finalize_cb, void* finalize_hint,
                       napi_ref* result) {
+  NAPI_TRY_ENV(env);
   jerry_value_t jval = AS_JERRY_VALUE(js_object);
   NAPI_TRY_TYPE(object, jval);
 
@@ -66,6 +68,7 @@ napi_status napi_wrap(napi_env env, napi_value js_object, void* native_object,
 }
 
 napi_status napi_unwrap(napi_env env, napi_value js_object, void** result) {
+  NAPI_TRY_ENV(env);
   jerry_value_t jval = AS_JERRY_VALUE(js_object);
   NAPI_TRY_TYPE(object, jval);
 
@@ -77,6 +80,7 @@ napi_status napi_unwrap(napi_env env, napi_value js_object, void** result) {
 
 napi_status napi_remove_wrap(napi_env env, napi_value js_object,
                              void** result) {
+  NAPI_TRY_ENV(env);
   jerry_value_t jval = AS_JERRY_VALUE(js_object);
   iotjs_object_info_t* object_info = NAPI_GET_OBJECT_INFO(jval);
 

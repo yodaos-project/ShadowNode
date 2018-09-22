@@ -99,7 +99,7 @@
       }, [])
       .map((info) => {
         return '    ' +
-          `at ${info.name} (${info.source}:${info.line}:${info.column})`;
+          `at ${info.name} (${info.source}${info.line ? ':' + info.line + ':' + info.column: ''})`;
       })
       .join('\n');
   }
