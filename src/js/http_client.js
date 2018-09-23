@@ -104,7 +104,6 @@ function setupConnection(req, socket) {
   socket.on('data', socketOnData);
   socket.on('end', socketOnEnd);
   socket.on('close', socketOnClose);
-  socket.on('lookup', socketOnLookup);
 
   // socket emitted when a socket is assigned to req
   process.nextTick(function() {
@@ -163,10 +162,6 @@ function socketOnClose() {
 
 function socketOnError(err) {
   cleanUpSocket(this);
-  emitError(this, err);
-}
-
-function socketOnLookup(err, ip, family) {
   emitError(this, err);
 }
 
