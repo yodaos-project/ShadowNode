@@ -141,10 +141,7 @@ Socket.prototype.connect = function() {
     self.emit('lookup', err, ip, family);
 
     if (err) {
-      process.nextTick(function() {
-        self.emit('error', err);
-        self.destroy();
-      });
+      emitError(self, err);
     } else {
       resetSocketTimeout(self);
       process.nextTick(function() {
