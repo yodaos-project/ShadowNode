@@ -79,6 +79,7 @@
     { "name": "test_net_connect.js" },
     { "name": "test_net_end.js" },
     { "name": "test_net_headers.js" },
+    { "name": "test_net_http_dns_error.js" },
     { "name": "test_net_http_get.js" },
     { "name": "test_net_http_response_twice.js" },
     { "name": "test_net_http_request_response.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
