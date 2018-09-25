@@ -15,5 +15,5 @@ req.socket.on('finish', common.mustCall(() => {
 
 // handle error event to prevent the process throw an error
 req.on('error', common.mustCall((err) => {
-  console.log('request error', err.message)
+  console.log('request error', err.message);
 }));
