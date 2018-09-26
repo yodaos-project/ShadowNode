@@ -8,7 +8,7 @@ var bench = common.createBenchmark(main, {
   n: [10]
 });
 
-var handler = function() {};
+function handler() {};
 
 function main(opts) {
   var n = opts.n;
