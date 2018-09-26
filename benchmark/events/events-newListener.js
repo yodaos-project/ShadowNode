@@ -8,16 +8,13 @@ var bench = common.createBenchmark(main, {
   n: [10],
 });
 
+var handler = function() {};
+
 function main(opts) {
   var n = opts.n;
-  
-  emitter.on('newListener', (event, listener) => {});
-
+  emitter.on('newListener', handler);
   bench.start();
-  
-  for (var i = 0; i < n; ++i) {
-    emitter.on('hello', function() {});
-  }
-    
+  for (var i = 0; i < n; ++i)
+    emitter.on('hello', handler);
   bench.end(n);
 }
