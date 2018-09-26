@@ -5,7 +5,7 @@ var EventEmitter = require('events');
 var emitter = new EventEmitter();
 
 var bench = common.createBenchmark(main, {
-  n: [10],
+  n: [10]
 });
 
 var handler = function() {};
