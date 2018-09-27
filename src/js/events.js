@@ -24,12 +24,32 @@ function EventEmitter() {
 module.exports = EventEmitter;
 module.exports.EventEmitter = EventEmitter;
 
+EventEmitter.prototype._eventsCount = 0;
+EventEmitter.prototype._maxListeners = undefined;
+
+var defaultMaxListeners = 7;
+
+Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
+  enumerable: true,
+  get: function() {
+    return defaultMaxListeners;
+  },
+  set: function(arg) {
+    if (!arg || typeof arg !== 'number' || arg < 0) {
+      throw new TypeError('defaultMaxListeners must be a non-negative number');
+    }
+    defaultMaxListeners = arg;
+  }
+});
 
 EventEmitter.init = function() {
   if (this._events === undefined ||
       this._events === Object.getPrototypeOf(this)._events) {
     this._events = Object.create(null);
+    this._eventsCount = 0;
   }
+
+  this._maxListeners = this._maxListeners || undefined;
 };
 
 
@@ -63,22 +83,42 @@ EventEmitter.prototype.emit = function(type) {
 
 
 EventEmitter.prototype.addListener = function(type, listener) {
+  var max, existing;
+
   if (!util.isFunction(listener)) {
     throw new TypeError('listener must be a function');
+  }
+
+  if (!this._events) {
+    this._events = Object.create(null);
   }
 
   if (this._events.newListener !== undefined) {
     this.emit('newListener', type, listener);
   }
-  
-  if (!this._events) {
-    this._events = Object.create(null);
-  }
-  if (!this._events[type]) {
-    this._events[type] = [];
+
+  existing = this._events[type];
+  if (!existing) {
+    existing = this._events[type] = [];
   }
 
-  this._events[type].push(listener);
+  existing.push(listener);
+
+  // check for listener leak
+  max = $getMaxListeners(this);
+  if (max > 0 && existing.length > max && !existing.warned) {
+    existing.warned = true;
+    var w = new Error('Possible EventEmitter memory leak detected. ' +
+                  `${existing.length} or more \'${String(type)}\' listeners ` +
+                  'added. Use emitter.setMaxListeners() to ' +
+                  'increase limit');
+    w.name = 'MaxListenersExceededWarning';
+    w.emitter = this;
+    w.type = type;
+    w.count = existing.length;
+    process.emitWarning(w);
+    // TODO: print this warn.
+  }
 
   return this;
 };
@@ -122,6 +162,9 @@ EventEmitter.prototype.removeListener = function(type, listener) {
         list.splice(i, 1);
         if (!list.length) {
           delete this._events[type];
+          if (this._events.removeListener !== undefined) {
+            this.emit('removeListener', type, listener);
+          }
         }
         break;
       }
@@ -159,9 +202,24 @@ EventEmitter.prototype.listeners = function(type) {
 };
 
 
-EventEmitter.prototype.setMaxListeners = function() {
-  // EMPTY
-  // This is for compatible with Node.js API, but no effects inside here.
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!n || typeof n !== 'number' || n < 0) {
+    throw new TypeError('arguments of setMaxListeners must be a ' +
+    'non-negative number');
+  }
+  this._maxListeners = n;
+  return this;
+};
+
+function $getMaxListeners(that) {
+  if (that._maxListeners === undefined) {
+    return EventEmitter.defaultMaxListeners;
+  }
+  return that._maxListeners;
+}
+
+EventEmitter.prototype.getMaxListeners = function() {
+  return $getMaxListeners(this);
 };
 
 

@@ -36,6 +36,7 @@ The properties available on the assigned network address object include:
 
 * `address` {String} The assigned IPv4 or IPv6 address
 * `netmask` {String} The IPv4 or IPv6 network mask
+* `broadcast` {String} The IPv4 broadcast address
 * `family` {String} Either IPv4 or IPv6
 * `mac` {String} The MAC address of the network interface
 * `internal` {Boolean} true if the network interface is a loopback or similar interface that is not remotely accessible; otherwise false
@@ -48,6 +49,7 @@ The properties available on the assigned network address object include:
     {
       address: '127.0.0.1',
       netmask: '255.0.0.0',
+      broadcast: '127.0.0.1',
       family: 'IPv4',
       mac: '00:00:00:00:00:00',
       internal: true,
@@ -56,6 +58,7 @@ The properties available on the assigned network address object include:
     {
       address: '::1',
       netmask: 'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff',
+      broadcast: '00:00:00:00:00:00',
       family: 'IPv6',
       mac: '00:00:00:00:00:00',
       internal: true,
@@ -66,6 +69,7 @@ The properties available on the assigned network address object include:
     {
       address: '192.168.1.108',
       netmask: '255.255.255.0',
+      broadcast: '192.168.1.0',
       family: 'IPv4',
       mac: '01:02:03:0a:0b:0c',
       internal: false,
@@ -74,6 +78,7 @@ The properties available on the assigned network address object include:
     {
       address: 'fe80::a00:27ff:fe4e:66a1',
       netmask: 'ffff:ffff:ffff:ffff::',
+      broadcast: '00:00:00:00:00:00',
       family: 'IPv6',
       mac: '01:02:03:0a:0b:0c',
       internal: false,
@@ -82,3 +87,26 @@ The properties available on the assigned network address object include:
   ]
 }
 ```
+
+## os.getPriority([pid])
+
+* `pid` {integer} The process ID to retrieve scheduling priority for.
+  **Default** `0`.
+* Returns: {integer}
+
+The `os.getPriority()` method returns the scheduling priority for the process
+specified by `pid`. If `pid` is not provided, or is `0`, the priority of the
+current process is returned.
+
+## os.setPriority([pid, ]priority)
+
+* `pid` {integer} The process ID to set scheduling priority for.
+  **Default** `0`.
+* `priority` {integer} The scheduling priority to assign to the process.
+
+The `os.setPriority()` method attempts to set the scheduling priority for the
+process specified by `pid`. If `pid` is not provided, or is `0`, the priority
+of the current process is used.
+
+The `priority` input must be an integer between `-20` (high priority) and `19`
+(low priority).

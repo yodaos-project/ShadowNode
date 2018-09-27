@@ -16,6 +16,7 @@
 
 var util = require('util');
 var tls = require('tls');
+var stream = require('stream');
 var OutgoingMessage = require('http_outgoing').OutgoingMessage;
 var common = require('http_common');
 var HTTPParser = require('httpparser').HTTPParser;
@@ -94,7 +95,6 @@ function setupConnection(req, socket) {
   socket.on('data', socketOnData);
   socket.on('end', socketOnEnd);
   socket.on('close', socketOnClose);
-  socket.on('lookup', socketOnLookup);
 
   // socket emitted when a socket is assigned to req
   process.nextTick(function() {
@@ -153,10 +153,6 @@ function socketOnClose() {
 
 function socketOnError(err) {
   cleanUpSocket(this);
-  emitError(this, err);
-}
-
-function socketOnLookup(err, ip, family) {
   emitError(this, err);
 }
 
@@ -238,18 +234,21 @@ ClientRequest.prototype.abort = function() {
   self.aborted = Date.now();
 
   // If we're aborting, we don't care about any more response data.
-  if (this.res) {
-    this.res._dump();
+  if (self.res) {
+    self.res._dump();
   } else {
-    this.once('response', function(res) {
+    self.once('response', function(res) {
       res._dump();
     });
   }
 
   // the request queue through handling in onSocket.
-  if (this.socket) {
+  if (self.socket) {
     // in-progress
-    this.socket.destroy();
+    self.socket._writableState.buffer = [];
+    stream.Duplex.prototype.end.call(self.socket, undefined, function() {
+      self.socket.destroy();
+    });
   }
 };
 

@@ -84,11 +84,9 @@ typedef struct
   ecma_value_t error_value; /**< currently thrown error value */
   uint32_t lit_magic_string_ex_count; /**< external magic strings count */
   uint32_t jerry_init_flags; /**< run-time configuration flags */
-  uint32_t status_flags; /**< run-time flags */
+  uint32_t status_flags; /**< run-time flags (the top 8 bits are used for passing class parsing options) */
 
-  uint32_t stack_frames[10];
-  uint32_t stack_index;
-  FILE *parser_dump_fd;
+  uint32_t stack_max_depth; /*< max stack trace depth users can get */
 
 #ifndef CONFIG_ECMA_PROPERTY_HASHMAP_DISABLE
   uint8_t ecma_prop_hashmap_alloc_state; /**< property hashmap allocation state: 0-4,
@@ -294,7 +292,7 @@ extern jerry_hash_table_t jerry_global_hash_table;
 
 #endif /* JERRY_ENABLE_EXTERNAL_CONTEXT */
 
-void jcontext_get_backtrace_depth (uint32_t *frames, uint32_t depth);
+jerry_value_t jcontext_get_backtrace_depth (uint32_t depth);
 
 /**
  * @}

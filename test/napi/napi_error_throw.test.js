@@ -29,3 +29,9 @@ try {
 var err = test.GetError();
 assert(err != null);
 assert.strictEqual(err.message, 'foobar');
+assert.strictEqual(err.code, '');
+
+var err = test.GetNoCodeError();
+assert(err != null);
+assert.strictEqual(err.message, 'foobar');
+assert.strictEqual(err.code, undefined);

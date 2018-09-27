@@ -199,6 +199,8 @@ jerry_init (jerry_init_flag_t flags) /**< combination of Jerry flags */
 
   jmem_init ();
   ecma_init ();
+
+  JERRY_CONTEXT (stack_max_depth) = CONFIG_CONTEXT_STACK_MAX_DEPTH;
 } /* jerry_init */
 
 /**
@@ -233,7 +235,6 @@ jerry_cleanup (void)
 
   ecma_finalize ();
   jmem_finalize ();
-  jerry_close_parser_dump ();
   jerry_make_api_unavailable ();
 } /* jerry_cleanup */
 
@@ -360,7 +361,7 @@ jerry_run_simple (const jerry_char_t *script_source_p, /**< script source */
 
   jerry_init (flags);
 
-  jerry_value_t parse_ret_val = jerry_parse (script_source_p, script_source_size, false);
+  jerry_value_t parse_ret_val = jerry_parse (NULL, 0, script_source_p, script_source_size, JERRY_PARSE_NO_OPTS);
 
   if (!ecma_is_value_error_reference (parse_ret_val))
   {
@@ -388,27 +389,64 @@ jerry_run_simple (const jerry_char_t *script_source_p, /**< script source */
  *         thrown error - otherwise
  */
 jerry_value_t
-jerry_parse (const jerry_char_t *source_p, /**< script source */
+jerry_parse (const jerry_char_t *resource_name_p, /**< resource name (usually a file name) */
+             size_t resource_name_length, /**< length of resource name */
+             const jerry_char_t *source_p, /**< script source */
              size_t source_size, /**< script source size */
-             bool is_strict) /**< strict mode */
+             uint32_t parse_opts) /**< jerry_parse_opts_t option bits */
 {
+#if defined JERRY_DEBUGGER && !defined JERRY_DISABLE_JS_PARSER
+  if ((JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
+      && resource_name_length > 0)
+  {
+    jerry_debugger_send_string (JERRY_DEBUGGER_SOURCE_CODE_NAME,
+                                JERRY_DEBUGGER_NO_SUBTYPE,
+                                resource_name_p,
+                                resource_name_length);
+  }
+#else /* !(JERRY_DEBUGGER && !JERRY_DISABLE_JS_PARSER) */
+  JERRY_UNUSED (resource_name_p);
+  JERRY_UNUSED (resource_name_length);
+#endif /* JERRY_DEBUGGER && !JERRY_DISABLE_JS_PARSER */
+
 #ifndef JERRY_DISABLE_JS_PARSER
   jerry_assert_api_available ();
 
   ecma_compiled_code_t *bytecode_data_p;
   ecma_value_t parse_status;
 
-  parse_status = parser_parse_script (NULL,
+  parse_status = parser_parse_script (resource_name_p,
+                                      resource_name_length,
+                                      NULL,
                                       0,
                                       source_p,
                                       source_size,
-                                      is_strict,
+                                      parse_opts,
                                       &bytecode_data_p);
+
+#ifndef JERRY_SOURCE_INFO
+  JERRY_UNUSED (resource_name_p);
+  JERRY_UNUSED (resource_name_length);
+#endif /* !JERRY_SOURCE_INFO */
 
   if (ECMA_IS_VALUE_ERROR (parse_status))
   {
     return ecma_create_error_reference_from_context ();
   }
+#ifdef JERRY_SOURCE_INFO
+  else
+  {
+    if (resource_name_p && resource_name_length > 0)
+    {
+      bytecode_data_p->source = ecma_find_or_create_literal_string (resource_name_p,
+                                                                    (lit_utf8_size_t) resource_name_length);
+    }
+    else
+    {
+      bytecode_data_p->source = ECMA_VALUE_EMPTY;
+    }
+  }
+#endif /* JERRY_SOURCE_INFO */
 
   ecma_free_value (parse_status);
 
@@ -421,52 +459,10 @@ jerry_parse (const jerry_char_t *source_p, /**< script source */
 #else /* JERRY_DISABLE_JS_PARSER */
   JERRY_UNUSED (source_p);
   JERRY_UNUSED (source_size);
-  JERRY_UNUSED (is_strict);
 
   return jerry_throw (ecma_raise_syntax_error (ECMA_ERR_MSG ("The parser has been disabled.")));
 #endif /* !JERRY_DISABLE_JS_PARSER */
 } /* jerry_parse */
-
-/**
- * Parse script and construct an ECMAScript function. The lexical
- * environment is set to the global lexical environment. The name
- * (usually a file name) is also passed to this function which is
- * used by the debugger to find the source code.
- *
- * @return function object value - if script was parsed successfully,
- *         thrown error - otherwise
- */
-jerry_value_t
-jerry_parse_named_resource (const jerry_char_t *resource_name_p, /**< resource name (usually a file name) */
-                            size_t resource_name_length, /**< length of resource name */
-                            const jerry_char_t *source_p, /**< script source */
-                            size_t source_size, /**< script source size */
-                            bool is_strict) /**< strict mode */
-{
-  char source_name[resource_name_length + 1];
-  memset(source_name, 0, resource_name_length + 1);
-  memcpy(source_name, resource_name_p, resource_name_length);
-
-  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
-  {
-    fprintf (JERRY_CONTEXT (parser_dump_fd), "%s:\n", source_name);
-  }
-
-#if defined JERRY_DEBUGGER && !defined JERRY_DISABLE_JS_PARSER
-  if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
-  {
-    jerry_debugger_send_string (JERRY_DEBUGGER_SOURCE_CODE_NAME,
-                                JERRY_DEBUGGER_NO_SUBTYPE,
-                                resource_name_p,
-                                resource_name_length);
-  }
-#else /* !(JERRY_DEBUGGER && !JERRY_DISABLE_JS_PARSER) */
-  JERRY_UNUSED (resource_name_p);
-  JERRY_UNUSED (resource_name_length);
-#endif /* JERRY_DEBUGGER && !JERRY_DISABLE_JS_PARSER */
-
-  return jerry_parse (source_p, source_size, is_strict);
-} /* jerry_parse_named_resource */
 
 /**
  * Parse function and construct an EcmaScript function. The lexical
@@ -482,17 +478,8 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
                       size_t arg_list_size, /**< script source size */
                       const jerry_char_t *source_p, /**< script source */
                       size_t source_size, /**< script source size */
-                      bool is_strict) /**< strict mode */
+                      uint32_t parse_opts) /**< jerry_parse_opts_t option bits */
 {
-  char source_name[resource_name_length + 1];
-  memset(source_name, 0, resource_name_length + 1);
-  memcpy(source_name, resource_name_p, resource_name_length);
-
-  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
-  {
-    fprintf (JERRY_CONTEXT (parser_dump_fd), "%s:\n", source_name);
-  }
-
 #if defined JERRY_DEBUGGER && !defined JERRY_DISABLE_JS_PARSER
   if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
   {
@@ -501,9 +488,6 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
                                 resource_name_p,
                                 resource_name_length);
   }
-#else /* !(JERRY_DEBUGGER && !JERRY_DISABLE_JS_PARSER) */
-  JERRY_UNUSED (resource_name_p);
-  JERRY_UNUSED (resource_name_length);
 #endif /* JERRY_DEBUGGER && !JERRY_DISABLE_JS_PARSER */
 
 #ifndef JERRY_DISABLE_JS_PARSER
@@ -518,17 +502,38 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
     arg_list_p = (const jerry_char_t *) "";
   }
 
-  parse_status = parser_parse_script (arg_list_p,
+  parse_status = parser_parse_script (resource_name_p,
+                                      resource_name_length,
+                                      arg_list_p,
                                       arg_list_size,
                                       source_p,
                                       source_size,
-                                      is_strict,
+                                      parse_opts,
                                       &bytecode_data_p);
+
+#ifndef JERRY_SOURCE_INFO
+  JERRY_UNUSED (resource_name_p);
+  JERRY_UNUSED (resource_name_length);
+#endif /* !JERRY_SOURCE_INFO */
 
   if (ECMA_IS_VALUE_ERROR (parse_status))
   {
     return ecma_create_error_reference_from_context ();
   }
+#ifdef JERRY_SOURCE_INFO
+  else
+  {
+    if (resource_name_p && resource_name_length > 0)
+    {
+      bytecode_data_p->source = ecma_find_or_create_literal_string (resource_name_p,
+                                                                    (lit_utf8_size_t) resource_name_length);
+    }
+    else
+    {
+       bytecode_data_p->source = ECMA_VALUE_EMPTY;
+    }
+  }
+#endif /* JERRY_SOURCE_INFO */
 
   ecma_free_value (parse_status);
 
@@ -543,7 +548,7 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
   JERRY_UNUSED (arg_list_size);
   JERRY_UNUSED (source_p);
   JERRY_UNUSED (source_size);
-  JERRY_UNUSED (is_strict);
+  JERRY_UNUSED (parse_opts);
 
   return jerry_throw (ecma_raise_syntax_error (ECMA_ERR_MSG ("The parser has been disabled.")));
 #endif /* !JERRY_DISABLE_JS_PARSER */
@@ -600,14 +605,13 @@ jerry_run (const jerry_value_t func_val) /**< function to run */
 jerry_value_t
 jerry_eval (const jerry_char_t *source_p, /**< source code */
             size_t source_size, /**< length of source code */
-            bool is_strict) /**< source must conform with strict mode */
+            uint32_t parse_opts) /**< jerry_parse_opts_t option bits */
 {
   jerry_assert_api_available ();
 
   return jerry_return (ecma_op_eval_chars_buffer ((const lit_utf8_byte_t *) source_p,
                                                   source_size,
-                                                  false,
-                                                  is_strict));
+                                                  parse_opts));
 } /* jerry_eval */
 
 /**
@@ -801,11 +805,11 @@ jerry_value_is_undefined (const jerry_value_t value) /**< api value */
  *         false - otherwise.
  */
 bool
-jerry_value_strict_equal(const jerry_value_t lhs, const jerry_value_t rhs)
+jerry_value_strict_equal (const jerry_value_t lhs, const jerry_value_t rhs)
 {
-  jerry_assert_api_available();
+  jerry_assert_api_available ();
 
-  return ecma_op_strict_equality_compare(lhs, rhs);
+  return ecma_op_strict_equality_compare (lhs, rhs);
 }
 
 
@@ -816,12 +820,12 @@ jerry_value_strict_equal(const jerry_value_t lhs, const jerry_value_t rhs)
  *         false - otherwise.
  */
 bool
-jerry_value_instanceof(const jerry_value_t value, const jerry_value_t proto)
+jerry_value_instanceof (const jerry_value_t value, const jerry_value_t proto)
 {
-  jerry_assert_api_available();
+  jerry_assert_api_available ();
 
-  ecma_value_t ret = ecma_op_object_has_instance(ecma_get_object_from_value(proto), value);
-  return ecma_is_value_true(ret);
+  ecma_value_t ret = ecma_op_object_has_instance (ecma_get_object_from_value (proto), value);
+  return ecma_is_value_true (ret);
 }
 
 /**
@@ -2352,6 +2356,7 @@ jerry_invoke_function (bool is_invoke_as_constructor, /**< true - invoke functio
     JERRY_ASSERT (jerry_value_is_constructor (func_obj_val));
 
     return jerry_return (ecma_op_function_construct (ecma_get_object_from_value (func_obj_val),
+                                                     ECMA_VALUE_UNDEFINED,
                                                      args_p,
                                                      args_count));
   }
@@ -2504,73 +2509,6 @@ jerry_set_prototype (const jerry_value_t obj_val, /**< object value */
 } /* jerry_set_prototype */
 
 /**
- * Get native handle, associated with specified object.
- *
- * Note: This API is deprecated, please use jerry_get_object_native_pointer instaed.
- *
- * @return true - if there is an associated handle (handle is returned through out_handle_p),
- *         false - otherwise
- */
-bool
-jerry_get_object_native_handle (const jerry_value_t obj_val, /**< object to get handle from */
-                                uintptr_t *out_handle_p) /**< [out] handle value */
-{
-  jerry_assert_api_available ();
-
-  jerry_value_t obj_value = jerry_get_arg_value (obj_val);
-
-  if (!ecma_is_value_object (obj_value))
-  {
-    return false;
-  }
-
-  ecma_native_pointer_t *native_pointer_p;
-  native_pointer_p = ecma_get_native_pointer_value (ecma_get_object_from_value (obj_value),
-                                                    LIT_INTERNAL_MAGIC_STRING_NATIVE_HANDLE);
-
-  if (native_pointer_p == NULL)
-  {
-    return false;
-  }
-
-  *out_handle_p = (uintptr_t) native_pointer_p->data_p;
-  return true;
-} /* jerry_get_object_native_handle */
-
-/**
- * Set native handle and an optional free callback for the specified object.
- *
- * Note: This API is deprecated, please use jerry_set_object_native_pointer instaed.
- *
- * Note:
- *      If native handle was already set for the object, its value is updated.
- *
- * Note:
- *      If a non-NULL free callback is specified, it will be called
- *      by the garbage collector when the object is freed. The free
- *      callback always overwrites the previous value, so passing
- *      a NULL value deletes the current free callback.
- */
-void
-jerry_set_object_native_handle (const jerry_value_t obj_val, /**< object to set handle in */
-                                uintptr_t handle_p, /**< handle value */
-                                jerry_object_free_callback_t freecb_p) /**< object free callback or NULL */
-{
-  jerry_assert_api_available ();
-
-  jerry_value_t obj_value = jerry_get_arg_value (obj_val);
-
-  if (ecma_is_value_object (obj_value))
-  {
-    ecma_object_t *object_p = ecma_get_object_from_value (obj_value);
-
-    ecma_create_native_handle_property (object_p,
-                                        (void *) handle_p,
-                                        (void *) (ecma_external_pointer_t) freecb_p);
-  }
-} /* jerry_set_object_native_handle */
-
-/**
  * Get native pointer and its type information, associated with specified object.
  *
  * Note:
@@ -2596,8 +2534,7 @@ jerry_get_object_native_pointer (const jerry_value_t obj_val, /**< object to get
   }
 
   ecma_native_pointer_t *native_pointer_p;
-  native_pointer_p = ecma_get_native_pointer_value (ecma_get_object_from_value (obj_value),
-                                                    LIT_INTERNAL_MAGIC_STRING_NATIVE_POINTER);
+  native_pointer_p = ecma_get_native_pointer_value (ecma_get_object_from_value (obj_value));
 
   if (native_pointer_p == NULL)
   {
@@ -2611,7 +2548,7 @@ jerry_get_object_native_pointer (const jerry_value_t obj_val, /**< object to get
 
   if (out_native_info_p != NULL)
   {
-    *out_native_info_p = (const jerry_object_native_info_t *) native_pointer_p->u.info_p;
+    *out_native_info_p = (const jerry_object_native_info_t *) native_pointer_p->info_p;
   }
 
   return true;
@@ -2671,7 +2608,7 @@ jerry_foreach_object_property (const jerry_value_t obj_val, /**< object value */
   }
 
   ecma_object_t *object_p = ecma_get_object_from_value (obj_value);
-  ecma_collection_header_t *names_p = ecma_op_object_get_property_names (object_p, false, true, true);
+  ecma_collection_header_t *names_p = ecma_op_object_get_property_names (object_p, ECMA_LIST_ENUMERABLE_PROTOTYPE);
   ecma_value_t *ecma_value_p = ecma_collection_iterator_init (names_p);
 
   ecma_value_t property_value = ECMA_VALUE_EMPTY;
@@ -2934,6 +2871,7 @@ jerry_create_arraybuffer (const jerry_length_t size) /**< size of the ArrayBuffe
 jerry_value_t
 jerry_create_arraybuffer_external (const jerry_length_t size, /**< size of the buffer to used */
                                    uint8_t *buffer_p, /**< buffer to use as the ArrayBuffer's backing */
+                                   void *free_hint, /**< hint params of buffer free callback */
                                    jerry_object_native_free_callback_t free_cb) /**< buffer free callback */
 {
   jerry_assert_api_available ();
@@ -2946,11 +2884,13 @@ jerry_create_arraybuffer_external (const jerry_length_t size, /**< size of the b
 
   ecma_object_t *arraybuffer = ecma_arraybuffer_new_object_external (size,
                                                                      buffer_p,
+                                                                     free_hint,
                                                                      (ecma_object_native_free_callback_t) free_cb);
   return jerry_return (ecma_make_object_value (arraybuffer));
 #else /* CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
   JERRY_UNUSED (size);
   JERRY_UNUSED (buffer_p);
+  JERRY_UNUSED (free_hint);
   JERRY_UNUSED (free_cb);
   return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG ("ArrayBuffer not supported.")));
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
@@ -3110,12 +3050,8 @@ jerry_get_arraybuffer_pointer (const jerry_value_t value) /**< Array Buffer to u
   }
 
   ecma_object_t *buffer_p = ecma_get_object_from_value (buffer);
-  if (ECMA_ARRAYBUFFER_HAS_EXTERNAL_MEMORY (buffer_p))
-  {
-    jerry_acquire_value (value);
-    lit_utf8_byte_t *mem_buffer_p = ecma_arraybuffer_get_buffer (buffer_p);
-    return (uint8_t *const) mem_buffer_p;
-  }
+  lit_utf8_byte_t *mem_buffer_p = ecma_arraybuffer_get_buffer (buffer_p);
+  return (uint8_t *const) mem_buffer_p;
 #else /* CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
   JERRY_UNUSED (value);
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
@@ -3438,101 +3374,18 @@ jerry_get_typedarray_buffer (jerry_value_t value, /**< TypedArray to get the arr
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
 } /* jerry_get_typedarray_buffer */
 
-bool
-jerry_open_parser_dump (void)
-{
-  jerry_assert_api_available ();
-  FILE *fd = tmpfile ();
-
-  if (fd)
-  {
-    JERRY_CONTEXT (parser_dump_fd) = fd;
-    return true;
-  }
-
-  if (errno == EROFS)
-  {
-    fprintf (stderr, "tmpfile(): Read-only filesystem.\n");
-    jerry_fatal (ERR_SYSCALL);
-  }
-  else if (errno == EEXIST)
-  {
-    fprintf (stderr, "tmpfile(): Unable to generate a unique filename.\n");
-    jerry_fatal (ERR_SYSCALL);
-  }
-  else
-  {
-    fprintf (stderr, "tmpfile(): Unknown/Unhandled error\n");
-    jerry_fatal (ERR_SYSCALL);
-  }
-  return false;
-}
-
-bool
-jerry_close_parser_dump (void)
-{
-  if (JERRY_CONTEXT (parser_dump_fd))
-  {
-    fclose (JERRY_CONTEXT (parser_dump_fd));
-    JERRY_CONTEXT (parser_dump_fd) = NULL;
-    return true;
-  }
-  return false;
-}
-
 jerry_value_t
-jerry_read_parser_dump (int pos)
-{
-  FILE *handle = JERRY_CONTEXT (parser_dump_fd);
-
-#define PARSER_DUMP_BUFFER_SIZE 1024
-  if (handle)
-  {
-    char str[PARSER_DUMP_BUFFER_SIZE];
-    int offset = 0;
-    memset (str, 0, PARSER_DUMP_BUFFER_SIZE);
-
-    if (pos == 0)
-    {
-      rewind (handle);
-    }
-    else
-    {
-      fseek (handle, 0, pos);
-    }
-
-    while (!feof (handle) && offset < PARSER_DUMP_BUFFER_SIZE)
-    {
-      int v = fgetc (handle);
-      if (v == EOF)
-        break;
-
-      str[offset] = (char)v;
-      offset += 1;
-    }
-
-    if (offset > 0)
-    {
-      return jerry_create_string_sz_from_utf8 ((jerry_char_t *)str,
-                                               (jerry_size_t)offset);
-    }
-  }
-#undef PARSER_DUMP_BUFFER_SIZE
-  return jerry_create_boolean (false);
-}
-
-uint32_t*
 jerry_get_backtrace (void)
 {
   jerry_assert_api_available ();
-  return JERRY_CONTEXT (stack_frames);
+  return jerry_get_backtrace_depth (jerry_get_backtrace_max_depth ());
 }
 
-void
-jerry_get_backtrace_depth (uint32_t *frames, uint32_t depth)
+jerry_value_t
+jerry_get_backtrace_depth (uint32_t depth)
 {
   jerry_assert_api_available ();
-  jcontext_get_backtrace_depth(frames, depth);
+  return jcontext_get_backtrace_depth (depth);
 }
 
 uint32_t
@@ -3589,8 +3442,6 @@ jerry_start_cpu_profiling (const char *path,
 #endif
 }
 
-extern int fileno (FILE *__stream);
-extern ssize_t readlink (const char *path, char *buf, size_t len);
 bool
 jerry_stop_cpu_profiling (void)
 {
@@ -3600,64 +3451,17 @@ jerry_stop_cpu_profiling (void)
   return false;
 #else
 
-  if (!JERRY_CONTEXT (cpu_profiling_fp))
+  FILE *fp = JERRY_CONTEXT (cpu_profiling_fp);
+  if (!fp)
   {
     return false;
   }
 
-#define CMDLINE_SIZE 128
-  char *dump_buf = NULL;
-  char cmdline[CMDLINE_SIZE + 1] = {0};
-  int fd = fileno (JERRY_CONTEXT (cpu_profiling_fp));
-  snprintf (cmdline, CMDLINE_SIZE, "/proc/self/fd/%d", fd);
-  char prof_dump_path[CMDLINE_SIZE + 1] = {0};
-  ssize_t sz = readlink (cmdline, prof_dump_path, CMDLINE_SIZE);
-  strcpy (prof_dump_path + sz, ".dump");
-  FILE *prof_dump_fp = fopen (prof_dump_path, "w");
-  if (prof_dump_fp == NULL)
-  {
-    goto done;
-  }
-
-  FILE *dump_fp = JERRY_CONTEXT (parser_dump_fd);
-  if (dump_fp == NULL)
-  {
-    goto done;
-  }
-
-  // record file position
-  long int cur_pos = fseek (dump_fp, 0, SEEK_CUR);
-
-  // file size
-  fseek (dump_fp, 0, SEEK_END);
-  size_t file_sz = (size_t) ftell (dump_fp);
-
-  dump_buf = (char*) malloc (file_sz);
-  if(dump_buf == NULL)
-  {
-    goto done;
-  }
-  rewind (dump_fp);
-  fread (dump_buf, file_sz, 1, dump_fp);
-  fwrite (dump_buf, file_sz, 1, prof_dump_fp);
-
-  // restore file position
-  fseek (dump_fp, cur_pos, SEEK_SET);
-
-done:
-  if (dump_buf != NULL)
-  {
-    free (dump_buf);
-  }
-  if (prof_dump_fp != NULL)
-  {
-    fclose (prof_dump_fp);
-  }
-  fclose (JERRY_CONTEXT (cpu_profiling_fp));
+  fflush (fp);
+  fclose (fp);
   JERRY_CONTEXT (cpu_profiling_fp) = NULL;
 
   return true;
-#undef CMDLINE_SIZE
 #endif
 }
 

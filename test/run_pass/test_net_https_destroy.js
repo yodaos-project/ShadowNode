@@ -3,7 +3,7 @@ var https = require('https');
 var common = require('../common');
 
 var options = {
-  hostname: 'developer.rokid.com',
+  hostname: 'example.com',
   port: 443,
   path: '/',
   method: 'GET'

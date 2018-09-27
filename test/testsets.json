@@ -14,6 +14,7 @@
     { "name": "test_dbus_after_destroy.js" },
     { "name": "test_dbus_define.js" },
     { "name": "test_dbus_introspectable.js" },
+    { "name": "test_dbus_send_utf8.js" },
     { "name": "test_dbus_service_and_call.js" },
     { "name": "test_dbus_signal.js" },
     { "name": "test_dgram_1_server_1_client.js" },
@@ -26,6 +27,7 @@
     { "name": "test_dgram_setttl_server.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_dns.js" },
     { "name": "test_dns_lookup.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_dump_parser.js" },
     { "name": "test_events.js" },
     { "name": "test_events_assert_emit_error.js" },
     { "name": "test_events_uncaught_error.js" },
@@ -58,6 +60,7 @@
     { "name": "test_iotjs_error_stack.js" },
     { "name": "test_iotjs_promise.js" },
     { "name": "test_iotjs_promise_chain_calls.js" },
+    { "name": "test_iotjs_selfref.js" },
     { "name": "test_module_cache.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_module_json.js" },
     { "name": "test_module_require.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
@@ -66,6 +69,8 @@
         "NODE_PATH": "require2/node_modules"
       }
     },
+    { "name": "test_mqtt_client.js" },
+    { "name": "test_mqtt_sub_pub.js" },
     { "name": "test_net_1.js" },
     { "name": "test_net_2.js" },
     { "name": "test_net_3.js", "skip": ["linux", "nuttx"], "reason": "[linux]: flaky on Travis, [nuttx]: requires too many socket descriptors and too large buffers" },
@@ -95,6 +100,8 @@
     { "name": "test_net_https_post_status_codes.js", "timeout": 40, "skip": ["all"], "reason": "Implemented only for Tizen" },
     { "name": "test_net_https_request_response.js", "timeout": 40, "skip": ["all"], "reason": "Implemented only for Tizen" },
     { "name": "test_net_https_timeout.js", "timeout": 40, "skip": ["all"], "reason": "Implemented only for Tizen" },
+    { "name": "test_os.js" },
+    { "name": "test_os_priority.js" },
     { "name": "test_process.js" },
     { "name": "test_process_chdir.js" },
     { "name": "test_process_cwd.js" },
@@ -105,6 +112,7 @@
     { "name": "test_process_next_tick.js" },
     { "name": "test_process_readsource.js" },
     { "name": "test_process_send.js" },
+    { "name": "test_process_setimmediate.js" },
     { "name": "test_process_stackframes.js" },
     { "name": "test_process_title.js" },
     { "name": "test_process_uncaught_order.js" },
@@ -112,6 +120,8 @@
     { "name": "test_process_unhandled_rejection.js" },
     { "name": "test_pwm_async.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_pwm_sync.js", "skip": ["all"], "reason": "need to setup test environment" },
+    { "name": "test_shebang.js" },
+    { "name": "test_signal_simple.js" },
     { "name": "test_spi.js", "skip": ["linux"], "reason": "Differend env on Linux desktop/travis/rpi" },
     { "name": "test_spi_buffer.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_spi_mcp3008.js", "skip": ["all"], "reason": "need to setup test environment" },
@@ -155,7 +165,8 @@
     { "name": "test_process_exitcode_var.js", "expected-failure": true },
     { "name": "test_process_explicit_exit.js", "expected-failure": true },
     { "name": "test_process_implicit_exit.js", "expected-failure": true },
-    { "name": "test_promise_unhandled_rejection.js", "expected-failure": true }
+    { "name": "test_promise_unhandled_rejection.js", "expected-failure": true },
+    { "name": "test_shebang_fail.js", "expected-failure": true }
   ],
   "node/parallel": [
     { "name": "test-assert.js" },

@@ -78,4 +78,6 @@
     uv_##name##_stop(handle);                                                 \
   }
 
+UV_LOOP_WATCHER_DEFINE(prepare, PREPARE)
+UV_LOOP_WATCHER_DEFINE(check, CHECK)
 UV_LOOP_WATCHER_DEFINE(idle, IDLE)

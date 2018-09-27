@@ -157,11 +157,13 @@ ecma_builtin_function_dispatch_construct (const ecma_value_t *arguments_list_p, 
 
   ecma_compiled_code_t *bytecode_data_p = NULL;
 
-  ecma_value_t ret_value = parser_parse_script (arguments_buffer_p,
+  ecma_value_t ret_value = parser_parse_script (NULL,
+                                                0,
+                                                arguments_buffer_p,
                                                 arguments_buffer_size,
                                                 function_body_buffer_p,
                                                 function_body_buffer_size,
-                                                false,
+                                                ECMA_PARSE_NO_OPTS,
                                                 &bytecode_data_p);
 
   if (!ECMA_IS_VALUE_ERROR (ret_value))

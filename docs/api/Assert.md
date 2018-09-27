@@ -196,6 +196,31 @@ assert.strictEqual(1, '1');
 ```
 
 
+### assert.deepStrictEqual(actual, expected, message)
+* `actual` {any} The actual value.
+* `expected` {any} The expected value.
+* `message` {any} Message to be displayed.
+
+**Example**
+
+```js
+var assert = require('assert');
+
+var obj1 = { a: 1, b: 2 };
+var obj2 = { a: 1, b: 2 };
+var obj3 = { a: 1, b: 3 };
+
+assert.deepStrictEqual(obj1, obj2);
+// OK
+
+assert.deepStrictEqual(obj1, obj3);
+// AssertionError
+
+assert.deepStrictEqual(NaN, NaN);
+// OK
+```
+
+
 ### assert.throws(block[, expected, message])
 * `block` {Function} The function that throws an error.
 * `expected` {Function|RegExp|Object|Error} The expected error type.

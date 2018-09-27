@@ -8,8 +8,23 @@ from common_py.system.executor import Executor as ex
 BUILDTYPES = ['debug', 'release']
 
 
+def check_change(path):
+    '''Check if current pull request depends on path,
+    return -1 if not depends, else if depends.'''
+    travis_branch = os.getenv('TRAVIS_BRANCH')
+    commit_diff = ex.run_cmd_output('git',
+                                    [
+                                        'diff',
+                                        '--name-only',
+                                        'HEAD..' + travis_branch],
+                                    True)
+    return commit_diff.find(path)
+
+
 def build_jerry():
-    ex.check_run_cmd('./deps/jerry/tools/run-tests.py', ['--unittests'])
+    if check_change('deps/jerry') != -1:
+        ex.check_run_cmd('./deps/jerry/tools/run-tests.py',
+                         ['--unittests', '--jerry-test-suite'])
 
 
 def build_iotjs(buildtype, args=[], env=[]):
@@ -23,13 +38,13 @@ if __name__ == '__main__':
         build_jerry()
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
-                '--run-test',
+                '--run-test=full',
                 '--no-check-valgrind'])
 
     elif test == "host-darwin":
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
-                '--run-test',
+                '--run-test=full',
                 '--no-check-valgrind',
                 '--profile=test/profiles/host-darwin.profile'])
 
@@ -43,7 +58,7 @@ if __name__ == '__main__':
     elif test == "no-snapshot":
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
-                        '--run-test',
+                        '--run-test=full',
                         '--no-check-valgrind',
                         '--no-snapshot',
                         '--jerry-lto'])
@@ -51,7 +66,7 @@ if __name__ == '__main__':
     elif test == 'napi':
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
-                '--run-test',
+                '--run-test=full',
                 '--no-check-valgrind',
                 '--napi'])
 

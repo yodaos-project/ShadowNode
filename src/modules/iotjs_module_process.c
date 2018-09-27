@@ -64,10 +64,45 @@ static jerry_value_t ConstructVersionsObject() {
 #undef STR
 #undef STR_HELPER
 
-static jerry_value_t WrapEval(const char* name, size_t name_len,
-                              const char* source, size_t length) {
+static void stripShebang(char** p_source, size_t* p_length) {
+  char* source = *p_source;
+  size_t length = *p_length;
+
+  if (length < 2) {
+    return;
+  }
+  if (source[0] == '#' && source[1] == '!') {
+    if (length == 2) {
+      *p_source = "";
+      *p_length = 0;
+      return;
+    } else {
+      size_t i = 2;
+      for (; i < length; i++) {
+        if (source[i] == 0x000D /* CR */ || source[i] == 0x000A /* LF */) {
+          break;
+        }
+      }
+      if (i == length) {
+        *p_source = "";
+        *p_length = 0;
+        return;
+      } else {
+        *p_source = source + i;
+        *p_length = length - i;
+        return;
+      }
+    }
+  }
+}
+
+static jerry_value_t WrapEval(const char* name, size_t name_len, char* source,
+                              size_t length) {
   static const char* args =
       "exports, require, module, native, __filename, __dirname";
+
+  // Remove Shebang.
+  stripShebang(&source, &length);
   jerry_value_t res =
       jerry_parse_function((const jerry_char_t*)name, name_len,
                            (const jerry_char_t*)args, strlen(args),
@@ -76,6 +111,19 @@ static jerry_value_t WrapEval(const char* name, size_t name_len,
   return res;
 }
 
+static void ImmediateIdleCallback(uv_idle_t* handle) {
+  // nothing to do on immediate idle callback
+}
+
+static void ImmediateCheckCallback(uv_check_t* handle) {
+  const jerry_value_t process = iotjs_module_get("process");
+  jerry_value_t jonuvcheck =
+      iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONUVCHECK);
+  IOTJS_ASSERT(jerry_value_is_function(jonuvcheck));
+
+  iotjs_make_callback(jonuvcheck, process, iotjs_jargs_get_empty());
+  jerry_release_value(jonuvcheck);
+}
 
 JS_FUNCTION(Compile) {
   DJS_CHECK_ARGS(1, string);
@@ -150,7 +198,8 @@ static jerry_value_t wait_for_source_callback(
 
   jerry_debugger_stop();
 
-  return WrapEval(filename, resource_name_size, iotjs_string_data(&source),
+  return WrapEval(filename, resource_name_size,
+                  (char*)iotjs_string_data(&source),
                   iotjs_string_size(&source));
 }
 
@@ -196,8 +245,8 @@ JS_FUNCTION(CompileModule) {
     jres = jerry_exec_snapshot_at((const void*)iotjs_js_modules_s,
                                   iotjs_js_modules_l, js_modules[i].idx, false);
 #else
-    jres = WrapEval(name, iotjs_string_size(&id),
-                    (const char*)js_modules[i].code, js_modules[i].length);
+    jres = WrapEval(name, iotjs_string_size(&id), (char*)js_modules[i].code,
+                    js_modules[i].length);
 #endif
 
     if (!jerry_value_has_error_flag(jres)) {
@@ -265,24 +314,7 @@ JS_FUNCTION(GetStackFrames) {
     depth = jerry_get_number_value(jargv[0]);
   }
 
-  // create frames
-  uint32_t* frames = malloc(sizeof(uint32_t) * depth);
-  memset(frames, 0, sizeof(uint32_t) * depth);
-  jerry_get_backtrace_depth(frames, depth);
-
-  jerry_value_t jframes = jerry_create_array(depth);
-  for (uint32_t i = 0; i < depth; ++i) {
-    jerry_set_property_by_index(jframes, i, jerry_create_number(frames[i]));
-  }
-
-  free(frames);
-  return jframes;
-}
-
-
-JS_FUNCTION(ReadParserDump) {
-  int pos = JS_GET_ARG(0, number);
-  return jerry_read_parser_dump(pos);
+  return jerry_get_backtrace_depth(depth);
 }
 
 
@@ -426,6 +458,52 @@ JS_FUNCTION(CreateUVException) {
 JS_FUNCTION(ForceGC) {
   jerry_gc();
   return jerry_create_boolean(true);
+}
+
+JS_FUNCTION(StartUVCheck) {
+  int status;
+  iotjs_environment_t* env = iotjs_environment_get();
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_environment_t, env);
+  uv_loop_t* loop = iotjs_environment_loop(env);
+
+  if (_this->immediate_idle_handle == NULL) {
+    _this->immediate_idle_handle = IOTJS_ALLOC(uv_idle_t);
+    uv_idle_init(loop, _this->immediate_idle_handle);
+  }
+  if (_this->immediate_idle_handle->data == NULL) {
+    status = uv_idle_start(_this->immediate_idle_handle, ImmediateIdleCallback);
+    IOTJS_ASSERT(status == 0);
+    /** indicates idle_handle has been started */
+    _this->immediate_idle_handle->data = (void*)(uintptr_t) true;
+  }
+
+  if (_this->immediate_check_handle == NULL) {
+    _this->immediate_check_handle = IOTJS_ALLOC(uv_check_t);
+    status = uv_check_init(loop, _this->immediate_check_handle);
+    IOTJS_ASSERT(status == 0);
+  }
+
+  status =
+      uv_check_start(_this->immediate_check_handle, ImmediateCheckCallback);
+  IOTJS_ASSERT(status == 0);
+
+  return jerry_create_undefined();
+}
+
+JS_FUNCTION(StopUVCheck) {
+  int status;
+
+  iotjs_environment_t* env = iotjs_environment_get();
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_environment_t, env);
+
+  status = uv_check_stop(_this->immediate_check_handle);
+  IOTJS_ASSERT(status == 0);
+  status = uv_idle_stop(_this->immediate_idle_handle);
+  IOTJS_ASSERT(status == 0);
+  /** indicates check_handle has been stopped */
+  _this->immediate_idle_handle->data = NULL;
+
+  return jerry_create_undefined();
 }
 
 JS_FUNCTION(OpenNativeModule) {
@@ -639,7 +717,10 @@ jerry_value_t InitProcess() {
   // errors
   iotjs_jval_set_method(process, "_createUVException", CreateUVException);
   iotjs_jval_set_method(process, "_getStackFrames", GetStackFrames);
-  iotjs_jval_set_method(process, "_readParserDump", ReadParserDump);
+
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING__STARTUVCHECK,
+                        StartUVCheck);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING__STOPUVCHECK, StopUVCheck);
 
 
   // virtual machine

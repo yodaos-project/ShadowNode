@@ -46,7 +46,8 @@ function CLI(usage, settings) {
         currentOptional = arg.slice(1);
       }
 
-      if (settings.boolArgs && settings.boolArgs.indexOf(currentOptional) !== -1) {
+      if (settings.boolArgs &&
+        settings.boolArgs.indexOf(currentOptional) !== -1) {
         this.optional[currentOptional] = true;
         mode = 'both';
       } else {
@@ -73,7 +74,7 @@ function CLI(usage, settings) {
     } else {
       // Bad case, abort
       this.abort(usage);
-      return;
+
     }
   });
 }

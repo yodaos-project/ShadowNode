@@ -41,12 +41,24 @@
       "sources": [ "napi_reference.c" ]
     },
     {
+      "target_name": "napi_new_target",
+      "sources": [ "napi_new_target.c" ]
+    },
+    {
       "target_name": "napi_string",
       "sources": [ "napi_string.c" ]
     },
     {
       "target_name": "napi_thread_safe",
       "sources": [ "napi_thread_safe.c" ]
+    },
+    {
+      "target_name": "napi_tsfn",
+      "sources": [ "napi_tsfn.c" ]
+    },
+    {
+      "target_name": "napi_typedarray",
+      "sources": [ "napi_typedarray.c" ]
     }
   ]
 }

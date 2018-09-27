@@ -5,6 +5,12 @@
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(pipewrap);
 
+typedef struct iotjs_write_wrap {
+  char* data;
+  uv_write_t req;
+  jerry_value_t callback;
+} iotjs_write_wrap;
+
 static void iotjs_pipe_on_connection(uv_stream_t* handle, int status) {
   printf("connected\n");
 }
@@ -164,7 +170,9 @@ JS_FUNCTION(PipeReadStart) {
 // }
 
 static void iotjs_pipe_after_write(uv_write_t* req, int status) {
-  jerry_value_t callback = (jerry_value_t)(uintptr_t)req->data;
+  iotjs_write_wrap* write_wrap = (iotjs_write_wrap*)req->data;
+  char* data = write_wrap->data;
+  jerry_value_t callback = write_wrap->callback;
   if (jerry_value_is_function(callback)) {
     iotjs_jargs_t jargs = iotjs_jargs_create(1);
     if (status) {
@@ -176,8 +184,34 @@ static void iotjs_pipe_after_write(uv_write_t* req, int status) {
     iotjs_make_callback(callback, jerry_create_undefined(), &jargs);
     iotjs_jargs_destroy(&jargs);
   }
+  IOTJS_RELEASE(data);
   jerry_release_value(callback);
-  free(req);
+  IOTJS_RELEASE(write_wrap);
+}
+
+#define PIPE_DO_WRITE(_this, chunk, size, callback)              \
+  iotjs_write_wrap* write_wrap = IOTJS_ALLOC(iotjs_write_wrap);  \
+  write_wrap->data = iotjs_buffer_allocate(sizeof(char) * size); \
+  memcpy(write_wrap->data, chunk, size);                         \
+  write_wrap->callback = jerry_acquire_value(callback);          \
+  write_wrap->req.data = write_wrap;                             \
+  uv_stream_t* handle = (uv_stream_t*)&_this->handle;            \
+  uv_buf_t buf = uv_buf_init(write_wrap->data, size);            \
+  uv_write(&write_wrap->req, handle, &buf, 1, iotjs_pipe_after_write);
+
+JS_FUNCTION(Write) {
+  JS_DECLARE_THIS_PTR(pipewrap, pipewrap);
+  IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pipewrap_t, pipewrap);
+
+  iotjs_bufferwrap_t* wrap = iotjs_bufferwrap_from_jbuffer(jargv[0]);
+  char* chunk = iotjs_bufferwrap_buffer(wrap);
+  size_t size = iotjs_bufferwrap_length(wrap);
+
+  jerry_value_t callback = JS_GET_ARG_IF_EXIST(1, function);
+
+  PIPE_DO_WRITE(_this, chunk, size, callback);
+
+  return jerry_create_undefined();
 }
 
 JS_FUNCTION(WriteUtf8String) {
@@ -185,19 +219,16 @@ JS_FUNCTION(WriteUtf8String) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_pipewrap_t, pipewrap);
 
   iotjs_string_t data = JS_GET_ARG(0, string);
-  jerry_value_t callback = JS_GET_ARG_IF_EXIST(1, function);
-  jerry_acquire_value(callback);
-
   const char* chunk = iotjs_string_data(&data);
   unsigned int size = iotjs_string_size(&data);
-  uv_write_t* write_req = IOTJS_ALLOC(uv_write_t);
-  write_req->data = (void*)(uintptr_t)callback;
-  uv_stream_t* handle = (uv_stream_t*)&_this->handle;
-  uv_buf_t buf = uv_buf_init((char*)chunk, size);
-  uv_write(write_req, handle, &buf, 1, iotjs_pipe_after_write);
+
+  jerry_value_t callback = JS_GET_ARG_IF_EXIST(1, function);
+
+  PIPE_DO_WRITE(_this, chunk, size, callback);
 
   // free the data firstly
   iotjs_string_destroy(&data);
+
   return jerry_create_undefined();
 }
 
@@ -244,15 +275,17 @@ jerry_value_t InitPipe() {
   iotjs_jval_set_property_jval(pipewrap, "Pipe", pipeConstructor);
 
   jerry_value_t proto = jerry_create_object();
-  iotjs_jval_set_method(proto, "bind", PipeBind);
-  iotjs_jval_set_method(proto, "open", PipeOpen);
-  iotjs_jval_set_method(proto, "listen", PipeListen);
+  iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_BIND, PipeBind);
+  iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_OPEN, PipeOpen);
+  iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_LISTEN, PipeListen);
   // iotjs_jval_set_method(proto, "connect", PipeConnect);
-  iotjs_jval_set_method(proto, "readStart", PipeReadStart);
-  iotjs_jval_set_method(proto, "writeUtf8String", WriteUtf8String);
-  iotjs_jval_set_method(proto, "close", PipeClose);
-  iotjs_jval_set_method(proto, "ref", PipeRef);
-  iotjs_jval_set_method(proto, "unref", PipeUnref);
+  iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_READSTART, PipeReadStart);
+  iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_WRITE, Write);
+  iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_WRITEUTF8STRING,
+                        WriteUtf8String);
+  iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_CLOSE, PipeClose);
+  iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_REF, PipeRef);
+  iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_UNREF, PipeUnref);
   iotjs_jval_set_property_jval(pipeConstructor, "prototype", proto);
 
   jerry_release_value(proto);

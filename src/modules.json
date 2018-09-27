@@ -13,11 +13,13 @@
         "https",
         "mqtt",
         "net",
+        "internal_process_next_tick",
         "os",
         "path",
         "profiler",
         "promise",
         "sax",
+        "signal",
         "string_decoder",
         "stream",
         "tls",
@@ -155,7 +157,8 @@
     },
     "constants": {
       "native_files": ["modules/iotjs_module_constants.c"],
-      "init": "InitConstants"
+      "init": "InitConstants",
+      "js_file": "js/constants.js"
     },
     "crypto": {
       "js_file": "js/crypto.js",
@@ -291,8 +294,12 @@
       "js_file": "js/net.js",
       "require": ["assert", "events", "stream", "tcp", "util"]
     },
+    "internal_process_next_tick": {
+      "js_file": "js/internal/process/next_tick.js"
+    },
     "os": {
       "js_file": "js/os.js",
+      "require": ["constants"],
       "native_files": ["modules/iotjs_module_os.c"],
       "init": "InitOs"
     },
@@ -342,6 +349,10 @@
     },
     "sax": {
       "js_file": "js/sax.js"
+    },
+    "signal": {
+      "native_files": ["modules/iotjs_module_signal.c"],
+      "init": "InitSignal"
     },
     "spi": {
       "platforms": {

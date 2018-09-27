@@ -47,6 +47,7 @@ function MqttClient(endpoint, options) {
     protocolVersion: 4,
     pingReqTimeout: 10 * 1000,
   }, options);
+  this._isSocketConnected = false;
   this._isConnected = false;
   this._reconnecting = false;
   this._reconnectingTimer = null;
@@ -55,6 +56,18 @@ function MqttClient(endpoint, options) {
   this._keepAliveTimer = null;
   this._keepAliveTimeout = null;
   this._handle = new native.MqttHandle(this._options);
+  Object.defineProperty(this, 'connected', {
+    get: function() {
+      return this._isConnected;
+    },
+  });
+
+  Object.defineProperty(this, 'reconnecting', {
+    get: function() {
+      return this._reconnecting;
+    },
+  });
+
 }
 util.inherits(MqttClient, EventEmitter);
 
@@ -74,8 +87,8 @@ MqttClient.prototype.connect = function() {
     this._socket = net.connect(opts, this._onconnect.bind(this));
   }
   this._socket.on('data', this._ondata.bind(this));
-  this._socket.once('error', this._ondisconnect.bind(this));
-  this._socket.once('end', this._ondisconnect.bind(this));
+  this._socket.once('error', this._onerror.bind(this));
+  this._socket.once('end', this._onend.bind(this));
   this._lastConnectTime = Date.now();
   this._lastChunk = null;
   return this;
@@ -85,7 +98,7 @@ MqttClient.prototype.connect = function() {
  * @method _onconnect
  */
 MqttClient.prototype._onconnect = function() {
-  this._isConnected = true;
+  this._isSocketConnected = true;
   var buf;
   try {
     buf = this._handle._getConnect();
@@ -97,23 +110,22 @@ MqttClient.prototype._onconnect = function() {
 };
 
 MqttClient.prototype._onerror = function(err) {
-  this._ondisconnect(err);
-};
-
-MqttClient.prototype._onend = function() {
+  this.emit('error', err);
   this._ondisconnect();
 };
 
-MqttClient.prototype._ondisconnect = function(err) {
-  clearTimeout(this._keepAliveTimer);
-  clearTimeout(this._keepAliveTimeout);
-  if (err) {
-    this.emit('error', err);
-  }
+MqttClient.prototype._onend = function() {
+  this._clearKeepAlive();
+  this._ondisconnect();
+};
+
+MqttClient.prototype._ondisconnect = function() {
+  this._isSocketConnected = false;
   if (this._isConnected) {
     this._isConnected = false;
     this.emit('offline');
   }
+  this.emit('close');
   this.reconnect();
 };
 
@@ -133,6 +145,7 @@ MqttClient.prototype._ondata = function(chunk) {
   this.emit('packetreceive');
 
   if (res.type === MQTT_CONNACK) {
+    this._isConnected = true;
     if (this._reconnecting) {
       clearTimeout(this._reconnectingTimer);
       this._reconnecting = false;
@@ -187,7 +200,7 @@ MqttClient.prototype._ondata = function(chunk) {
 MqttClient.prototype._write = function(buffer, callback) {
   var self = this;
   callback = callback || noop;
-  if (!self._isConnected) {
+  if (!self._isSocketConnected) {
     callback(new Error('mqtt is disconnected'));
     return;
   }
@@ -222,6 +235,13 @@ MqttClient.prototype._onKeepAlive = function() {
   this._keepAlive();
 };
 
+MqttClient.prototype._clearKeepAlive = function() {
+  clearTimeout(this._keepAliveTimer);
+  clearTimeout(this._keepAliveTimeout);
+  this._keepAliveTimer = null;
+  this._keepAliveTimeout = null;
+};
+
 MqttClient.prototype.disconnect = function(err) {
   if (err) {
     this.emit('error', err);
@@ -229,6 +249,8 @@ MqttClient.prototype.disconnect = function(err) {
   if (!this._isConnected) {
     return;
   }
+
+  this._clearKeepAlive();
   clearTimeout(this._reconnectingTimer);
   try {
     var buf = this._handle._getDisconnect();
@@ -340,24 +362,6 @@ MqttClient.prototype.reconnect = function() {
 MqttClient.prototype.getLastMessageId = function() {
   return this._msgId;
 };
-
-/**
- * @property {Boolean} connected
- */
-Object.defineProperty(MqttClient, 'connected', {
-  get: function() {
-    return this._isConnected;
-  },
-});
-
-/**
- * @property {Boolean} reconnecting
- */
-Object.defineProperty(MqttClient, 'reconnecting', {
-  get: function() {
-    return this._reconnecting;
-  },
-});
 
 function connect(endpoint, options) {
   var client = new MqttClient(endpoint, options);

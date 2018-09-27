@@ -106,7 +106,7 @@ parser_flush_cbc (parser_context_t *context_p) /**< context */
 
     JERRY_ASSERT (opcode < CBC_EXT_END);
     flags = cbc_ext_flags[opcode];
-    parser_emit_two_bytes (context_p, CBC_EXT_OPCODE, opcode);
+    parser_emit_two_bytes (context_p, CBC_EXT_OPCODE, (uint8_t) opcode);
     context_p->byte_code_size += 2;
   }
 
@@ -808,6 +808,24 @@ parser_error_to_string (parser_error_t error) /**< error code */
     {
       return "Case statement must be in a switch block.";
     }
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+    case PARSER_ERR_MULTIPLE_CLASS_CONSTRUCTORS:
+    {
+      return "Multiple constructors are not allowed.";
+    }
+    case PARSER_ERR_CLASS_CONSTRUCTOR_AS_ACCESSOR:
+    {
+      return "Class constructor may not be an accessor.";
+    }
+    case PARSER_ERR_CLASS_STATIC_PROTOTYPE:
+    {
+      return "Classes may not have a static property called 'prototype'.";
+    }
+    case PARSER_ERR_UNEXPECTED_SUPER_REFERENCE:
+    {
+      return "Super is not allowed to be used here.";
+    }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
     case PARSER_ERR_LEFT_PAREN_EXPECTED:
     {
       return "Expected '(' token.";

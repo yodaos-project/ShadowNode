@@ -94,6 +94,15 @@ typedef enum
 } jerry_feature_t;
 
 /**
+ * Option flags for jerry_parse and jerry_parse_function functions.
+ */
+typedef enum
+{
+  JERRY_PARSE_NO_OPTS = 0, /**< no options passed */
+  JERRY_PARSE_STRICT_MODE = (1 << 0), /**< enable strict mode */
+} jerry_parse_opts_t;
+
+/**
  * Character type of JerryScript.
  */
 typedef uint8_t jerry_char_t;
@@ -182,11 +191,6 @@ typedef jerry_value_t (*jerry_external_handler_t) (const jerry_value_t function_
                                                    const jerry_length_t args_count);
 
 /**
- * Native free callback of an object (deprecated).
- */
-typedef void (*jerry_object_free_callback_t) (const uintptr_t native_p);
-
-/**
  * Native free callback of an object.
  */
 typedef void (*jerry_object_native_free_callback_t) (void *native_p);
@@ -256,14 +260,13 @@ bool jerry_get_memory_stats (jerry_heap_stats_t *out_stats_p);
  * Parser and executor functions.
  */
 bool jerry_run_simple (const jerry_char_t *script_source_p, size_t script_source_size, jerry_init_flag_t flags);
-jerry_value_t jerry_parse (const jerry_char_t *source_p, size_t source_size, bool is_strict);
-jerry_value_t jerry_parse_named_resource (const jerry_char_t *resource_name_p, size_t resource_name_length,
-                                          const jerry_char_t *source_p, size_t source_size, bool is_strict);
+jerry_value_t jerry_parse (const jerry_char_t *resource_name_p, size_t resource_name_length,
+                           const jerry_char_t *source_p, size_t source_size, uint32_t parse_opts);
 jerry_value_t jerry_parse_function (const jerry_char_t *resource_name_p, size_t resource_name_length,
                                     const jerry_char_t *arg_list_p, size_t arg_list_size,
-                                    const jerry_char_t *source_p, size_t source_size, bool is_strict);
+                                    const jerry_char_t *source_p, size_t source_size, uint32_t parse_opts);
 jerry_value_t jerry_run (const jerry_value_t func_val);
-jerry_value_t jerry_eval (const jerry_char_t *source_p, size_t source_size, bool is_strict);
+jerry_value_t jerry_eval (const jerry_char_t *source_p, size_t source_size, uint32_t parse_opts);
 
 jerry_value_t jerry_run_all_enqueued_jobs (void);
 
@@ -434,12 +437,6 @@ jerry_value_t jerry_get_object_keys (const jerry_value_t obj_val);
 jerry_value_t jerry_get_prototype (const jerry_value_t obj_val);
 jerry_value_t jerry_set_prototype (const jerry_value_t obj_val, const jerry_value_t proto_obj_val);
 
-JERRY_DEPRECATED_API
-bool jerry_get_object_native_handle (const jerry_value_t obj_val, uintptr_t *out_handle_p);
-JERRY_DEPRECATED_API
-void jerry_set_object_native_handle (const jerry_value_t obj_val, uintptr_t handle_p,
-                                     jerry_object_free_callback_t freecb_p);
-
 bool jerry_get_object_native_pointer (const jerry_value_t obj_val,
                                       void **out_native_pointer_p,
                                       const jerry_object_native_info_t **out_pointer_info_p);
@@ -478,6 +475,7 @@ bool jerry_value_is_arraybuffer (const jerry_value_t value);
 jerry_value_t jerry_create_arraybuffer (const jerry_length_t size);
 jerry_value_t jerry_create_arraybuffer_external (const jerry_length_t size,
                                                  uint8_t *buffer_p,
+                                                 void *free_hint,
                                                  jerry_object_native_free_callback_t free_cb);
 jerry_length_t jerry_arraybuffer_write (const jerry_value_t value,
                                         jerry_length_t offset,
@@ -527,12 +525,8 @@ jerry_value_t jerry_get_typedarray_buffer (jerry_value_t value,
                                            jerry_length_t *byte_offset,
                                            jerry_length_t *byte_length);
 
-bool jerry_open_parser_dump (void);
-bool jerry_close_parser_dump (void);
-jerry_value_t jerry_read_parser_dump (int);
-
-uint32_t *jerry_get_backtrace (void);
-void jerry_get_backtrace_depth (uint32_t *stack_frames, uint32_t depth);
+jerry_value_t jerry_get_backtrace (void);
+jerry_value_t jerry_get_backtrace_depth (uint32_t depth);
 uint32_t jerry_get_backtrace_max_depth (void);
 
 bool jerry_enable_cpu_profiling (void);

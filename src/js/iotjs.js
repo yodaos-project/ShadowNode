@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable strict */
+
 (function() {
   this.global = this;
   // update the process.env firstly
@@ -47,59 +49,17 @@
   };
 
   var module = Module.require('module');
-  var fs = Module.require('fs');
 
-  function loadDumpIfExists() {
-    var lines = [];
-    try {
-      var data = '';
-      var chunk;
-      var offset = 0;
-      do {
-        chunk = process._readParserDump(offset);
-        offset += chunk.length;
-        data += chunk;
-      } while (chunk !== false);
-
-      lines = data.split('\n');
-    } catch (err) {
-      console.error(`occurrs unkwnown error when loading dump: ${err.message}`);
-    }
-    return lines;
-  }
-
-  function makeStackTraceFromDump(frames) {
-    var lines = loadDumpIfExists();
-    var file = null;
-    var bcTable = {};
-    lines.forEach(function(line, index) {
-      if (/.*:/.test(line)) {
-        file = line.slice(0, -1);
-      } else {
-        var m = line.match(/(\+ ([a-zA-Z0-9_]*))?( \[(\d+),(\d+)\])? (\d+)/);
-        if (m) {
-          var cp = m[6];
-          bcTable[cp] = {
-            name: m[2] || 'anonymous',
-            line: m[4],
-            column: m[5],
-            source: file,
-          };
-        }
-      }
-    });
-
+  function makeStackTrace(frames) {
     return frames
-      .reduce((accu, curr) => {
-        var info = bcTable[curr];
-        if (info !== undefined) {
-          accu.push(info);
-        }
-        return accu;
-      }, [])
+
       .map((info) => {
+        if (info === undefined) {
+          return '';
+        }
         return '    ' +
-          `at ${info.name} (${info.source}${info.line ? ':' + info.line + ':' + info.column: ''})`;
+          // eslint-disable-next-line max-len
+          `at ${info.name} (${info.source}${info.line ? ':' + info.line + ':' + info.column : ''})`;
       })
       .join('\n');
   }
@@ -206,7 +166,7 @@
   };
 
   function prepareStackTrace(throwable) {
-    return makeStackTraceFromDump(throwable.__frames__ || []);
+    return makeStackTrace(throwable.__frames__ || []);
   }
 
   var stackPropertiesDescriptor = {
@@ -215,8 +175,8 @@
       enumerable: false,
       get: function() {
         if (this.__stack__ === undefined) {
-          this.__stack__ = `${this.name || 'Error'}: ${this.message}\n`
-            + makeStackTraceFromDump(this.__frames__ || []);
+          this.__stack__ = `${this.name || 'Error'}: ${this.message}\n` +
+            makeStackTrace(this.__frames__ || []);
         }
         return this.__stack__;
       },
@@ -450,46 +410,34 @@
     }
   }
 
-  var nextTickQueue = [];
+  var next_tick = Module.require('internal_process_next_tick');
+  process.nextTick = next_tick.nextTick;
+  process._onNextTick = next_tick._onNextTick;
 
-  process.nextTick = nextTick;
-  process._onNextTick = _onNextTick;
   global.setImmediate = setImmediate;
-
-  function _onNextTick() {
-    // clone nextTickQueue to new array object, and calls function
-    // iterating the cloned array. This is because,
-    // during processing nextTick
-    // a callback could add another next tick callback using
-    // `process.nextTick()`, if we calls back iterating original
-    // `nextTickQueue` that could turn into infinite loop.
-
-    var callbacks = nextTickQueue.slice(0);
-    nextTickQueue = [];
-
-    var len = callbacks.length;
-    for (var i = 0; i < len; ++i) {
+  var immediateQueue = [];
+  process._onUVCheck = function() {
+    var callbacks = immediateQueue;
+    immediateQueue = [];
+    callbacks.forEach((it) => {
       try {
-        callbacks[i]();
-      } catch (e) {
-        process._onUncaughtException(e);
+        it();
+      } catch (err) {
+        process._onUncaughtException(err);
       }
+    });
+    if (immediateQueue.length === 0) {
+      process._stopUVCheck();
     }
-
-    return nextTickQueue.length > 0;
-  }
-
-
-  function nextTick(callback) {
-    var args = Array.prototype.slice.call(arguments);
-    args[0] = null;
-    nextTickQueue.push(Function.prototype.bind.apply(callback, args));
-  }
-
-
+  };
   function setImmediate(callback) {
-    // TODO(Yorkie): use nextTick for now...
-    nextTick(callback);
+    if (typeof callback !== 'function') {
+      throw new Error('Expect a function on setImmediate');
+    }
+    if (immediateQueue.length === 0) {
+      process._startUVCheck();
+    }
+    immediateQueue.push(callback);
   }
 
   var os = Module.require('os');
@@ -555,6 +503,43 @@
       process.doExit(process.exitCode || 0);
     }
   };
+
+  (function setupSignalHandlers() {
+    var constants = Module.require('constants').os.signals;
+    var signalWraps = Object.create(null);
+    function isSignal(event) {
+      return typeof event === 'string' && constants[event] !== undefined;
+    }
+
+    process.on('newListener', function(type) {
+      if (!isSignal(type) || signalWraps[type] !== undefined) {
+        return;
+      }
+      if (type === 'SIGKILL' || type === 'SIGSTOP') {
+        // see sigaction(2), SIGKILL/SIGSTOP are not supported, just skip it.
+        return;
+      }
+      var Signal = Module.require('signal');
+      var wrap = new Signal();
+      wrap.onsignal = process.emit.bind(process, type, type);
+
+      var signum = constants[type];
+      var r = wrap.start(signum);
+      if (r) {
+        wrap.stop();
+        var err = process._createUVException(r, 'uv_signal_start');
+        throw err;
+      }
+      signalWraps[type] = wrap;
+    });
+    process.on('removeListener', function(type) {
+      if (signalWraps[type] !== undefined &&
+        this.listeners(type).length === 0) {
+        signalWraps[type].stop();
+        delete signalWraps[type];
+      }
+    });
+  })();
 
   // TODO(Yorkie): compatible with Node.js
   process.emitWarning = function(warning, type, code, ctor) {

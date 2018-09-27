@@ -29,6 +29,8 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/pk_internal.h"
 
+#include "mbedtls/platform_util.h"
+
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
 #endif
@@ -39,10 +41,8 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
+#include <limits.h>
+#include <stdint.h>
 
 /*
  * Initialise a mbedtls_pk_context
@@ -66,7 +66,7 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx )
 
     ctx->pk_info->ctx_free_func( ctx->pk_ctx );
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_pk_context ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_pk_context ) );
 }
 
 /*
@@ -209,6 +209,11 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
         int ret;
         const mbedtls_pk_rsassa_pss_options *pss_opts;
 
+#if SIZE_MAX > UINT_MAX
+        if( md_alg == MBEDTLS_MD_NONE && UINT_MAX < hash_len )
+            return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+#endif /* SIZE_MAX > UINT_MAX */
+
         if( options == NULL )
             return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -232,7 +237,7 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
         return( 0 );
 #else
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
-#endif
+#endif /* MBEDTLS_RSA_C && MBEDTLS_PKCS1_V21 */
     }
 
     /* General case: no options */

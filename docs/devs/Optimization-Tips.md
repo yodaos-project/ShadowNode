@@ -51,11 +51,11 @@ Adding below arguments when building and running IoT.js will enable CPU Profiler
 $ ./tools/build.py --jerry-cpu-profiler
 ```
 
-Add Javascript code like docs/api/Profiler.md, Iot.js will generate a Profiler file and parser dump file at runtime, say Profiler-123 and Profiler-123.dump.
+Add Javascript code like docs/api/Profiler.md, Iot.js will generate a Profiler file at runtime, say Profiler-123.
 
 Users can generate collapse stack trace file.
 ```shell
-$ ./deps/jerry/tools/profiler/cl.py Profiler-123 Profiler-123.dump > col.txt
+$ node ./deps/jerry/tools/profiler/j2cl.js Profiler-123  col.txt
 ```
 
 Then generate flame graph html file.

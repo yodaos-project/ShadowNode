@@ -409,6 +409,212 @@ ecma_op_function_has_instance (ecma_object_t *func_obj_p, /**< Function object *
   return ecma_make_boolean_value (result);
 } /* ecma_op_function_has_instance */
 
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+/**
+ * Indicates whether the class has been invoked with 'new'.
+ */
+#define ECMA_CLASS_CONSTRUCT_FLAG ((uintptr_t) 0x01u)
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
+/**
+ * Sets the construct flag in the arguments list pointer.
+ *
+ * @return arguments list pointer with the construct flag
+ */
+static inline const ecma_value_t * __attr_always_inline___
+ecma_op_function_set_construct_flag (const ecma_value_t *arguments_list_p) /**< original arguments list pointer */
+{
+  /* Any ecma value list must be aligned to 4 byte. */
+  JERRY_ASSERT ((((uintptr_t) arguments_list_p) & 0x3) == 0);
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  arguments_list_p = (const ecma_value_t *)(((uintptr_t) arguments_list_p) | ECMA_CLASS_CONSTRUCT_FLAG);
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
+  return arguments_list_p;
+} /* ecma_op_function_set_construct_flag */
+ /**
+ * Clears the construct flag in the arguments list pointer.
+ *
+ * @return arguments list pointer without the construct flag
+ */
+static inline const ecma_value_t * __attr_always_inline___
+ecma_op_function_clear_construct_flag (const ecma_value_t *arguments_list_p) /**< modified arguments list pointer */
+{
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  arguments_list_p = (const ecma_value_t *)(((uintptr_t) arguments_list_p) & ~ECMA_CLASS_CONSTRUCT_FLAG);
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
+  return arguments_list_p;
+} /* ecma_op_function_clear_construct_flag */
+ /**
+ * Returns true if the construct flag is set.
+ *
+ * @return true, if construct flag is set, false otherwise
+ */
+static inline bool __attr_always_inline___
+ecma_op_function_has_construct_flag (const ecma_value_t *arguments_list_p) /**< modified arguments list pointer */
+{
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  return (((uintptr_t) arguments_list_p) & ECMA_CLASS_CONSTRUCT_FLAG);
+#else /* CONFIG_DISABLE_ES2015_CLASS */
+  JERRY_UNUSED (arguments_list_p);
+  return false;
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+} /* ecma_op_function_has_construct_flag */
+
+#ifndef CONFIG_DISABLE_ES2015
+/**
+ * Returns the closest declarative lexical enviroment to the super object bound lexical enviroment.
+ *
+ * @return the found lexical enviroment
+ */
+static ecma_object_t *
+ecma_op_find_super_declerative_lex_env (ecma_object_t *lex_env_p) /**< starting lexical enviroment */
+{
+  JERRY_ASSERT (lex_env_p);
+  JERRY_ASSERT (ecma_op_resolve_super_reference_value (lex_env_p));
+  JERRY_ASSERT (ecma_get_lex_env_type (lex_env_p) != ECMA_LEXICAL_ENVIRONMENT_SUPER_OBJECT_BOUND);
+
+  while (true)
+  {
+    ecma_object_t *lex_env_outer_p = ecma_get_lex_env_outer_reference (lex_env_p);
+
+    JERRY_ASSERT (lex_env_outer_p);
+
+    if (ecma_get_lex_env_type (lex_env_outer_p) == ECMA_LEXICAL_ENVIRONMENT_SUPER_OBJECT_BOUND)
+    {
+      JERRY_ASSERT (ecma_get_lex_env_type (lex_env_p) == ECMA_LEXICAL_ENVIRONMENT_DECLARATIVE);
+      return lex_env_p;
+    }
+
+    lex_env_p = lex_env_outer_p;
+  }
+} /* ecma_op_find_super_declerative_lex_env */
+
+/**
+ * Returns with the current class this_binding property
+ *
+ * @return NULL - if the property was not found
+ *         the found property - otherwise
+ */
+static ecma_property_t *
+ecma_op_get_class_this_binding_property (ecma_object_t *lex_env_p) /**< starting lexical enviroment */
+{
+  JERRY_ASSERT (lex_env_p);
+  JERRY_ASSERT (ecma_is_lexical_environment (lex_env_p));
+
+  lex_env_p = ecma_op_find_super_declerative_lex_env (lex_env_p);
+  ecma_string_t *name_p = ecma_get_magic_string (LIT_INTERNAL_MAGIC_STRING_CLASS_THIS_BINDING);
+  return ecma_find_named_property (lex_env_p, name_p);
+} /* ecma_op_get_class_this_binding_property */
+
+/**
+ * Checks whether the 'super(...)' has been called.
+ *
+ * @return true  - if the 'super (...)' has been called
+ *         false - otherwise
+ */
+inline bool __attr_pure___
+ecma_op_is_super_called (ecma_object_t *lex_env_p) /**< starting lexical enviroment */
+{
+  ecma_property_t *property_p = ecma_op_get_class_this_binding_property (lex_env_p);
+
+  JERRY_ASSERT (property_p);
+  return (ECMA_PROPERTY_GET_TYPE (*property_p) == ECMA_PROPERTY_TYPE_NAMEDDATA);
+} /* ecma_op_is_super_called */
+
+/**
+ * Sets the value of 'super(...)' has been called.
+ */
+inline void
+ecma_op_set_super_called (ecma_object_t *lex_env_p) /**< starting lexical enviroment */
+{
+  ecma_property_t *property_p = ecma_op_get_class_this_binding_property (lex_env_p);
+
+  JERRY_ASSERT (property_p);
+
+  JERRY_ASSERT (ECMA_PROPERTY_GET_TYPE (*property_p) == ECMA_PROPERTY_TYPE_INTERNAL);
+  ECMA_CONVERT_INTERNAL_PROPERTY_TO_DATA_PROPERTY (property_p);
+} /* ecma_op_set_super_called */
+
+/**
+ * Sets the class context this_binding value.
+ */
+void
+ecma_op_set_class_this_binding (ecma_object_t *lex_env_p, /**< starting lexical enviroment */
+                                ecma_value_t this_binding) /**< 'this' argument's value */
+{
+  JERRY_ASSERT (ecma_is_value_object (this_binding));
+  ecma_property_t *property_p = ecma_op_get_class_this_binding_property (lex_env_p);
+
+  ecma_property_value_t *value_p;
+
+  if (property_p)
+  {
+    JERRY_ASSERT (ECMA_PROPERTY_GET_TYPE (*property_p) == ECMA_PROPERTY_TYPE_NAMEDDATA);
+    value_p = ECMA_PROPERTY_VALUE_PTR (property_p);
+  }
+  else
+  {
+    ecma_string_t *name_p = ecma_get_magic_string (LIT_INTERNAL_MAGIC_STRING_CLASS_THIS_BINDING);
+    value_p = ecma_create_named_data_property (lex_env_p, name_p, ECMA_PROPERTY_FLAG_WRITABLE, &property_p);
+    ECMA_CONVERT_DATA_PROPERTY_TO_INTERNAL_PROPERTY (property_p);
+  }
+
+  value_p->value = this_binding;
+} /* ecma_op_set_class_this_binding */
+
+/**
+ * Gets the class context this binding value.
+ *
+ * @return the class context this binding value
+ */
+ecma_value_t
+ecma_op_get_class_this_binding (ecma_object_t *lex_env_p) /**< starting lexical enviroment */
+{
+  ecma_property_t *property_p = ecma_op_get_class_this_binding_property (lex_env_p);
+
+  JERRY_ASSERT (property_p);
+
+  ecma_property_value_t *value_p = ECMA_PROPERTY_VALUE_PTR (property_p);
+
+  JERRY_ASSERT (ecma_is_value_object (value_p->value));
+  return value_p->value;
+} /* ecma_op_get_class_this_binding */
+
+/**
+ * Dummy external function for implicit constructor call.
+ *
+ * @return ECMA_VALUE_ERROR - TypeError
+ */
+ecma_value_t
+ecma_op_function_implicit_constructor_handler_cb (const ecma_value_t function_obj, /**< the function itself */
+                                                  const ecma_value_t this_val, /**< this_arg of the function */
+                                                  const ecma_value_t args_p[], /**< argument list */
+                                                  const ecma_length_t args_count) /**< argument number */
+{
+  JERRY_UNUSED_4 (function_obj, this_val, args_p, args_count);
+  return ecma_raise_type_error (ECMA_ERR_MSG ("Class constructor cannot be invoked without 'new'."));
+} /* ecma_op_function_implicit_constructor_handler_cb */
+
+/**
+ * Sets the completion value [[Prototype]] based on the this_arg value
+ */
+void
+ecma_op_set_class_prototype (ecma_value_t completion_value, /**< completion_value */
+                             ecma_value_t this_arg) /**< this argument*/
+{
+  JERRY_ASSERT (ecma_is_value_object (completion_value));
+  JERRY_ASSERT (ecma_is_value_object (this_arg));
+
+  ecma_object_t *completion_obj_p = ecma_get_object_from_value (completion_value);
+  ecma_object_t *prototype_obj_p = ecma_get_object_prototype (ecma_get_object_from_value (this_arg));
+
+  JERRY_ASSERT (prototype_obj_p);
+  ECMA_SET_POINTER (completion_obj_p->prototype_or_outer_reference_cp, prototype_obj_p);
+} /* ecma_op_set_class_prototype */
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
 /**
  * [[Call]] implementation for Function objects,
  * created through 13.2 (ECMA_OBJECT_TYPE_FUNCTION)
@@ -429,19 +635,25 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
                 && !ecma_is_lexical_environment (func_obj_p));
   JERRY_ASSERT (ecma_op_is_callable (ecma_make_object_value (func_obj_p)));
 
-  ecma_value_t ret_value = ECMA_VALUE_EMPTY;
-
-  if (ecma_get_object_type (func_obj_p) == ECMA_OBJECT_TYPE_FUNCTION)
+  while (true)
   {
-    if (unlikely (ecma_get_object_is_builtin (func_obj_p)))
+    ecma_object_type_t func_type = ecma_get_object_type (func_obj_p);
+    JERRY_ASSERT (func_type == ECMA_OBJECT_TYPE_FUNCTION
+                  || func_type == ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION
+                  || func_type == ECMA_OBJECT_TYPE_BOUND_FUNCTION
+                  || !ecma_op_function_has_construct_flag (arguments_list_p));
+
+    if (func_type == ECMA_OBJECT_TYPE_FUNCTION)
     {
-      ret_value = ecma_builtin_dispatch_call (func_obj_p,
-                                              this_arg_value,
-                                              arguments_list_p,
-                                              arguments_list_len);
-    }
-    else
-    {
+      if (unlikely (ecma_get_object_is_builtin (func_obj_p)))
+      {
+        JERRY_ASSERT (!ecma_op_function_has_construct_flag (arguments_list_p));
+        return ecma_builtin_dispatch_call (func_obj_p,
+                                           this_arg_value,
+                                           arguments_list_p,
+                                           arguments_list_len);
+      }
+
       /* Entering Function Code (ECMA-262 v5, 10.4.3) */
       ecma_extended_object_t *ext_func_p = (ecma_extended_object_t *) func_obj_p;
 
@@ -449,33 +661,43 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
                                                                 ext_func_p->u.function.scope_cp);
 
       /* 8. */
-      ecma_value_t this_binding;
-      bool is_strict;
-      bool is_no_lex_env;
+      ecma_value_t this_binding = this_arg_value;
+      bool free_this_binding = false;
 
       const ecma_compiled_code_t *bytecode_data_p = ecma_op_function_get_compiled_code (ext_func_p);
 
-      is_strict = (bytecode_data_p->status_flags & CBC_CODE_FLAGS_STRICT_MODE) ? true : false;
-      is_no_lex_env = (bytecode_data_p->status_flags & CBC_CODE_FLAGS_LEXICAL_ENV_NOT_NEEDED) ? true : false;
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+      bool is_class_constructor = bytecode_data_p->status_flags & CBC_CODE_FLAGS_CONSTRUCTOR;
+
+      if (is_class_constructor && !ecma_op_function_has_construct_flag (arguments_list_p))
+      {
+        return ecma_raise_type_error (ECMA_ERR_MSG ("Class constructor cannot be invoked without 'new'."));
+      }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
+      bool is_strict = (bytecode_data_p->status_flags & CBC_CODE_FLAGS_STRICT_MODE) ? true : false;
+      bool is_no_lex_env = (bytecode_data_p->status_flags & CBC_CODE_FLAGS_LEXICAL_ENV_NOT_NEEDED) ? true : false;
 
       /* 1. */
-      if (is_strict)
+      if (!is_strict)
       {
-        this_binding = ecma_copy_value (this_arg_value);
-      }
-      else if (ecma_is_value_undefined (this_arg_value)
-               || ecma_is_value_null (this_arg_value))
-      {
-        /* 2. */
-        this_binding = ecma_make_object_value (ecma_builtin_get (ECMA_BUILTIN_ID_GLOBAL));
-      }
-      else
-      {
-        /* 3., 4. */
-        this_binding = ecma_op_to_object (this_arg_value);
+        if (ecma_is_value_undefined (this_binding)
+            || ecma_is_value_null (this_binding))
+        {
+          /* 2. */
+          this_binding = ecma_make_object_value (ecma_builtin_get_global ());
+        }
+        else if (!ecma_is_value_object (this_binding))
+        {
+          /* 3., 4. */
+          this_binding = ecma_op_to_object (this_binding);
+          free_this_binding = true;
 
-        JERRY_ASSERT (!ECMA_IS_VALUE_ERROR (this_binding));
+          JERRY_ASSERT (!ECMA_IS_VALUE_ERROR (this_binding));
+        }
       }
+
+      arguments_list_p = ecma_op_function_clear_construct_flag (arguments_list_p);
 
       /* 5. */
       ecma_object_t *local_env_p;
@@ -494,80 +716,90 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
                                            arguments_list_len,
                                            bytecode_data_p);
         }
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+        if (unlikely (is_class_constructor))
+        {
+          ecma_op_set_class_this_binding (local_env_p, this_binding);
+        }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
       }
 
-      ret_value = vm_run (bytecode_data_p,
-                          this_binding,
-                          local_env_p,
-                          false,
-                          arguments_list_p,
-                          arguments_list_len);
+      ecma_value_t ret_value = vm_run (ext_func_p,
+                                       bytecode_data_p,
+                                       this_binding,
+                                       local_env_p,
+                                       ECMA_PARSE_NO_OPTS,
+                                       arguments_list_p,
+                                       arguments_list_len);
 
       if (!is_no_lex_env)
       {
         ecma_deref_object (local_env_p);
       }
 
-      ecma_free_value (this_binding);
+      if (unlikely (free_this_binding))
+      {
+        ecma_free_value (this_binding);
+      }
+
+      return ret_value;
     }
-  }
+    else if (func_type == ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION)
+    {
+      ecma_extended_object_t *ext_func_obj_p = (ecma_extended_object_t *) func_obj_p;
+      ecma_value_t ret_value = ext_func_obj_p->u.external_handler_cb (ecma_make_object_value (func_obj_p),
+                                                                      this_arg_value,
+                                                                      arguments_list_p,
+                                                                      arguments_list_len);
+      if (unlikely (ecma_is_value_error_reference (ret_value)))
+      {
+        JERRY_CONTEXT (error_value) = ecma_clear_error_reference (ret_value, true);
+        return ECMA_VALUE_ERROR;
+      }
+ #ifdef JERRY_DEBUGGER
+      JERRY_DEBUGGER_CLEAR_FLAGS (JERRY_DEBUGGER_VM_EXCEPTION_THROWN);
+#endif /* JERRY_DEBUGGER */
+      return ret_value;
+    }
 #ifndef CONFIG_DISABLE_ES2015_ARROW_FUNCTION
-  else if (ecma_get_object_type (func_obj_p) == ECMA_OBJECT_TYPE_ARROW_FUNCTION)
-  {
-    /* Entering Function Code (ES2015, 9.2.1) */
-    ecma_arrow_function_t *arrow_func_p = (ecma_arrow_function_t *) func_obj_p;
-
-    ecma_object_t *scope_p = ECMA_GET_NON_NULL_POINTER (ecma_object_t,
-                                                        arrow_func_p->scope_cp);
-
-    bool is_no_lex_env;
-
-    const ecma_compiled_code_t *bytecode_data_p = ecma_op_arrow_function_get_compiled_code (arrow_func_p);
-
-    is_no_lex_env = (bytecode_data_p->status_flags & CBC_CODE_FLAGS_LEXICAL_ENV_NOT_NEEDED) ? true : false;
-
-    ecma_object_t *local_env_p;
-    if (is_no_lex_env)
+    else if (func_type == ECMA_OBJECT_TYPE_ARROW_FUNCTION)
     {
-      local_env_p = scope_p;
-    }
-    else
-    {
-      local_env_p = ecma_create_decl_lex_env (scope_p);
+      /* Entering Function Code (ES2015, 9.2.1) */
+      ecma_arrow_function_t *arrow_func_p = (ecma_arrow_function_t *) func_obj_p;
 
-      JERRY_ASSERT (!(bytecode_data_p->status_flags & CBC_CODE_FLAGS_ARGUMENTS_NEEDED));
-    }
+      ecma_object_t *scope_p = ECMA_GET_NON_NULL_POINTER (ecma_object_t,
+                                                          arrow_func_p->scope_cp);
 
-    ret_value = vm_run (bytecode_data_p,
-                        arrow_func_p->this_binding,
-                        local_env_p,
-                        false,
-                        arguments_list_p,
-                        arguments_list_len);
+      bool is_no_lex_env;
 
-    if (!is_no_lex_env)
-    {
-      ecma_deref_object (local_env_p);
+      const ecma_compiled_code_t *bytecode_data_p = ecma_op_arrow_function_get_compiled_code (arrow_func_p);
+      is_no_lex_env = (bytecode_data_p->status_flags & CBC_CODE_FLAGS_LEXICAL_ENV_NOT_NEEDED) ? true : false;
+
+      ecma_object_t *local_env_p = scope_p;
+
+      if (!is_no_lex_env)
+      {
+        local_env_p = ecma_create_decl_lex_env (scope_p);
+
+        JERRY_ASSERT (!(bytecode_data_p->status_flags & CBC_CODE_FLAGS_ARGUMENTS_NEEDED));
+      }
+
+      ecma_value_t ret_value = vm_run (NULL,
+                                       bytecode_data_p,
+                                       arrow_func_p->this_binding,
+                                       local_env_p,
+                                       ECMA_PARSE_NO_OPTS,
+                                       arguments_list_p,
+                                       arguments_list_len);
+
+      if (!is_no_lex_env)
+      {
+        ecma_deref_object (local_env_p);
+      }
+      return ret_value;
     }
-  }
 #endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
-  else if (ecma_get_object_type (func_obj_p) == ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION)
-  {
-    ecma_extended_object_t *ext_func_obj_p = (ecma_extended_object_t *) func_obj_p;
 
-    ret_value = ext_func_obj_p->u.external_handler_cb (ecma_make_object_value (func_obj_p),
-                                                       this_arg_value,
-                                                       arguments_list_p,
-                                                       arguments_list_len);
-
-    if (unlikely (ecma_is_value_error_reference (ret_value)))
-    {
-      JERRY_CONTEXT (error_value) = ecma_clear_error_reference (ret_value, true);
-      ret_value = ECMA_VALUE_ERROR;
-    }
-  }
-  else
-  {
     JERRY_ASSERT (ecma_get_object_type (func_obj_p) == ECMA_OBJECT_TYPE_BOUND_FUNCTION);
     JERRY_CONTEXT (status_flags) &= (uint32_t) ~ECMA_STATUS_DIRECT_EVAL;
 
@@ -580,137 +812,72 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
 
     /* 4. */
     ecma_value_t args_len_or_this = ext_function_p->u.bound_function.args_len_or_this;
-    ecma_value_t bound_this_value;
     ecma_length_t args_length;
 
     if (!ecma_is_value_integer_number (args_len_or_this))
     {
-      bound_this_value = args_len_or_this;
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+      if (unlikely (args_len_or_this == ECMA_VALUE_IMPLICIT_CONSTRUCTOR))
+      {
+        if (!ecma_op_function_has_construct_flag (arguments_list_p))
+        {
+          return ecma_raise_type_error (ECMA_ERR_MSG ("Class constructor cannot be invoked without 'new'."));
+        }
+        if (ecma_get_object_is_builtin (target_func_obj_p))
+        {
+          arguments_list_p = ecma_op_function_clear_construct_flag (arguments_list_p);
+        }
+      }
+      else
+      {
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+        this_arg_value = args_len_or_this;
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+      }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
       args_length = 1;
     }
     else
     {
-      bound_this_value = *(ecma_value_t *) (ext_function_p + 1);
+      this_arg_value = *(ecma_value_t *) (ext_function_p + 1);
       args_length = (ecma_length_t) ecma_get_integer_from_value (args_len_or_this);
     }
 
     JERRY_ASSERT (args_length > 0);
 
-    if (args_length > 1)
+    if (args_length == 1)
     {
-      args_length--;
-      ecma_length_t merged_args_list_len = args_length + arguments_list_len;
-
-      JMEM_DEFINE_LOCAL_ARRAY (merged_args_list_p, merged_args_list_len, ecma_value_t);
-
-      ecma_value_t *args_p = (ecma_value_t *) (ext_function_p + 1);
-
-      memcpy (merged_args_list_p, args_p + 1, args_length * sizeof (ecma_value_t));
-      memcpy (merged_args_list_p + args_length, arguments_list_p, arguments_list_len * sizeof (ecma_value_t));
-
-      /* 5. */
-      ret_value = ecma_op_function_call (target_func_obj_p,
-                                         bound_this_value,
-                                         merged_args_list_p,
-                                         merged_args_list_len);
-
-      JMEM_FINALIZE_LOCAL_ARRAY (merged_args_list_p);
+      func_obj_p = target_func_obj_p;
+      continue;
     }
-    else
-    {
-      /* 5. */
-      ret_value = ecma_op_function_call (target_func_obj_p,
-                                         bound_this_value,
-                                         arguments_list_p,
-                                         arguments_list_len);
-    }
+
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+    arguments_list_p = ecma_op_function_clear_construct_flag (arguments_list_p);
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
+    JERRY_ASSERT (!ecma_op_function_has_construct_flag (arguments_list_p));
+    args_length--;
+    ecma_length_t merged_args_list_len = args_length + arguments_list_len;
+    ecma_value_t ret_value;
+    JMEM_DEFINE_LOCAL_ARRAY (merged_args_list_p, merged_args_list_len, ecma_value_t);
+
+    ecma_value_t *args_p = (ecma_value_t *) (ext_function_p + 1);
+
+    memcpy (merged_args_list_p, args_p + 1, args_length * sizeof (ecma_value_t));
+    memcpy (merged_args_list_p + args_length, arguments_list_p, arguments_list_len * sizeof (ecma_value_t));
+
+    /* 5. */
+    ret_value = ecma_op_function_call (target_func_obj_p,
+                                       this_arg_value,
+                                       merged_args_list_p,
+                                       merged_args_list_len);
+
+    JMEM_FINALIZE_LOCAL_ARRAY (merged_args_list_p);
+
+    return ret_value;
   }
-
-  JERRY_ASSERT (!ecma_is_value_empty (ret_value));
-
-  return ret_value;
 } /* ecma_op_function_call */
-
-/**
- * [[Construct]] implementation for Function objects (13.2.2),
- * created through 13.2 (ECMA_OBJECT_TYPE_FUNCTION) and
- * externally defined (host) functions (ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION).
- *
- * @return ecma value
- *         Returned value must be freed with ecma_free_value
- */
-static ecma_value_t
-ecma_op_function_construct_simple_or_external (ecma_object_t *func_obj_p, /**< Function object */
-                                               const ecma_value_t *arguments_list_p, /**< arguments list */
-                                               ecma_length_t arguments_list_len) /**< length of arguments list */
-{
-  JERRY_ASSERT (ecma_get_object_type (func_obj_p) == ECMA_OBJECT_TYPE_FUNCTION
-                || ecma_get_object_type (func_obj_p) == ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION);
-
-  ecma_value_t ret_value = ECMA_VALUE_EMPTY;
-
-  /* 5. */
-  ECMA_TRY_CATCH (func_obj_prototype_prop_value,
-                  ecma_op_object_get_by_magic_id (func_obj_p,
-                                                  LIT_MAGIC_STRING_PROTOTYPE),
-                  ret_value);
-
-  /* 1., 2., 4. */
-  ecma_object_t *obj_p;
-  if (ecma_is_value_object (func_obj_prototype_prop_value))
-  {
-    /* 6. */
-    obj_p = ecma_create_object (ecma_get_object_from_value (func_obj_prototype_prop_value),
-                                0,
-                                ECMA_OBJECT_TYPE_GENERAL);
-  }
-  else
-  {
-    /* 7. */
-    ecma_object_t *prototype_p = ecma_builtin_get (ECMA_BUILTIN_ID_OBJECT_PROTOTYPE);
-
-    obj_p = ecma_create_object (prototype_p, 0, ECMA_OBJECT_TYPE_GENERAL);
-
-    ecma_deref_object (prototype_p);
-  }
-
-  /* 3. */
-  /*
-   * [[Class]] property of ECMA_OBJECT_TYPE_GENERAL type objects
-   * without ECMA_INTERNAL_PROPERTY_CLASS internal property
-   * is "Object".
-   *
-   * See also: ecma_object_get_class_name.
-   */
-
-  /* 8. */
-  ECMA_TRY_CATCH (call_completion,
-                  ecma_op_function_call (func_obj_p,
-                                         ecma_make_object_value (obj_p),
-                                         arguments_list_p,
-                                         arguments_list_len),
-                  ret_value);
-
-  /* 9. */
-  if (ecma_is_value_object (call_completion))
-  {
-    ret_value = ecma_copy_value (call_completion);
-  }
-  else
-  {
-    /* 10. */
-    ecma_ref_object (obj_p);
-    ret_value = ecma_make_object_value (obj_p);
-  }
-
-  ECMA_FINALIZE (call_completion);
-
-  ecma_deref_object (obj_p);
-
-  ECMA_FINALIZE (func_obj_prototype_prop_value);
-
-  return ret_value;
-} /* ecma_op_function_construct_simple_or_external */
 
 /**
  * [[Construct]] implementation:
@@ -723,97 +890,204 @@ ecma_op_function_construct_simple_or_external (ecma_object_t *func_obj_p, /**< F
  */
 ecma_value_t
 ecma_op_function_construct (ecma_object_t *func_obj_p, /**< Function object */
+                            ecma_value_t this_arg_value, /**< optional 'this' object value
+                                                          *   or ECMA_VALUE_UNDEFINED */
                             const ecma_value_t *arguments_list_p, /**< arguments list */
                             ecma_length_t arguments_list_len) /**< length of arguments list */
 {
   JERRY_ASSERT (func_obj_p != NULL
                 && !ecma_is_lexical_environment (func_obj_p));
-  JERRY_ASSERT (ecma_is_constructor (ecma_make_object_value (func_obj_p)));
 
-  ecma_value_t ret_value = ECMA_VALUE_EMPTY;
+  JERRY_ASSERT (ecma_is_value_object (this_arg_value)
+                || this_arg_value == ECMA_VALUE_UNDEFINED);
 
-  if (ecma_get_object_type (func_obj_p) == ECMA_OBJECT_TYPE_FUNCTION)
-  {
-    if (unlikely (ecma_get_object_is_builtin (func_obj_p)
-                  && !ecma_builtin_function_is_routine (func_obj_p)))
-    {
-      ret_value = ecma_builtin_dispatch_construct (func_obj_p,
-                                                   arguments_list_p,
-                                                   arguments_list_len);
-    }
-    else
-    {
-      ret_value = ecma_op_function_construct_simple_or_external (func_obj_p,
-                                                                 arguments_list_p,
-                                                                 arguments_list_len);
-    }
-  }
-  else if (ecma_get_object_type (func_obj_p) == ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION)
-  {
-    ret_value = ecma_op_function_construct_simple_or_external (func_obj_p,
-                                                               arguments_list_p,
-                                                               arguments_list_len);
-  }
-  else
-  {
-    JERRY_ASSERT (ecma_get_object_type (func_obj_p) == ECMA_OBJECT_TYPE_BOUND_FUNCTION);
+  ecma_object_t *target_func_obj_p = NULL;
 
-    /* 1. */
+  while (unlikely (ecma_get_object_type (func_obj_p) == ECMA_OBJECT_TYPE_BOUND_FUNCTION))
+  {
+    /* 1-3. */
     ecma_extended_object_t *ext_function_p = (ecma_extended_object_t *) func_obj_p;
 
-    ecma_object_t *target_func_obj_p;
     target_func_obj_p = ECMA_GET_INTERNAL_VALUE_POINTER (ecma_object_t,
                                                          ext_function_p->u.bound_function.target_function);
 
-    /* 2. */
-    if (!ecma_is_constructor (ecma_make_object_value (target_func_obj_p)))
+    /* 4. */
+    ecma_value_t args_len_or_this = ext_function_p->u.bound_function.args_len_or_this;
+    ecma_length_t args_length = 1;
+    if (ecma_is_value_integer_number (args_len_or_this))
     {
-      ret_value = ecma_raise_type_error (ECMA_ERR_MSG ("Expected a constructor."));
+      args_length = (ecma_length_t) ecma_get_integer_from_value (args_len_or_this);
+    }
+
+    JERRY_ASSERT (args_length > 0);
+
+    /* 5. */
+    if (args_length == 1)
+    {
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+      if (args_len_or_this == ECMA_VALUE_IMPLICIT_CONSTRUCTOR && ecma_is_value_undefined (this_arg_value))
+      {
+        break;
+      }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+      func_obj_p = target_func_obj_p;
+      continue;
+    }
+
+    ecma_value_t *args_p = (ecma_value_t *) (ext_function_p + 1);
+    ecma_value_t ret_value;
+
+    args_length--;
+    ecma_length_t merged_args_list_len = args_length + arguments_list_len;
+
+    JMEM_DEFINE_LOCAL_ARRAY (merged_args_list_p, merged_args_list_len, ecma_value_t);
+    memcpy (merged_args_list_p, args_p + 1, args_length * sizeof (ecma_value_t));
+    memcpy (merged_args_list_p + args_length, arguments_list_p, arguments_list_len * sizeof (ecma_value_t));
+
+    /* 5. */
+    ret_value = ecma_op_function_construct (target_func_obj_p,
+                                            this_arg_value,
+                                            merged_args_list_p,
+                                            merged_args_list_len);
+
+    JMEM_FINALIZE_LOCAL_ARRAY (merged_args_list_p);
+    return ret_value;
+  }
+
+  ecma_object_type_t type = ecma_get_object_type (func_obj_p);
+
+#ifndef CONFIG_DISABLE_ES2015_ARROW_FUNCTION
+  if (unlikely (type == ECMA_OBJECT_TYPE_ARROW_FUNCTION))
+  {
+    return ecma_raise_type_error (ECMA_ERR_MSG ("Arrow functions have no constructor."));
+  }
+#endif /* CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
+
+  if (unlikely (type == ECMA_OBJECT_TYPE_FUNCTION && ecma_get_object_is_builtin (func_obj_p)))
+  {
+    if (ecma_builtin_function_is_routine (func_obj_p))
+    {
+      return ecma_raise_type_error (ECMA_ERR_MSG ("Built-in routines have no constructor."));
+    }
+
+    ecma_value_t ret_value = ecma_builtin_dispatch_construct (func_obj_p,
+                                                              arguments_list_p,
+                                                              arguments_list_len);
+
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+    if (!ecma_is_value_undefined (this_arg_value) && !ECMA_IS_VALUE_ERROR (ret_value))
+    {
+      ecma_op_set_class_prototype (ret_value, this_arg_value);
+    }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
+    return ret_value;
+  }
+
+  ecma_object_t *new_this_obj_p = NULL;
+
+  if (likely (this_arg_value == ECMA_VALUE_UNDEFINED))
+  {
+    /* 5. */
+    ecma_value_t prototype_prop_value = ecma_op_object_get_by_magic_id (func_obj_p,
+                                                                        LIT_MAGIC_STRING_PROTOTYPE);
+
+    if (ECMA_IS_VALUE_ERROR (prototype_prop_value))
+    {
+      return prototype_prop_value;
+    }
+
+    /* 1., 2., 4. */
+    if (ecma_is_value_object (prototype_prop_value))
+    {
+      /* 6. */
+      new_this_obj_p = ecma_create_object (ecma_get_object_from_value (prototype_prop_value),
+                                           0,
+                                           ECMA_OBJECT_TYPE_GENERAL);
     }
     else
     {
-      /* 4. */
-      ecma_value_t args_len_or_this = ext_function_p->u.bound_function.args_len_or_this;
+      /* 7. */
+      ecma_object_t *prototype_p = ecma_builtin_get (ECMA_BUILTIN_ID_OBJECT_PROTOTYPE);
 
-      ecma_length_t args_length = 1;
+      new_this_obj_p = ecma_create_object (prototype_p, 0, ECMA_OBJECT_TYPE_GENERAL);
 
-      if (ecma_is_value_integer_number (args_len_or_this))
+      ecma_deref_object (prototype_p);
+    }
+
+    ecma_free_value (prototype_prop_value);
+
+    this_arg_value = ecma_make_object_value (new_this_obj_p);
+  }
+
+  /* 8. */
+  ecma_value_t ret_value;
+
+  switch (type)
+  {
+    case ECMA_OBJECT_TYPE_FUNCTION:
+    {
+      arguments_list_p = ecma_op_function_set_construct_flag (arguments_list_p);
+
+      ret_value = ecma_op_function_call (func_obj_p,
+                                         this_arg_value,
+                                         arguments_list_p,
+                                         arguments_list_len);
+      break;
+    }
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+    case ECMA_OBJECT_TYPE_BOUND_FUNCTION:
+    {
+      JERRY_ASSERT (!ecma_op_function_has_construct_flag (arguments_list_p));
+      JERRY_ASSERT (target_func_obj_p != NULL);
+
+      ret_value = ecma_op_function_construct (target_func_obj_p,
+                                              this_arg_value,
+                                              arguments_list_p,
+                                              arguments_list_len);
+      break;
+    }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+    default:
+    {
+      JERRY_ASSERT (type == ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION);
+
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+      ecma_extended_object_t *ext_func_obj_p = (ecma_extended_object_t *) func_obj_p;
+
+      if (ext_func_obj_p->u.external_handler_cb == ecma_op_function_implicit_constructor_handler_cb)
       {
-        args_length = (ecma_length_t) ecma_get_integer_from_value (args_len_or_this);
+        ret_value = ECMA_VALUE_UNDEFINED;
+        break;
       }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
-      JERRY_ASSERT (args_length > 0);
-
-      if (args_length > 1)
-      {
-        ecma_value_t *args_p = (ecma_value_t *) (ext_function_p + 1);
-
-        args_length--;
-        ecma_length_t merged_args_list_len = args_length + arguments_list_len;
-
-        JMEM_DEFINE_LOCAL_ARRAY (merged_args_list_p, merged_args_list_len, ecma_value_t);
-
-        memcpy (merged_args_list_p, args_p + 1, args_length * sizeof (ecma_value_t));
-        memcpy (merged_args_list_p + args_length, arguments_list_p, arguments_list_len * sizeof (ecma_value_t));
-
-        /* 5. */
-        ret_value = ecma_op_function_construct (target_func_obj_p,
-                                                merged_args_list_p,
-                                                merged_args_list_len);
-
-        JMEM_FINALIZE_LOCAL_ARRAY (merged_args_list_p);
-      }
-      else
-      {
-        /* 5. */
-        ret_value = ecma_op_function_construct (target_func_obj_p,
-                                                arguments_list_p,
-                                                arguments_list_len);
-      }
+      ret_value = ecma_op_function_call (func_obj_p,
+                                         this_arg_value,
+                                         arguments_list_p,
+                                         arguments_list_len);
+      break;
     }
   }
 
-  return ret_value;
+  /* 9. */
+  if (ECMA_IS_VALUE_ERROR (ret_value) || ecma_is_value_object (ret_value))
+  {
+    if (new_this_obj_p != NULL)
+    {
+      ecma_deref_object (new_this_obj_p);
+    }
+    return ret_value;
+  }
+
+  ecma_fast_free_value (ret_value);
+
+  if (unlikely (new_this_obj_p == NULL))
+  {
+    ecma_ref_object (ecma_get_object_from_value (this_arg_value));
+  }
+
+  return this_arg_value;
 } /* ecma_op_function_construct */
 
 /**
@@ -909,8 +1183,7 @@ ecma_op_function_try_to_lazy_instantiate_property (ecma_object_t *object_p, /**<
 /**
  * Create specification defined non-configurable properties for external functions.
  *
- * See also:
- *          ECMA-262 v5, 15.3.4.5
+ * There is no spec for external function, follow normal function behaviors.
  *
  * @return pointer property, if one was instantiated,
  *         NULL - otherwise.
@@ -923,6 +1196,23 @@ ecma_op_external_function_try_to_lazy_instantiate_property (ecma_object_t *objec
 
   if (ecma_compare_ecma_string_to_magic_id (property_name_p, LIT_MAGIC_STRING_PROTOTYPE))
   {
+    /* ECMA-262 v5, 13.2, 16-18 */
+
+    /* 16. */
+    ecma_object_t *proto_object_p = ecma_op_create_object_object_noarg ();
+
+    /* 17. */
+    ecma_string_t *magic_string_constructor_p = ecma_get_magic_string (LIT_MAGIC_STRING_CONSTRUCTOR);
+
+    ecma_property_value_t *constructor_prop_value_p;
+    constructor_prop_value_p = ecma_create_named_data_property (proto_object_p,
+                                                                magic_string_constructor_p,
+                                                                ECMA_PROPERTY_CONFIGURABLE_WRITABLE,
+                                                                NULL);
+
+    constructor_prop_value_p->value = ecma_make_object_value (object_p);
+
+    /* 18. */
     ecma_property_t *prototype_prop_p;
     ecma_property_value_t *prototype_prop_value_p;
     prototype_prop_value_p = ecma_create_named_data_property (object_p,
@@ -930,7 +1220,8 @@ ecma_op_external_function_try_to_lazy_instantiate_property (ecma_object_t *objec
                                                               ECMA_PROPERTY_FLAG_WRITABLE,
                                                               &prototype_prop_p);
 
-    prototype_prop_value_p->value = ECMA_VALUE_UNDEFINED;
+    prototype_prop_value_p->value = ecma_make_object_value (proto_object_p);
+    ecma_deref_object (proto_object_p);
     return prototype_prop_p;
   }
 

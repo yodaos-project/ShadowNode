@@ -246,6 +246,21 @@ ecma_builtin_get (ecma_builtin_id_t builtin_id) /**< id of built-in to check on 
 } /* ecma_builtin_get */
 
 /**
+ * Get reference to the global object
+ *
+ * Note:
+ *   Does not increase the reference counter.
+ *
+ * @return pointer to the global object
+ */
+inline ecma_object_t * __attr_always_inline___
+ecma_builtin_get_global (void)
+{
+  JERRY_ASSERT (JERRY_CONTEXT (ecma_builtin_objects)[ECMA_BUILTIN_ID_GLOBAL] != NULL);
+   return JERRY_CONTEXT (ecma_builtin_objects)[ECMA_BUILTIN_ID_GLOBAL];
+} /* ecma_builtin_get_global */
+
+/**
  * Checks whether the given function is a built-in routine
  *
  * @return true - if the function object is a built-in routine
@@ -314,8 +329,8 @@ ecma_builtin_init_object (ecma_builtin_id_t obj_builtin_id, /**< built-in ID */
     built_in_props_p = &((ecma_extended_object_t *) obj_p)->u.built_in;
   }
 
-  built_in_props_p->id = obj_builtin_id;
-  built_in_props_p->routine_id = obj_builtin_id;
+  built_in_props_p->id = (uint8_t) obj_builtin_id;
+  built_in_props_p->routine_id = (uint16_t) obj_builtin_id;
   built_in_props_p->instantiated_bitset[0] = 0;
 
   if (property_count > 32)
@@ -559,7 +574,7 @@ ecma_builtin_make_function_object_for_routine (ecma_builtin_id_t builtin_id, /**
   JERRY_ASSERT (routine_id >= ECMA_BUILTIN_ID__COUNT);
 
   ecma_extended_object_t *ext_func_obj_p = (ecma_extended_object_t *) func_obj_p;
-  ext_func_obj_p->u.built_in.id = builtin_id;
+  ext_func_obj_p->u.built_in.id = (uint8_t) builtin_id;
   ext_func_obj_p->u.built_in.routine_id = routine_id;
   ext_func_obj_p->u.built_in.instantiated_bitset[0] = 0;
 
@@ -790,10 +805,17 @@ ecma_builtin_try_to_instantiate_property (ecma_object_t *object_p, /**< object *
          *  So routine id are not consist to declaration in their inc.h.
          *  Magic string id of name should be set correctly.
          */
-        JERRY_ASSERT (builtin_id ==ECMA_BUILTIN_ID_DATE_PROTOTYPE || builtin_id == ECMA_BUILTIN_ID_MATH );
+#if (!defined CONFIG_DISABLE_DATE_BUILTIN) && (!defined CONFIG_DISABLE_MATH_BUILTIN)
+        JERRY_ASSERT (builtin_id == ECMA_BUILTIN_ID_DATE_PROTOTYPE || builtin_id == ECMA_BUILTIN_ID_MATH);
+#elif (defined CONFIG_DISABLE_DATE_BUILTIN) && (!defined CONFIG_DISABLE_MATH_BUILTIN)
+        JERRY_ASSERT (builtin_id == ECMA_BUILTIN_ID_MATH);
+#elif (!defined CONFIG_DISABLE_DATE_BUILTIN) && (defined CONFIG_DISABLE_MATH_BUILTIN)
+        JERRY_ASSERT (builtin_id == ECMA_BUILTIN_ID_DATE_PROTOTYPE);
+#endif
+
         ecma_builtin_routine_set_name (builtin_id,
-                                                                    ECMA_GET_ROUTINE_ID (curr_property_p->value),
-                                                                    magic_string_id);
+                                       ECMA_GET_ROUTINE_ID (curr_property_p->value),
+                                       magic_string_id);
       }
       value = ecma_make_object_value (func_obj_p);
       break;

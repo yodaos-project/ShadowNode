@@ -48,6 +48,8 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -138,6 +140,14 @@ void uv_close(uv_handle_t* handle, uv_close_cb close_cb) {
     uv__idle_close((uv_idle_t*)handle);
     break;
 
+  case UV_PREPARE:
+    uv__prepare_close((uv_idle_t*)handle);
+    break;
+
+  case UV_CHECK:
+    uv__check_close((uv_idle_t*)handle);
+    break;
+
   case UV_ASYNC:
     uv__async_close((uv_async_t*)handle);
     break;
@@ -153,6 +163,12 @@ void uv_close(uv_handle_t* handle, uv_close_cb close_cb) {
   case UV_POLL:
     uv__poll_close((uv_poll_t*)handle);
     break;
+
+  case UV_SIGNAL:
+    uv__signal_close((uv_signal_t*)handle);
+    /* Signal handles may not be closed immediately. The signal code will
+     * itself close uv__make_close_pending whenever appropriate. */
+    return;
 
   default:
     assert(0);
@@ -201,8 +217,8 @@ static void uv__finish_close(uv_handle_t* handle) {
   handle->flags |= UV_CLOSED;
 
   switch (handle->type) {
-    // case UV_PREPARE:
-    // case UV_CHECK:
+    case UV_PREPARE:
+    case UV_CHECK:
     case UV_IDLE:
     case UV_ASYNC:
     case UV_TIMER:
@@ -210,7 +226,7 @@ static void uv__finish_close(uv_handle_t* handle) {
     // case UV_FS_EVENT:
     // case UV_FS_POLL:
     case UV_POLL:
-    // case UV_SIGNAL:
+    case UV_SIGNAL:
       break;
 
     case UV_NAMED_PIPE:
@@ -308,12 +324,14 @@ int uv_run(uv_loop_t* loop, uv_run_mode mode) {
     uv__run_timers(loop);
     ran_pending = uv__run_pending(loop);
     uv__run_idle(loop);
+    uv__run_prepare(loop);
 
     timeout = 0;
     if ((mode == UV_RUN_ONCE && !ran_pending) || mode == UV_RUN_DEFAULT)
       timeout = uv_backend_timeout(loop);
 
     uv__io_poll(loop, timeout);
+    uv__run_check(loop);
     uv__run_closing_handles(loop);
 
     if (mode == UV_RUN_ONCE) {
@@ -858,3 +876,24 @@ int uv__open_cloexec(const char* path, int flags) {
   return fd;
 }
 
+
+int uv_os_getpriority(uv_pid_t pid, int* priority) {
+  int r;
+  if (priority == NULL)
+    return UV_EINVAL;
+  errno = 0;
+  r = getpriority(PRIO_PROCESS, (int) pid);
+  if (r == -1 && errno != 0)
+    return UV__ERR(errno);
+  *priority = r;
+  return 0;
+}
+
+
+int uv_os_setpriority(uv_pid_t pid, int priority) {
+  if (priority < UV_PRIORITY_HIGHEST || priority > UV_PRIORITY_LOW)
+    return UV_EINVAL;
+  if (setpriority(PRIO_PROCESS, (int) pid, priority) != 0)
+    return UV__ERR(errno);
+  return 0;
+}

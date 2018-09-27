@@ -1,21 +1,30 @@
 'use strict';
 var assert = require('assert');
+// json length is close to 19KB
 var data = require('./test_process_send.json');
+var dataStr = JSON.stringify(data);
+
+function equalData(msg) {
+  if (typeof msg === 'object') {
+    console.log('stringify msg');
+    msg = JSON.stringify(msg);
+    // assert.equal(msg.length, JSON.stringify(data).length); 
+  } else {
+    console.log('string msg');
+  }
+  assert.equal(msg.length, dataStr.length);
+}
+
+var obj = null;
 if (process.send) {
-  // send with callback
-  process.send(data, err => {
-    assert.equal(err, undefined);
-  });
-  // send without callback
-  process.send(data);
+  obj = process
 } else {
   var fork = require('child_process').fork;
-  var sendTimes = 0;
-  var child = fork(module.filename, [], {});
-  child.on('message', msg => {
-    var msgLength = JSON.stringify(msg).length;
-    var dataLength = JSON.stringify(data).length;
-    console.log(`received ${msgLength}bytes data ${++sendTimes} times`);
-    assert.equal(dataLength, msgLength);
-  });
+  obj = fork(module.filename, [], {});
 }
+obj.on('message', equalData);
+
+obj.send(data);
+obj.send(dataStr);
+
+setTimeout(() => {}, 1000);
