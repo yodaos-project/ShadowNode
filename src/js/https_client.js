@@ -218,7 +218,11 @@ function parserOnIncomingClient(res, shouldKeepAlive) {
 function responseOnEnd() {
   var res = this;
   var req = res.req;
-  req.socket.end();
+  var socket = req.socket;
+
+  if (socket._socketState.writable) {
+    socket.destroySoon();
+  }
 }
 
 ClientRequest.prototype.abort = function() {

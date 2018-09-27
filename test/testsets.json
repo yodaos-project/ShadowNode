@@ -90,6 +90,7 @@
     { "name": "test_net_httpclient_timeout_2.js" },
     { "name": "test_net_httpserver_timeout.js" },
     { "name": "test_net_httpserver.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_net_https_destroy.js" },
     { "name": "test_net_https_get.js", "timeout": 40, "skip": ["all"], "reason": "Implemented only for Tizen" },
     { "name": "test_net_https_post_status_codes.js", "timeout": 40, "skip": ["all"], "reason": "Implemented only for Tizen" },
     { "name": "test_net_https_request_response.js", "timeout": 40, "skip": ["all"], "reason": "Implemented only for Tizen" },
