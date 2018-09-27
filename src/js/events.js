@@ -115,17 +115,13 @@ EventEmitter.prototype.removeListener = function(type, listener) {
   }
 
   var list = this._events[type];
-
-  if (Array.isArray(list) && list.length) {
+  if (Array.isArray(list)) {
     for (var i = list.length - 1; i >= 0; --i) {
       if (list[i] === listener ||
           (list[i].listener && list[i].listener === listener)) {
         list.splice(i, 1);
         if (!list.length) {
           delete this._events[type];
-          if (this._events.removeListener) {
-            this.emit('removeListener', type, listener);
-          }
         }
         break;
       }
