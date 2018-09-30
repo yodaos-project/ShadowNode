@@ -122,6 +122,9 @@ EventEmitter.prototype.removeListener = function(type, listener) {
         list.splice(i, 1);
         if (!list.length) {
           delete this._events[type];
+          if (this._events.removeListener !== undefined) {
+            this.emit('removeListener', type, listener);
+          }
         }
         break;
       }

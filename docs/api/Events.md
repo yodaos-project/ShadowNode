@@ -251,3 +251,27 @@ myEmitter.emit('event');
 //   B
 //   A
 ```
+
+## Event: 'removeListener'
+* `eventName` {string} The name of the event being listened for.
+* `listener` {Function} The event handler function.
+
+The EventEmitter instance will emit its own 'removeListener' event after a listener is removed.
+
+```javascript
+var EventEmitter = require('events').EventEmitter;
+var bus = new EventEmitter();
+
+function noop() {}
+
+bus.on('foobar', noop);
+
+bus.on('removeListener', function(event, fn) {
+    console.log('event "foobar" is removed');
+});
+
+bus.removeListener('foobar', noop);
+
+// Prints:
+//   event "foobar" is removed
+```
