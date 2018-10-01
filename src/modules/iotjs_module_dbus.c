@@ -195,6 +195,11 @@ static bool iotjs_dbus_encode_jobject(jerry_value_t val, DBusMessageIter* iter,
       if (!dbus_message_iter_append_basic(iter, type, &data))
         return false;
     } break;
+    case DBUS_TYPE_DOUBLE: {
+      double data = jerry_get_number_value(val);
+      if (!dbus_message_iter_append_basic(iter, type, &data))
+        return false;
+    } break;
     case DBUS_TYPE_STRING:
     case DBUS_TYPE_OBJECT_PATH:
     case DBUS_TYPE_SIGNATURE: {
@@ -237,11 +242,13 @@ static jerry_value_t iotjs_dbus_decode_message(DBusMessage* message) {
         jerry_set_property_by_index(results, index,
                                     jerry_create_boolean(value));
       } break;
-#define IOTJS_DBUS_DECODE_NUMBER(type)                                       \
-  {                                                                          \
-    type value = 0;                                                          \
-    dbus_message_iter_get_basic(&iter, &value);                              \
-    jerry_set_property_by_index(results, index, jerry_create_number(value)); \
+#define IOTJS_DBUS_DECODE_NUMBER(type)                 \
+  {                                                    \
+    type value = 0;                                    \
+    dbus_message_iter_get_basic(&iter, &value);        \
+    jerry_value_t jval = jerry_create_number(value);   \
+    jerry_set_property_by_index(results, index, jval); \
+    jerry_release_value(jval);                         \
   }
       case DBUS_TYPE_BYTE:
         IOTJS_DBUS_DECODE_NUMBER(unsigned char);
@@ -675,6 +682,7 @@ JS_FUNCTION(EmitSignal) {
       char* arg_sig = dbus_signature_iter_get_signature(&signatureIter);
       jerry_value_t val = jerry_get_property_by_index(args, i);
       iotjs_dbus_encode_jobject(val, &iter, arg_sig);
+
       dbus_free(arg_sig);
       jerry_release_value(val);
 
