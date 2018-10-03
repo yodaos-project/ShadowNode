@@ -16,14 +16,24 @@ myiface.addMethod('testWithArgs', {
   out: [dbus.Define(String)] }, (num, cb) => {
   cb(null, num + '!!!');
 });
+myiface.addMethod('testNumber', {
+  in: [],
+  out: [dbus.Define(Number)] }, (cb) => {
+  cb(null, 9999);
+});
+myiface.addMethod('testDouble', {
+  in: [],
+  out: [dbus.Define(Number)] }, (cb) => {
+  cb(null, 0.1);
+});
 myiface.update();
 
 var bus = dbus.getBus();
 var plan = 0;
 // start to call
 bus.callMethod(
-  'org.myservice', 
-  '/org/myobject', 
+  'org.myservice',
+  '/org/myobject',
   'test.dbus.myservice.Interface1', 'test', '', [], (err, res) => {
   assert.equal(err, null);
   assert.equal(res, 'simple call');
@@ -31,16 +41,34 @@ bus.callMethod(
 });
 
 bus.callMethod(
-  'org.myservice', 
-  '/org/myobject', 
+  'org.myservice',
+  '/org/myobject',
   'test.dbus.myservice.Interface1', 'testWithArgs', 's', ['foobar'], (err, res) => {
   assert.equal(err, null);
   assert.equal(res, 'foobar!!!');
   plan += 1;
 });
 
+bus.callMethod(
+  'org.myservice',
+  '/org/myobject',
+  'test.dbus.myservice.Interface1', 'testNumber', 's', [], (err, res) => {
+  assert.equal(err, null);
+  assert.equal(res, 9999);
+  plan += 1;
+});
+
+bus.callMethod(
+  'org.myservice',
+  '/org/myobject',
+  'test.dbus.myservice.Interface1', 'testDouble', 's', [], (err, res) => {
+  assert.equal(err, null);
+  assert.equal(res, 0.1);
+  plan += 1;
+});
+
 setTimeout(function() {
-  assert.equal(plan, 2);
+  assert.equal(plan, 4);
   bus.destroy();
 }, 500);
 
