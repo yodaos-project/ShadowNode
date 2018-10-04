@@ -21,6 +21,7 @@ static void iotjs_timerwrap_destroy(iotjs_timerwrap_t* timerwrap);
 static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap);
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(timerwrap);
 
+
 iotjs_timerwrap_t* iotjs_timerwrap_create(const jerry_value_t jtimer) {
   iotjs_timerwrap_t* timerwrap = IOTJS_ALLOC(iotjs_timerwrap_t);
   uv_timer_t* uv_timer = IOTJS_ALLOC(uv_timer_t);
