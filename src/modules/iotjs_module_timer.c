@@ -33,7 +33,7 @@ iotjs_timerwrap_t* iotjs_timerwrap_create(const jerry_value_t jtimer) {
 
   // Initialize timer handler.
   const iotjs_environment_t* env = iotjs_environment_get();
-  uv_loop_t *loop = iotjs_environment_loop(env);
+  uv_loop_t* loop = iotjs_environment_loop(env);
   uv_update_time(loop);
   uv_timer_init(loop, uv_timer);
 
