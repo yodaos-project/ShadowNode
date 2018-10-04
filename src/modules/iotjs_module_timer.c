@@ -21,7 +21,6 @@ static void iotjs_timerwrap_destroy(iotjs_timerwrap_t* timerwrap);
 static void iotjs_timerwrap_on_timeout(iotjs_timerwrap_t* timerwrap);
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(timerwrap);
 
-
 iotjs_timerwrap_t* iotjs_timerwrap_create(const jerry_value_t jtimer) {
   iotjs_timerwrap_t* timerwrap = IOTJS_ALLOC(iotjs_timerwrap_t);
   uv_timer_t* uv_timer = IOTJS_ALLOC(uv_timer_t);
@@ -33,7 +32,9 @@ iotjs_timerwrap_t* iotjs_timerwrap_create(const jerry_value_t jtimer) {
 
   // Initialize timer handler.
   const iotjs_environment_t* env = iotjs_environment_get();
-  uv_timer_init(iotjs_environment_loop(env), uv_timer);
+  uv_loop_t *loop = iotjs_environment_loop(env);
+  uv_update_time(loop);
+  uv_timer_init(loop, uv_timer);
 
   return timerwrap;
 }
