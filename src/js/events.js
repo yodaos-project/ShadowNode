@@ -34,6 +34,7 @@ EventEmitter.prototype.setDefaultMaxListeners = function(n) {
     throw new Error('defaultMaxListeners must be a non-negative number');
   }
   defaultMaxListeners = n;
+  return this;
 };
 
 EventEmitter.prototype.getDefaultMaxListeners = function() {
