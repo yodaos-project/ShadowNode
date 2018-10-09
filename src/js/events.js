@@ -107,14 +107,15 @@ EventEmitter.prototype.addListener = function(type, listener) {
   if (max > 0 && existing.length > max && !existing.warned) {
     existing.warned = true;
     var w = new Error('Possible EventEmitter memory leak detected. ' +
-                          `${existing.length} ${String(type)} listeners ` +
-                          'added. Use emitter.setMaxListeners() to ' +
-                          'increase limit');
+                  `${existing.length} or more \'${String(type)}\' listeners ` +
+                  'added. Use emitter.setMaxListeners() to ' +
+                  'increase limit');
     w.name = 'MaxListenersExceededWarning';
     w.emitter = this;
     w.type = type;
     w.count = existing.length;
     process.emitWarning(w);
+    // TODO: print this warn.
   }
 
   return this;
@@ -200,7 +201,7 @@ EventEmitter.prototype.listeners = function(type) {
 
 
 EventEmitter.prototype.setMaxListeners = function(n) {
-  if (typeof n !== 'number' || n < 0 || Number.isNaN(n)) {
+  if (typeof n !== 'number' || n < 0) {
     throw new Error('arguments of setMaxListeners must be a ' +
     'non-negative number');
   }
