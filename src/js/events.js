@@ -29,18 +29,16 @@ EventEmitter.prototype._maxListeners = undefined;
 
 var defaultMaxListeners = 10;
 
-Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
-  enumerable: true,
-  get: function() {
-    return defaultMaxListeners;
-  },
-  set: function(arg) {
-    if (typeof arg !== 'number' || arg < 0 || Number.isNaN(arg)) {
-      throw new Error('defaultMaxListeners must be a non-negative number');
-    }
-    defaultMaxListeners = arg;
+EventEmitter.prototype.setDefaultMaxListeners = function(n) {
+  if (typeof n !== 'number' || n < 0 || Number.isNaN(n)) {
+    throw new Error('defaultMaxListeners must be a non-negative number');
   }
-});
+  defaultMaxListeners = n;
+};
+
+EventEmitter.prototype.getDefaultMaxListeners = function() {
+  return defaultMaxListeners;
+};
 
 EventEmitter.init = function() {
   if (this._events === undefined ||

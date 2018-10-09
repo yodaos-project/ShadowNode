@@ -16,24 +16,15 @@ for (var i = 0; i < throwsObjs.length; i++) {
     function() {
       events.setMaxListeners(obj)
     },
-    {
-      type: Error,
-      message: '1'
-      // message: 'The value of "n" is out of range. ' +
-      //          `It must be a non-negative number. Received ${obj}`
-    }
+    'maxListeners must be a non-negative number value'
   );
 
-  // common.expectsError(
-  //   function() {
-  //     events.defaultMaxListeners = obj
-  //   },
-  //   {
-  //     type: Error,
-  //     message: 'The value of "defaultMaxListeners" is out of range. ' +
-  //              `It must be a non-negative number. Received ${obj}`
-  //   }
-  // );
+  common.expectsError(
+    function() {
+      events.setDefaultMaxListeners(obj);
+    },
+    'defaultMaxListeners must be a non-negative number value'
+  );
 }
 
 events.emit('maxListeners');
