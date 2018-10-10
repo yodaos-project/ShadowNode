@@ -985,7 +985,7 @@ jerry_snapshot_result_at (const uint32_t *snapshot_p, /**< snapshot */
   }
   else if (header_p->func_offsets[func_index] & JERRY_SNAPSHOT_EVAL_CONTEXT)
   {
-    ret_val = vm_run_eval (bytecode_p, false);
+    ret_val = vm_run_eval (NULL, bytecode_p, false);
   }
   else
   {
