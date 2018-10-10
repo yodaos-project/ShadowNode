@@ -29,17 +29,18 @@ EventEmitter.prototype._maxListeners = undefined;
 
 var defaultMaxListeners = 10;
 
-EventEmitter.prototype.setDefaultMaxListeners = function(n) {
-  if (typeof n !== 'number' || n < 0 || Number.isNaN(n)) {
-    throw new Error('defaultMaxListeners must be a non-negative number');
+Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
+  enumerable: true,
+  get: function() {
+    return defaultMaxListeners;
+  },
+  set: function(arg) {
+    if (!arg || typeof arg !== 'number' || arg < 0) {
+      throw new TypeError('defaultMaxListeners must be a non-negative number');
+    }
+    defaultMaxListeners = arg;
   }
-  defaultMaxListeners = n;
-  return this;
-};
-
-EventEmitter.prototype.getDefaultMaxListeners = function() {
-  return defaultMaxListeners;
-};
+});
 
 EventEmitter.init = function() {
   if (this._events === undefined ||
@@ -202,8 +203,8 @@ EventEmitter.prototype.listeners = function(type) {
 
 
 EventEmitter.prototype.setMaxListeners = function(n) {
-  if (typeof n !== 'number' || n < 0) {
-    throw new Error('arguments of setMaxListeners must be a ' +
+  if (!n || typeof n !== 'number' || n < 0) {
+    throw new TypeError('arguments of setMaxListeners must be a ' +
     'non-negative number');
   }
   this._maxListeners = n;
