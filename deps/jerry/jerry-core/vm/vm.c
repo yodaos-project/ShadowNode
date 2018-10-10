@@ -672,8 +672,8 @@ vm_init_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
             is_immutable_binding = (self_reference == literal_start_p[value_index]);
             if (is_immutable_binding)
             {
-              lit_value = ecma_make_object_value (frame_ctx_p->func_obj_p);
-              ecma_ref_object (frame_ctx_p->func_obj_p);
+              lit_value = ecma_make_object_value ((ecma_object_t*) frame_ctx_p->func_obj_p);
+              ecma_ref_object ((ecma_object_t*) frame_ctx_p->func_obj_p);
             }
             else
             {
@@ -2965,7 +2965,7 @@ vm_execute (vm_frame_ctx_t *frame_ctx_p, /**< frame context */
  * @return ecma value
  */
 ecma_value_t
-vm_run (const ecma_extended_object_t *func_obj_p, /**< byte-code data header */
+vm_run (const ecma_extended_object_t *func_obj_p, /**< function object */
         const ecma_compiled_code_t *bytecode_header_p, /**< byte-code data header */
         ecma_value_t this_binding_value, /**< value of 'ThisBinding' */
         ecma_object_t *lex_env_p, /**< lexical environment to use */
