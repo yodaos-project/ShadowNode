@@ -20,11 +20,11 @@ test('https://www.example.com/');
 var req1 = test('http://127.0.0.2');
 setTimeout(function () {
   req1.abort();
-}, 1000)
+}, 1000);
 var req2 = test('https://127.0.0.2');
 setTimeout(function () {
   req2.abort();
-}, 1000)
+}, 1000);
 
 function test(url) {
   var isAborted = false;
@@ -33,7 +33,7 @@ function test(url) {
   var handle = getHandle(url);
   var req = handle.get(url, function(res) {
     res.on('data', function(chunk) {
-      console.log(`${url} ondata`)
+      console.log(`${url} ondata`);
       assert.strictEqual(isAborted, false, `${url} should not aborted`);
       isAborted = true;
       req.abort();
@@ -46,7 +46,7 @@ function test(url) {
   });
 
   req.on('abort', common.mustCall(function() {
-    console.log(`${url} aborted`)
+    console.log(`${url} aborted`);
     eventTriggered = true;
   }));
 
