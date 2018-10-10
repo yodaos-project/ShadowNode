@@ -238,8 +238,7 @@ vm_run_global (const ecma_compiled_code_t *bytecode_p) /**< pointer to bytecode 
  * @return ecma value
  */
 ecma_value_t
-vm_run_eval (const ecma_extended_object_t *func_obj_p,
-             ecma_compiled_code_t *bytecode_data_p, /**< byte-code data */
+vm_run_eval (ecma_compiled_code_t *bytecode_data_p, /**< byte-code data */
              bool is_direct) /**< is eval called in direct mode? */
 {
   ecma_value_t this_binding;

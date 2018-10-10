@@ -100,7 +100,7 @@ ecma_op_eval_chars_buffer (const lit_utf8_byte_t *code_p, /**< code characters b
     return parse_status;
   }
 
-  return vm_run_eval (NULL, bytecode_data_p, is_direct);
+  return vm_run_eval (bytecode_data_p, is_direct);
 #else /* JERRY_DISABLE_JS_PARSER */
   JERRY_UNUSED (code_p);
   JERRY_UNUSED (code_buffer_size);
