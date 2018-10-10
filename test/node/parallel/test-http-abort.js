@@ -12,10 +12,10 @@ function getHandle(url) {
   throw new Error('unsupported url ' + url);
 }
 
-// // test http_client
-test('http://www.example.com/');
-// // test https_client
-test('https://www.example.com/');
+// test http_client
+test('http://example.com/');
+// test https_client
+test('https://example.com/');
 // unreachable tunnels, manually abort them
 var req1 = test('http://127.0.0.2');
 setTimeout(function () {
@@ -33,7 +33,6 @@ function test(url) {
   var handle = getHandle(url);
   var req = handle.get(url, function(res) {
     res.on('data', function(chunk) {
-      console.log(`${url} ondata`);
       assert.strictEqual(isAborted, false, `${url} should not aborted`);
       isAborted = true;
       req.abort();
@@ -46,12 +45,10 @@ function test(url) {
   });
 
   req.on('abort', common.mustCall(function() {
-    console.log(`${url} aborted`);
     eventTriggered = true;
   }));
 
   req.socket.on('close', common.mustCall(function() {
-    console.log(`${url} socket closed`);
   }));
 
   req.end();
