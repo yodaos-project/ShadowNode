@@ -221,7 +221,8 @@ vm_run_global (const ecma_compiled_code_t *bytecode_p) /**< pointer to bytecode 
 {
   ecma_object_t *glob_obj_p = ecma_builtin_get (ECMA_BUILTIN_ID_GLOBAL);
 
-  ecma_value_t ret_value = vm_run (NULL, bytecode_p,
+  ecma_value_t ret_value = vm_run (NULL,
+                                   bytecode_p,
                                    ecma_make_object_value (glob_obj_p),
                                    ecma_get_global_environment (),
                                    false,
