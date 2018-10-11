@@ -279,7 +279,7 @@ typedef enum
 ecma_value_t vm_run_global (const ecma_compiled_code_t *bytecode_p);
 ecma_value_t vm_run_eval (ecma_compiled_code_t *bytecode_data_p, bool is_direct);
 
-ecma_value_t vm_run (const ecma_compiled_code_t *bytecode_header_p, ecma_value_t this_binding_value,
+ecma_value_t vm_run (const ecma_extended_object_t *func_obj_p, const ecma_compiled_code_t *bytecode_header_p, ecma_value_t this_binding_value,
                      ecma_object_t *lex_env_p, bool is_eval_code, const ecma_value_t *arg_list_p,
                      ecma_length_t arg_list_len);
 
