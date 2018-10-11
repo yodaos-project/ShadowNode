@@ -223,26 +223,15 @@ res = emitter.emit('event3'); // res == false
 ```
 
 ### emitter.setMaxListeners(num)
-* `num` {number} The max listener limit, default 10.
+* `num` {number} The max listener limit, default 7.
 * Returns `emitter` {events.EventEmitter}.
 
-Set the max listener limit, must be number and > 0.
+Set the max listener limit, must be number and greater than 0.
 
 ### emitter.getMaxListeners()
 * Returns {number} The max listener limit.
 
 Get the max listener limit, must be number.
-
-### emitter.setDefaultMaxListeners(num)
-* `num` {number} The default max listener limit, default 10.
-* Returns `emitter` {events.EventEmitter}.
-
-Set the max listener limit, must be number and > 0.
-
-### emitter.getDefaultMaxListeners()
-* Returns {number} The default max listener limit.
-
-Get the default max listener limit, must be number.
 
 ## Event: 'newListener'
 * `eventName` {string} The name of the event being listened for.
