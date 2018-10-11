@@ -27,7 +27,7 @@ module.exports.EventEmitter = EventEmitter;
 EventEmitter.prototype._eventsCount = 0;
 EventEmitter.prototype._maxListeners = undefined;
 
-var defaultMaxListeners = 10;
+var defaultMaxListeners = 7;
 
 Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
   enumerable: true,
