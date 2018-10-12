@@ -47,6 +47,7 @@ ${it.stack}`);
 }
 
 function expectsError(fn, exact) {
+  // TODO:rigorous assert need!
   function innerFn(error) {
     return error instanceof Error;
   }
