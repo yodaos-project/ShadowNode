@@ -74,8 +74,8 @@ MqttClient.prototype.connect = function() {
     this._socket = net.connect(opts, this._onconnect.bind(this));
   }
   this._socket.on('data', this._ondata.bind(this));
-  this._socket.once('error', this._ondisconnect.bind(this));
-  this._socket.once('end', this._ondisconnect.bind(this));
+  this._socket.once('error', this._onerror.bind(this));
+  this._socket.once('end', this._onend.bind(this));
   this._lastConnectTime = Date.now();
   this._lastChunk = null;
   return this;
@@ -97,19 +97,16 @@ MqttClient.prototype._onconnect = function() {
 };
 
 MqttClient.prototype._onerror = function(err) {
-  this._ondisconnect(err);
-};
-
-MqttClient.prototype._onend = function() {
+  this.emit('error', err);
   this._ondisconnect();
 };
 
-MqttClient.prototype._ondisconnect = function(err) {
-  clearTimeout(this._keepAliveTimer);
-  clearTimeout(this._keepAliveTimeout);
-  if (err) {
-    this.emit('error', err);
-  }
+MqttClient.prototype._onend = function() {
+  this._clearKeepAlive();
+  this._ondisconnect();
+};
+
+MqttClient.prototype._ondisconnect = function() {
   if (this._isConnected) {
     this._isConnected = false;
     this.emit('offline');
@@ -222,6 +219,13 @@ MqttClient.prototype._onKeepAlive = function() {
   this._keepAlive();
 };
 
+MqttClient.prototype._clearKeepAlive = function() {
+  clearTimeout(this._keepAliveTimer);
+  clearTimeout(this._keepAliveTimeout);
+  this._keepAliveTimer = null;
+  this._keepAliveTimeout = null;
+};
+
 MqttClient.prototype.disconnect = function(err) {
   if (err) {
     this.emit('error', err);
@@ -229,6 +233,8 @@ MqttClient.prototype.disconnect = function(err) {
   if (!this._isConnected) {
     return;
   }
+
+  this._clearKeepAlive();
   clearTimeout(this._reconnectingTimer);
   try {
     var buf = this._handle._getDisconnect();
