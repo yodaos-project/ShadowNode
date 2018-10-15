@@ -556,6 +556,37 @@
     }
   };
 
+  (function setupSignalHandlers() {
+    var constants = Module.require('constants').os.signals;
+    var signalWraps = Object.create(null);
+    function isSignal(event) {
+      return typeof event === 'string' && constants[event] !== undefined;
+    };
+
+    process.on('newListener', function(type) {
+      if (!isSignal(type) || signalWraps[type] !== undefined) {
+        return;
+      }
+      var Signal = Module.require('signal');
+      var wrap = new Signal();
+      wrap.onsignal = process.emit.bind(process, type, type);
+
+      var signum = constants[type];
+      var err = wrap.start(signum);
+      if (err) {
+        wrap.stop();
+        throw new Error('uv_signal_start failed');
+      }
+      signalWraps[type] = wrap;
+    });
+    process.on('removeListener', function(type) {
+      if (signalWraps[type] !== undefined && this.listeners(type).length === 0) {
+        signalWraps[type].stop();
+        delete signalWraps[type];
+      }
+    });
+  })();
+
   // TODO(Yorkie): compatible with Node.js
   process.emitWarning = function(warning, type, code, ctor) {
     process.emit('warning', warning, type, code, ctor);
