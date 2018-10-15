@@ -1,13 +1,14 @@
 'use strict';
 
+var common = require('../common');
 var assert = require('assert');
 var signals = require('constants').os.signals;
 
 function testSignal(type) {
-  process.once(type, function(signal) {
+  process.once(type, common.mustCall(function(signal) {
     console.log(signal);
     assert.equal(signal, type);
-  });
+  }))
   process.kill(signals[type]);
 }
 
@@ -26,4 +27,3 @@ testSignal('SIGPIPE');
 testSignal('SIGALRM');
 testSignal('SIGTERM');
 testSignal('SIGSTKFLT');
-testSignal('SIGSTOP');

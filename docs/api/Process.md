@@ -301,7 +301,7 @@ In this example case, it is possible to track the rejection as a developer error
 
 ### Signal Events
 
-Signal events will be emitted when the Node.js process receives a signal. Please refer to [signal(7)](http://man7.org/linux/man-pages/man7/signal.7.html) for a listing of standard POSIX signal names such as `'SIGINT'`, `'SIGHUP'`, etc.
+Signal events will be emitted when the ShadowNode process receives a signal. Please refer to [signal(7)](http://man7.org/linux/man-pages/man7/signal.7.html) for a listing of standard POSIX signal names such as `'SIGINT'`, `'SIGHUP'`, etc.
 
 The signal handler will receive the signal's name (`'SIGINT'`, `'SIGTERM'`, etc.) as the first argument.
 
@@ -316,6 +316,11 @@ function handle(signal) {
 process.on('SIGINT', handle);
 process.on('SIGTERM', handle);
 ```
+
+> signum specifies the signal and can be any valid signal except `SIGKILL` and `SIGSTOP`.
+
+At the [sigaction(2)](http://man7.org/linux/man-pages/man2/sigaction.2.html), the `sigaction` doesn't support `SIGKILL` and
+`SIGSTOP`, therefore they are not supported at ShadowNode.
 
 ### process.memoryUsage()
 

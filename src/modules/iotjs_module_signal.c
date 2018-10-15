@@ -95,8 +95,8 @@ jerry_value_t InitSignal() {
   jerry_value_t prototype = jerry_create_object();
 
   iotjs_jval_set_property_jval(signal, IOTJS_MAGIC_STRING_PROTOTYPE, prototype);
-  iotjs_jval_set_method(prototype, "start", Start);
-  iotjs_jval_set_method(prototype, "stop", Stop);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_START, Start);
+  iotjs_jval_set_method(prototype, IOTJS_MAGIC_STRING_STOP, Stop);
   jerry_release_value(prototype);
   return signal;
 }
