@@ -115,7 +115,7 @@ function throws(block, expected, message) {
   }
 
   if (!actual) {
-    fail(actual, expected, 'Missing expected exception' + message);
+    fail(actual, expected, 'Missing expected exception: ' + message);
   }
   if (expected && expectedException(actual, expected, message) !== true) {
     throw actual;

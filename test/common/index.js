@@ -2,7 +2,7 @@
 var assert = require('assert');
 var mustCallChecks = [];
 
-module.exports.mustCall = function mustCall(fn, criteria) {
+function mustCall(fn, criteria) {
   if (typeof fn === 'number') {
     criteria = fn;
     fn = noop;
@@ -31,7 +31,7 @@ module.exports.mustCall = function mustCall(fn, criteria) {
     ++context.actual;
     return fn.apply(this, arguments);
   };
-};
+}
 
 function noop() {}
 
@@ -45,3 +45,22 @@ got ${it.actual}
 ${it.stack}`);
   });
 }
+
+function expectsError(fn, exact) {
+  // TODO:rigorous assert need!
+  function innerFn(error) {
+    return error instanceof Error;
+  }
+
+  if (fn) {
+    assert.throws(fn, innerFn, exact);
+    return;
+  }
+
+  return mustCall(innerFn, exact);
+}
+
+module.exports = {
+  mustCall: mustCall,
+  expectsError: expectsError
+};
