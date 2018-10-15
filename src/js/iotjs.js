@@ -561,7 +561,7 @@
     var signalWraps = Object.create(null);
     function isSignal(event) {
       return typeof event === 'string' && constants[event] !== undefined;
-    };
+    }
 
     process.on('newListener', function(type) {
       if (!isSignal(type) || signalWraps[type] !== undefined) {
