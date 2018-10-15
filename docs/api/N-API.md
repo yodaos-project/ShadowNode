@@ -44,9 +44,6 @@ Use [node-gyp](https://github.com/nodejs/node-gyp) whenever possible, since N-AP
 #### Custom Asynchronous Operations
 - napi_async_init
 - napi_async_destroy
-- napi_make_callback
-- napi_open_callback_scope
-- napi_close_callback_scope
 
 #### Memory Management
 - napi_adjust_external_memory
