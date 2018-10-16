@@ -18,6 +18,7 @@
         "profiler",
         "promise",
         "sax",
+        "signal",
         "string_decoder",
         "stream",
         "tls",
@@ -155,7 +156,8 @@
     },
     "constants": {
       "native_files": ["modules/iotjs_module_constants.c"],
-      "init": "InitConstants"
+      "init": "InitConstants",
+      "js_file": "js/constants.js"
     },
     "crypto": {
       "js_file": "js/crypto.js",
@@ -342,6 +344,10 @@
     },
     "sax": {
       "js_file": "js/sax.js"
+    },
+    "signal": {
+      "native_files": ["modules/iotjs_module_signal.c"],
+      "init": "InitSignal"
     },
     "spi": {
       "platforms": {

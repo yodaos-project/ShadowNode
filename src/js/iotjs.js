@@ -556,6 +556,42 @@
     }
   };
 
+  (function setupSignalHandlers() {
+    var constants = Module.require('constants').os.signals;
+    var signalWraps = Object.create(null);
+    function isSignal(event) {
+      return typeof event === 'string' && constants[event] !== undefined;
+    }
+
+    process.on('newListener', function(type) {
+      if (!isSignal(type) || signalWraps[type] !== undefined) {
+        return;
+      }
+      if (type === 'SIGKILL' || type === 'SIGSTOP') {
+        // see sigaction(2), SIGKILL/SIGSTOP are not supported, just skip it.
+        return;
+      }
+      var Signal = Module.require('signal');
+      var wrap = new Signal();
+      wrap.onsignal = process.emit.bind(process, type, type);
+
+      var signum = constants[type];
+      var r = wrap.start(signum);
+      if (r) {
+        wrap.stop();
+        var err = process._createUVException(r, 'uv_signal_start');
+        throw err;
+      }
+      signalWraps[type] = wrap;
+    });
+    process.on('removeListener', function(type) {
+      if (signalWraps[type] !== undefined && this.listeners(type).length === 0) {
+        signalWraps[type].stop();
+        delete signalWraps[type];
+      }
+    });
+  })();
+
   // TODO(Yorkie): compatible with Node.js
   process.emitWarning = function(warning, type, code, ctor) {
     process.emit('warning', warning, type, code, ctor);
