@@ -59,12 +59,14 @@ function TLSHandle(options) {
   });
 
   this.tcpHandle.onread = function onread(socket, nread, isEOF, buffer) {
-
-    if (isEOF) {
-      self._EOF = true;
+    if (nread < 0) {
+      if (isEOF) {
+        self._EOF = true;
+      }
+      if (self.onread) {
+        self.onread(socket, nread, isEOF, buffer);
+      }
       return;
-    } else if (nread < 0 && self.onread) {
-      return self.onread(socket, nread, isEOF, buffer);
     }
     self.tlsWrap.read(buffer);
   };
