@@ -210,6 +210,9 @@ WebSocketClient.prototype.handshake = function(location, subProtocol) {
       self.connected = true;
     }
   });
+  httpConnection.on('error', function(err) {
+    self.emit('error', err);
+  });
   httpConnection.on('end', function() {
     self.emit('close');
   });
