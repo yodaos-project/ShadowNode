@@ -67,6 +67,8 @@
         "NODE_PATH": "require2/node_modules"
       }
     },
+    { "name": "test_mqtt_client.js" },
+    { "name": "test_mqtt_sub_pub.js" },
     { "name": "test_net_1.js" },
     { "name": "test_net_2.js" },
     { "name": "test_net_3.js", "skip": ["linux", "nuttx"], "reason": "[linux]: flaky on Travis, [nuttx]: requires too many socket descriptors and too large buffers" },
@@ -113,6 +115,7 @@
     { "name": "test_process_unhandled_rejection.js" },
     { "name": "test_pwm_async.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_pwm_sync.js", "skip": ["all"], "reason": "need to setup test environment" },
+    { "name": "test_signal_simple.js" },
     { "name": "test_spi.js", "skip": ["linux"], "reason": "Differend env on Linux desktop/travis/rpi" },
     { "name": "test_spi_buffer.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_spi_mcp3008.js", "skip": ["all"], "reason": "need to setup test environment" },

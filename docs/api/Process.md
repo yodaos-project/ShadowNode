@@ -299,6 +299,29 @@ const resource = new SomeResource();
 
 In this example case, it is possible to track the rejection as a developer error as would typically be the case for other `'unhandledRejection'` events. To address such failures, a non-operational `.catch(() => { })` handler may be attached to `resource.loaded`, which would prevent the `'unhandledRejection'` event from being emitted.
 
+### Signal Events
+
+Signal events will be emitted when the ShadowNode process receives a signal. Please refer to [signal(7)](http://man7.org/linux/man-pages/man7/signal.7.html) for a listing of standard POSIX signal names such as `'SIGINT'`, `'SIGHUP'`, etc.
+
+The signal handler will receive the signal's name (`'SIGINT'`, `'SIGTERM'`, etc.) as the first argument.
+
+The name of each event will be the uppercase common name for the signal (e.g. `'SIGINT'` for `SIGINT` signals).
+
+```js
+// Using a single function to handle multiple signals
+function handle(signal) {
+  console.log(`Received ${signal}`);
+}
+
+process.on('SIGINT', handle);
+process.on('SIGTERM', handle);
+```
+
+> signum specifies the signal and can be any valid signal except `SIGKILL` and `SIGSTOP`.
+
+At the [sigaction(2)](http://man7.org/linux/man-pages/man2/sigaction.2.html), the `sigaction` doesn't support `SIGKILL` and
+`SIGSTOP`, therefore they are not supported at ShadowNode.
+
 ### process.memoryUsage()
 
 Returns: {Object}
