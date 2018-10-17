@@ -3,7 +3,7 @@
 var testHost = 'mqtts://test.mosquitto.org:8883';
 var mqtt = require('mqtt');
 var assert = require('assert');
-var common = require('../common')
+var common = require('../common');
 
 var disconnected = false;
 var client = mqtt.connect(testHost, {
