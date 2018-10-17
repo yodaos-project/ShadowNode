@@ -211,7 +211,7 @@ WebSocketClient.prototype.handshake = function(location, subProtocol) {
     }
   });
   httpConnection.on('error', function(err) {
-    self.emit('error', err)
+    self.emit('error', err);
   });
   httpConnection.on('end', function() {
     self.emit('close');
