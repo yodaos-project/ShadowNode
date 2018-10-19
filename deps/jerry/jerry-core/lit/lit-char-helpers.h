@@ -104,6 +104,7 @@ bool lit_char_is_identifier_part_character (ecma_char_t chr);
 #define LIT_CHAR_AMPERSAND    ((ecma_char_t) '&') /* ampersand */
 #define LIT_CHAR_VLINE        ((ecma_char_t) '|') /* vertical line */
 #define LIT_CHAR_CIRCUMFLEX   ((ecma_char_t) '^') /* circumflex accent */
+#define LIT_CHAR_SHARP        ((ecma_char_t) '#') /* sharp mark */
 #define LIT_CHAR_EXCLAMATION  ((ecma_char_t) '!') /* exclamation mark */
 #define LIT_CHAR_TILDE        ((ecma_char_t) '~') /* tilde */
 #define LIT_CHAR_QUESTION     ((ecma_char_t) '?') /* question mark */
