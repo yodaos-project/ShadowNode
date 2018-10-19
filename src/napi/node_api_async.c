@@ -57,6 +57,8 @@ static void iotjs_uv_work_after_cb(uv_work_t* req, int status) {
       jerry_release_value(jval_err);
     }
   }
+
+  iotjs_process_next_tick();
 }
 
 napi_status napi_create_async_work(napi_env env, napi_value async_resource,
