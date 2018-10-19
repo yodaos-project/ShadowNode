@@ -2257,6 +2257,7 @@ parser_parse_source (const uint8_t *arg_list_p, /**< function argument list */
       context.line = 1;
       context.column = 1;
 
+      lexer_skip_shebang (&context);
       lexer_next_token (&context);
     }
 
