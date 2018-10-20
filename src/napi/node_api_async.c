@@ -55,8 +55,7 @@ static void iotjs_uv_work_after_cb(uv_work_t* req, int status) {
       jerry_value_t jval_err;
       jval_err = iotjs_napi_env_get_and_clear_exception(env);
       if (jval_err == (uintptr_t)NULL) {
-        jval_err =
-            iotjs_napi_env_get_and_clear_fatal_exception(env);
+        jval_err = iotjs_napi_env_get_and_clear_fatal_exception(env);
       }
 
       /** Argument cannot have error flag */
