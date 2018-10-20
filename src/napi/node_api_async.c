@@ -37,18 +37,26 @@ static void iotjs_uv_work_after_cb(uv_work_t* req, int status) {
     cb_status = napi_generic_failure;
   }
 
-  if (async_work->complete != NULL) {
+  napi_env env = async_work->env;
+  napi_async_complete_callback complete = async_work->complete;
+  void* data = async_work->data;
+
+  if (complete != NULL) {
     jerryx_handle_scope scope;
     jerryx_open_handle_scope(&scope);
-    async_work->complete(async_work->env, cb_status, async_work->data);
+    /**
+     * napi_async_work could be deleted by invocation of `napi_delete_asyncwork`
+     * in its complete callback.
+     */
+    complete(env, cb_status, data);
     jerryx_close_handle_scope(scope);
 
-    if (iotjs_napi_is_exception_pending(async_work->env)) {
+    if (iotjs_napi_is_exception_pending(env)) {
       jerry_value_t jval_err;
-      jval_err = iotjs_napi_env_get_and_clear_exception(async_work->env);
+      jval_err = iotjs_napi_env_get_and_clear_exception(env);
       if (jval_err == (uintptr_t)NULL) {
         jval_err =
-            iotjs_napi_env_get_and_clear_fatal_exception(async_work->env);
+            iotjs_napi_env_get_and_clear_fatal_exception(env);
       }
 
       /** Argument cannot have error flag */
