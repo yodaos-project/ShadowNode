@@ -79,8 +79,7 @@ static void stripShebang(char** p_source, size_t* p_length) {
     } else {
       size_t i = 2;
       for (; i < length; i++) {
-        if (source[i] == 0x000D /* CR */ ||
-          source[i] == 0x000A /* LF */) {
+        if (source[i] == 0x000D /* CR */ || source[i] == 0x000A /* LF */) {
           break;
         }
       }
@@ -97,8 +96,8 @@ static void stripShebang(char** p_source, size_t* p_length) {
   }
 }
 
-static jerry_value_t WrapEval(const char* name, size_t name_len,
-                              char* source, size_t length) {
+static jerry_value_t WrapEval(const char* name, size_t name_len, char* source,
+                              size_t length) {
   static const char* args =
       "exports, require, module, native, __filename, __dirname";
 
@@ -186,7 +185,8 @@ static jerry_value_t wait_for_source_callback(
 
   jerry_debugger_stop();
 
-  return WrapEval(filename, resource_name_size, (char*)iotjs_string_data(&source),
+  return WrapEval(filename, resource_name_size,
+                  (char*)iotjs_string_data(&source),
                   iotjs_string_size(&source));
 }
 
