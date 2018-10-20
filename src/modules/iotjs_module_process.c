@@ -232,7 +232,7 @@ JS_FUNCTION(CompileModule) {
     jres = jerry_exec_snapshot_at((const void*)iotjs_js_modules_s,
                                   iotjs_js_modules_l, js_modules[i].idx, false);
 #else
-    jres = WrapEval(name, iotjs_string_size(&id), js_modules[i].code,
+    jres = WrapEval(name, iotjs_string_size(&id), (char*)js_modules[i].code,
                     js_modules[i].length);
 #endif
 
