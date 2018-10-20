@@ -274,36 +274,6 @@ lexer_skip_spaces (parser_context_t *context_p) /**< context */
   }
 } /* lexer_skip_spaces */
 
-static void
-lexer_skip_shebang (parser_context_t *context_p) /**< context */
-{
-  if (context_p->line != 1 || context_p->column != 1)
-  {
-    return;
-  }
-
-  /* check if the head[1,2] is a shebang flag */
-  if (context_p->source_p[0] == LIT_CHAR_SHARP &&
-    context_p->source_p[1] == LIT_CHAR_EXCLAMATION)
-  {
-    context_p->source_p += 2;
-
-    /* skip util LFCR */
-    while (true)
-    {
-      uint8_t str_character = context_p->source_p[0];
-      context_p->source_p++;
-
-      if (str_character == LIT_CHAR_CR ||
-        str_character == LIT_CHAR_LF)
-      {
-        break;
-      }
-    }
-  }
-
-}
-
 /**
  * Keyword data.
  */
@@ -1064,6 +1034,7 @@ void
 lexer_next_token (parser_context_t *context_p) /**< context */
 {
   size_t length;
+
   lexer_skip_spaces (context_p);
 
   context_p->token.line = context_p->line;

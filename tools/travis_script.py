@@ -9,7 +9,6 @@ BUILDTYPES = ['debug', 'release']
 
 
 def build_jerry():
-    ex.check_run_cmd('./deps/jerry/tools/run-tests.py', ['--jerry-tests'])
     ex.check_run_cmd('./deps/jerry/tools/run-tests.py', ['--unittests'])
 
 
