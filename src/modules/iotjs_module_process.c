@@ -64,10 +64,45 @@ static jerry_value_t ConstructVersionsObject() {
 #undef STR
 #undef STR_HELPER
 
-static jerry_value_t WrapEval(const char* name, size_t name_len,
-                              const char* source, size_t length) {
+static void stripShebang(char** p_source, size_t* p_length) {
+  char* source = *p_source;
+  size_t length = *p_length;
+
+  if (length < 2) {
+    return;
+  }
+  if (source[0] == '#' && source[1] == '!') {
+    if (length == 2) {
+      *p_source = "";
+      *p_length = 0;
+      return;
+    } else {
+      size_t i = 2;
+      for (; i < length; i++) {
+        if (source[i] == 0x000D /* CR */ || source[i] == 0x000A /* LF */) {
+          break;
+        }
+      }
+      if (i == length) {
+        *p_source = "";
+        *p_length = 0;
+        return;
+      } else {
+        *p_source = source + i;
+        *p_length = length - i;
+        return;
+      }
+    }
+  }
+}
+
+static jerry_value_t WrapEval(const char* name, size_t name_len, char* source,
+                              size_t length) {
   static const char* args =
       "exports, require, module, native, __filename, __dirname";
+
+  // Remove Shebang.
+  stripShebang(&source, &length);
   jerry_value_t res =
       jerry_parse_function((const jerry_char_t*)name, name_len,
                            (const jerry_char_t*)args, strlen(args),
@@ -150,7 +185,8 @@ static jerry_value_t wait_for_source_callback(
 
   jerry_debugger_stop();
 
-  return WrapEval(filename, resource_name_size, iotjs_string_data(&source),
+  return WrapEval(filename, resource_name_size,
+                  (char*)iotjs_string_data(&source),
                   iotjs_string_size(&source));
 }
 
@@ -196,8 +232,8 @@ JS_FUNCTION(CompileModule) {
     jres = jerry_exec_snapshot_at((const void*)iotjs_js_modules_s,
                                   iotjs_js_modules_l, js_modules[i].idx, false);
 #else
-    jres = WrapEval(name, iotjs_string_size(&id),
-                    (const char*)js_modules[i].code, js_modules[i].length);
+    jres = WrapEval(name, iotjs_string_size(&id), (char*)js_modules[i].code,
+                    js_modules[i].length);
 #endif
 
     if (!jerry_value_has_error_flag(jres)) {
