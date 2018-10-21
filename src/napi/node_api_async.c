@@ -98,7 +98,7 @@ napi_status napi_delete_async_work(napi_env env, napi_async_work work) {
   NAPI_TRY_ENV(env);
   uv_work_t* work_req = (uv_work_t*)work;
   iotjs_async_work_t* async_work = (iotjs_async_work_t*)work_req->data;
-  free(async_work);
+  IOTJS_RELEASE(async_work);
   NAPI_RETURN(napi_ok);
 }
 
