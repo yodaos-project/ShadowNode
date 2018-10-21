@@ -801,11 +801,11 @@ jerry_value_is_undefined (const jerry_value_t value) /**< api value */
  *         false - otherwise.
  */
 bool
-jerry_value_strict_equal(const jerry_value_t lhs, const jerry_value_t rhs)
+jerry_value_strict_equal (const jerry_value_t lhs, const jerry_value_t rhs)
 {
-  jerry_assert_api_available();
+  jerry_assert_api_available ();
 
-  return ecma_op_strict_equality_compare(lhs, rhs);
+  return ecma_op_strict_equality_compare (lhs, rhs);
 }
 
 
@@ -818,7 +818,7 @@ jerry_value_strict_equal(const jerry_value_t lhs, const jerry_value_t rhs)
 bool
 jerry_value_instanceof (const jerry_value_t value, const jerry_value_t proto)
 {
-  jerry_assert_api_available();
+  jerry_assert_api_available ();
 
   ecma_value_t ret = ecma_op_object_has_instance (ecma_get_object_from_value (proto), value);
   return ecma_is_value_true (ret);
