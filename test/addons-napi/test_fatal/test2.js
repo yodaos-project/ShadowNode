@@ -1,5 +1,5 @@
 'use strict';
-
+var common = require('../../common');
 var assert = require('assert');
 var child_process = require('child_process');
 var test_fatal = require(`./build/Release/test_fatal.node`);

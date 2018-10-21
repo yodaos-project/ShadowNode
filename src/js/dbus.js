@@ -1,7 +1,6 @@
 'use strict';
 
 var fs = require('fs');
-var sax = require('sax');
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var DBus = native.DBus;
@@ -9,6 +8,8 @@ var DBUS_TYPES = {
   'system': 0,
   'session': 1,
 };
+
+var _busInstance = null;
 
 function initEnv() {
   try {
@@ -41,7 +42,7 @@ function convertData2Array(data) {
  */
 function Bus(name) {
   EventEmitter.call(this);
-  this.name = name;
+  this.name = name || 'session';
   this.dbus = new DBus();
   this.dbus.getBus(DBUS_TYPES[this.name]);
   this.dbus.setSignalHandler(this.handleSignal.bind(this));
@@ -137,9 +138,9 @@ Bus.prototype.addSignalFilter = function(sender, objectPath,
     interfaceName + '\',path=\'' +
     objectPath + '\'';
   this.dbus.addSignalFilter(rule);
-  process.nextTick(function() {
-    if (typeof callback === 'function') callback();
-  });
+  if (typeof callback === 'function') {
+    process.nextTick(callback);
+  }
 };
 
 /**
@@ -151,13 +152,21 @@ Bus.prototype.reconnect = function() {
 };
 
 /**
+ * Destroy the current bus instance
+ */
+Bus.prototype.destroy = function() {
+  this.dbus.releaseBus();
+  _busInstance = false;
+};
+
+/**
  * parse xml to json
  */
 function xml2js(buf) {
   var json = {};
   var curr = json;
   var history = [];
-  var parser = sax.parser(true);
+  var parser = require('sax').parser(true);
   parser.onopentag = function(node) {
     if (!Array.isArray(curr)) {
       curr[node.name] = {
@@ -194,7 +203,7 @@ Bus.prototype.introspect = function(serviceName, objectPath, callback) {
       interfaces: {}
     };
     if (!text)
-      throw new Error('no introspectable found');
+      return callback(new Error('no introspectable found'));
 
     var json = xml2js(text).node;
     object.path = json.attributes.name;
@@ -265,6 +274,11 @@ Bus.prototype.getService = function(name) {
  * @param {String} name
  */
 function Service(bus, name) {
+  Object.defineProperty(this, '_bus', {
+    value: bus,
+    writable: false,
+    enumerable: false,
+  });
   this._dbus = bus.dbus;
   this._dbus.setMessageHandler(this.handleMessage.bind(this));
   this._dbus.requestName(name);
@@ -457,9 +471,9 @@ ServiceInterface.prototype.addMethod = function(name, opts, handler) {
 /**
  * @method addProperty
  */
-ServiceInterface.prototype.addProperty = function() {
-  // TODO no supported
-};
+// ServiceInterface.prototype.addProperty = function() {
+//   NOT IMPLEMENTED
+// };
 
 /**
  * @method addSignal
@@ -479,7 +493,7 @@ ServiceInterface.prototype.emit = function(name, val) {
   var iface = this._name;
   var signal = this._signals[name];
   if (!signal) {
-    throw new Error('signal ' + name + ' are not found.');
+    throw new Error(`signal ${name} are not found.`);
   }
   var types = signal.opts.types || [];
   // TODO(Yorkie): only support 1 argument for signal
@@ -490,9 +504,9 @@ ServiceInterface.prototype.emit = function(name, val) {
 /**
  * @method update
  */
-ServiceInterface.prototype.update = function() {
-  // Do nothing, just for comp.
-};
+ServiceInterface.prototype.update = util.deprecate(function() {
+  // Nothing to do
+}, 'update is deprecated, please remove this call.');
 
 /**
  * @module dbus
@@ -500,7 +514,13 @@ ServiceInterface.prototype.update = function() {
  * @param {String} name
  */
 function getBus(name) {
-  return new Bus(name);
+  if (_busInstance === false) {
+    throw new Error('dbus connection has been destroyed');
+  }
+  if (_busInstance === null) {
+    _busInstance = new Bus(name);
+  }
+  return _busInstance;
 }
 
 /**
@@ -510,8 +530,7 @@ function getBus(name) {
  * @param {String} service
  */
 function registerService(name, service) {
-  var bus = new Bus(name);
-  return bus.getService(service);
+  return getBus(name).getService(service);
 }
 
 /**
@@ -522,10 +541,16 @@ function registerService(name, service) {
 exports.Define = function(type) {
   if (type === String) {
     return 's';
-  } else if (type === 'Number') {
-    return 'i';
+  } else if (type === Number) {
+    return 'd';
+  } else if (type === Boolean) {
+    return 'b';
+  } else if (type === Array) {
+    return 'av';
+  } else if (type === Object) {
+    return 'a{sv}';
   } else {
-    return type;
+    return 'v';
   }
 };
 

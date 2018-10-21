@@ -1,7 +1,7 @@
 'use strict';
 // Flags: --expose-gc
 
-
+var common = require('../../common');
 var assert = require('assert');
 var addon = require(`./build/Release/binding.node`);
 

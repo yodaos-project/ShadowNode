@@ -111,6 +111,7 @@ JS_FUNCTION(GetInterfaceAddresses) {
     jerry_set_property_by_index(addrs, i, addr);
     jerry_release_value(addr);
   }
+  uv_free_interface_addresses(interfaces, (int)count);
   return addrs;
 }
 

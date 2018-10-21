@@ -1,4 +1,4 @@
-/* Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+/* Copyright 2017-present Samsung Electronics Co., Ltd. and other contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,28 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 var assert = require('assert');
 
-function foo() {
-}
+var jsonObj = {foo : 'http://www.slash.escape'};
+var jsonString = '{\"foo\":\"http:\\/\\/www.slash.escape\"}';
+var jsonStringify = JSON.stringify(jsonObj);
 
-assert.equal(foo.name, "foo");
-
-var var1 = function foo1() {
-}
-
-assert.equal(var1.name, "foo1");
-
-var foobar = {};
-foobar.foo3 = foo5;
-foobar.foo4 = foo5;
-function foo5() {
-}
-
-assert.equal(foo5.name, "foo5");
-
-var var2 = () => false;
-
-/* arrow function name not supported */
-assert.equal(var2.name, undefined);
+assert(jsonStringify === jsonString);

@@ -1,5 +1,5 @@
 'use strict';
-
+var common = require('../../common');
 var assert = require('assert');
 
 var test_globals = require(`./build/Release/test_general.node`);

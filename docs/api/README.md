@@ -4,6 +4,7 @@
 
 * [Assert](Assert.md)
 * [Buffer](Buffer.md)
+* [C/C++ Addon API](N-API.md)
 * [Child Process](Child-Process.md)
 * [Crypto](Crypto.md)
 * [DNS](DNS.md)

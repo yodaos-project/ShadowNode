@@ -1,6 +1,6 @@
 'use strict';
 
-
+var common = require('../../common');
 var assert = require('assert');
 var async_hooks = require('async_hooks');
 var binding = require(`./build/Release/binding.node`);

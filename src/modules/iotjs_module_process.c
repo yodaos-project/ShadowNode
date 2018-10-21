@@ -105,6 +105,7 @@ JS_FUNCTION(Compile) {
 
   jerry_value_t jres = WrapEval(filename, strlen(filename), source, size);
   iotjs_string_destroy(&path);
+  iotjs_buffer_release(source);
   return jres;
 }
 
@@ -445,6 +446,10 @@ JS_FUNCTION(OpenNativeModule) {
 #ifdef ENABLE_NAPI
   int status = napi_module_init_pending(&exports);
   if (status == napi_module_load_ok) {
+    return exports;
+  }
+  if (status == napi_pending_exception) {
+    /** exports is an error reference */
     return exports;
   }
   if (status == napi_module_no_nm_register_func) {

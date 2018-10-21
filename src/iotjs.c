@@ -142,6 +142,10 @@ static int iotjs_start(iotjs_environment_t* env) {
   // Set running state.
   iotjs_environment_go_state_running_main(env);
 
+#ifdef ENABLE_NAPI
+  iotjs_setup_napi();
+#endif
+
   // Load and call iotjs.js.
   iotjs_run(env);
 

@@ -32,9 +32,14 @@ inline napi_env iotjs_get_current_napi_env() {
   return (napi_env)&current_env;
 }
 
-inline bool iotjs_napi_is_exception_pending(iotjs_napi_env_t* env) {
-  return !(env->pending_exception == NULL &&
-           env->pending_fatal_exception == NULL);
+inline uv_thread_t* iotjs_get_napi_env_thread(napi_env env) {
+  return &((iotjs_napi_env_t*)env)->main_thread;
+}
+
+inline bool iotjs_napi_is_exception_pending(napi_env env) {
+  iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
+  return !(curr_env->pending_exception == NULL &&
+           curr_env->pending_fatal_exception == NULL);
 }
 
 inline void iotjs_napi_set_current_callback(
@@ -95,7 +100,7 @@ jerry_value_t iotjs_napi_env_get_and_clear_fatal_exception(napi_env env) {
 napi_status napi_throw(napi_env env, napi_value error) {
   NAPI_TRY_ENV(env);
   iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
-  NAPI_TRY_NO_PENDING_EXCEPTION(curr_env);
+  NAPI_TRY_NO_PENDING_EXCEPTION(env);
 
   jerry_value_t jval_err = AS_JERRY_VALUE(error);
   /**
@@ -159,7 +164,7 @@ napi_status napi_fatal_exception(napi_env env, napi_value err) {
 // Methods to support catching exceptions
 napi_status napi_is_exception_pending(napi_env env, bool* result) {
   NAPI_TRY_ENV(env);
-  NAPI_ASSIGN(result, iotjs_napi_is_exception_pending((iotjs_napi_env_t*)env));
+  NAPI_ASSIGN(result, iotjs_napi_is_exception_pending(env));
   /** should not clear last error info */
   return napi_ok;
 }
@@ -178,12 +183,15 @@ napi_status napi_get_and_clear_last_exception(napi_env env,
     curr_env->pending_fatal_exception = NULL;
   }
 
+  jerry_value_t jval_err = AS_JERRY_VALUE(error);
+  jerry_value_clear_error_flag(&jval_err);
+
   /**
    * the error object has been aquired on thrown, it has to be released
    * before returning
    */
-  jerry_release_value(AS_JERRY_VALUE(error));
-  NAPI_ASSIGN(result, error);
+  jerry_release_value(jval_err);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_err));
   /** should not clear last error info */
   return napi_ok;
 }

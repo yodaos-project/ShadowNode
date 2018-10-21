@@ -45,13 +45,15 @@ function MqttClient(endpoint, options) {
     resubscribe: true,
     protocolId: 'MQTT',
     protocolVersion: 4,
+    pingReqTimeout: 10 * 1000,
   }, options);
   this._isConnected = false;
   this._reconnecting = false;
   this._reconnectingTimer = null;
   this._lastConnectTime = 0;
   this._msgId = 0;
-  this._ttl = null;
+  this._keepAliveTimer = null;
+  this._keepAliveTimeout = null;
   this._handle = new native.MqttHandle(this._options);
 }
 util.inherits(MqttClient, EventEmitter);
@@ -72,9 +74,10 @@ MqttClient.prototype.connect = function() {
     this._socket = net.connect(opts, this._onconnect.bind(this));
   }
   this._socket.on('data', this._ondata.bind(this));
-  this._socket.once('error', this._ondisconnect.bind(this));
-  this._socket.once('end', this._ondisconnect.bind(this));
+  this._socket.once('error', this._onerror.bind(this));
+  this._socket.once('end', this._onend.bind(this));
   this._lastConnectTime = Date.now();
+  this._lastChunk = null;
   return this;
 };
 
@@ -94,17 +97,16 @@ MqttClient.prototype._onconnect = function() {
 };
 
 MqttClient.prototype._onerror = function(err) {
-  this._ondisconnect(err);
-};
-
-MqttClient.prototype._onend = function() {
+  this.emit('error', err);
   this._ondisconnect();
 };
 
-MqttClient.prototype._ondisconnect = function(err) {
-  if (err) {
-    this.emit('error', err);
-  }
+MqttClient.prototype._onend = function() {
+  this._clearKeepAlive();
+  this._ondisconnect();
+};
+
+MqttClient.prototype._ondisconnect = function() {
   if (this._isConnected) {
     this._isConnected = false;
     this.emit('offline');
@@ -113,6 +115,11 @@ MqttClient.prototype._ondisconnect = function(err) {
 };
 
 MqttClient.prototype._ondata = function(chunk) {
+  // one packet in multi chunks
+  if (this._lastChunk) {
+    chunk = Buffer.concat([this._lastChunk, chunk]);
+    this._lastChunk = null;
+  }
   var res;
   try {
     res = this._handle._readPacket(chunk);
@@ -134,21 +141,35 @@ MqttClient.prototype._ondata = function(chunk) {
   } else if (res.type === MQTT_PUBLISH) {
     var msg;
     try {
-      msg = this._handle._deserialize(res.buffer);
+      msg = this._handle._deserialize(chunk);
     } catch (err) {
       this.disconnect(err);
       return;
     }
-    this.emit('message', msg.topic, msg.payload);
-    if (msg.qos > 0) {
-      // send publish ack
-      try {
-        var ack = this._handle._getAck(msg.id, msg.qos);
-        this._write(ack);
-      } catch (err) {
-        this.disconnect(err);
+    if (msg.payloadMissingSize > 0) {
+      this._lastChunk = chunk;
+    } else {
+      this.emit('message', msg.topic, msg.payload);
+      if (msg.qos > 0) {
+        // send publish ack
+        try {
+          var ack = this._handle._getAck(msg.id, msg.qos);
+          this._write(ack);
+        } catch (err) {
+          this.disconnect(err);
+          return;
+        }
+      }
+      // multi packets in one chunk
+      if (msg.payloadMissingSize < 0) {
+        var end = chunk.byteLength;
+        var start = end + msg.payloadMissingSize;
+        var leftChunk = chunk.slice(start, end);
+        this._ondata(leftChunk);
       }
     }
+  } else if (res.type === MQTT_PINGRESP) {
+    this._onKeepAlive();
   } else {
     // FIXME handle other message type
     this.emit('unhandledMessage', res);
@@ -177,14 +198,32 @@ MqttClient.prototype._write = function(buffer, callback) {
  * @method _keepAlive
  */
 MqttClient.prototype._keepAlive = function() {
-  try {
-    var buf = this._handle._getPingReq();
-    this._write(buf);
-  } catch (err) {
-    this.emit('error', err);
-    return;
-  }
-  this._ttl = setTimeout(this._keepAlive.bind(this), this._options.keepalive);
+  var self = this;
+  self._keepAliveTimer = setTimeout(function() {
+    try {
+      var buf = self._handle._getPingReq();
+      self._write(buf);
+    } catch (err) {
+      err.message = 'Keepalive Write Error:' + err.message;
+      self.disconnect(err);
+      return;
+    }
+    self._keepAliveTimeout = setTimeout(function() {
+      self.disconnect(new Error('keepalive timeout'));
+    }, self._options.pingReqTimeout);
+  }, self._options.keepalive);
+};
+
+MqttClient.prototype._onKeepAlive = function() {
+  clearTimeout(this._keepAliveTimeout);
+  this._keepAlive();
+};
+
+MqttClient.prototype._clearKeepAlive = function() {
+  clearTimeout(this._keepAliveTimer);
+  clearTimeout(this._keepAliveTimeout);
+  this._keepAliveTimer = null;
+  this._keepAliveTimeout = null;
 };
 
 MqttClient.prototype.disconnect = function(err) {
@@ -194,7 +233,8 @@ MqttClient.prototype.disconnect = function(err) {
   if (!this._isConnected) {
     return;
   }
-  clearTimeout(this._ttl);
+
+  this._clearKeepAlive();
   clearTimeout(this._reconnectingTimer);
   try {
     var buf = this._handle._getDisconnect();

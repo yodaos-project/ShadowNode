@@ -1,6 +1,6 @@
 'use strict';
 
-
+var common = require('../../common');
 var test_error = require(`./build/Release/test_error.node`);
 var assert = require('assert');
 var theError = new Error('Some error');

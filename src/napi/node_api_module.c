@@ -59,5 +59,16 @@ int napi_module_init_pending(jerry_value_t* exports) {
   jerryx_close_handle_scope(scope);
 
   mod_pending = NULL;
+
+  if (iotjs_napi_is_exception_pending(env)) {
+    jerry_value_t jval_err;
+    jval_err = iotjs_napi_env_get_and_clear_exception(env);
+    if (jval_err == (uintptr_t)NULL) {
+      jval_err = iotjs_napi_env_get_and_clear_fatal_exception(env);
+    }
+    jerry_release_value(jval_exports);
+    *exports = jval_err;
+    return napi_pending_exception;
+  }
   return napi_module_load_ok;
 }
