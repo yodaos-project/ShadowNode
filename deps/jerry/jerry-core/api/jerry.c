@@ -816,12 +816,12 @@ jerry_value_strict_equal(const jerry_value_t lhs, const jerry_value_t rhs)
  *         false - otherwise.
  */
 bool
-jerry_value_instanceof(const jerry_value_t value, const jerry_value_t proto)
+jerry_value_instanceof (const jerry_value_t value, const jerry_value_t proto)
 {
   jerry_assert_api_available();
 
-  ecma_value_t ret = ecma_op_object_has_instance(ecma_get_object_from_value(proto), value);
-  return ecma_is_value_true(ret);
+  ecma_value_t ret = ecma_op_object_has_instance (ecma_get_object_from_value (proto), value);
+  return ecma_is_value_true (ret);
 }
 
 /**

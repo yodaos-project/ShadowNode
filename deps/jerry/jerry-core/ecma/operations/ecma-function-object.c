@@ -911,8 +911,7 @@ ecma_op_function_try_to_lazy_instantiate_property (ecma_object_t *object_p, /**<
 /**
  * Create specification defined non-configurable properties for external functions.
  *
- * See also:
- *          ECMA-262 v5, 15.3.4.5
+ * There is no spec for external function, follow normal function behaviors.
  *
  * @return pointer property, if one was instantiated,
  *         NULL - otherwise.
@@ -925,6 +924,23 @@ ecma_op_external_function_try_to_lazy_instantiate_property (ecma_object_t *objec
 
   if (ecma_compare_ecma_string_to_magic_id (property_name_p, LIT_MAGIC_STRING_PROTOTYPE))
   {
+    /* ECMA-262 v5, 13.2, 16-18 */
+
+    /* 16. */
+    ecma_object_t *proto_object_p = ecma_op_create_object_object_noarg ();
+
+    /* 17. */
+    ecma_string_t *magic_string_constructor_p = ecma_get_magic_string (LIT_MAGIC_STRING_CONSTRUCTOR);
+
+    ecma_property_value_t *constructor_prop_value_p;
+    constructor_prop_value_p = ecma_create_named_data_property (proto_object_p,
+                                                                magic_string_constructor_p,
+                                                                ECMA_PROPERTY_CONFIGURABLE_WRITABLE,
+                                                                NULL);
+
+    constructor_prop_value_p->value = ecma_make_object_value (object_p);
+
+    /* 18. */
     ecma_property_t *prototype_prop_p;
     ecma_property_value_t *prototype_prop_value_p;
     prototype_prop_value_p = ecma_create_named_data_property (object_p,
@@ -932,7 +948,8 @@ ecma_op_external_function_try_to_lazy_instantiate_property (ecma_object_t *objec
                                                               ECMA_PROPERTY_FLAG_WRITABLE,
                                                               &prototype_prop_p);
 
-    prototype_prop_value_p->value = ECMA_VALUE_UNDEFINED;
+    prototype_prop_value_p->value = ecma_make_object_value (proto_object_p);
+    ecma_deref_object (proto_object_p);
     return prototype_prop_p;
   }
 
