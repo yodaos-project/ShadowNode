@@ -55,7 +55,7 @@ if(NOT DEFINED ENABLE_LTO)
 endif()
 
 if(NOT DEFINED DISABLE_ES2015)
-  set(FEATURE_PROFILE "es2015-subset")
+  set(FEATURE_PROFILE "ShadowNode")
 endif()
 
 if(FEATURE_CPU_PROFILER)
