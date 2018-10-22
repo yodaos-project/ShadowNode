@@ -24,6 +24,8 @@
  * Version 487e452.
  */
 
+/*eslint-disable */
+
 var STATE_PENDING = 0;
 var STATE_FULFILLED = 1;
 var STATE_REJECTED = 2;
