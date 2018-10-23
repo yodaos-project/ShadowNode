@@ -2,10 +2,12 @@
 
 var Pipe = require('pipe_wrap').Pipe;
 var EventEmitter = require('events').EventEmitter;
-var StringDecoder = require('string_decoder').StringDecoder;
 var util = require('util');
 var net = require('net');
-var SIGNAL_NO = require('constants').os.signals;
+var constants = require('constants');
+var SIGNAL_NO = constants.os.signals;
+var INTERNAL_IPC_HEADER_SIZE = constants.INTERNAL_IPC_HEADER_SIZE;
+var INTERNAL_IPC_PAYLOAD_MAX_SIZE = constants.INTERNAL_IPC_PAYLOAD_MAX_SIZE;
 
 function signalName(code) {
   if (!code)
@@ -456,29 +458,6 @@ Control.prototype.unref = function() {
   }
 };
 
-var handleConversion = {
-  'net.Native': {
-    simultaneousAccepts: true,
-
-    send: function(message, handle, options) {
-      return handle;
-    },
-
-    got: function(message, handle, emit) {
-      emit(handle);
-    }
-  },
-};
-
-var INTERNAL_PREFIX = 'NODE_';
-function isInternal(message) {
-  return (message !== null &&
-          typeof message === 'object' &&
-          typeof message.cmd === 'string' &&
-          message.cmd.length > INTERNAL_PREFIX.length &&
-          message.cmd.slice(0, INTERNAL_PREFIX.length) === INTERNAL_PREFIX);
-}
-
 function setupChannel(target, channel) {
   target.channel = channel;
 
@@ -493,45 +472,45 @@ function setupChannel(target, channel) {
     enumerable: true
   });
 
-  target._handleQueue = null;
-  target._pendingMessage = null;
-
   var control = new Control(channel);
-  var decoder = new StringDecoder('utf8');
-  var jsonBuffer = '';
-  var pendingHandle = null;
+  var pendingBuffer = null;
   channel.buffering = false;
   channel.onread = function(socket, nread, isEOF, buffer) {
     if (nread > 0) {
-      var chunks = decoder.write(buffer).split('\n');
-      var numCompleteChunks = chunks.length - 1;
-      var incompleteChunk = chunks[numCompleteChunks];
-      if (numCompleteChunks === 0) {
-        jsonBuffer += incompleteChunk;
-        this.buffering = jsonBuffer.length !== 0;
+      var bufLength = buffer.byteLength;
+      if (pendingBuffer === null && bufLength < INTERNAL_IPC_HEADER_SIZE) {
+        // header is incomplete
+        pendingBuffer = buffer;
+        channel.buffering = true;
         return;
       }
-      chunks[0] = jsonBuffer + chunks[0];
-
-      for (var i = 0; i < numCompleteChunks; i++) {
-        var message = JSON.parse(chunks[i]);
-
-        // There will be at most one NODE_HANDLE message in every chunk we
-        // read because SCM_RIGHTS messages don't get coalesced. Make sure
-        // that we deliver the handle with the right message however.
-        if (isInternal(message)) {
-          if (message.cmd === 'NODE_HANDLE') {
-            handleMessage(message, pendingHandle, true);
-            pendingHandle = null;
-          } else {
-            handleMessage(message, undefined, true);
-          }
-        } else {
-          handleMessage(message, undefined, false);
-        }
+      if (pendingBuffer) {
+        pendingBuffer = Buffer.concat([pendingBuffer, buffer]);
+        bufLength = pendingBuffer.byteLength;
+      } else {
+        pendingBuffer = buffer;
       }
-      jsonBuffer = incompleteChunk;
-      this.buffering = jsonBuffer.length !== 0;
+      var offset = 0;
+      while (offset < bufLength) {
+        var dataSize = pendingBuffer.readInt32BE(offset);
+        var dataOffset = INTERNAL_IPC_HEADER_SIZE + dataSize;
+        // message is incomplete
+        if (bufLength < dataOffset) {
+          break;
+        }
+        var data = pendingBuffer.slice(INTERNAL_IPC_HEADER_SIZE, dataOffset);
+        offset = dataOffset;
+        handleMessage(data.toString(), undefined);
+      }
+      if (offset >= bufLength) {
+        // message is full of packet
+        pendingBuffer = null;
+        channel.buffering = false;
+      } else if (offset > 0) {
+        // sticky packet
+        pendingBuffer = pendingBuffer.slice(offset, bufLength);
+        channel.buffering = true;
+      }
     } else {
       this.buffering = false;
       target.disconnect();
@@ -545,12 +524,6 @@ function setupChannel(target, channel) {
 
   // object where socket lists will live
   channel.sockets = { got: {}, send: {} };
-
-  // handlers will go through this
-  target.on('internalMessage', function(message, handle) {
-    // TODO
-    console.log('need handle internal message!');
-  });
 
   target.send = function(message, handle, options, callback) {
     if (typeof handle === 'function') {
@@ -589,59 +562,31 @@ function setupChannel(target, channel) {
     if (typeof options === 'boolean') {
       options = { swallowErrors: options };
     }
-
-    // package messages with a handle object
-    if (handle) {
-      // this message will be handled by an internalMessage event handler
-      message = {
-        cmd: 'NODE_HANDLE',
-        type: 'net.Native',
-        msg: message
-      };
-      // Queue-up message and handle if we haven't received ACK yet.
-      if (this._handleQueue) {
-        this._handleQueue.push({
-          callback: callback,
-          handle: handle,
-          options: options,
-          message: message.msg,
-        });
-        return this._handleQueue.length === 1;
+    if (typeof message === 'object') {
+      message = JSON.stringify(message);
+    } else if (typeof message !== 'string') {
+      if (message.toString) {
+        message = message.toString();
+      } else {
+        callback(new Error('ERR_MESSAGE_INVALID'));
+        return false;
       }
-
-      // var obj = handleConversion[message.type];
-      // convert TCP object to native handle object
-      handle = handleConversion[message.type].send.call(target,
-                                                        message,
-                                                        handle,
-                                                        options);
-
-      // If handle was sent twice, or it is impossible to get native handle
-      // out of it - just send a text without the handle.
-      if (!handle)
-        message = message.msg;
-    } else if (this._handleQueue &&
-               !(message && (message.cmd === 'NODE_HANDLE_ACK' ||
-                             message.cmd === 'NODE_HANDLE_NACK'))) {
-      // Queue request anyway to avoid out-of-order messages.
-      this._handleQueue.push({
-        callback: callback,
-        handle: null,
-        options: options,
-        message: message,
-      });
-      return this._handleQueue.length === 1;
     }
-
-    var string = JSON.stringify(message) + '\n';
-    var err = channel.writeUtf8String(string, callback);
-
-    if (err === 0 && handle) {
-      if (!this._handleQueue)
-        this._handleQueue = [];
+    var dataBuf = new Buffer(message);
+    if (dataBuf.byteLength > INTERNAL_IPC_PAYLOAD_MAX_SIZE) {
+      callback(new Error('ERR_MESSAGE_TOO_LARGE'));
+      return false;
     }
-    /* If the master is > 2 read() calls behind, please stop sending. */
-    return channel.writeQueueSize < (65536 * 2);
+    var sizeBuf = new Buffer(INTERNAL_IPC_HEADER_SIZE);
+    sizeBuf.writeInt32BE(dataBuf.byteLength);
+    channel.write(sizeBuf, function(err) {
+      if (err) {
+        callback(err);
+      } else {
+        channel.write(dataBuf, callback);
+      }
+    });
+    return true;
   };
 
   // connected will be set to false immediately when a disconnect() is
@@ -664,21 +609,12 @@ function setupChannel(target, channel) {
     // Do not allow any new messages to be written.
     this.connected = false;
 
-    // If there are no queued messages, disconnect immediately. Otherwise,
-    // postpone the disconnect so that it happens internally after the
-    // queue is flushed.
-    if (!this._handleQueue)
-      this._disconnect();
+    this._disconnect();
   };
 
   target._disconnect = function() {
     // This marks the fact that the channel is actually disconnected.
     this.channel = null;
-
-    if (this._pendingMessage) {
-      // TODO(Yorkie): implement the following function
-      // closePendingHandle(this);
-    }
 
     var fired = false;
     function finish() {
@@ -692,7 +628,6 @@ function setupChannel(target, channel) {
     // If a message is being read, then wait for it to complete.
     if (channel.buffering) {
       this.once('message', finish);
-      this.once('internalMessage', finish);
 
       return;
     }
@@ -704,11 +639,10 @@ function setupChannel(target, channel) {
     target.emit(event, message, handle);
   }
 
-  function handleMessage(message, handle, internal) {
+  function handleMessage(message, handle) {
     if (!target.channel)
       return;
-    var eventName = (internal ? 'internalMessage' : 'message');
-    process.nextTick(emit, eventName, message, handle);
+    process.nextTick(emit, 'message', message, handle);
   }
 
   channel.readStart();
