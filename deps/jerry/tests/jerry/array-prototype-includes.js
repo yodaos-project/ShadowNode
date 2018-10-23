@@ -1,14 +1,6 @@
-(function() {
-  console.log([].includes.call(arguments, 'a')); // true
-  console.log([].includes.call(arguments, 'd')); // false
-})('a','b','c');
+var assert = require('assert')
 
-// 数组长度是3
-// fromIndex 是 -100
-// computed index 是 3 + (-100) = -97
+var sample = [7, 7, 7, 7];
 
-var arr = ['a', 'b', 'c'];
-
-console.log(arr.includes('a', -100)); // true
-console.log(arr.includes('b', -100)); // true
-console.log(arr.includes('c', -100)); // true
+assert.sameValue(sample.includes(7, 4), false, "length");
+assert.sameValue(sample.includes(7, 5), false, "length + 1");
