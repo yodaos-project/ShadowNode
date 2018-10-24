@@ -1,6 +1,6 @@
 {
   "name": "ShadowNode",
-  "version": "0.10.10",
+  "version": "0.10.11",
   "description": "Use Node.js in your embeddable devices",
   "scripts": {
     "lint": "tools/check_tidy.py && eslint .",
