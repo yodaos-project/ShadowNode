@@ -8,11 +8,14 @@ var name = process.send ? 'child' : 'parent'
 var equalTimes = 0;
 function equalData(msg) {
   if (typeof msg === 'object') {
-    msg = JSON.stringify(msg);
+    console.log('stringify msg')
+    assert.equal(JSON.stringify(msg).length, JSON.stringify(data).length);
+  } else {
+    console.log('string')
+    assert.equal(msg.length, dataStr.length)
   }
   ++equalTimes;
   console.log(name, 'equal data', equalTimes)
-  assert.equal(dataStr.length, msg.length);
 }
 
 var obj = null;

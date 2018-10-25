@@ -479,44 +479,61 @@ function setupChannel(target, channel) {
   });
 
   var control = new Control(channel);
-  var pendingBuffer = null;
+  var name
+  process.nextTick(() => {
+    name = process.send ? 'child' : 'parent'
+  })
+  channel.pendingBuffer = null;
   channel.buffering = false;
   channel.onread = function(socket, nread, isEOF, buffer) {
     if (nread > 0) {
-      if (pendingBuffer) {
-        pendingBuffer = Buffer.concat([pendingBuffer, buffer]);
+    var r = parseInt(Date.now())
+    require('fs').writeFileSync(`/Users/qile222/Desktop/receive-${name}0-${r}.txt`, buffer)
+      console.log(name, 'received', buffer, buffer.byteLength, channel.pendingBuffer && channel.pendingBuffer.byteLength)
+      if (channel.pendingBuffer) {
+        channel.pendingBuffer = Buffer.concat([channel.pendingBuffer, buffer]);
       } else {
-        pendingBuffer = buffer;
+        channel.pendingBuffer = buffer;
       }
-      var bufLength = pendingBuffer.byteLength;
+      console.log(name, 'total', channel.pendingBuffer.byteLength)
+    require('fs').writeFileSync(`/Users/qile222/Desktop/receive-${name}1-${r}.txt`, channel.pendingBuffer)
+      var bufLength = channel.pendingBuffer.byteLength;
       var headerOffset = 0;
-      console.log('received', buffer.byteLength, bufLength)
-      while (headerOffset < bufLength) {
-        var dataSize = pendingBuffer.readInt32BE(headerOffset);
+      while (bufLength - headerOffset >= INTERNAL_IPC_HEADER_SIZE) {
+        var dataSize = channel.pendingBuffer.readInt32BE(headerOffset);
         var typeOffset = headerOffset + INTERNAL_IPC_HEADER_LENGTH_SIZE;
-        var dataType = pendingBuffer.readInt32BE(typeOffset);
-        var dataOffset = headerOffset + INTERNAL_IPC_HEADER_SIZE;
-        var dataEnd = dataOffset + dataSize;
+        var dataType = channel.pendingBuffer.readInt32BE(typeOffset);
+        var dataBegin = headerOffset + INTERNAL_IPC_HEADER_SIZE;
+        var dataEnd = dataBegin + dataSize;
+        console.log(name, 'while', bufLength, dataBegin, dataEnd, dataType, dataSize, headerOffset)
         if (bufLength < dataEnd) {
           // package is a incomplete message
-          console.log('package is incomplete', bufLength, dataEnd)
+          console.log(name, 'package is incomplete')
           break;
         }
         headerOffset = dataEnd;
-        var message = pendingBuffer.toString(dataOffset, dataEnd);
-        if (dataType === INTERNAL_IPC_MESSAGE_TYPE.OBJECT) {
-          message = JSON.parse(message);
+        try {
+          var message = channel.pendingBuffer.toString(dataBegin, dataEnd);
+          if (dataType === INTERNAL_IPC_MESSAGE_TYPE.OBJECT) {
+            message = JSON.parse(message);
+          }
+          console.log(name, 'handled, left', dataBegin, dataEnd, headerOffset)
+          handleMessage(message, undefined);
+        } catch (err) {
+          // require('fs').writeFileSync('/Users/qile222/Desktop/tmp.txt', channel.pendingBuffer.slice(dataBegin, dataEnd))
+          throw err
         }
-        console.log('handled, left', dataEnd, bufLength - headerOffset)
-        handleMessage(message, undefined);
       }
+      console.log(name, 'finished', headerOffset, bufLength)
       if (headerOffset === bufLength) {
         // a packet is a complete message
-        pendingBuffer = null;
+        channel.pendingBuffer = null;
         channel.buffering = false;
+        console.log(name, 'complete message', headerOffset, channel.pendingBuffer)
       } else {
         // sticky packet, pending left buffer
-        pendingBuffer = pendingBuffer.slice(headerOffset, bufLength);
+        channel.pendingBuffer = channel.pendingBuffer.slice(headerOffset, bufLength);
+        console.log(name, 'pending', channel.pendingBuffer.byteLength)
         channel.buffering = true;
       }
     } else {
@@ -591,10 +608,12 @@ function setupChannel(target, channel) {
     }
     var dataByteLength = INTERNAL_IPC_HEADER_SIZE + messageByteLength;
     var buffer = Buffer.allocUnsafe(dataByteLength);
-    buffer.writeInt32BE(dataByteLength, 0);
+    buffer.writeInt32BE(messageByteLength, 0);
     buffer.writeInt32BE(messageType, INTERNAL_IPC_HEADER_LENGTH_SIZE);
     buffer.write(message, INTERNAL_IPC_HEADER_SIZE);
     channel.write(buffer, callback);
+    var r = parseInt(Date.now())
+    require('fs').writeFileSync(`/Users/qile222/Desktop/send-${name}-${r}.txt`, channel.pendingBuffer)
     console.log(process.send ? 'child' : 'parent', 'write', messageByteLength, dataByteLength);
     return true;
   };
