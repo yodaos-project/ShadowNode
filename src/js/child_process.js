@@ -6,8 +6,17 @@ var util = require('util');
 var net = require('net');
 var constants = require('constants');
 var SIGNAL_NO = constants.os.signals;
+var INTERNAL_IPC_HEADER_LENGTH_SIZE = constants.INTERNAL_IPC_HEADER_LENGTH_SIZE;
+var INTERNAL_IPC_HEADER_TYPE_SIZE = constants.INTERNAL_IPC_HEADER_TYPE_SIZE;
+var INTERNAL_IPC_HEADER_RESERVED_SIZE =
+  constants.INTERNAL_IPC_HEADER_RESERVED_SIZE;
 var INTERNAL_IPC_HEADER_SIZE = constants.INTERNAL_IPC_HEADER_SIZE;
 var INTERNAL_IPC_PAYLOAD_MAX_SIZE = constants.INTERNAL_IPC_PAYLOAD_MAX_SIZE;
+
+var INTERNAL_IPC_MESSAGE_TYPE = {
+  OBJECT: 1,
+  STRING: 2
+};
 
 function signalName(code) {
   if (!code)
@@ -490,26 +499,31 @@ function setupChannel(target, channel) {
       } else {
         pendingBuffer = buffer;
       }
-      var offset = 0;
-      while (offset < bufLength) {
-        var dataSize = pendingBuffer.readInt32BE(offset);
-        var dataBegin = offset + INTERNAL_IPC_HEADER_SIZE;
-        var dataEnd = dataBegin + dataSize;
-        // package is a incompelete message
+      var headerOffset = 0;
+      while (headerOffset < bufLength) {
+        var dataSize = pendingBuffer.readInt32BE(headerOffset);
+        var typeOffset = headerOffset + INTERNAL_IPC_HEADER_LENGTH_SIZE;
+        var dataType = pendingBuffer.readInt8(typeOffset);
+        var dataOffset = headerOffset + INTERNAL_IPC_HEADER_SIZE;
+        var dataEnd = dataOffset + dataSize;
         if (bufLength < dataEnd) {
+          // package is a incomplete message
           break;
         }
-        var data = pendingBuffer.slice(dataBegin, dataEnd);
-        offset = dataEnd;
-        handleMessage(data.toString(), undefined);
+        headerOffset = dataEnd;
+        var message = pendingBuffer.toString(dataOffset, dataEnd);
+        if (dataType === INTERNAL_IPC_MESSAGE_TYPE.OBJECT) {
+          message = JSON.parse(message);
+        }
+        handleMessage(message, undefined);
       }
-      if (offset >= bufLength) {
+      if (headerOffset === bufLength) {
         // a packet is a complete message
         pendingBuffer = null;
         channel.buffering = false;
       } else {
         // sticky packet, pending left buffer
-        pendingBuffer = pendingBuffer.slice(offset, bufLength);
+        pendingBuffer = pendingBuffer.slice(headerOffset, bufLength);
         channel.buffering = true;
       }
     } else {
@@ -541,21 +555,17 @@ function setupChannel(target, channel) {
 
     options = Object.assign({ swallowErrors: false }, options);
 
-    if (this.connected) {
-      return this._send(message, handle, options, callback);
+    if (!this.connected) {
+      var ex = new Error('ERR_IPC_CHANNEL_CLOSED');
+      if (typeof callback === 'function') {
+        process.nextTick(callback, ex);
+      } else {
+        process.nextTick(function() {
+          this.emit('error', ex);
+        }.bind(this));
+      }
+      return false;
     }
-    var ex = new Error('ERR_IPC_CHANNEL_CLOSED');
-    if (typeof callback === 'function') {
-      process.nextTick(callback, ex);
-    } else {
-      process.nextTick(function() {
-        this.emit('error', ex);
-      }.bind(this));
-    }
-    return false;
-  };
-
-  target._send = function(message, handle, options, callback) {
     if (message === undefined)
       throw new TypeError('ERR_MISSING_ARGS');
 
@@ -563,14 +573,22 @@ function setupChannel(target, channel) {
     if (typeof options === 'boolean') {
       options = { swallowErrors: options };
     }
+    var messageType;
     if (typeof message === 'object') {
-      message = JSON.stringify(message);
-    } else if (typeof message !== 'string') {
-      if (message.toString) {
-        message = message.toString();
-      } else {
-        callback(new Error('ERR_MESSAGE_INVALID'));
-        return false;
+      messageType = INTERNAL_IPC_MESSAGE_TYPE.OBJECT;
+      try {
+        message = JSON.stringify(message);
+      } catch (err) {
+        throw new Error('ERR_IPC_MESSAGE_SERIALIZE_ERROR');
+      }
+    } else {
+      messageType = INTERNAL_IPC_MESSAGE_TYPE.STRING;
+      if (typeof message !== 'string') {
+        if (message.toString) {
+          message = message.toString();
+        } else {
+          throw new Error('ERR_IPC_MESSAGE_TYPE_INVALID');
+        }
       }
     }
     var dataByteLength = Buffer.byteLength(message);
@@ -580,6 +598,7 @@ function setupChannel(target, channel) {
     }
     var buffer = Buffer.allocUnsafe(INTERNAL_IPC_HEADER_SIZE + dataByteLength);
     buffer.writeInt32BE(dataByteLength, 0);
+    buffer.writeInt8(messageType, INTERNAL_IPC_HEADER_LENGTH_SIZE);
     buffer.write(message, INTERNAL_IPC_HEADER_SIZE);
     channel.write(buffer, callback);
     return true;
