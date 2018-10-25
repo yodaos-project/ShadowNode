@@ -49,49 +49,65 @@
   var module = Module.require('module');
   var fs = Module.require('fs');
 
-  function loadDumpIfExists() {
-    var lines = [];
+  /**
+   * Dump Parser
+   */
+  function DumpParser() {
+    this.offset = 0;
+    this.lines = [];
+    this.table = {};
+  }
+
+  DumpParser.prototype.reload = function load() {
+    var oldOffset = this.offset;
     try {
+      var chunk = false
       var data = '';
-      var chunk;
-      var offset = 0;
       do {
-        chunk = process._readParserDump(offset);
-        offset += chunk.length;
+        chunk = process._readParserDump(this.offset);
+        if (chunk === false) {
+          break;
+        }
+        this.offset += chunk.length;
         data += chunk;
-      } while (chunk !== false);
+      } while (chunk !== false)
 
       lines = data.split('\n');
     } catch (err) {
       console.error(`occurrs unkwnown error when loading dump: ${err.message}`);
     }
-    return lines;
-  }
 
-  function makeStackTraceFromDump(frames) {
-    var lines = loadDumpIfExists();
-    var file = null;
-    var bcTable = {};
-    lines.forEach(function(line, index) {
+    // rebuild the table only if the offset is changed
+    if (this.offset > oldOffset) {
+      this.genTable();
+    }
+  };
+
+  DumpParser.prototype.genTable = function genTable() {
+    var file = null
+    this.lines.forEach(function onParseLine(line, idx) {
       if (/.*:/.test(line)) {
-        file = line.slice(0, -1);
-      } else {
-        var m = line.match(/(\+ ([a-zA-Z0-9_]*))?( \[(\d+),(\d+)\])? (\d+)/);
-        if (m) {
-          var cp = m[6];
-          bcTable[cp] = {
-            name: m[2] || 'anonymous',
-            line: m[4],
-            column: m[5],
-            source: file,
-          };
-        }
+        return file = line.slice(0, -1);
+      }
+      var m = line.match(/(\+ ([a-zA-Z0-9_]*))?( \[(\d+),(\d+)\])? (\d+)/);
+      if (m) {
+        var cp = m[6];
+        this.table[cp] = {
+          name: m[2] || 'anonymous',
+          line: m[4],
+          column: m[5],
+          source: file,
+        };
       }
     });
+  };
 
+  var dumpParser = new DumpParser();
+  function makeStackTraceFromDump(frames) {
+    dumpParser.reload();
     return frames
       .reduce((accu, curr) => {
-        var info = bcTable[curr];
+        var info = dumpParser.table[curr];
         if (info !== undefined) {
           accu.push(info);
         }
