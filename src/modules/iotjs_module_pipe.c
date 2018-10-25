@@ -170,9 +170,9 @@ JS_FUNCTION(PipeReadStart) {
 // }
 
 static void iotjs_pipe_after_write(uv_write_t* req, int status) {
-  iotjs_write_wrap* write_data = (iotjs_write_wrap*)req->data;
-  char* data = write_data->data;
-  jerry_value_t callback = write_data->callback;
+  iotjs_write_wrap* writer_wrap = (iotjs_write_wrap*)req->data;
+  char* data = writer_wrap->data;
+  jerry_value_t callback = writer_wrap->callback;
   if (jerry_value_is_function(callback)) {
     iotjs_jargs_t jargs = iotjs_jargs_create(1);
     if (status) {
@@ -184,9 +184,9 @@ static void iotjs_pipe_after_write(uv_write_t* req, int status) {
     iotjs_make_callback(callback, jerry_create_undefined(), &jargs);
     iotjs_jargs_destroy(&jargs);
   }
-  free(data);
+  IOTJS_RELEASE(data);
   jerry_release_value(callback);
-  IOTJS_RELEASE(write_data);
+  IOTJS_RELEASE(writer_wrap);
 }
 
 static jerry_value_t doPipeWrite(iotjs_pipewrap_t_impl_t* _this,
@@ -194,7 +194,7 @@ static jerry_value_t doPipeWrite(iotjs_pipewrap_t_impl_t* _this,
                                  jerry_value_t callback) {
   jerry_acquire_value(callback);
   iotjs_write_wrap* write_wrap = IOTJS_ALLOC(iotjs_write_wrap);
-  write_wrap->data = malloc(sizeof(char) * size);
+  write_wrap->data = iotjs_buffer_allocate(sizeof(char) * size);
   memcpy(write_wrap->data, data, size);
   write_wrap->callback = callback;
   write_wrap->req.data = write_wrap;
@@ -287,7 +287,7 @@ jerry_value_t InitPipe() {
   // iotjs_jval_set_method(proto, "connect", PipeConnect);
   iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_READSTART, PipeReadStart);
   iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_WRITE, Write);
-  iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_WRITE_UTF8_STRING,
+  iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_WRITEUTF8STRING,
                         WriteUtf8String);
   iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_CLOSE, PipeClose);
   iotjs_jval_set_method(proto, IOTJS_MAGIC_STRING_REF, PipeRef);
