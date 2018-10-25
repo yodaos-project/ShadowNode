@@ -408,21 +408,29 @@ jerry_parse (const jerry_char_t *resource_name_p, /**< resource name (usually a 
                                       is_strict,
                                       &bytecode_data_p);
 
-#ifdef JERRY_DEBUG_INFO
-  if (!ECMA_IS_VALUE_ERROR (parse_status))
-  {
-    bytecode_data_p->source = ecma_find_or_create_literal_string (resource_name_p,
-                                                                (lit_utf8_size_t) resource_name_length);
-  }
-#else /* !JERRY_DEBUG_INFO */
+#ifndef JERRY_DEBUG_INFO
   JERRY_UNUSED (resource_name_p);
   JERRY_UNUSED (resource_name_length);
-#endif /* JERRY_DEBUG_INFO */
+#endif /* !JERRY_DEBUG_INFO */
 
   if (ECMA_IS_VALUE_ERROR (parse_status))
   {
     return ecma_create_error_reference_from_context ();
   }
+#ifdef JERRY_DEBUG_INFO
+  else
+  {
+    if (resource_name_p && resource_name_length > 0)
+    {
+      bytecode_data_p->source = ecma_find_or_create_literal_string (resource_name_p,
+                                                                    (lit_utf8_size_t) resource_name_length);
+    }
+    else
+    {
+      bytecode_data_p->source = ECMA_VALUE_EMPTY;
+    }
+  }
+#endif /* JERRY_DEBUG_INFO */
 
   ecma_free_value (parse_status);
 

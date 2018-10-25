@@ -2157,8 +2157,14 @@ parser_parse_source (const jerry_char_t *resource_name_p, /**< resource name (us
 {
   parser_context_t context;
   ecma_compiled_code_t *compiled_code;
-
-  context.resource_name = ecma_find_or_create_literal_string (resource_name_p, (lit_utf8_size_t) resource_name_length);
+  if (resource_name_p && resource_name_length > 0)
+  {
+    context.resource_name = ecma_find_or_create_literal_string (resource_name_p, (lit_utf8_size_t) resource_name_length);
+  }
+  else
+  {
+    context.resource_name = ECMA_VALUE_EMPTY;
+  }
   context.error = PARSER_ERR_NO_ERROR;
   context.allocated_buffer_p = NULL;
 
