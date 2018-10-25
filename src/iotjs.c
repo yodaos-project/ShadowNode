@@ -76,7 +76,7 @@ static bool iotjs_jerry_initialize(iotjs_environment_t* env) {
 
   // Do parse and run to generate initial javascript environment.
   jerry_value_t parsed_code =
-    jerry_parse((jerry_char_t*)"", 0, (jerry_char_t*)"", 0, false);
+      jerry_parse((jerry_char_t*)"", 0, (jerry_char_t*)"", 0, false);
   if (jerry_value_has_error_flag(parsed_code)) {
     DLOG("jerry_parse() failed");
     jerry_release_value(parsed_code);
