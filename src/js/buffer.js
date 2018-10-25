@@ -334,6 +334,21 @@ Buffer.prototype.writeInt32LE = function(value, offset, noAssert) {
   return offset + 4;
 };
 
+// buff.writeInt32BE(value, offset[,noAssert])
+// [1] buff.writeInt32BE(value, offset)
+// [2] buff.writeInt32BE(value, offset, noAssert)
+Buffer.prototype.writeInt32BE = function(value, offset, noAssert) {
+  value = +value;
+  offset = offset >>> 0;
+  if (!noAssert)
+    checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
+  this._builtin.writeUInt8(value & 0xff, offset + 3);
+  this._builtin.writeUInt8((value >>> 8) & 0xff, offset + 2);
+  this._builtin.writeUInt8((value >>> 16) & 0xff, offset + 1);
+  this._builtin.writeUInt8((value >>> 24) & 0xff, offset);
+  return offset + 4;
+};
+
 
 // buff.readUInt8(offset[,noAssert])
 // [1] buff.readUInt8(offset)
@@ -397,6 +412,18 @@ Buffer.prototype.readInt32LE = function(offset, noAssert) {
          (this._builtin.readUInt8(offset + 3) << 24);
 };
 
+// buff.readInt32BE(offset[,noAssert])
+// [1] buff.readInt32BE(offset)
+// [2] buff.readInt32BE(offset, noAssert)
+Buffer.prototype.readInt32BE = function(offset, noAssert) {
+  offset = offset >>> 0;
+  if (!noAssert)
+    checkOffset(offset, 4, this.length);
+  return this._builtin.readUInt8(offset + 3) |
+         (this._builtin.readUInt8(offset + 2) << 8) |
+         (this._builtin.readUInt8(offset + 1) << 16) |
+         (this._builtin.readUInt8(offset) << 24);
+};
 
 // buff.readFloatLE(offset[,noAssert])
 // [1] buff.readFloatLE(offset)
