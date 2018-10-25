@@ -15,6 +15,7 @@
 from __future__ import print_function
 
 import subprocess
+from os import environ
 
 
 class Executor(object):
@@ -46,7 +47,7 @@ class Executor(object):
         if not quiet:
             Executor.print_cmd_line(cmd, args)
         try:
-            return subprocess.call([cmd] + args, cwd=cwd)
+            return subprocess.call([cmd] + args, cwd=cwd, env=environ)
         except OSError as e:
             Executor.fail("[Failed - %s] %s" % (cmd, e.strerror))
 
