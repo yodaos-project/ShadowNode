@@ -195,7 +195,6 @@ JS_FUNCTION(Write) {
   write_req->data = (void*)(uintptr_t)callback;
   uv_stream_t* handle = (uv_stream_t*)&_this->handle;
   uv_buf_t buf = uv_buf_init(chunk, size);
-  printf("%x, %x, %x, %x, %x, %x, %x, %x\n", chunk[0], chunk[1], chunk[2], chunk[3], chunk[4], chunk[5], chunk[6], chunk[7]);
   uv_write(write_req, handle, &buf, 1, iotjs_pipe_after_write);
 
   return jerry_create_undefined();

@@ -496,7 +496,6 @@ function setupChannel(target, channel) {
         channel.pendingBuffer = buffer;
       }
       console.log(name, 'total', channel.pendingBuffer.byteLength)
-    require('fs').writeFileSync(`/Users/qile222/Desktop/receive-${name}1-${r}.txt`, channel.pendingBuffer)
       var bufLength = channel.pendingBuffer.byteLength;
       var headerOffset = 0;
       while (bufLength - headerOffset >= INTERNAL_IPC_HEADER_SIZE) {
@@ -612,9 +611,6 @@ function setupChannel(target, channel) {
     buffer.writeInt32BE(messageType, INTERNAL_IPC_HEADER_LENGTH_SIZE);
     buffer.write(message, INTERNAL_IPC_HEADER_SIZE);
     channel.write(buffer, callback);
-    var r = parseInt(Date.now())
-    require('fs').writeFileSync(`/Users/qile222/Desktop/send-${name}-${r}.txt`, channel.pendingBuffer)
-    console.log(process.send ? 'child' : 'parent', 'write', messageByteLength, dataByteLength);
     return true;
   };
 
