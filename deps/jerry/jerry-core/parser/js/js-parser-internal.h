@@ -436,6 +436,8 @@ bool lexer_construct_number_object (parser_context_t *context_p, bool push_numbe
 uint16_t lexer_construct_function_object (parser_context_t *context_p, uint32_t extra_status_flags);
 void lexer_construct_regexp_object (parser_context_t *context_p, bool parse_only);
 bool lexer_compare_identifier_to_current (parser_context_t *context_p, const lexer_lit_location_t *right);
+bool lexer_compare_raw_identifier_to_current (parser_context_t *context_p, const char *right_ident_p,
+                                              size_t right_ident_length);
 
 /**
  * @}
