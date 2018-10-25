@@ -53,41 +53,49 @@
    * Dump Parser
    */
   function DumpParser() {
-    this.offset = 0;
+    this.data = '';
     this.lines = [];
     this.table = {};
   }
 
-  DumpParser.prototype.reload = function load() {
-    var oldOffset = this.offset;
+  DumpParser.prototype.reload = function reload() {
+    var oldData = this.data;
+    var linesCount = this.lines.length;
+
+    this.data = '';
     try {
       var chunk = false
-      var data = '';
+      var offset = 0;
       do {
-        chunk = process._readParserDump(this.offset);
+        chunk = process._readParserDump(offset);
         if (chunk === false) {
           break;
         }
-        this.offset += chunk.length;
-        data += chunk;
-      } while (chunk !== false)
+        offset += chunk.length;
+        this.data += chunk;
+      } while (chunk !== false);
 
-      lines = data.split('\n');
+      if (this.data) {
+        this.lines = this.data.split('\n');
+      }
     } catch (err) {
       console.error(`occurrs unkwnown error when loading dump: ${err.message}`);
     }
 
     // rebuild the table only if the offset is changed
-    if (this.offset > oldOffset) {
-      this.genTable();
+    if (this.data.length > oldData.length) {
+      this.genTable(linesCount);
     }
   };
 
-  DumpParser.prototype.genTable = function genTable() {
+  DumpParser.prototype.genTable = function genTable(start) {
     var file = null
-    this.lines.forEach(function onParseLine(line, idx) {
+    var lines = this.lines.slice(start);
+
+    lines.forEach(function onParseLine(line) {
       if (/.*:/.test(line)) {
-        return file = line.slice(0, -1);
+        file = line.slice(0, -1);
+        return
       }
       var m = line.match(/(\+ ([a-zA-Z0-9_]*))?( \[(\d+),(\d+)\])? (\d+)/);
       if (m) {
@@ -99,12 +107,13 @@
           source: file,
         };
       }
-    });
+    }.bind(this));
   };
 
   var dumpParser = new DumpParser();
   function makeStackTraceFromDump(frames) {
     dumpParser.reload();
+
     return frames
       .reduce((accu, curr) => {
         var info = dumpParser.table[curr];
