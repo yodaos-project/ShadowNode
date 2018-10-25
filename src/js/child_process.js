@@ -479,7 +479,7 @@ function setupChannel(target, channel) {
     if (nread > 0) {
       var bufLength = buffer.byteLength;
       if (pendingBuffer === null && bufLength < INTERNAL_IPC_HEADER_SIZE) {
-        // header is incomplete
+        // header is incomplete, pending buffer
         pendingBuffer = buffer;
         channel.buffering = true;
         return;
@@ -493,21 +493,22 @@ function setupChannel(target, channel) {
       var offset = 0;
       while (offset < bufLength) {
         var dataSize = pendingBuffer.readInt32BE(offset);
-        var dataOffset = INTERNAL_IPC_HEADER_SIZE + dataSize;
-        // message is incomplete
-        if (bufLength < dataOffset) {
+        var dataBegin = offset + INTERNAL_IPC_HEADER_SIZE;
+        var dataEnd = dataBegin + dataSize;
+        // package is a incompelete message
+        if (bufLength < dataEnd) {
           break;
         }
-        var data = pendingBuffer.slice(INTERNAL_IPC_HEADER_SIZE, dataOffset);
-        offset = dataOffset;
+        var data = pendingBuffer.slice(dataBegin, dataEnd);
+        offset = dataEnd;
         handleMessage(data.toString(), undefined);
       }
       if (offset >= bufLength) {
-        // message is full of packet
+        // a packet is a complete message
         pendingBuffer = null;
         channel.buffering = false;
-      } else if (offset > 0) {
-        // sticky packet
+      } else {
+        // sticky packet, pending left buffer
         pendingBuffer = pendingBuffer.slice(offset, bufLength);
         channel.buffering = true;
       }
@@ -572,20 +573,15 @@ function setupChannel(target, channel) {
         return false;
       }
     }
-    var dataBuf = new Buffer(message);
-    if (dataBuf.byteLength > INTERNAL_IPC_PAYLOAD_MAX_SIZE) {
+    var dataByteLength = Buffer.byteLength(message);
+    if (dataByteLength > INTERNAL_IPC_PAYLOAD_MAX_SIZE) {
       callback(new Error('ERR_MESSAGE_TOO_LARGE'));
       return false;
     }
-    var sizeBuf = new Buffer(INTERNAL_IPC_HEADER_SIZE);
-    sizeBuf.writeInt32BE(dataBuf.byteLength);
-    channel.write(sizeBuf, function(err) {
-      if (err) {
-        callback(err);
-      } else {
-        channel.write(dataBuf, callback);
-      }
-    });
+    var buffer = Buffer.allocUnsafe(INTERNAL_IPC_HEADER_SIZE + dataByteLength);
+    buffer.writeInt32BE(dataByteLength, 0);
+    buffer.write(message, INTERNAL_IPC_HEADER_SIZE);
+    channel.write(buffer, callback);
     return true;
   };
 
