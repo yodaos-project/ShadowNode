@@ -170,9 +170,9 @@ JS_FUNCTION(PipeReadStart) {
 // }
 
 static void iotjs_pipe_after_write(uv_write_t* req, int status) {
-  iotjs_write_wrap* writer_wrap = (iotjs_write_wrap*)req->data;
-  char* data = writer_wrap->data;
-  jerry_value_t callback = writer_wrap->callback;
+  iotjs_write_wrap* write_wrap = (iotjs_write_wrap*)req->data;
+  char* data = write_wrap->data;
+  jerry_value_t callback = write_wrap->callback;
   if (jerry_value_is_function(callback)) {
     iotjs_jargs_t jargs = iotjs_jargs_create(1);
     if (status) {
@@ -186,17 +186,17 @@ static void iotjs_pipe_after_write(uv_write_t* req, int status) {
   }
   IOTJS_RELEASE(data);
   jerry_release_value(callback);
-  IOTJS_RELEASE(writer_wrap);
+  IOTJS_RELEASE(write_wrap);
 }
 
-#define PIPE_DO_WRITE(_this, chunk, size, callback) \
-  iotjs_write_wrap* write_wrap = IOTJS_ALLOC(iotjs_write_wrap); \
+#define PIPE_DO_WRITE(_this, chunk, size, callback)              \
+  iotjs_write_wrap* write_wrap = IOTJS_ALLOC(iotjs_write_wrap);  \
   write_wrap->data = iotjs_buffer_allocate(sizeof(char) * size); \
-  memcpy(write_wrap->data, chunk, size); \
-  write_wrap->callback = jerry_acquire_value(callback); \
-  write_wrap->req.data = write_wrap; \
-  uv_stream_t* handle = (uv_stream_t*)&_this->handle; \
-  uv_buf_t buf = uv_buf_init(write_wrap->data, size); \
+  memcpy(write_wrap->data, chunk, size);                         \
+  write_wrap->callback = jerry_acquire_value(callback);          \
+  write_wrap->req.data = write_wrap;                             \
+  uv_stream_t* handle = (uv_stream_t*)&_this->handle;            \
+  uv_buf_t buf = uv_buf_init(write_wrap->data, size);            \
   uv_write(&write_wrap->req, handle, &buf, 1, iotjs_pipe_after_write);
 
 JS_FUNCTION(Write) {
