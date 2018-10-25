@@ -7,9 +7,6 @@ var net = require('net');
 var constants = require('constants');
 var SIGNAL_NO = constants.os.signals;
 var INTERNAL_IPC_HEADER_LENGTH_SIZE = constants.INTERNAL_IPC_HEADER_LENGTH_SIZE;
-var INTERNAL_IPC_HEADER_TYPE_SIZE = constants.INTERNAL_IPC_HEADER_TYPE_SIZE;
-var INTERNAL_IPC_HEADER_RESERVED_SIZE =
-  constants.INTERNAL_IPC_HEADER_RESERVED_SIZE;
 var INTERNAL_IPC_HEADER_SIZE = constants.INTERNAL_IPC_HEADER_SIZE;
 var INTERNAL_IPC_PAYLOAD_MAX_SIZE = constants.INTERNAL_IPC_PAYLOAD_MAX_SIZE;
 
@@ -598,7 +595,7 @@ function setupChannel(target, channel) {
     }
     var buffer = Buffer.allocUnsafe(INTERNAL_IPC_HEADER_SIZE + dataByteLength);
     buffer.writeInt32BE(dataByteLength, 0);
-    buffer.writeInt8(messageType, INTERNAL_IPC_HEADER_LENGTH_SIZE);
+    buffer.writeUInt8(messageType, INTERNAL_IPC_HEADER_LENGTH_SIZE);
     buffer.write(message, INTERNAL_IPC_HEADER_SIZE);
     channel.write(buffer, callback);
     return true;
