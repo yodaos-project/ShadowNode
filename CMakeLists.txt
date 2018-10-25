@@ -20,8 +20,6 @@ set(IOTJS_VERSION_MAJOR 0)
 set(IOTJS_VERSION_MINOR 10)
 set(IOTJS_VERSION_PATCH 0)
 
-link_directories(/usr/local/lib)
-
 # Do a few default checks
 if(NOT DEFINED PLATFORM_DESCRIPTOR)
   message(FATAL_ERROR "No PLATFORM_DESCRIPTOR specified (format: <arch>-<os>)")
