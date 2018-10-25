@@ -272,6 +272,7 @@ typedef struct
   /* Lexer members. */
   lexer_token_t token;                        /**< current token */
   lexer_lit_object_t lit_object;              /**< current literal object */
+  ecma_value_t resource_name;
   const uint8_t *source_p;                    /**< next source byte */
   const uint8_t *source_end_p;                /**< last source byte */
   parser_line_counter_t line;                 /**< current line */

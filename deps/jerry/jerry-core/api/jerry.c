@@ -233,7 +233,6 @@ jerry_cleanup (void)
 
   ecma_finalize ();
   jmem_finalize ();
-  jerry_close_parser_dump ();
   jerry_make_api_unavailable ();
 } /* jerry_cleanup */
 
@@ -360,7 +359,7 @@ jerry_run_simple (const jerry_char_t *script_source_p, /**< script source */
 
   jerry_init (flags);
 
-  jerry_value_t parse_ret_val = jerry_parse (script_source_p, script_source_size, false);
+  jerry_value_t parse_ret_val = jerry_parse (NULL, 0, script_source_p, script_source_size, false);
 
   if (!ecma_is_value_error_reference (parse_ret_val))
   {
@@ -388,7 +387,9 @@ jerry_run_simple (const jerry_char_t *script_source_p, /**< script source */
  *         thrown error - otherwise
  */
 jerry_value_t
-jerry_parse (const jerry_char_t *source_p, /**< script source */
+jerry_parse (const jerry_char_t *resource_name_p, /**< resource name (usually a file name) */
+             size_t resource_name_length, /**< length of resource name */
+             const jerry_char_t *source_p, /**< script source */
              size_t source_size, /**< script source size */
              bool is_strict) /**< strict mode */
 {
@@ -398,12 +399,22 @@ jerry_parse (const jerry_char_t *source_p, /**< script source */
   ecma_compiled_code_t *bytecode_data_p;
   ecma_value_t parse_status;
 
-  parse_status = parser_parse_script (NULL,
+  parse_status = parser_parse_script (resource_name_p,
+                                      resource_name_length,
+                                      NULL,
                                       0,
                                       source_p,
                                       source_size,
                                       is_strict,
                                       &bytecode_data_p);
+
+#ifdef JERRY_DEBUG_INFO
+  bytecode_data_p->source = ecma_find_or_create_literal_string (resource_name_p,
+                                                                (lit_utf8_size_t) resource_name_length);
+#else /* !JERRY_DEBUG_INFO */
+  JERRY_UNUSED (resource_name_p);
+  JERRY_UNUSED (resource_name_length);
+#endif /* JERRY_DEBUG_INFO */
 
   if (ECMA_IS_VALUE_ERROR (parse_status))
   {
@@ -443,15 +454,6 @@ jerry_parse_named_resource (const jerry_char_t *resource_name_p, /**< resource n
                             size_t source_size, /**< script source size */
                             bool is_strict) /**< strict mode */
 {
-  char source_name[resource_name_length + 1];
-  memset(source_name, 0, resource_name_length + 1);
-  memcpy(source_name, resource_name_p, resource_name_length);
-
-  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
-  {
-    fprintf (JERRY_CONTEXT (parser_dump_fd), "%s:\n", source_name);
-  }
-
 #if defined JERRY_DEBUGGER && !defined JERRY_DISABLE_JS_PARSER
   if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
   {
@@ -460,12 +462,9 @@ jerry_parse_named_resource (const jerry_char_t *resource_name_p, /**< resource n
                                 resource_name_p,
                                 resource_name_length);
   }
-#else /* !(JERRY_DEBUGGER && !JERRY_DISABLE_JS_PARSER) */
-  JERRY_UNUSED (resource_name_p);
-  JERRY_UNUSED (resource_name_length);
 #endif /* JERRY_DEBUGGER && !JERRY_DISABLE_JS_PARSER */
 
-  return jerry_parse (source_p, source_size, is_strict);
+  return jerry_parse (resource_name_p, resource_name_length, source_p, source_size, is_strict);
 } /* jerry_parse_named_resource */
 
 /**
@@ -484,15 +483,6 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
                       size_t source_size, /**< script source size */
                       bool is_strict) /**< strict mode */
 {
-  char source_name[resource_name_length + 1];
-  memset(source_name, 0, resource_name_length + 1);
-  memcpy(source_name, resource_name_p, resource_name_length);
-
-  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
-  {
-    fprintf (JERRY_CONTEXT (parser_dump_fd), "%s:\n", source_name);
-  }
-
 #if defined JERRY_DEBUGGER && !defined JERRY_DISABLE_JS_PARSER
   if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
   {
@@ -501,9 +491,6 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
                                 resource_name_p,
                                 resource_name_length);
   }
-#else /* !(JERRY_DEBUGGER && !JERRY_DISABLE_JS_PARSER) */
-  JERRY_UNUSED (resource_name_p);
-  JERRY_UNUSED (resource_name_length);
 #endif /* JERRY_DEBUGGER && !JERRY_DISABLE_JS_PARSER */
 
 #ifndef JERRY_DISABLE_JS_PARSER
@@ -518,12 +505,22 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
     arg_list_p = (const jerry_char_t *) "";
   }
 
-  parse_status = parser_parse_script (arg_list_p,
+  parse_status = parser_parse_script (resource_name_p,
+                                      resource_name_length,
+                                      arg_list_p,
                                       arg_list_size,
                                       source_p,
                                       source_size,
                                       is_strict,
                                       &bytecode_data_p);
+
+#ifdef JERRY_DEBUG_INFO
+  bytecode_data_p->source = ecma_find_or_create_literal_string (resource_name_p,
+                                                                (lit_utf8_size_t) resource_name_length);
+#else /* !JERRY_DEBUG_INFO */
+  JERRY_UNUSED (resource_name_p);
+  JERRY_UNUSED (resource_name_length);
+#endif /* JERRY_DEBUG_INFO */
 
   if (ECMA_IS_VALUE_ERROR (parse_status))
   {
@@ -3438,89 +3435,6 @@ jerry_get_typedarray_buffer (jerry_value_t value, /**< TypedArray to get the arr
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
 } /* jerry_get_typedarray_buffer */
 
-bool
-jerry_open_parser_dump (void)
-{
-  jerry_assert_api_available ();
-  FILE *fd = tmpfile ();
-
-  if (fd)
-  {
-    JERRY_CONTEXT (parser_dump_fd) = fd;
-    return true;
-  }
-
-  if (errno == EROFS)
-  {
-    fprintf (stderr, "tmpfile(): Read-only filesystem.\n");
-    jerry_fatal (ERR_SYSCALL);
-  }
-  else if (errno == EEXIST)
-  {
-    fprintf (stderr, "tmpfile(): Unable to generate a unique filename.\n");
-    jerry_fatal (ERR_SYSCALL);
-  }
-  else
-  {
-    fprintf (stderr, "tmpfile(): Unknown/Unhandled error\n");
-    jerry_fatal (ERR_SYSCALL);
-  }
-  return false;
-}
-
-bool
-jerry_close_parser_dump (void)
-{
-  if (JERRY_CONTEXT (parser_dump_fd))
-  {
-    fclose (JERRY_CONTEXT (parser_dump_fd));
-    JERRY_CONTEXT (parser_dump_fd) = NULL;
-    return true;
-  }
-  return false;
-}
-
-jerry_value_t
-jerry_read_parser_dump (int pos)
-{
-  FILE *handle = JERRY_CONTEXT (parser_dump_fd);
-
-#define PARSER_DUMP_BUFFER_SIZE 1024
-  if (handle)
-  {
-    char str[PARSER_DUMP_BUFFER_SIZE];
-    int offset = 0;
-    memset (str, 0, PARSER_DUMP_BUFFER_SIZE);
-
-    if (pos == 0)
-    {
-      rewind (handle);
-    }
-    else
-    {
-      fseek (handle, 0, pos);
-    }
-
-    while (!feof (handle) && offset < PARSER_DUMP_BUFFER_SIZE)
-    {
-      int v = fgetc (handle);
-      if (v == EOF)
-        break;
-
-      str[offset] = (char)v;
-      offset += 1;
-    }
-
-    if (offset > 0)
-    {
-      return jerry_create_string_sz_from_utf8 ((jerry_char_t *)str,
-                                               (jerry_size_t)offset);
-    }
-  }
-#undef PARSER_DUMP_BUFFER_SIZE
-  return jerry_create_boolean (false);
-}
-
 uint32_t*
 jerry_get_backtrace (void)
 {
@@ -3552,6 +3466,49 @@ jerry_enable_cpu_profiling (void)
 #else
   return true;
 #endif
+}
+
+jerry_value_t
+jerry_decode_frame (uint32_t frame)
+{
+#ifdef JERRY_DEBUG_INFO
+  if (frame == 0)
+  {
+#else /* JERRY_DEBUG_INFO */
+    JERRY_UNUSED (frame);
+#endif /* JERRY_DEBUG_INFO */
+    return jerry_create_undefined ();
+#ifdef JERRY_DEBUG_INFO
+  }
+
+  ecma_compiled_code_t *bytecode_p = JMEM_CP_GET_POINTER (ecma_compiled_code_t, frame);
+  jerry_value_t result = jerry_create_object ();
+  jerry_value_t propname;
+
+  propname = jerry_create_string ((const jerry_char_t*) "source");
+  jerry_value_t source = (bytecode_p->source != ECMA_VALUE_EMPTY) ? bytecode_p->source : jerry_create_undefined();
+  jerry_set_property (result, propname, source);
+  jerry_release_value (propname);
+
+  propname = jerry_create_string ((const jerry_char_t*) "name");
+  jerry_value_t name = (bytecode_p->name != ECMA_VALUE_EMPTY) ? bytecode_p->name : jerry_create_undefined();
+  jerry_set_property (result, propname, name);
+  jerry_release_value (propname);
+
+  propname = jerry_create_string ((const jerry_char_t*) "line");
+  jerry_value_t line = jerry_create_number (bytecode_p->line);
+  jerry_set_property (result, propname, line);
+  jerry_release_value (propname);
+  jerry_release_value (line);
+
+  propname = jerry_create_string ((const jerry_char_t*) "column");
+  jerry_value_t column = jerry_create_number (bytecode_p->column);
+  jerry_set_property (result, propname, jerry_create_number (bytecode_p->column));
+  jerry_release_value (propname);
+  jerry_release_value (column);
+
+  return result;
+#endif /* JERRY_DEBUG_INFO */
 }
 
 /**
@@ -3589,8 +3546,10 @@ jerry_start_cpu_profiling (const char *path,
 #endif
 }
 
+#ifdef JERRY_CPU_PROFILER
 extern int fileno (FILE *__stream);
 extern ssize_t readlink (const char *path, char *buf, size_t len);
+#endif
 bool
 jerry_stop_cpu_profiling (void)
 {

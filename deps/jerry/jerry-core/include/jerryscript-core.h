@@ -256,7 +256,8 @@ bool jerry_get_memory_stats (jerry_heap_stats_t *out_stats_p);
  * Parser and executor functions.
  */
 bool jerry_run_simple (const jerry_char_t *script_source_p, size_t script_source_size, jerry_init_flag_t flags);
-jerry_value_t jerry_parse (const jerry_char_t *source_p, size_t source_size, bool is_strict);
+jerry_value_t jerry_parse (const jerry_char_t *resource_name_p, size_t resource_name_length,
+                           const jerry_char_t *source_p, size_t source_size, bool is_strict);
 jerry_value_t jerry_parse_named_resource (const jerry_char_t *resource_name_p, size_t resource_name_length,
                                           const jerry_char_t *source_p, size_t source_size, bool is_strict);
 jerry_value_t jerry_parse_function (const jerry_char_t *resource_name_p, size_t resource_name_length,
@@ -527,13 +528,10 @@ jerry_value_t jerry_get_typedarray_buffer (jerry_value_t value,
                                            jerry_length_t *byte_offset,
                                            jerry_length_t *byte_length);
 
-bool jerry_open_parser_dump (void);
-bool jerry_close_parser_dump (void);
-jerry_value_t jerry_read_parser_dump (int);
-
 uint32_t *jerry_get_backtrace (void);
 void jerry_get_backtrace_depth (uint32_t *stack_frames, uint32_t depth);
 uint32_t jerry_get_backtrace_max_depth (void);
+jerry_value_t jerry_decode_frame (uint32_t frame);
 
 bool jerry_enable_cpu_profiling (void);
 bool jerry_start_cpu_profiling (const char *path, double duration);

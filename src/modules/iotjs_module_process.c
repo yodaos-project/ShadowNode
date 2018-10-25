@@ -280,9 +280,9 @@ JS_FUNCTION(GetStackFrames) {
 }
 
 
-JS_FUNCTION(ReadParserDump) {
-  int pos = JS_GET_ARG(0, number);
-  return jerry_read_parser_dump(pos);
+JS_FUNCTION(DecodeFrame) {
+  uint32_t frame = JS_GET_ARG(0, number);
+  return jerry_decode_frame(frame);
 }
 
 
@@ -639,7 +639,7 @@ jerry_value_t InitProcess() {
   // errors
   iotjs_jval_set_method(process, "_createUVException", CreateUVException);
   iotjs_jval_set_method(process, "_getStackFrames", GetStackFrames);
-  iotjs_jval_set_method(process, "_readParserDump", ReadParserDump);
+  iotjs_jval_set_method(process, "_decodeFrame", DecodeFrame);
 
 
   // virtual machine

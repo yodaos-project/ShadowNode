@@ -69,35 +69,12 @@
   }
 
   function makeStackTraceFromDump(frames) {
-    var lines = loadDumpIfExists();
-    var file = null;
-    var bcTable = {};
-    lines.forEach(function(line, index) {
-      if (/.*:/.test(line)) {
-        file = line.slice(0, -1);
-      } else {
-        var m = line.match(/(\+ ([a-zA-Z0-9_]*))?( \[(\d+),(\d+)\])? (\d+)/);
-        if (m) {
-          var cp = m[6];
-          bcTable[cp] = {
-            name: m[2] || 'anonymous',
-            line: m[4],
-            column: m[5],
-            source: file,
-          };
-        }
-      }
-    });
-
     return frames
-      .reduce((accu, curr) => {
-        var info = bcTable[curr];
-        if (info !== undefined) {
-          accu.push(info);
+      .map((frame) => {
+        var info = process._decodeFrame(frame);
+        if(info === undefined) {
+          return '';
         }
-        return accu;
-      }, [])
-      .map((info) => {
         return '    ' +
           `at ${info.name} (${info.source}${info.line ? ':' + info.line + ':' + info.column: ''})`;
       })

@@ -182,10 +182,6 @@ def init_options():
     parser.add_argument('--jerry-heap-profiler',
         action='store_true', default=False,
         help='Enable JerryScript Heap profiler')
-    parser.add_argument('--jerry-function-name',
-        action='store_true', default=False,
-        help='Enable saving Javascript function name')
-
     parser.add_argument('--jerry-profile',
         choices=['es5.1', 'es2015-subset'], default='es5.1',
         help='Specify the profile for JerryScript: %(choices)s'
@@ -353,8 +349,6 @@ def build_iotjs(options):
         '-DFEATURE_CPU_PROFILER=%s' % get_on_off(options.jerry_cpu_profiler),
         # --jerry-heap-profiler
         '-DFEATURE_HEAP_PROFILER=%s' % get_on_off(options.jerry_heap_profiler),
-        # --jerry-funcname
-        '-DFEATURE_FUNCTION_NAME=%s' % get_on_off(options.jerry_function_name),
         # --external-modules
         "-DEXTERNAL_MODULES='%s'" % ';'.join(options.external_modules),
         # --jerry-profile
