@@ -28,6 +28,8 @@
 #define TLS_CHUNK_MAX_SIZE INT_MAX
 #endif
 
+#define INT32_MAX_VALUE UINT32_MAX
+
 jerry_value_t InitConstants() {
   jerry_value_t constants = jerry_create_object();
 
@@ -46,6 +48,7 @@ jerry_value_t InitConstants() {
   SET_CONSTANT(constants, S_IFLNK);
   SET_CONSTANT(constants, S_IFSOCK);
   SET_CONSTANT(constants, TLS_CHUNK_MAX_SIZE);
+  SET_CONSTANT(constants, INT32_MAX_VALUE);
 
   // define uv errnos
 #define V(name, _) SET_CONSTANT(constants, UV_##name);
