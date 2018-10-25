@@ -30,7 +30,7 @@ obj.on('message', equalData);
 var times = 10
 var timer = setInterval(() => {
   console.log(name, 'sent', times)
-  // --times;
+  --times;
   obj.send(data);
   obj.send(dataStr);
   if (times <= 0) {
