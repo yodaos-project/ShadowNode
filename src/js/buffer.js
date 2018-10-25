@@ -334,6 +334,9 @@ Buffer.prototype.writeInt32LE = function(value, offset, noAssert) {
   return offset + 4;
 };
 
+// buff.writeInt32BE(value, offset[,noAssert])
+// [1] buff.writeInt32BE(value, offset)
+// [2] buff.writeInt32BE(value, offset, noAssert)
 Buffer.prototype.writeInt32BE = function(value, offset, noAssert) {
   value = +value;
   offset = offset >>> 0;
@@ -409,6 +412,9 @@ Buffer.prototype.readInt32LE = function(offset, noAssert) {
          (this._builtin.readUInt8(offset + 3) << 24);
 };
 
+// buff.readInt32BE(offset[,noAssert])
+// [1] buff.readInt32BE(offset)
+// [2] buff.readInt32BE(offset, noAssert)
 Buffer.prototype.readInt32BE = function(offset, noAssert) {
   offset = offset >>> 0;
   if (!noAssert)
