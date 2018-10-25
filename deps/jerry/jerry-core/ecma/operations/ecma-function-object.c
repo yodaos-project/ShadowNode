@@ -409,6 +409,13 @@ ecma_op_function_has_instance (ecma_object_t *func_obj_p, /**< Function object *
   return ecma_make_boolean_value (result);
 } /* ecma_op_function_has_instance */
 
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+/**
+ * Indicates whether the class has been invoked with 'new'.
+ */
+#define ECMA_CLASS_CONSTRUCT_FLAG ((uintptr_t) 0x01u)
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
 /**
  * Sets the construct flag in the arguments list pointer.
  *
@@ -419,8 +426,10 @@ ecma_op_function_set_construct_flag (const ecma_value_t *arguments_list_p) /**< 
 {
   /* Any ecma value list must be aligned to 4 byte. */
   JERRY_ASSERT ((((uintptr_t) arguments_list_p) & 0x3) == 0);
-   /* Currently it returns with the same pointer. When classes
-   * will be enabled, it will set the lowest bit. */
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  arguments_list_p = (const ecma_value_t *)(((uintptr_t) arguments_list_p) | ECMA_CLASS_CONSTRUCT_FLAG);
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
   return arguments_list_p;
 } /* ecma_op_function_set_construct_flag */
  /**
@@ -431,8 +440,10 @@ ecma_op_function_set_construct_flag (const ecma_value_t *arguments_list_p) /**< 
 static inline const ecma_value_t * __attr_always_inline___
 ecma_op_function_clear_construct_flag (const ecma_value_t *arguments_list_p) /**< modified arguments list pointer */
 {
-  /* Currently it returns with the same pointer. When classes
-   * will be enabled, the lowest bit will be cleared. */
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  arguments_list_p = (const ecma_value_t *)(((uintptr_t) arguments_list_p) & ~ECMA_CLASS_CONSTRUCT_FLAG);
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
   return arguments_list_p;
 } /* ecma_op_function_clear_construct_flag */
  /**
@@ -443,8 +454,12 @@ ecma_op_function_clear_construct_flag (const ecma_value_t *arguments_list_p) /**
 static inline bool __attr_always_inline___
 ecma_op_function_has_construct_flag (const ecma_value_t *arguments_list_p) /**< modified arguments list pointer */
 {
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  return (((uintptr_t) arguments_list_p) & ECMA_CLASS_CONSTRUCT_FLAG);
+#else
   JERRY_UNUSED (arguments_list_p);
   return false;
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 } /* ecma_op_function_has_construct_flag */
 
 /**
@@ -497,6 +512,14 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
       bool is_no_lex_env;
 
       const ecma_compiled_code_t *bytecode_data_p = ecma_op_function_get_compiled_code (ext_func_p);
+
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+      if (bytecode_data_p->status_flags & CBC_CODE_FLAGS_CONSTRUCTOR &&
+          !ecma_op_function_has_construct_flag (arguments_list_p))
+      {
+        return ecma_raise_type_error (ECMA_ERR_MSG ("Class constructor cannot be invoked without 'new'."));
+      }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
       is_strict = (bytecode_data_p->status_flags & CBC_CODE_FLAGS_STRICT_MODE) ? true : false;
       is_no_lex_env = (bytecode_data_p->status_flags & CBC_CODE_FLAGS_LEXICAL_ENV_NOT_NEEDED) ? true : false;

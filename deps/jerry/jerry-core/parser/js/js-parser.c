@@ -1729,6 +1729,13 @@ parser_post_processing (parser_context_t *context_p) /**< context */
   }
 #endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
 
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  if (context_p->status_flags & PARSER_CLASS_CONSTRUCTOR)
+  {
+    compiled_code_p->status_flags |= CBC_CODE_FLAGS_CONSTRUCTOR;
+  }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
   literal_pool_p = (ecma_value_t *) byte_code_p;
   literal_pool_p -= context_p->register_count;
   byte_code_p += literal_length;
@@ -2418,6 +2425,33 @@ parser_restore_context (parser_context_t *context_p, /**< context */
 #endif /* !JERRY_NDEBUG */
 } /* parser_restore_context */
 
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+/**
+ * Parse default constructor code
+ *
+ * @return compiled code
+ */
+ecma_compiled_code_t *
+parser_create_class_implicit_constructor (parser_context_t *context_p) /**< context */
+{
+  parser_saved_context_t saved_context;
+  parser_save_context (context_p, &saved_context);
+ #ifdef JERRY_DEBUGGER
+  if ((JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
+      && jerry_debugger_send_parse_function (context_p->token.line, context_p->token.column))
+  {
+    /* This option has a high memory and performance costs,
+     * but it is necessary for executing eval operations by the debugger. */
+    context_p->status_flags |= PARSER_LEXICAL_ENV_NEEDED | PARSER_NO_REG_STORE;
+  }
+#endif /* JERRY_DEBUGGER */
+   context_p->status_flags |= PARSER_CLASS_CONSTRUCTOR;
+   ecma_compiled_code_t *compiled_code_p = parser_post_processing (context_p);
+   parser_restore_context (context_p, &saved_context);
+   return compiled_code_p;
+} /* parser_create_class_implicit_constructor */
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
 /**
  * Parse function code
  *
@@ -2440,7 +2474,13 @@ parser_parse_function (parser_context_t *context_p, /**< context */
 #ifdef PARSER_DUMP_BYTE_CODE
   if (context_p->is_show_opcodes)
   {
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+    bool is_constructor = context_p->status_flags & PARSER_CLASS_CONSTRUCTOR;
+    JERRY_DEBUG_MSG (is_constructor ? "\n--- Class constructor parsing start ---\n\n"
+                                    : "\n--- Function parsing start ---\n\n");
+ #else
     JERRY_DEBUG_MSG ("\n--- Function parsing start ---\n\n");
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
   }
 #endif /* PARSER_DUMP_BYTE_CODE */
 
@@ -2561,7 +2601,13 @@ parser_parse_function (parser_context_t *context_p, /**< context */
 #ifdef PARSER_DUMP_BYTE_CODE
   if (context_p->is_show_opcodes)
   {
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+    bool is_constructor = context_p->status_flags & PARSER_CLASS_CONSTRUCTOR;
+    JERRY_DEBUG_MSG (is_constructor ? "\n--- Class constructor parsing end ---\n\n"
+                                    : "\n--- Function parsing end ---\n\n");
+#else
     JERRY_DEBUG_MSG ("\n--- Function parsing end ---\n\n");
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
   }
 #endif /* PARSER_DUMP_BYTE_CODE */
 

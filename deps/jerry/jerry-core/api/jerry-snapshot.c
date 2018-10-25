@@ -33,9 +33,10 @@
  * @return configuration flags
  */
 static inline uint32_t __attr_always_inline___
-snapshot_get_global_flags (bool has_regex) /**< regex literal is present */
+snapshot_get_global_flags (bool has_regex, bool has_class) /**< regex literal is present */
 {
   JERRY_UNUSED (has_regex);
+  JERRY_UNUSED (has_class);
 
   uint32_t flags = 0;
 
@@ -44,7 +45,10 @@ snapshot_get_global_flags (bool has_regex) /**< regex literal is present */
 #endif /* JERRY_CPOINTER_32_BIT */
 #ifndef CONFIG_DISABLE_REGEXP_BUILTIN
   flags |= (has_regex ? JERRY_SNAPSHOT_HAS_REGEX_LITERAL : 0);
-#endif /* CONFIG_DISABLE_REGEXP_BUILTIN */
+#endif /* !CONFIG_DISABLE_REGEXP_BUILTIN */
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  flags |= (has_class ? JERRY_SNAPSHOT_HAS_CLASS_LITERAL : 0);
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
   return flags;
 } /* snapshot_get_global_flags */
@@ -60,8 +64,11 @@ snapshot_check_global_flags (uint32_t global_flags) /**< global flags */
 #ifndef CONFIG_DISABLE_REGEXP_BUILTIN
   global_flags &= (uint32_t) ~JERRY_SNAPSHOT_HAS_REGEX_LITERAL;
 #endif /* !CONFIG_DISABLE_REGEXP_BUILTIN */
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  global_flags &= (uint32_t) ~JERRY_SNAPSHOT_HAS_CLASS_LITERAL;
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
-  return global_flags == snapshot_get_global_flags (false);
+  return global_flags == snapshot_get_global_flags (false, false);
 } /* snapshot_check_global_flags */
 
 #endif /* JERRY_ENABLE_SNAPSHOT_SAVE || JERRY_ENABLE_SNAPSHOT_EXEC */
@@ -76,6 +83,7 @@ typedef struct
   size_t snapshot_buffer_write_offset;
   bool snapshot_error_occured;
   bool regex_found;
+  bool class_found;
 } snapshot_globals_t;
 
 /** \addtogroup jerrysnapshot Jerry snapshot operations
@@ -140,6 +148,13 @@ snapshot_add_compiled_code (ecma_compiled_code_t *compiled_code_p, /**< compiled
 
   uint8_t *copied_code_start_p = snapshot_buffer_p + globals_p->snapshot_buffer_write_offset;
   ecma_compiled_code_t *copied_code_p = (ecma_compiled_code_t *) copied_code_start_p;
+
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  if (compiled_code_p->status_flags & CBC_CODE_FLAGS_CONSTRUCTOR)
+  {
+    globals_p->class_found = true;
+  }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
   if (!(compiled_code_p->status_flags & CBC_CODE_FLAGS_FUNCTION))
   {
@@ -714,6 +729,7 @@ jerry_parse_and_save_snapshot_with_args (const jerry_char_t *source_p, /**< scri
   globals.snapshot_buffer_write_offset = aligned_header_size;
   globals.snapshot_error_occured = false;
   globals.regex_found = false;
+  globals.class_found = false;
 
   parse_status = parser_parse_script (args_p,
                                       args_size,
@@ -745,7 +761,7 @@ jerry_parse_and_save_snapshot_with_args (const jerry_char_t *source_p, /**< scri
   jerry_snapshot_header_t header;
   header.magic = JERRY_SNAPSHOT_MAGIC;
   header.version = JERRY_SNAPSHOT_VERSION;
-  header.global_flags = snapshot_get_global_flags (globals.regex_found);
+  header.global_flags = snapshot_get_global_flags (globals.regex_found, globals.class_found);
   header.lit_table_offset = (uint32_t) globals.snapshot_buffer_write_offset;
   header.number_of_funcs = 1;
   header.func_offsets[0] = aligned_header_size;
