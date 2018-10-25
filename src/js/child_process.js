@@ -588,16 +588,18 @@ function setupChannel(target, channel) {
         }
       }
     }
-    var dataByteLength = Buffer.byteLength(message);
-    if (dataByteLength > INTERNAL_IPC_PAYLOAD_MAX_SIZE) {
+    var messageByteLength = Buffer.byteLength(message);
+    if (messageByteLength > INTERNAL_IPC_PAYLOAD_MAX_SIZE) {
       callback(new Error('ERR_MESSAGE_TOO_LARGE'));
       return false;
     }
-    var buffer = Buffer.allocUnsafe(INTERNAL_IPC_HEADER_SIZE + dataByteLength);
+    var dataByteLength = INTERNAL_IPC_HEADER_SIZE + messageByteLength;
+    var buffer = Buffer.allocUnsafe(dataByteLength);
     buffer.writeInt32BE(dataByteLength, 0);
     buffer.writeUInt8(messageType, INTERNAL_IPC_HEADER_LENGTH_SIZE);
     buffer.write(message, INTERNAL_IPC_HEADER_SIZE);
     channel.write(buffer, callback);
+    console.log(process.send ? 'child' : 'parent', 'write', messageByteLength, dataByteLength);
     return true;
   };
 
