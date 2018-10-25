@@ -479,23 +479,15 @@ function setupChannel(target, channel) {
   });
 
   var control = new Control(channel);
-  var name
-  process.nextTick(() => {
-    name = process.send ? 'child' : 'parent'
-  })
   channel.pendingBuffer = null;
   channel.buffering = false;
   channel.onread = function(socket, nread, isEOF, buffer) {
     if (nread > 0) {
-    var r = parseInt(Date.now())
-    require('fs').writeFileSync(`/Users/qile222/Desktop/receive-${name}0-${r}.txt`, buffer)
-      console.log(name, 'received', buffer, buffer.byteLength, channel.pendingBuffer && channel.pendingBuffer.byteLength)
       if (channel.pendingBuffer) {
         channel.pendingBuffer = Buffer.concat([channel.pendingBuffer, buffer]);
       } else {
         channel.pendingBuffer = buffer;
       }
-      console.log(name, 'total', channel.pendingBuffer.byteLength)
       var bufLength = channel.pendingBuffer.byteLength;
       var headerOffset = 0;
       while (bufLength - headerOffset >= INTERNAL_IPC_HEADER_SIZE) {
@@ -504,35 +496,25 @@ function setupChannel(target, channel) {
         var dataType = channel.pendingBuffer.readInt32BE(typeOffset);
         var dataBegin = headerOffset + INTERNAL_IPC_HEADER_SIZE;
         var dataEnd = dataBegin + dataSize;
-        console.log(name, 'while', bufLength, dataBegin, dataEnd, dataType, dataSize, headerOffset)
         if (bufLength < dataEnd) {
           // package is a incomplete message
-          console.log(name, 'package is incomplete')
           break;
         }
         headerOffset = dataEnd;
-        try {
-          var message = channel.pendingBuffer.toString(dataBegin, dataEnd);
-          if (dataType === INTERNAL_IPC_MESSAGE_TYPE.OBJECT) {
-            message = JSON.parse(message);
-          }
-          console.log(name, 'handled, left', dataBegin, dataEnd, headerOffset)
-          handleMessage(message, undefined);
-        } catch (err) {
-          // require('fs').writeFileSync('/Users/qile222/Desktop/tmp.txt', channel.pendingBuffer.slice(dataBegin, dataEnd))
-          throw err
+        var message = channel.pendingBuffer.toString(dataBegin, dataEnd);
+        if (dataType === INTERNAL_IPC_MESSAGE_TYPE.OBJECT) {
+          message = JSON.parse(message);
         }
+        handleMessage(message, undefined);
       }
-      console.log(name, 'finished', headerOffset, bufLength)
       if (headerOffset === bufLength) {
         // a packet is a complete message
         channel.pendingBuffer = null;
         channel.buffering = false;
-        console.log(name, 'complete message', headerOffset, channel.pendingBuffer)
       } else {
         // sticky packet, pending left buffer
-        channel.pendingBuffer = channel.pendingBuffer.slice(headerOffset, bufLength);
-        console.log(name, 'pending', channel.pendingBuffer.byteLength)
+        channel.pendingBuffer =
+          channel.pendingBuffer.slice(headerOffset, bufLength);
         channel.buffering = true;
       }
     } else {
