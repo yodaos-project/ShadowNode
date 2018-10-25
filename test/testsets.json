@@ -26,6 +26,7 @@
     { "name": "test_dgram_setttl_server.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_dns.js" },
     { "name": "test_dns_lookup.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_dump_parser.js" },
     { "name": "test_events.js" },
     { "name": "test_events_assert_emit_error.js" },
     { "name": "test_events_uncaught_error.js" },
