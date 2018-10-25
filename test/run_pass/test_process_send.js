@@ -9,13 +9,13 @@ var equalTimes = 0;
 function equalData(msg) {
   if (typeof msg === 'object') {
     console.log('stringify msg')
-    assert.equal(JSON.stringify(msg).length, JSON.stringify(data).length);
+    msg = JSON.stringify(msg);
+    // assert.equal(msg.length, JSON.stringify(data).length);
   } else {
     console.log('string')
-    assert.equal(msg.length, dataStr.length)
   }
   ++equalTimes;
-  console.log(name, 'equal data', equalTimes)
+  assert.equal(msg.length, dataStr.length)
 }
 
 var obj = null;
@@ -30,7 +30,7 @@ obj.on('message', equalData);
 var times = 10
 var timer = setInterval(() => {
   console.log(name, 'sent', times)
-  --times;
+  // --times;
   obj.send(data);
   obj.send(dataStr);
   if (times <= 0) {
