@@ -483,28 +483,23 @@ function setupChannel(target, channel) {
   channel.buffering = false;
   channel.onread = function(socket, nread, isEOF, buffer) {
     if (nread > 0) {
-      var bufLength = buffer.byteLength;
-      if (pendingBuffer === null && bufLength < INTERNAL_IPC_HEADER_SIZE) {
-        // header is incomplete, pending buffer
-        pendingBuffer = buffer;
-        channel.buffering = true;
-        return;
-      }
       if (pendingBuffer) {
         pendingBuffer = Buffer.concat([pendingBuffer, buffer]);
-        bufLength = pendingBuffer.byteLength;
       } else {
         pendingBuffer = buffer;
       }
+      var bufLength = pendingBuffer.byteLength;
       var headerOffset = 0;
+      console.log('received', buffer.byteLength, bufLength)
       while (headerOffset < bufLength) {
         var dataSize = pendingBuffer.readInt32BE(headerOffset);
         var typeOffset = headerOffset + INTERNAL_IPC_HEADER_LENGTH_SIZE;
-        var dataType = pendingBuffer.readInt8(typeOffset);
+        var dataType = pendingBuffer.readInt32BE(typeOffset);
         var dataOffset = headerOffset + INTERNAL_IPC_HEADER_SIZE;
         var dataEnd = dataOffset + dataSize;
         if (bufLength < dataEnd) {
           // package is a incomplete message
+          console.log('package is incomplete', bufLength, dataEnd)
           break;
         }
         headerOffset = dataEnd;
@@ -512,6 +507,7 @@ function setupChannel(target, channel) {
         if (dataType === INTERNAL_IPC_MESSAGE_TYPE.OBJECT) {
           message = JSON.parse(message);
         }
+        console.log('handled, left', dataEnd, bufLength - headerOffset)
         handleMessage(message, undefined);
       }
       if (headerOffset === bufLength) {
@@ -596,7 +592,7 @@ function setupChannel(target, channel) {
     var dataByteLength = INTERNAL_IPC_HEADER_SIZE + messageByteLength;
     var buffer = Buffer.allocUnsafe(dataByteLength);
     buffer.writeInt32BE(dataByteLength, 0);
-    buffer.writeUInt8(messageType, INTERNAL_IPC_HEADER_LENGTH_SIZE);
+    buffer.writeInt32BE(messageType, INTERNAL_IPC_HEADER_LENGTH_SIZE);
     buffer.write(message, INTERNAL_IPC_HEADER_SIZE);
     channel.write(buffer, callback);
     console.log(process.send ? 'child' : 'parent', 'write', messageByteLength, dataByteLength);
