@@ -166,8 +166,10 @@ ecma_new_standard_error (ecma_standard_error_t error_type) /**< native error typ
                                                                                  str_idx_p,
                                                                                  ECMA_PROPERTY_CONFIGURABLE_WRITABLE,
                                                                                  NULL);
+    ecma_value_t frame = jerry_decode_frame (frames[i]);
+    index_prop_value_p->value = frame;
+    ecma_free_value (frame);
     ecma_deref_ecma_string (str_idx_p);
-    index_prop_value_p->value = ecma_make_uint32_value (frames[i]);
   }
 
   free (frames);

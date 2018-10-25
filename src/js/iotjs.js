@@ -70,8 +70,7 @@
 
   function makeStackTraceFromDump(frames) {
     return frames
-      .map((frame) => {
-        var info = process._decodeFrame(frame);
+      .map((info) => {
         if(info === undefined) {
           return '';
         }
