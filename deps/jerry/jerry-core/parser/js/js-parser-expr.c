@@ -418,7 +418,7 @@ parser_parse_class_literal (parser_context_t *context_p, /**< context */
       if (constructor_literal_p->type == LEXER_FUNCTION_LITERAL)
       {
         /* 14.5.1 */
-        parser_raise_error (context_p, PARSER_ERR_MULTIPLE_CLASS_CONSTRUCTOR);
+        parser_raise_error (context_p, PARSER_ERR_MULTIPLE_CLASS_CONSTRUCTORS);
       }
        parser_flush_cbc (context_p);
       uint32_t status_flags = PARSER_IS_FUNCTION | PARSER_IS_CLOSURE | PARSER_CLASS_CONSTRUCTOR;
@@ -433,7 +433,7 @@ parser_parse_class_literal (parser_context_t *context_p, /**< context */
     {
       if (is_static && lexer_compare_raw_identifier_to_current (context_p, "prototype", 9))
       {
-        parser_raise_error (context_p, PARSER_ERR_CLASS_STATIC_PROPERTY_NAME_PROTOTYPE);
+        parser_raise_error (context_p, PARSER_ERR_CLASS_STATIC_PROTOTYPE);
       }
        if (!lexer_check_left_paren (context_p))
       {
@@ -1056,13 +1056,6 @@ parser_parse_unary_expression (parser_context_t *context_p, /**< context */
                                         PARSER_IS_FUNCTION | PARSER_IS_FUNC_EXPRESSION | PARSER_IS_CLOSURE);
       break;
     }
-#ifndef CONFIG_DISABLE_ES2015_CLASS
-    case LEXER_KEYW_CLASS:
-    {
-      parser_parse_class (context_p, false);
-      return;
-    }
-#endif /* !CONFIG_DISABLE_ES2015_CLASS */
     case LEXER_LEFT_BRACE:
     {
       parser_parse_object_literal (context_p);
@@ -1119,6 +1112,13 @@ parser_parse_unary_expression (parser_context_t *context_p, /**< context */
       parser_emit_cbc (context_p, CBC_PUSH_NULL);
       break;
     }
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+    case LEXER_KEYW_CLASS:
+    {
+      parser_parse_class (context_p, false);
+      return;
+    }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 #ifndef CONFIG_DISABLE_ES2015_ARROW_FUNCTION
     case LEXER_RIGHT_PAREN:
     {
