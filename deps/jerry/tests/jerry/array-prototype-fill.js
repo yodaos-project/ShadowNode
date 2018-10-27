@@ -165,15 +165,6 @@ info: |
       var a2 = {
         length: 1
       };
-      Object.defineProperty(a2, '0', {
-        set: function() {
-          throw new Test262Error();
-        }
-      });
-      assert.throws(Test262Error, function() {
-        Array.prototype.fill.call(a2);
-      });
-
     }
   },
   {

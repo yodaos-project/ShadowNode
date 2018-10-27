@@ -2918,15 +2918,11 @@ ecma_builtin_array_prototype_object_fill (ecma_value_t this_arg, /**< this argum
   ECMA_OP_TO_NUMBER_FINALIZE (start_num);
 
   JERRY_ASSERT (start <= len && end <= len);
-
   for (uint32_t k = start; k < end && ecma_is_value_empty (ret_value); k++)
   {
       ecma_string_t *index_str_p = ecma_new_ecma_string_from_uint32 (k);
       ECMA_TRY_CATCH (current_value, ecma_op_object_find (obj_p, index_str_p), ret_value);
-      if (ecma_is_value_found (current_value))
-      {
-        ecma_free_value(current_value);
-      }
+      ecma_free_value(current_value);
       ECMA_FINALIZE (current_value);
 
       ecma_value_t put_comp = ecma_builtin_helper_def_prop (obj_p,
@@ -3000,34 +2996,29 @@ ecma_builtin_array_prototype_object_copy_within (ecma_value_t this_arg, /**< thi
 
   ECMA_OP_TO_NUMBER_FINALIZE (target_index);
 
-  uint32_t maxCount = len - target;
+  uint32_t max_count = len - target;
   uint32_t count = end - start;
-  if (count > maxCount) {
-    count = maxCount;
+  if (count > max_count) {
+    count = max_count;
   }
 
-  for (; count > 0 && ecma_is_value_empty (ret_value); count--)
+  for (uint32_t i = 0; i < count && ecma_is_value_empty (ret_value); ++i)
   {
-      ecma_string_t *target_str_p = ecma_new_ecma_string_from_uint32 (count + target - 1);
-      ecma_string_t *index_str_p = ecma_new_ecma_string_from_uint32 (count + start - 1);
-      ECMA_TRY_CATCH (current_value, ecma_op_object_find (obj_p, index_str_p), ret_value);
+      ecma_string_t *target_str_p = ecma_new_ecma_string_from_uint32 (i + target);
+      ecma_string_t *index_str_p = ecma_new_ecma_string_from_uint32 (i + start);
       ECMA_TRY_CATCH (target_value, ecma_op_object_find (obj_p, target_str_p), ret_value);
+      ECMA_TRY_CATCH (index_value, ecma_op_object_find (obj_p, index_str_p), ret_value);
       ecma_free_value(target_value);
-
-      if (!ecma_is_value_found (current_value))
-      {
-        current_value = ECMA_VALUE_UNDEFINED;
-      }
 
       ecma_value_t put_comp = ecma_builtin_helper_def_prop (obj_p,
                                                             target_str_p,
-                                                            current_value,
+                                                            index_value,
                                                             true, /* Writable */
                                                             true, /* Enumerable */
                                                             true, /* Configurable */
                                                             false);
       JERRY_ASSERT (ecma_is_value_true (put_comp));
-      ECMA_FINALIZE (current_value);
+      ECMA_FINALIZE (index_value);
       ECMA_FINALIZE (target_value);
       ecma_deref_ecma_string (index_str_p);
       ecma_deref_ecma_string (target_str_p);
@@ -3063,7 +3054,7 @@ ecma_builtin_array_prototype_object_includes (ecma_value_t this_arg, /**< this a
 
   ECMA_OP_TO_NUMBER_TRY_CATCH (len_number, len_value, ret_value);
 
-  uint32_t len = ecma_number_to_uint32 (len_number);
+  uint32_t len = ecma_builtin_helper_array_length_normalize (len_number);
 
   ECMA_OP_TO_NUMBER_TRY_CATCH (arg_from_idx, arg2, ret_value);
   uint32_t from_idx = ecma_builtin_helper_array_index_normalize (arg_from_idx, len);
@@ -3074,12 +3065,13 @@ ecma_builtin_array_prototype_object_includes (ecma_value_t this_arg, /**< this a
 
     ECMA_TRY_CATCH (get_value, ecma_op_object_find (obj_p, index_str_p), ret_value);
 
-    if (ecma_is_value_found (get_value))
+    if (!ecma_is_value_found(get_value))
     {
-      if (ecma_op_strict_equality_compare (arg1, get_value))
-      {
-        ret_value = ECMA_VALUE_TRUE;
-      }
+      get_value = ECMA_VALUE_UNDEFINED;
+    }
+    if (ecma_op_strict_equality_compare (arg1, get_value))
+    {
+      ret_value = ECMA_VALUE_TRUE;
     }
 
     ECMA_FINALIZE (get_value);

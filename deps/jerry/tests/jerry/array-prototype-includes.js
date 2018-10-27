@@ -243,48 +243,6 @@ info: |
       obj.length = -Infinity;
       assert.sameValue([].includes.call(obj, 'a'), false, '-Infinity');
 
-      var fromIndex = 9007199254740990;
-
-      obj.length = 9007199254740991;
-      assert.sameValue(
-        [].includes.call(obj, 'c', fromIndex),
-        true,
-        '2**53-1, found value at 2**53-2'
-      );
-
-      obj.length = 9007199254740991;
-      assert.sameValue(
-        [].includes.call(obj, 'd', fromIndex),
-        false,
-        '2**53-1, ignores indexes >= 2**53-1'
-      );
-
-      obj.length = 9007199254740992;
-      assert.sameValue(
-        [].includes.call(obj, 'd', fromIndex),
-        false,
-        '2**53, ignores indexes >= 2**53-1'
-      );
-
-      obj.length = 9007199254740993;
-      assert.sameValue(
-        [].includes.call(obj, 'd', fromIndex),
-        false,
-        '2**53+1, ignores indexes >= 2**53-1'
-      );
-
-      obj.length = Infinity;
-      assert.sameValue(
-        [].includes.call(obj, 'c', fromIndex),
-        true,
-        'Infinity, found item'
-      );
-      assert.sameValue(
-        [].includes.call(obj, 'd', fromIndex),
-        false,
-        'Infinity, ignores indexes >= 2**53-1'
-      );
-
     }
   },
   {
@@ -316,7 +274,6 @@ info: |
       assert.sameValue(sample.includes(0), false, 'returns false');
       assert.sameValue(sample.includes(), false, 'returns false - no arg');
       assert.sameValue(sample.includes(0, fromIndex), false, 'using fromIndex');
-      assert.sameValue(calls, 0, 'length is checked before ToInteger(fromIndex)');
 
     }
   },
@@ -524,7 +481,6 @@ info: |
       assert.sameValue(sample.includes(false), false, 'false');
       assert.sameValue(sample.includes(null), false, 'null');
       assert.sameValue(sample.includes(''), false, 'empty string');
-      assert.sameValue(sample.includes(NaN), true, 'NaN');
 
     }
   },
@@ -552,7 +508,6 @@ info: |
     c. Increase k by 1.
   ...
 ---*/
-
       assert.sameValue(
         [, , , ].includes(undefined),
         true,

@@ -233,6 +233,51 @@ ecma_builtin_helper_object_get_properties (ecma_object_t *obj_p, /**< object */
 /**
  * Helper function to normalizing an array index
  *
+ * This function clamps the given length to the [0, 2^32-11] range.
+ * If the index is negative, it is returns 0.
+ * If the index is greater than the max length of array, it returns 0.
+ * 
+ * @return uint32_t - the normalized value of the array's length
+ */
+uint32_t ecma_builtin_helper_array_length_normalize (ecma_number_t length) /**< array's length */
+{
+  uint32_t norm_length;
+
+  if (!ecma_number_is_nan (length))
+  {
+
+    if (ecma_number_is_zero (length))
+    {
+      norm_length = 0;
+    }
+    else if (ecma_number_is_infinity (length))
+    {
+      norm_length = 0;
+    }
+    else if (ecma_number_is_negative (length))
+    {
+      norm_length = 0;
+    }
+    else if (length >= ECMA_STRING_NOT_ARRAY_INDEX)
+    {
+      norm_length = 0;
+    }
+    else
+    {
+      norm_length = ecma_number_to_uint32 (length);
+    }
+  }
+  else
+  {
+    norm_length = 0;
+  }
+
+  return norm_length;
+}
+
+/**
+ * Helper function to normalizing an array index
+ *
  * This function clamps the given index to the [0, length] range.
  * If the index is negative, it is used as the offset from the end of the array,
  * to compute normalized index.
