@@ -3052,13 +3052,46 @@ ecma_builtin_array_prototype_object_includes (ecma_value_t this_arg, /**< this a
                                          ecma_value_t arg2) /**< fromIndex */
 {
   ecma_value_t ret_value = ECMA_VALUE_EMPTY;
-  ecma_value_t index_ret = ecma_builtin_array_prototype_object_index_of(this_arg, arg1, arg2);
-  ECMA_OP_TO_NUMBER_TRY_CATCH (index, index_ret, ret_value);
-  int32_t start = ecma_number_to_int32 (index);
-  ret_value = start < 0 ? ECMA_VALUE_FALSE : ECMA_VALUE_TRUE;
-  ECMA_OP_TO_NUMBER_FINALIZE (index);
-  ecma_free_value(index_ret);
-  return ret_value;
+
+  ECMA_TRY_CATCH (obj_this, ecma_op_to_object (this_arg), ret_value);
+
+  ecma_object_t *obj_p = ecma_get_object_from_value (obj_this);
+
+  ECMA_TRY_CATCH (len_value,
+                  ecma_op_object_get_by_magic_id (obj_p, LIT_MAGIC_STRING_LENGTH),
+                  ret_value);
+
+  ECMA_OP_TO_NUMBER_TRY_CATCH (len_number, len_value, ret_value);
+
+  uint32_t len = ecma_number_to_uint32 (len_number);
+
+  ECMA_OP_TO_NUMBER_TRY_CATCH (arg_from_idx, arg2, ret_value);
+  uint32_t from_idx = ecma_builtin_helper_array_index_normalize (arg_from_idx, len);
+
+  for (uint32_t index = from_idx; index < len && ecma_is_value_empty (ret_value); index++)
+  {
+    ecma_string_t *index_str_p = ecma_new_ecma_string_from_uint32 (index);
+
+    ECMA_TRY_CATCH (get_value, ecma_op_object_find (obj_p, index_str_p), ret_value);
+
+    if (ecma_is_value_found (get_value))
+    {
+      if (ecma_op_strict_equality_compare (arg1, get_value))
+      {
+        ret_value = ECMA_VALUE_TRUE;
+      }
+    }
+
+    ECMA_FINALIZE (get_value);
+    ecma_deref_ecma_string (index_str_p);
+  }
+
+  ECMA_OP_TO_NUMBER_FINALIZE (arg_from_idx);
+  ECMA_OP_TO_NUMBER_FINALIZE (len_number);
+  ECMA_FINALIZE (len_value);
+  ECMA_FINALIZE (obj_this);
+
+  return ecma_is_value_empty(ret_value) ? ECMA_VALUE_FALSE : ret_value;
 }
 /**
  * @}
