@@ -420,6 +420,13 @@ set(IOTJS_PUBLIC_HEADERS
 # Configure the libiotjs
 set(TARGET_LIB_IOTJS libiotjs)
 add_library(${TARGET_LIB_IOTJS} SHARED ${LIB_IOTJS_SRC})
+add_dependencies(${TARGET_LIB_IOTJS}
+  ${JERRY_LIBS}
+  ${TUV_LIBS}
+  libhttp-parser
+  ${MBEDTLS_LIBS}
+  ${MQTT_LIBS}
+)
 add_definitions(
   -DNODE_MAJOR_VERSION=${IOTJS_VERSION_MAJOR}
   -DNODE_MINOR_VERSION=${IOTJS_VERSION_MINOR}
