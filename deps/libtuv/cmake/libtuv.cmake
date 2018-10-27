@@ -64,3 +64,5 @@ if(DEFINED COPY_TARGET_LIB)
                                   "${COPY_TARGET_LIB}"
       COMMENT "Copying lib${TARGETLIBNAME} to ${COPY_TARGET_LIB}")
 endif()
+
+install(TARGETS ${TARGETLIBNAME} DESTINATION ./lib)

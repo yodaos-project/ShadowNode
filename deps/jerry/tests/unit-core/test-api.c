@@ -143,6 +143,7 @@ handler_construct (const jerry_value_t func_obj_val, /**< function object */
   TEST_ASSERT (args_cnt == 1);
   TEST_ASSERT (jerry_value_is_boolean (args_p[0]));
   TEST_ASSERT (jerry_get_boolean_value (args_p[0]) == true);
+  TEST_ASSERT (jerry_value_instanceof (this_val, func_obj_val));
 
   jerry_value_t field_name = jerry_create_string ((jerry_char_t *) "value_field");
   jerry_set_property (this_val, field_name, args_p[0]);

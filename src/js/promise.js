@@ -24,23 +24,45 @@
  * Version 487e452.
  */
 
-'use strict';
+/*eslint-disable */
 
 var STATE_PENDING = 0;
 var STATE_FULFILLED = 1;
 var STATE_REJECTED = 2;
 var STATE_NEXT = 3;
 
+// freeze the following static for performance
+var emptyPromise = freezePromiseOnResolve(undefined);
+var emptyArrayPromise = freezePromiseOnResolve([]);
+var nullPromise = freezePromiseOnResolve(null);
+var truePromise = freezePromiseOnResolve(true);
+var falsePromise = freezePromiseOnResolve(false);
+
+function freezePromiseOnResolve(value) {
+  var self = new Promise(noop);
+  resolve(self, value);
+  self._handled = true;
+  return Object.freeze(self);
+}
+
+function noop() {
+  // for then
+}
+
 function Promise(fn) {
   if (!(this instanceof Promise))
     throw new TypeError('undefined is not a promise');
   if (typeof fn !== 'function')
     throw new TypeError('Promise resolver undefined is not a function');
+
   this._state = STATE_PENDING;
   this._handled = false;
   this._value = undefined;
   this._deferreds = [];
 
+  if (fn === noop) {
+    return;
+  }
   doResolve(fn, this);
 }
 
@@ -122,12 +144,6 @@ function finale(self) {
   self._deferreds = null;
 }
 
-function Handler(onFulfilled, onRejected, promise) {
-  this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
-  this.onRejected = typeof onRejected === 'function' ? onRejected : null;
-  this.promise = promise;
-}
-
 /**
  * Take a potentially misbehaving resolver function and make sure
  * onFulfilled and onRejected are only called once.
@@ -161,10 +177,13 @@ Promise.prototype.catch = function(onRejected) {
 };
 
 Promise.prototype.then = function(onFulfilled, onRejected) {
-  var prom = new this.constructor(function() {
-    // Do nothing
+  // .then() is always needed to be a new instance.
+  var prom = new this.constructor(noop);
+  handle(this, {
+    onFulfilled: typeof onFulfilled === 'function' ? onFulfilled : null,
+    onRejected: typeof onRejected === 'function' ? onRejected : null,
+    promise: prom,
   });
-  handle(this, new Handler(onFulfilled, onRejected, prom));
   return prom;
 };
 
@@ -194,6 +213,7 @@ Promise.all = function(arr) {
       return [data];
     });
   }
+
   return new Promise(function(resolve, reject) {
     var remaining = args.length;
 
@@ -226,19 +246,37 @@ Promise.all = function(arr) {
 };
 
 Promise.resolve = function(value) {
+  // detect the value and returns the freezed promise directly
+  // only works for: `undefined`, `null`, `true`, `false` and array(0).
+  if (value === undefined) {
+    return emptyPromise;
+  } else if (value === null) {
+    return nullPromise;
+  } else if (value === true) {
+    return truePromise;
+  } else if (value === false) {
+    return falsePromise;
+  } else if (Array.isArray(value) && value.length === 0) {
+    return emptyArrayPromise;
+  }
+
   if (value && typeof value === 'object' && value.constructor === Promise) {
     return value;
   }
 
-  return new Promise(function(resolve) {
-    resolve(value);
-  });
+  // Promise.resolve asserts no error handling is required, just call
+  // resolve reduces the function calls.
+  var self = new Promise(noop);
+  resolve(self, value);
+  return self;
 };
 
 Promise.reject = function(value) {
-  return new Promise(function(resolve, reject) {
-    reject(value);
-  });
+  // Promise.resolve asserts no error handling is required, just call
+  // resolve reduces the function calls.
+  var self = new Promise(noop);
+  reject(self, value);
+  return self;
 };
 
 Promise.race = function(values) {

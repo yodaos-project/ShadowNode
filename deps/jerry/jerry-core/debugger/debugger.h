@@ -93,6 +93,7 @@ typedef enum
   JERRY_DEBUGGER_VM_STOP = 1u << 2, /**< stop at the next breakpoint even if disabled */
   JERRY_DEBUGGER_VM_IGNORE = 1u << 3, /**< ignore all breakpoints */
   JERRY_DEBUGGER_VM_IGNORE_EXCEPTION = 1u << 4, /**< debugger stop at an exception */
+  JERRY_DEBUGGER_VM_EXCEPTION_THROWN = 1u << 5, /**< no need to stop for this exception */
   JERRY_DEBUGGER_PARSER_WAIT = 1u << 5, /**< debugger should wait after parsing is completed */
   JERRY_DEBUGGER_PARSER_WAIT_MODE = 1u << 6, /**< debugger is waiting after parsing is completed */
   JERRY_DEBUGGER_CLIENT_SOURCE_MODE = 1u << 7, /**< debugger waiting for client code */
