@@ -3,8 +3,8 @@ var fs = require('fs');
 var path = require('path');
 var exec = require('child_process').exec;
 
-var root = path.join(__dirname, process.argv[2]);
-var outputPath = process.argv[3] || 'output.js';
+var root = path.join(process.cwd(), process.argv[2]);
+var outputPath = path.join(process.cwd(), process.argv[3] || 'output.js');
 console.log(`scanning dir ${root}`);
 
 var items = fs.readdirSync(root);
