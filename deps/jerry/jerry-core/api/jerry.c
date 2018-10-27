@@ -199,6 +199,8 @@ jerry_init (jerry_init_flag_t flags) /**< combination of Jerry flags */
 
   jmem_init ();
   ecma_init ();
+
+  JERRY_CONTEXT (stack_max_depth) = 10;
 } /* jerry_init */
 
 /**
@@ -3457,18 +3459,18 @@ jerry_get_typedarray_buffer (jerry_value_t value, /**< TypedArray to get the arr
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
 } /* jerry_get_typedarray_buffer */
 
-uint32_t*
+jerry_value_t
 jerry_get_backtrace (void)
 {
   jerry_assert_api_available ();
-  return JERRY_CONTEXT (stack_frames);
+  return jerry_get_backtrace_depth (jerry_get_backtrace_max_depth ());
 }
 
-void
-jerry_get_backtrace_depth (uint32_t *frames, uint32_t depth)
+jerry_value_t
+jerry_get_backtrace_depth (uint32_t depth)
 {
   jerry_assert_api_available ();
-  jcontext_get_backtrace_depth(frames, depth);
+  return jcontext_get_backtrace_depth(depth);
 }
 
 uint32_t
@@ -3488,49 +3490,6 @@ jerry_enable_cpu_profiling (void)
 #else
   return true;
 #endif
-}
-
-jerry_value_t
-jerry_decode_frame (uint32_t frame)
-{
-#ifdef JERRY_DEBUG_INFO
-  if (frame == 0)
-  {
-#else /* JERRY_DEBUG_INFO */
-    JERRY_UNUSED (frame);
-#endif /* JERRY_DEBUG_INFO */
-    return jerry_create_undefined ();
-#ifdef JERRY_DEBUG_INFO
-  }
-
-  ecma_compiled_code_t *bytecode_p = JMEM_CP_GET_POINTER (ecma_compiled_code_t, frame);
-  jerry_value_t result = jerry_create_object ();
-  jerry_value_t propname;
-
-  propname = jerry_create_string ((const jerry_char_t*) "source");
-  jerry_value_t source = (bytecode_p->source != ECMA_VALUE_EMPTY) ? bytecode_p->source : jerry_create_undefined();
-  jerry_set_property (result, propname, source);
-  jerry_release_value (propname);
-
-  propname = jerry_create_string ((const jerry_char_t*) "name");
-  jerry_value_t name = (bytecode_p->name != ECMA_VALUE_EMPTY) ? bytecode_p->name : jerry_create_undefined();
-  jerry_set_property (result, propname, name);
-  jerry_release_value (propname);
-
-  propname = jerry_create_string ((const jerry_char_t*) "line");
-  jerry_value_t line = jerry_create_number (bytecode_p->line);
-  jerry_set_property (result, propname, line);
-  jerry_release_value (propname);
-  jerry_release_value (line);
-
-  propname = jerry_create_string ((const jerry_char_t*) "column");
-  jerry_value_t column = jerry_create_number (bytecode_p->column);
-  jerry_set_property (result, propname, jerry_create_number (bytecode_p->column));
-  jerry_release_value (propname);
-  jerry_release_value (column);
-
-  return result;
-#endif /* JERRY_DEBUG_INFO */
 }
 
 /**

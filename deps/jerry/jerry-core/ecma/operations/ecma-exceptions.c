@@ -144,38 +144,12 @@ ecma_new_standard_error (ecma_standard_error_t error_type) /**< native error typ
                                                                          frames_str_p,
                                                                          ECMA_PROPERTY_CONFIGURABLE_WRITABLE,
                                                                          NULL);
+  ecma_value_t frame = jerry_get_backtrace ();
+  ecma_named_data_property_assign_value (new_error_obj_p,
+		                                 prop_value_p,
+		                                 frame);
+  ecma_free_value (frame);
   ecma_deref_ecma_string (frames_str_p);
-
-  uint32_t depth = 10;
-  // create frames
-  size_t frames_mem_size = sizeof (uint32_t) * depth;
-  uint32_t *frames = malloc (frames_mem_size);
-  JERRY_ASSERT (frames != NULL);
-  memset (frames, 0, frames_mem_size);
-  jcontext_get_backtrace_depth (frames, depth);
-
-  ecma_value_t frames_array_length_val = ecma_make_uint32_value (depth);
-  ecma_value_t frames_array = ecma_op_create_array_object (&frames_array_length_val, 1, true);
-  ecma_free_value (frames_array_length_val);
-  ecma_object_t *array_p = ecma_get_object_from_value (frames_array);
-
-  for (uint32_t i = 0; i < depth; ++i)
-  {
-    ecma_string_t *str_idx_p = ecma_new_ecma_string_from_uint32 ((uint32_t) i);
-    ecma_property_value_t *index_prop_value_p = ecma_create_named_data_property (array_p,
-                                                                                 str_idx_p,
-                                                                                 ECMA_PROPERTY_CONFIGURABLE_WRITABLE,
-                                                                                 NULL);
-    ecma_value_t frame = jerry_decode_frame (frames[i]);
-    index_prop_value_p->value = frame;
-    ecma_free_value (frame);
-    ecma_deref_ecma_string (str_idx_p);
-  }
-
-  free (frames);
-
-  prop_value_p->value = frames_array;
-  ecma_deref_object (array_p);
 
   return new_error_obj_p;
 } /* ecma_new_standard_error */

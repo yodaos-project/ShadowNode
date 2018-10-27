@@ -528,10 +528,9 @@ jerry_value_t jerry_get_typedarray_buffer (jerry_value_t value,
                                            jerry_length_t *byte_offset,
                                            jerry_length_t *byte_length);
 
-uint32_t *jerry_get_backtrace (void);
-void jerry_get_backtrace_depth (uint32_t *stack_frames, uint32_t depth);
+jerry_value_t jerry_get_backtrace (void);
+jerry_value_t jerry_get_backtrace_depth (uint32_t depth);
 uint32_t jerry_get_backtrace_max_depth (void);
-jerry_value_t jerry_decode_frame (uint32_t frame);
 
 bool jerry_enable_cpu_profiling (void);
 bool jerry_start_cpu_profiling (const char *path, double duration);

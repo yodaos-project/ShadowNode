@@ -17,6 +17,7 @@
 
 #ifdef JERRY_DEBUG_INFO
 #include "ecma-literal-storage.h"
+#include "ecma-helpers.h"
 #endif /* JERRY_DEBUG_INFO */
 
 #ifndef JERRY_DISABLE_JS_PARSER

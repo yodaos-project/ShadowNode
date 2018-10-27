@@ -88,7 +88,7 @@ typedef struct
 
   uint32_t stack_frames[10];
   uint32_t stack_index;
-  FILE *parser_dump_fd;
+  uint32_t stack_max_depth;
 
 #ifndef CONFIG_ECMA_PROPERTY_HASHMAP_DISABLE
   uint8_t ecma_prop_hashmap_alloc_state; /**< property hashmap allocation state: 0-4,
@@ -294,7 +294,7 @@ extern jerry_hash_table_t jerry_global_hash_table;
 
 #endif /* JERRY_ENABLE_EXTERNAL_CONTEXT */
 
-void jcontext_get_backtrace_depth (uint32_t *frames, uint32_t depth);
+jerry_value_t jcontext_get_backtrace_depth (uint32_t depth);
 
 /**
  * @}

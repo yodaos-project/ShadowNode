@@ -14,6 +14,8 @@
  */
 
 #include "jcontext.h"
+#include "ecma-helpers.h"
+#include "ecma-array-object.h"
 
 /** \addtogroup context Context
  * @{
@@ -51,18 +53,37 @@ jerry_hash_table_t jerry_global_hash_table;
 #endif /* !CONFIG_ECMA_LCACHE_DISABLE */
 #endif /* !JERRY_ENABLE_EXTERNAL_CONTEXT */
 
-void
-jcontext_get_backtrace_depth (uint32_t *frames, uint32_t depth)
+jerry_value_t
+jcontext_get_backtrace_depth (uint32_t depth)
 {
+  uint32_t stack_max_depth = JERRY_CONTEXT (stack_max_depth);
+  if (depth > stack_max_depth || depth == 0)
+  {
+    depth = stack_max_depth;
+  }
+
+  ecma_value_t frames_array_length_val = ecma_make_uint32_value (depth);
+  ecma_value_t frames_array = ecma_op_create_array_object (&frames_array_length_val, 1, true);
+  ecma_free_value (frames_array_length_val);
+  ecma_object_t *array_p = ecma_get_object_from_value (frames_array);
+
   vm_frame_ctx_t *ctx_p = JERRY_CONTEXT (vm_top_context_p);
   for (uint32_t idx = 0; idx < depth && ctx_p != NULL; ++idx)
   {
-    jmem_cpointer_t byte_code_cp;
-    JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, ctx_p->bytecode_header_p);
-    frames[idx] = (uint32_t) byte_code_cp;
+    ecma_string_t *str_idx_p = ecma_new_ecma_string_from_uint32 ((uint32_t) idx);
+    ecma_property_value_t *index_prop_value_p = ecma_create_named_data_property (array_p,
+                                                                                 str_idx_p,
+                                                                                 ECMA_PROPERTY_CONFIGURABLE_WRITABLE,
+                                                                                 NULL);
+    ecma_value_t frame = ecma_make_frame (ctx_p->bytecode_header_p);
+    ecma_named_data_property_assign_value (array_p, index_prop_value_p, frame);
+    ecma_free_value (frame);
+    ecma_deref_ecma_string (str_idx_p);
 
     ctx_p = ctx_p->prev_context_p;
   }
+
+  return ecma_make_object_value (array_p);
 }
 
 /**

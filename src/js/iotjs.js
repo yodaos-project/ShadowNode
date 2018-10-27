@@ -49,26 +49,7 @@
   var module = Module.require('module');
   var fs = Module.require('fs');
 
-  function loadDumpIfExists() {
-    var lines = [];
-    try {
-      var data = '';
-      var chunk;
-      var offset = 0;
-      do {
-        chunk = process._readParserDump(offset);
-        offset += chunk.length;
-        data += chunk;
-      } while (chunk !== false);
-
-      lines = data.split('\n');
-    } catch (err) {
-      console.error(`occurrs unkwnown error when loading dump: ${err.message}`);
-    }
-    return lines;
-  }
-
-  function makeStackTraceFromDump(frames) {
+  function makeStackTrace(frames) {
     return frames
       .map((info) => {
         if(info === undefined) {
@@ -182,7 +163,7 @@
   };
 
   function prepareStackTrace(throwable) {
-    return makeStackTraceFromDump(throwable.__frames__ || []);
+    return makeStackTrace(throwable.__frames__ || []);
   }
 
   var stackPropertiesDescriptor = {
@@ -192,7 +173,7 @@
       get: function() {
         if (this.__stack__ === undefined) {
           this.__stack__ = `${this.name || 'Error'}: ${this.message}\n`
-            + makeStackTraceFromDump(this.__frames__ || []);
+            + makeStackTrace(this.__frames__ || []);
         }
         return this.__stack__;
       },
