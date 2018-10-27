@@ -231,7 +231,7 @@ ecma_builtin_helper_object_get_properties (ecma_object_t *obj_p, /**< object */
 } /* ecma_builtin_helper_object_get_properties */
 
 /**
- * Helper function to normalizing an array index
+ * Helper function to normalizing an array length
  *
  * This function clamps the given length to the [0, 2^32-11] range.
  * If the index is negative, it is returns 0.
