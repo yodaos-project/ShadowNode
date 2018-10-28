@@ -49,49 +49,74 @@
   var module = Module.require('module');
   var fs = Module.require('fs');
 
-  function loadDumpIfExists() {
-    var lines = [];
+  /**
+   * Dump Parser
+   */
+  function DumpParser() {
+    this.data = '';
+    this.lines = [];
+    this.table = {};
+  }
+
+  DumpParser.prototype.reload = function reload() {
+    var oldData = this.data;
+    var linesCount = this.lines.length;
+
+    this.data = '';
     try {
-      var data = '';
-      var chunk;
+      var chunk = false
       var offset = 0;
       do {
         chunk = process._readParserDump(offset);
+        if (chunk === false) {
+          break;
+        }
         offset += chunk.length;
-        data += chunk;
+        this.data += chunk;
       } while (chunk !== false);
 
-      lines = data.split('\n');
+      if (this.data) {
+        this.lines = this.data.split('\n');
+      }
     } catch (err) {
       console.error(`occurrs unkwnown error when loading dump: ${err.message}`);
     }
-    return lines;
-  }
 
-  function makeStackTraceFromDump(frames) {
-    var lines = loadDumpIfExists();
-    var file = null;
-    var bcTable = {};
-    lines.forEach(function(line, index) {
+    // rebuild the table only if the offset is changed
+    if (this.data.length > oldData.length) {
+      this.genTable(linesCount);
+    }
+  };
+
+  DumpParser.prototype.genTable = function genTable(start) {
+    var file = null
+    var lines = this.lines.slice(start);
+
+    lines.forEach(function onParseLine(line) {
       if (/.*:/.test(line)) {
         file = line.slice(0, -1);
-      } else {
-        var m = line.match(/(\+ ([a-zA-Z0-9_]*))?( \[(\d+),(\d+)\])? (\d+)/);
-        if (m) {
-          var cp = m[6];
-          bcTable[cp] = {
-            name: m[2] || 'anonymous',
-            line: m[4],
-            column: m[5],
-            source: file,
-          };
-        }
+        return
       }
-    });
+      var m = line.match(/(\+ ([a-zA-Z0-9_]*))?( \[(\d+),(\d+)\])? (\d+)/);
+      if (m) {
+        var cp = m[6];
+        this.table[cp] = {
+          name: m[2] || 'anonymous',
+          line: m[4],
+          column: m[5],
+          source: file,
+        };
+      }
+    }.bind(this));
+  };
+
+  var dumpParser = new DumpParser();
+  function makeStackTraceFromDump(frames) {
+    dumpParser.reload();
 
     return frames
       .reduce((accu, curr) => {
-        var info = bcTable[curr];
+        var info = dumpParser.table[curr];
         if (info !== undefined) {
           accu.push(info);
         }

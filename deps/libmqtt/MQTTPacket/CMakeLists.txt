@@ -18,34 +18,36 @@
 file(GLOB SOURCES "*.c")
 add_library(mqtt_packet STATIC ${SOURCES})
 target_compile_definitions(
-      mqtt_packet PRIVATE 
+      mqtt_packet PRIVATE
       MQTT_SERVER MQTT_CLIENT
 )
 
 add_library(MQTTPacketClient STATIC
-      MQTTFormat 
+      MQTTFormat
       MQTTPacket
-      MQTTSerializePublish 
+      MQTTSerializePublish
       MQTTDeserializePublish
-      MQTTConnectClient 
-      MQTTSubscribeClient 
+      MQTTConnectClient
+      MQTTSubscribeClient
       MQTTUnsubscribeClient
 )
 target_compile_definitions(
-      MQTTPacketClient PRIVATE 
+      MQTTPacketClient PRIVATE
       MQTT_CLIENT
 )
 
-add_library(MQTTPacketServer STATIC 
-      MQTTFormat 
+add_library(MQTTPacketServer STATIC
+      MQTTFormat
       MQTTPacket
-      MQTTSerializePublish 
+      MQTTSerializePublish
       MQTTDeserializePublish
-      MQTTConnectServer 
-      MQTTSubscribeServer 
+      MQTTConnectServer
+      MQTTSubscribeServer
       MQTTUnsubscribeServer
 )
 target_compile_definitions(
-      MQTTPacketServer PRIVATE 
+      MQTTPacketServer PRIVATE
       MQTT_SERVER
 )
+
+install(TARGETS mqtt_packet MQTTPacketClient MQTTPacketServer DESTINATION ./lib)

@@ -33,3 +33,4 @@ endif()
 
 ADD_LIBRARY(${targetName} STATIC http_parser.c)
 target_compile_definitions(${targetName} PRIVATE ${DEFINES_HTTPPARSER})
+install(TARGETS ${targetName} DESTINATION ./lib)
