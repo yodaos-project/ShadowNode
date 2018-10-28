@@ -26,6 +26,7 @@
     { "name": "test_dgram_setttl_server.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_dns.js" },
     { "name": "test_dns_lookup.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
+    { "name": "test_dump_parser.js" },
     { "name": "test_events.js" },
     { "name": "test_events_assert_emit_error.js" },
     { "name": "test_events_uncaught_error.js" },
@@ -115,6 +116,7 @@
     { "name": "test_process_unhandled_rejection.js" },
     { "name": "test_pwm_async.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_pwm_sync.js", "skip": ["all"], "reason": "need to setup test environment" },
+    { "name": "test_shebang.js" },
     { "name": "test_signal_simple.js" },
     { "name": "test_spi.js", "skip": ["linux"], "reason": "Differend env on Linux desktop/travis/rpi" },
     { "name": "test_spi_buffer.js", "skip": ["all"], "reason": "need to setup test environment" },
@@ -159,7 +161,8 @@
     { "name": "test_process_exitcode_var.js", "expected-failure": true },
     { "name": "test_process_explicit_exit.js", "expected-failure": true },
     { "name": "test_process_implicit_exit.js", "expected-failure": true },
-    { "name": "test_promise_unhandled_rejection.js", "expected-failure": true }
+    { "name": "test_promise_unhandled_rejection.js", "expected-failure": true },
+    { "name": "test_shebang_fail.js", "expected-failure": true }
   ],
   "node/parallel": [
     { "name": "test-assert.js" },

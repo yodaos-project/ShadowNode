@@ -141,6 +141,9 @@ string(TOUPPER "${TARGET_OS}" TARGET_OS)
 set(ROOT_DIR ${CMAKE_SOURCE_DIR})
 set(ARCHIVE_DIR ${CMAKE_BINARY_DIR}/lib)
 
+# if generates Xcode projects, /usr/local/lib shall be explicitly linked
+link_directories(/usr/local/lib)
+
 include(ExternalProject)
 
 # Include external projects

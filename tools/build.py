@@ -74,6 +74,9 @@ def init_options():
     # Prepare argument parser.
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('-G', action='store', default=None,
+        help='Specify a build system generator')
+
     parser.add_argument('--buildtype',
         choices=['debug', 'release'], default='debug',
         help='Specify the build type: %(choices)s (default: %(default)s)')
@@ -354,6 +357,9 @@ def build_iotjs(options):
         # --jerry-profile
         "-DFEATURE_PROFILE='%s'" % options.jerry_profile,
     ]
+
+    if options.G:
+        cmake_opt.append('-G%s' % options.G)
 
     if options.target_os in ['nuttx', 'tizenrt']:
         cmake_opt.append("-DEXTERNAL_LIBC_INTERFACE='%s'" %

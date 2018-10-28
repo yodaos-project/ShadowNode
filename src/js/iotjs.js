@@ -51,6 +51,7 @@
 
   function makeStackTrace(frames) {
     return frames
+
       .map((info) => {
         if(info === undefined) {
           return '';
