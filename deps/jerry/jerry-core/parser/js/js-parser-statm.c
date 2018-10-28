@@ -15,10 +15,10 @@
 
 #include "js-parser-internal.h"
 
-#ifdef JERRY_DEBUG_INFO
+#ifdef JERRY_DEBUG_SYMBOL
 #include "ecma-literal-storage.h"
 #include "ecma-helpers.h"
-#endif /* JERRY_DEBUG_INFO */
+#endif /* JERRY_DEBUG_SYMBOL */
 
 #ifndef JERRY_DISABLE_JS_PARSER
 
@@ -383,10 +383,10 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
 
   JERRY_ASSERT (context_p->token.type == LEXER_KEYW_FUNCTION);
 
-#ifdef JERRY_DEBUG_INFO
+#ifdef JERRY_DEBUG_SYMBOL
   uint16_t line = (uint16_t) context_p->token.line;
   uint16_t column = (uint16_t) context_p->token.column;
-#endif /* JERRY_DEBUG_INFO */
+#endif /* JERRY_DEBUG_SYMBOL */
 
 #ifdef JERRY_DEBUGGER
   parser_line_counter_t debugger_line = context_p->token.line;
@@ -446,12 +446,12 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
       compiled_code_p = parser_parse_function (context_p, status_flags);
       util_free_literal (literal_p);
 
-#ifdef JERRY_DEBUG_INFO
+#ifdef JERRY_DEBUG_SYMBOL
       compiled_code_p->source = context_p->resource_name;
       compiled_code_p->name = ecma_find_or_create_literal_string (func_name, func_name_len);
       compiled_code_p->line = line;
       compiled_code_p->column = column;
-#endif /* JERRY_DEBUG_INFO */
+#endif /* JERRY_DEBUG_SYMBOL */
 
       literal_p->u.bytecode_p = compiled_code_p;
       lexer_next_token (context_p);
@@ -463,12 +463,12 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
     /* The most common case: the literal is the last literal. */
     name_p->status_flags |= LEXER_FLAG_VAR | LEXER_FLAG_INITIALIZED;
 
-#ifdef JERRY_DEBUG_INFO
+#ifdef JERRY_DEBUG_SYMBOL
     uint16_t index =
-#endif /* JERRY_DEBUG_INFO */
+#endif /* JERRY_DEBUG_SYMBOL */
     lexer_construct_function_object (context_p, status_flags);
 
-#ifdef JERRY_DEBUG_INFO
+#ifdef JERRY_DEBUG_SYMBOL
     /* record function name in bytecode */
     lexer_literal_t *func_literal = (lexer_literal_t *) parser_list_get (&context_p->literal_pool, index);
     ecma_value_t name = ecma_find_or_create_literal_string (func_name, func_name_len);
@@ -476,7 +476,7 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
     func_literal->u.bytecode_p->name = name;
     func_literal->u.bytecode_p->line = line;
     func_literal->u.bytecode_p->column = column;
-#endif /* JERRY_DEBUG_INFO */
+#endif /* JERRY_DEBUG_SYMBOL */
 
     lexer_next_token (context_p);
     return;
@@ -501,12 +501,12 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
 
   context_p->literal_count++;
 
-#ifdef JERRY_DEBUG_INFO
+#ifdef JERRY_DEBUG_SYMBOL
   uint16_t index =
-#endif /* JERRY_DEBUG_INFO */
+#endif /* JERRY_DEBUG_SYMBOL */
   lexer_construct_function_object (context_p, status_flags);
 
-#ifdef JERRY_DEBUG_INFO
+#ifdef JERRY_DEBUG_SYMBOL
   /* record function name in bytecode */
   lexer_literal_t *func_literal = (lexer_literal_t *) parser_list_get (&context_p->literal_pool, index);
   ecma_value_t name = ecma_find_or_create_literal_string (func_name, func_name_len);
@@ -514,7 +514,7 @@ parser_parse_function_statement (parser_context_t *context_p) /**< context */
   func_literal->u.bytecode_p->name = name;
   func_literal->u.bytecode_p->line = line;
   func_literal->u.bytecode_p->column = column;
-#endif /* JERRY_DEBUG_INFO */
+#endif /* JERRY_DEBUG_SYMBOL */
 
   lexer_next_token (context_p);
 } /* parser_parse_function_statement */

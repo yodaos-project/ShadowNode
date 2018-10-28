@@ -814,12 +814,12 @@ typedef struct
                                       *    the byte code is function or regular expression.
                                       *    If function, the other flags must be CBC_CODE_FLAGS...
                                       *    If regexp, the other flags must be RE_FLAG... */
-#ifdef JERRY_DEBUG_INFO
+#ifdef JERRY_DEBUG_SYMBOL
   ecma_value_t source;                /**< ecma value of function name */
   ecma_value_t name;                /**< ecma value of function name */
   uint16_t line;
   uint16_t column;
-#endif /* JERRY_DEBUG_INFO */
+#endif /* JERRY_DEBUG_SYMBOL */
 } ecma_compiled_code_t;
 
 #ifdef JERRY_ENABLE_SNAPSHOT_EXEC

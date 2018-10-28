@@ -341,7 +341,7 @@ ecma_save_literals_add_compiled_code (const ecma_compiled_code_t *compiled_code_
     }
   }
 
-#ifdef JERRY_DEBUG_INFO
+#ifdef JERRY_DEBUG_SYMBOL
   if (compiled_code_p->source != ECMA_VALUE_EMPTY)
   {
     ecma_save_literals_append_value (compiled_code_p->source, lit_pool_p);
@@ -350,7 +350,7 @@ ecma_save_literals_add_compiled_code (const ecma_compiled_code_t *compiled_code_
   {
     ecma_save_literals_append_value (compiled_code_p->name, lit_pool_p);
   }
-#endif /* JERRY_DEBUG_INFO */
+#endif /* JERRY_DEBUG_SYMBOL */
 } /* ecma_save_literals_add_compiled_code */
 
 /**
