@@ -2278,9 +2278,11 @@ parser_parse_source (const jerry_char_t *resource_name_p, /**< resource name (us
     JERRY_ASSERT (context.allocated_buffer_p == NULL);
 
     compiled_code = parser_post_processing (&context);
+#ifdef JERRY_DEBUG_SYMBOL
     compiled_code->source = context.resource_name;
     compiled_code->line = 1;
     compiled_code->column = 1;
+#endif /* JERRY_DEBUG_SYMBOL */
     parser_list_free (&context.literal_pool);
 
 #ifdef PARSER_DUMP_BYTE_CODE

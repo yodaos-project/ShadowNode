@@ -1592,7 +1592,7 @@ ecma_make_frame (const ecma_compiled_code_t *bytecode_p)
   if (bytecode_p == NULL)
   {
 #else /* JERRY_DEBUG_SYMBOL */
-    JERRY_UNUSED (frame);
+    JERRY_UNUSED (bytecode_p);
 #endif /* JERRY_DEBUG_SYMBOL */
     return jerry_create_undefined ();
 #ifdef JERRY_DEBUG_SYMBOL
