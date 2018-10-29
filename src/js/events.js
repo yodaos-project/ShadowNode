@@ -89,12 +89,12 @@ EventEmitter.prototype.addListener = function(type, listener) {
     throw new TypeError('listener must be a function');
   }
 
-  if (this._events.newListener !== undefined) {
-    this.emit('newListener', type, listener);
-  }
-
   if (!this._events) {
     this._events = Object.create(null);
+  }
+
+  if (this._events.newListener !== undefined) {
+    this.emit('newListener', type, listener);
   }
 
   existing = this._events[type];
