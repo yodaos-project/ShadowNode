@@ -79,6 +79,7 @@ struct iotjs_callback_info_s {
   size_t argc;
   jerry_value_t* argv;
   jerry_value_t jval_this;
+  jerry_value_t jval_func;
 
   jerryx_handle_scope handle_scope;
   iotjs_function_info_t* function_info;
