@@ -15,8 +15,6 @@ client.once('connect', function() {
   assert.equal(client._keepAliveTimer, null);
   assert.equal(client._keepAliveTimeout, null);
 });
-client.once('error', function(err) {
-})
 //the close event will be triggered whether testHost is connected or not
 client.once('close', common.mustCall(function() {
   assert.ok(!client.connected);
