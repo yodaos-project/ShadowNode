@@ -16,26 +16,118 @@
 var assert = require('assert');
 
 
-var tickTrace = '';
+var trace1 = '';
+var trace2 = '';
+var trace3 = '';
+var trace4 = '';
+var trace5 = '';
 
-process.nextTick(function() {
-  tickTrace += '1';
+function test1() {
   process.nextTick(function() {
-    tickTrace += '2';
+    trace1 += '1';
     process.nextTick(function() {
-      tickTrace += '3';
+      trace1 += '2';
       process.nextTick(function() {
-        tickTrace += '4';
+        trace1 += '3';
         process.nextTick(function() {
-          tickTrace += '5';
+          trace1 += '4';
+          process.nextTick(function() {
+            trace1 += '5';
+          });
         });
       });
     });
   });
-});
+}
 
+function test2() {
+  process.nextTick(function () {
+    trace2 += '1';
+  });
+  process.nextTick(function () {
+    trace2 += '2';
+  })
+  setImmediate(function () {
+    trace2 += '3';
+    process.nextTick(function () {
+      trace2 += '5';
+    });
+  });
+  setImmediate(function () {
+    trace2 += '4';
+  });
+}
+
+function test3() {
+  process.nextTick(function () {
+    trace3 += '1';
+  });
+  process.nextTick(function () {
+    trace3 += '2';
+  })
+  setTimeout(function() {
+    trace3 += '3';
+    // FIXME
+    // when the timer is triggered,
+    // the js callback is called by iotjs_make_callback and therefore
+    // the nextTick callbacks is called
+    process.nextTick(function () {
+      trace3 += '4';
+    })
+  }, 0);
+  setTimeout(function() {
+    trace3 += '5';
+  }, 0);
+}
+
+function test4() {
+  process.nextTick(function(){
+    trace4 += '3';
+  });
+
+  new Promise(function(resolve){
+    trace4 += '1';
+    resolve();
+    trace4 += '2';
+  }).then(function(){
+    trace4 += '4';
+  });
+
+  process.nextTick(function(){
+    trace4 += '5';
+  });
+}
+
+function test5() {
+  setTimeout(function(){
+    trace5 += '5'
+  },0);
+
+  new Promise(function(resolve,reject){
+    trace5 += '1';
+    resolve();
+  }).then(function(){
+    trace5 += '2';
+  }).then(function(){
+    trace5 += '4';
+  });
+
+  process.nextTick(function(){
+    trace5 += '3';
+  });
+}
+
+test1();
+test2();
+test3();
+test4();
+test5();
 
 process.on('exit', function(code) {
   assert.equal(code, 0);
-  assert.equal(tickTrace, '12345');
+  assert.equal(trace1, '12345');
+  assert.equal(trace2, '12345');
+  assert.equal(trace3, '12345');
+  assert.equal(trace4, '12345');
+  assert.equal(trace5, '12345');
 });

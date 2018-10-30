@@ -13,6 +13,7 @@
         "https",
         "mqtt",
         "net",
+        "next_tick",
         "os",
         "path",
         "profiler",
@@ -292,6 +293,9 @@
     "net": {
       "js_file": "js/net.js",
       "require": ["assert", "events", "stream", "tcp", "util"]
+    },
+    "next_tick": {
+      "js_file": "js/next_tick.js"
     },
     "os": {
       "js_file": "js/os.js",
