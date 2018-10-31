@@ -1963,7 +1963,6 @@ ecma_builtin_array_prototype_object_every (ecma_value_t this_arg, /**< this argu
           ret_value = ECMA_VALUE_FALSE;
         }
 
-        ecma_free_value(current_index);
         ECMA_FINALIZE (call_value);
       }
 
@@ -2062,7 +2061,6 @@ ecma_builtin_array_prototype_object_some (ecma_value_t this_arg, /**< this argum
           ret_value = ECMA_VALUE_TRUE;
         }
 
-        ecma_free_value(current_index);
         ECMA_FINALIZE (call_value);
       }
 
@@ -2153,7 +2151,6 @@ ecma_builtin_array_prototype_object_for_each (ecma_value_t this_arg, /**< this a
         ecma_value_t call_args[] = {current_value, current_index, obj_this};
         ECMA_TRY_CATCH (call_value, ecma_op_function_call (func_object_p, arg2, call_args, 3), ret_value);
 
-        ecma_free_value(current_index);
         ECMA_FINALIZE (call_value);
       }
 
@@ -2259,7 +2256,6 @@ ecma_builtin_array_prototype_object_map (ecma_value_t this_arg, /**< this argume
                                                               false);
         JERRY_ASSERT (ecma_is_value_true (put_comp));
 
-        ecma_free_value(current_index);
         ECMA_FINALIZE (mapped_value);
       }
 
@@ -2361,7 +2357,6 @@ ecma_builtin_array_prototype_object_filter (ecma_value_t this_arg, /**< this arg
         ecma_value_t call_args[] = { get_value, current_index, obj_this };
         /* 9.c.ii */
         ECMA_TRY_CATCH (call_value, ecma_op_function_call (func_object_p, arg2, call_args, 3), ret_value);
-        ecma_free_value(current_index);
 
         /* 9.c.iii */
         if (ecma_op_to_boolean (call_value))
@@ -2533,10 +2528,9 @@ ecma_builtin_array_prototype_object_reduce (ecma_value_t this_arg, /**< this arg
                                                  4),
                           ret_value);
 
-          ecma_free_value (accumulator);
           accumulator = ecma_copy_value (call_value);
 
-          ecma_free_value(current_index);
+          ecma_free_value (current_index);
           ECMA_FINALIZE (call_value);
         }
 
@@ -2691,7 +2685,6 @@ ecma_builtin_array_prototype_object_reduce_right (ecma_value_t this_arg, /**< th
           ecma_free_value (accumulator);
           accumulator = ecma_copy_value (call_value);
 
-          ecma_free_value(current_index);
           ECMA_FINALIZE (call_value);
         }
 
@@ -2773,7 +2766,7 @@ ecma_builtin_array_prototype_object_find (ecma_value_t this_arg, /**< this argum
       {
         ret_value = ecma_copy_value(current_value);
       }
-      ecma_free_value(current_index);
+      ecma_free_value (current_index);
       ECMA_FINALIZE (is_find);
       ECMA_FINALIZE (current_value);
       ecma_deref_ecma_string (index_str_p);
@@ -2846,7 +2839,7 @@ ecma_builtin_array_prototype_object_find_index (ecma_value_t this_arg, /**< this
       {
         ret_value = ecma_copy_value(current_index);
       }
-      ecma_free_value(current_index);
+      ecma_free_value (current_index);
       ECMA_FINALIZE (is_find);
       ECMA_FINALIZE (current_value);
       ecma_deref_ecma_string (index_str_p);
@@ -2922,7 +2915,7 @@ ecma_builtin_array_prototype_object_fill (ecma_value_t this_arg, /**< this argum
   {
       ecma_string_t *index_str_p = ecma_new_ecma_string_from_uint32 (k);
       ECMA_TRY_CATCH (current_value, ecma_op_object_find (obj_p, index_str_p), ret_value);
-      ecma_free_value(current_value);
+      ecma_free_value (current_value);
       ECMA_FINALIZE (current_value);
 
       ecma_value_t put_comp = ecma_builtin_helper_def_prop (obj_p,
@@ -3008,7 +3001,7 @@ ecma_builtin_array_prototype_object_copy_within (ecma_value_t this_arg, /**< thi
       ecma_string_t *index_str_p = ecma_new_ecma_string_from_uint32 (i + start);
       ECMA_TRY_CATCH (target_value, ecma_op_object_find (obj_p, target_str_p), ret_value);
       ECMA_TRY_CATCH (index_value, ecma_op_object_find (obj_p, index_str_p), ret_value);
-      ecma_free_value(target_value);
+      ecma_free_value (target_value);
 
       ecma_value_t put_comp = ecma_builtin_helper_def_prop (obj_p,
                                                             target_str_p,
