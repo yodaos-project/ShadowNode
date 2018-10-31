@@ -9,11 +9,11 @@ function main(opts) {
   var n = opts.n;
   process.nextTick(function() {
     bench.start();
-  })
-  for (var i = 0; i < n; ++i) {
-    process.nextTick(function(i) {}, i);
-  }
-  process.nextTick(function() {
-    bench.end(n);
-  })
+    for (var i = 0; i < n; ++i) {
+      process.nextTick(function(i) { }, i);
+    }
+    process.nextTick(function() {
+      bench.end(n);
+    });
+  });
 }
