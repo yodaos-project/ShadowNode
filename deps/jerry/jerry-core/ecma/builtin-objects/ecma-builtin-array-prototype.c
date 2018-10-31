@@ -2531,7 +2531,6 @@ ecma_builtin_array_prototype_object_reduce (ecma_value_t this_arg, /**< this arg
           ecma_free_value (accumulator);
           accumulator = ecma_copy_value (call_value);
 
-          ecma_free_value (current_index);
           ECMA_FINALIZE (call_value);
         }
 
