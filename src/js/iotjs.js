@@ -475,7 +475,7 @@
     }
   }
 
-  var next_tick = Module.require('next_tick');
+  var next_tick = Module.require('internal_process_next_tick');
   process.nextTick = next_tick.nextTick;
   process._onNextTick = next_tick._onNextTick;
 
