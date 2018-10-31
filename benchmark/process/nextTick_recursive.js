@@ -7,21 +7,15 @@ var bench = common.createBenchmark(main, {
 
 function main(opts) {
   var n = opts.n;
-  var tasks = [];
-  function runTasks(i) {
-    process.nextTick(function() {
-      tasks[i]();
-      if (++i <= n) {
-        process.nextTick(runTasks, i);
-      }
-    });
+  var i = 0;
+  function runTasks() {
+    if (i++ < n) {
+      process.nextTick(runTasks);
+    } else {
+      bench.end(n);
+    }
   }
-  for (var i = 0; i < n; ++i) {
-    tasks.push(function() {});
-  }
-  tasks.push(function() {
-    bench.end(n);
-  })
+
   bench.start();
-  runTasks(0);
+  runTasks();
 }
