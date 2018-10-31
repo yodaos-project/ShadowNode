@@ -85,7 +85,6 @@ MqttClient.prototype.connect = function() {
  * @method _onconnect
  */
 MqttClient.prototype._onconnect = function() {
-  this._isConnected = true;
   var buf;
   try {
     buf = this._handle._getConnect();
@@ -111,6 +110,7 @@ MqttClient.prototype._ondisconnect = function() {
     this._isConnected = false;
     this.emit('offline');
   }
+  this.emit('close');
   this.reconnect();
 };
 
@@ -130,6 +130,7 @@ MqttClient.prototype._ondata = function(chunk) {
   this.emit('packetreceive');
 
   if (res.type === MQTT_CONNACK) {
+    this._isConnected = true;
     if (this._reconnecting) {
       clearTimeout(this._reconnectingTimer);
       this._reconnecting = false;
