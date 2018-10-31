@@ -2827,6 +2827,35 @@ error:
 #undef READ_LITERAL_INDEX
 
 #ifdef JERRY_CPU_PROFILER
+static
+void print_string (FILE *fp, ecma_value_t string)
+{
+  JERRY_ASSERT (ecma_is_value_string (string));
+
+  ecma_string_t *string_p = ecma_get_string_from_value (string);
+  lit_utf8_size_t sz = ecma_string_get_utf8_size (string_p);
+  lit_utf8_byte_t buffer_p[sz+1];
+  buffer_p[sz] = '\0';
+  ecma_string_to_utf8_bytes (string_p, buffer_p, sz);
+  fprintf (fp, "%s", buffer_p);
+}
+
+static
+void print_frame (FILE *fp, const ecma_compiled_code_t *bytecode_p)
+{
+  fprintf (fp, ",");
+  if (bytecode_p->name != ECMA_VALUE_EMPTY)
+  {
+    print_string (fp, bytecode_p->name);
+  }
+  fprintf (fp, "(");
+  if (bytecode_p->source != ECMA_VALUE_EMPTY)
+  {
+    print_string (fp, bytecode_p->source);
+  }
+  fprintf (fp, ":%u:%u)", bytecode_p->line, bytecode_p->column);
+}
+
 static void
 print_prof_stack (FILE *fp)
 {
@@ -2835,7 +2864,7 @@ print_prof_stack (FILE *fp)
   {
     jmem_cpointer_t byte_code_cp;
     JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, ctx_p->bytecode_header_p);
-    fprintf (fp, ",%u", (uint32_t) byte_code_cp);
+    print_frame (JERRY_CONTEXT (cpu_profiling_fp), ctx_p->bytecode_header_p);
   }
   fprintf (fp, "\n");
 }
