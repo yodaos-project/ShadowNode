@@ -22,15 +22,19 @@ module.exports._onNextTick = function _onNextTick() {
     var tickObject = nextTickQueue[i];
     var callback = tickObject.callback;
     var args = tickObject.args;
-    if (args === undefined) {
-      callback();
-    } else {
-      switch (args.length) {
-        case 1: callback(args[0]); break;
-        case 2: callback(args[0], args[1]); break;
-        case 3: callback(args[0], args[1], args[2]); break;
-        default: callback.apply(undefined, args); break;
+    try {
+      if (args === undefined) {
+        callback();
+      } else {
+        switch (args.length) {
+          case 1: callback(args[0]); break;
+          case 2: callback(args[0], args[1]); break;
+          case 3: callback(args[0], args[1], args[2]); break;
+          default: callback.apply(undefined, args); break;
+        }
       }
+    } catch (e) {
+      process._onUncaughtException(e);
     }
     ++i;
   }

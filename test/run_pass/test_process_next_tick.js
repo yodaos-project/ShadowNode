@@ -120,8 +120,8 @@ function test5() {
 
 function test6() {
   process.nextTick(function() {
-    trace6 += arguments[1] + arguments[2] + arguments[3]
-      + arguments[4] + arguments[5];
+    trace6 += arguments[0] + arguments[1] + arguments[2]
+      + arguments[3] + arguments[4];
   }, '1', '2', '3', '4', '5')
 }
 
