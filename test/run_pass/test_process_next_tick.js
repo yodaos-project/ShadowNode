@@ -21,6 +21,7 @@ var trace2 = '';
 var trace3 = '';
 var trace4 = '';
 var trace5 = '';
+var trace6 = '';
 
 function test1() {
   process.nextTick(function() {
@@ -117,11 +118,27 @@ function test5() {
   });
 }
 
+function test6() {
+  process.nextTick(function() {
+    trace6 += arguments[1] + arguments[2] + arguments[3]
+      + arguments[4] + arguments[5];
+  }, '1', '2', '3', '4', '5')
+}
+
+function test7() {
+  process.nextTick(function() {
+    assert.ok(arguments[0] === undefined);
+    assert.ok(arguments[1] === undefined);
+  })
+}
+
 test1();
 test2();
 test3();
 test4();
 test5();
+test6();
+test7();
 
 process.on('exit', function(code) {
   assert.equal(code, 0);
@@ -130,4 +147,5 @@ process.on('exit', function(code) {
   assert.equal(trace3, '12345');
   assert.equal(trace4, '12345');
   assert.equal(trace5, '12345');
+  assert.equal(trace6, '12345');
 });
