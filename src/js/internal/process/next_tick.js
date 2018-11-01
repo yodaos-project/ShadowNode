@@ -3,35 +3,25 @@
 var nextTickQueue = [];
 
 module.exports.nextTick = function nextTick(callback) {
-  var args;
-  switch (arguments.length) {
-    case 1: break;
-    case 2: args = [arguments[1]]; break;
-    case 3: args = [arguments[1], arguments[2]]; break;
-    case 4: args = [arguments[1], arguments[2], arguments[3]]; break;
-    default:
-      args = Array.prototype.slice.call(arguments, 1);
-      break;
+  if (typeof callback !== 'function') {
+    throw new Error('NEXT_TICK_EXPECTED_FUNCTION');
   }
-  nextTickQueue.push({ callback: callback, args: args });
+  nextTickQueue.push(arguments);
 };
 
 module.exports._onNextTick = function _onNextTick() {
   var i = 0;
   while (i < nextTickQueue.length) {
-    var tickObject = nextTickQueue[i];
-    var callback = tickObject.callback;
-    var args = tickObject.args;
+    var tickArgs = nextTickQueue[i];
+    var callback = tickArgs[0];
     try {
-      if (args === undefined) {
-        callback();
-      } else {
-        switch (args.length) {
-          case 1: callback(args[0]); break;
-          case 2: callback(args[0], args[1]); break;
-          case 3: callback(args[0], args[1], args[2]); break;
-          default: callback.apply(undefined, args); break;
-        }
+      switch (tickArgs.length) {
+        case 1: callback(); break;
+        case 2: callback(tickArgs[1]); break;
+        case 3: callback(tickArgs[1], tickArgs[2]); break;
+        case 4: callback(tickArgs[1], tickArgs[2], tickArgs[3]); break;
+        default:
+          callback.apply(undefined, Array.prototype.slice(tickArgs, 1)); break;
       }
     } catch (e) {
       process._onUncaughtException(e);
