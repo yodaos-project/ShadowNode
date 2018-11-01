@@ -122,7 +122,7 @@ function test6() {
   process.nextTick(function() {
     trace6 += arguments[0] + arguments[1] + arguments[2]
       + arguments[3] + arguments[4];
-  }, '1', '2', '3', '4', '5')
+  }, '1', '2', '3', '4', '5');
 }
 
 function test7() {
@@ -134,10 +134,12 @@ function test7() {
 
 function test8() {
   process.nextTick(function() {
-    assert.ok(arguments[0] === 1);
-    assert.ok(arguments[1] === 2);
-    assert.ok(arguments[2] === 3);
-  }, 1, 2, 3);
+    assert.ok(arguments[0] === '1');
+    assert.ok(arguments[1] === '2');
+    assert.ok(arguments[2] === '3');
+    assert.ok(arguments[3] === '4');
+    assert.ok(arguments[4] === '5');
+  }, '1', '2', '3', '4', '5');
 }
 
 test1();
