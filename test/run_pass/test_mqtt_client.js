@@ -11,11 +11,16 @@ function test(testHost) {
     reconnectPeriod: -1
   });
   // testHost may not be able to connect, so don't use mustCall here
+  assert.equal(client.reconnecting, false);
   client.once('connect', common.mustCall(function() {
+    assert.equal(client.reconnecting, false);
+    assert.equal(client.connected, true);
+    assert.equal(client._isSocketConnected, true);
     // trigger the close event
     client.once('offline', common.mustCall(function() {
-      assert.ok(!client.connected);
-      assert.ok(!client._isTCPConnected);
+      assert.equal(client.reconnecting, false);
+      assert.equal(client.connected, false);
+      assert.equal(client._isSocketConnected, false);
     }));
     client.disconnect();
     assert.equal(client._keepAliveTimer, null);
@@ -23,8 +28,9 @@ function test(testHost) {
   }));
   //the close event will be triggered whether testHost is connected or not
   client.once('close', common.mustCall(function() {
-    assert.ok(!client.connected);
-    assert.ok(!client._isTCPConnected);
+    assert.equal(client.reconnecting, false);
+    assert.equal(client.connected, false);
+    assert.equal(client._isSocketConnected, false);
   }));
 }
 

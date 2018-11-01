@@ -47,7 +47,7 @@ function MqttClient(endpoint, options) {
     protocolVersion: 4,
     pingReqTimeout: 10 * 1000,
   }, options);
-  this._isTCPConnected = false;
+  this._isSocketConnected = false;
   this._isConnected = false;
   this._reconnecting = false;
   this._reconnectingTimer = null;
@@ -56,6 +56,18 @@ function MqttClient(endpoint, options) {
   this._keepAliveTimer = null;
   this._keepAliveTimeout = null;
   this._handle = new native.MqttHandle(this._options);
+  Object.defineProperty(this, 'connected', {
+    get: function() {
+      return this._isConnected;
+    },
+  });
+
+  Object.defineProperty(this, 'reconnecting', {
+    get: function() {
+      return this._reconnecting;
+    },
+  });
+
 }
 util.inherits(MqttClient, EventEmitter);
 
@@ -86,7 +98,7 @@ MqttClient.prototype.connect = function() {
  * @method _onconnect
  */
 MqttClient.prototype._onconnect = function() {
-  this._isTCPConnected = true;
+  this._isSocketConnected = true;
   var buf;
   try {
     buf = this._handle._getConnect();
@@ -108,7 +120,7 @@ MqttClient.prototype._onend = function() {
 };
 
 MqttClient.prototype._ondisconnect = function() {
-  this._isTCPConnected = false;
+  this._isSocketConnected = false;
   if (this._isConnected) {
     this._isConnected = false;
     this.emit('offline');
@@ -188,7 +200,7 @@ MqttClient.prototype._ondata = function(chunk) {
 MqttClient.prototype._write = function(buffer, callback) {
   var self = this;
   callback = callback || noop;
-  if (!self._isTCPConnected) {
+  if (!self._isSocketConnected) {
     callback(new Error('mqtt is disconnected'));
     return;
   }
@@ -350,24 +362,6 @@ MqttClient.prototype.reconnect = function() {
 MqttClient.prototype.getLastMessageId = function() {
   return this._msgId;
 };
-
-/**
- * @property {Boolean} connected
- */
-Object.defineProperty(MqttClient, 'connected', {
-  get: function() {
-    return this._isConnected;
-  },
-});
-
-/**
- * @property {Boolean} reconnecting
- */
-Object.defineProperty(MqttClient, 'reconnecting', {
-  get: function() {
-    return this._reconnecting;
-  },
-});
 
 function connect(endpoint, options) {
   var client = new MqttClient(endpoint, options);
