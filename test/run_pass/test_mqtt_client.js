@@ -10,9 +10,10 @@ function test(testHost) {
   var client = mqtt.connect(testHost, {
     reconnectPeriod: -1
   });
-  // testHost may not be able to connect, so don't use mustCall here
   assert.equal(client.reconnecting, false);
-  client.once('connect', common.mustCall(function() {
+  // FIXME
+  // testHost may not be able to connect, so don't use mustCall here
+  client.once('connect', function() {
     assert.equal(client.reconnecting, false);
     assert.equal(client.connected, true);
     assert.equal(client._isSocketConnected, true);
@@ -25,7 +26,7 @@ function test(testHost) {
     client.disconnect();
     assert.equal(client._keepAliveTimer, null);
     assert.equal(client._keepAliveTimeout, null);
-  }));
+  });
   //the close event will be triggered whether testHost is connected or not
   client.once('close', common.mustCall(function() {
     assert.equal(client.reconnecting, false);
