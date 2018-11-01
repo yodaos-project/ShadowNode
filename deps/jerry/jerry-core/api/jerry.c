@@ -3470,7 +3470,7 @@ jerry_value_t
 jerry_get_backtrace_depth (uint32_t depth)
 {
   jerry_assert_api_available ();
-  return jcontext_get_backtrace_depth(depth);
+  return jcontext_get_backtrace_depth (depth);
 }
 
 uint32_t

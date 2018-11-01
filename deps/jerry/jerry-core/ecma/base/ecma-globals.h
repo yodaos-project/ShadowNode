@@ -817,8 +817,8 @@ typedef struct
 #ifdef JERRY_DEBUG_SYMBOL
   ecma_value_t source;                /**< ecma value of function name */
   ecma_value_t name;                /**< ecma value of function name */
-  uint16_t line;
-  uint16_t column;
+  uint16_t line;                    /**< line number of function start location */
+  uint16_t column;                  /**< column number of function start location */
 #endif /* JERRY_DEBUG_SYMBOL */
 } ecma_compiled_code_t;
 

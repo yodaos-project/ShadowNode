@@ -200,7 +200,7 @@ endif()
 
 # debug symbol
 if(FEATURE_DEBUG_SYMBOL)
-	set(DEFINES_JERRY ${DEFINES_JERRY} JERRY_DEBUG_SYMBOL)
+  set(DEFINES_JERRY ${DEFINES_JERRY} JERRY_DEBUG_SYMBOL)
 endif()
 
 # Enable debugger

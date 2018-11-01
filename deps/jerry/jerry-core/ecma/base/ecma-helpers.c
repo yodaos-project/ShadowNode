@@ -1588,14 +1588,13 @@ ecma_bytecode_deref (ecma_compiled_code_t *bytecode_p) /**< byte code pointer */
 ecma_value_t
 ecma_make_frame (const ecma_compiled_code_t *bytecode_p)
 {
-#ifdef JERRY_DEBUG_SYMBOL
+#ifndef JERRY_DEBUG_SYMBOL
+  JERRY_UNUSED (bytecode_p);
+  return jerry_create_undefined ();
+#else /* !JERRY_DEBUG_SYMBOL */
   if (bytecode_p == NULL)
   {
-#else /* JERRY_DEBUG_SYMBOL */
-    JERRY_UNUSED (bytecode_p);
-#endif /* JERRY_DEBUG_SYMBOL */
     return jerry_create_undefined ();
-#ifdef JERRY_DEBUG_SYMBOL
   }
 
   jerry_value_t result = jerry_create_object ();

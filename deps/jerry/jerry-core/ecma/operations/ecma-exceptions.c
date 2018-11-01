@@ -146,8 +146,8 @@ ecma_new_standard_error (ecma_standard_error_t error_type) /**< native error typ
                                                                          NULL);
   ecma_value_t frame = jerry_get_backtrace ();
   ecma_named_data_property_assign_value (new_error_obj_p,
-		                                 prop_value_p,
-		                                 frame);
+                                         prop_value_p,
+                                         frame);
   ecma_free_value (frame);
   ecma_deref_ecma_string (frames_str_p);
 
