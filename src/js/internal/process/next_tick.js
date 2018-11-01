@@ -21,7 +21,8 @@ module.exports._onNextTick = function _onNextTick() {
         case 3: callback(tickArgs[1], tickArgs[2]); break;
         case 4: callback(tickArgs[1], tickArgs[2], tickArgs[3]); break;
         default:
-          callback.apply(undefined, Array.prototype.slice(tickArgs, 1)); break;
+          callback.apply(undefined, Array.prototype.slice.call(tickArgs, 1));
+          break;
       }
     } catch (e) {
       process._onUncaughtException(e);

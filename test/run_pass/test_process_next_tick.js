@@ -132,20 +132,29 @@ function test7() {
   })
 }
 
+function test8() {
+  process.nextTick(function() {
+    assert.ok(arguments[0] === 1);
+    assert.ok(arguments[1] === 2);
+    assert.ok(arguments[2] === 3);
+  }, 1, 2, 3);
+}
+
 test1();
 test2();
 test3();
 test4();
 test5();
 test6();
-// test7();
+test7();
+test8();
 
 process.on('exit', function(code) {
-  // assert.equal(code, 0);
-  // assert.equal(trace1, '12345');
-  // assert.equal(trace2, '12345');
-  // assert.equal(trace3, '12345');
-  // assert.equal(trace4, '12345');
-  // assert.equal(trace5, '12345');
-  // assert.equal(trace6, '12345');
+  assert.equal(code, 0);
+  assert.equal(trace1, '12345');
+  assert.equal(trace2, '12345');
+  assert.equal(trace3, '12345');
+  assert.equal(trace4, '12345');
+  assert.equal(trace5, '12345');
+  assert.equal(trace6, '12345');
 });
