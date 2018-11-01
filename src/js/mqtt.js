@@ -47,6 +47,7 @@ function MqttClient(endpoint, options) {
     protocolVersion: 4,
     pingReqTimeout: 10 * 1000,
   }, options);
+  this._isTCPConnected = false;
   this._isConnected = false;
   this._reconnecting = false;
   this._reconnectingTimer = null;
@@ -85,6 +86,7 @@ MqttClient.prototype.connect = function() {
  * @method _onconnect
  */
 MqttClient.prototype._onconnect = function() {
+  this._isTCPConnected = true;
   var buf;
   try {
     buf = this._handle._getConnect();
@@ -106,6 +108,7 @@ MqttClient.prototype._onend = function() {
 };
 
 MqttClient.prototype._ondisconnect = function() {
+  this._isTCPConnected = false;
   if (this._isConnected) {
     this._isConnected = false;
     this.emit('offline');
@@ -185,7 +188,7 @@ MqttClient.prototype._ondata = function(chunk) {
 MqttClient.prototype._write = function(buffer, callback) {
   var self = this;
   callback = callback || noop;
-  if (!self._isConnected) {
+  if (!self._isTCPConnected) {
     callback(new Error('mqtt is disconnected'));
     return;
   }
