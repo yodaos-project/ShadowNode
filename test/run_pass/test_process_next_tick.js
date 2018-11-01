@@ -142,6 +142,17 @@ function test8() {
   }, '1', '2', '3', '4', '5');
 }
 
+function test9() {
+  var err;
+  try {
+    process.nextTick();
+  } catch (e) {
+    err = e;
+  } finally {
+    assert.ok(err);
+  }
+}
+
 test1();
 test2();
 test3();
@@ -150,6 +161,7 @@ test5();
 test6();
 test7();
 test8();
+test9();
 
 process.on('exit', function(code) {
   assert.equal(code, 0);
