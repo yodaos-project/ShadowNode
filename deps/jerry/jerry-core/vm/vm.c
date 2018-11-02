@@ -2851,8 +2851,6 @@ print_prof_stack (FILE *fp)
   for (vm_frame_ctx_t *ctx_p = JERRY_CONTEXT (vm_top_context_p);
        ctx_p != NULL; ctx_p = ctx_p->prev_context_p)
   {
-    jmem_cpointer_t byte_code_cp;
-    JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, ctx_p->bytecode_header_p);
     print_frame (JERRY_CONTEXT (cpu_profiling_fp), ctx_p->bytecode_header_p);
   }
   fprintf (fp, "\n");
