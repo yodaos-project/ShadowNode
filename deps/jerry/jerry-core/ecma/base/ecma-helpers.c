@@ -1588,10 +1588,10 @@ ecma_bytecode_deref (ecma_compiled_code_t *bytecode_p) /**< byte code pointer */
 ecma_value_t
 ecma_make_frame (const ecma_compiled_code_t *bytecode_p)
 {
-#ifndef JERRY_DEBUG_SYMBOL
+#ifndef JERRY_SOURCE_INFO
   JERRY_UNUSED (bytecode_p);
   return jerry_create_undefined ();
-#else /* !JERRY_DEBUG_SYMBOL */
+#else /* !JERRY_SOURCE_INFO */
   if (bytecode_p == NULL)
   {
     return jerry_create_undefined ();
@@ -1623,7 +1623,7 @@ ecma_make_frame (const ecma_compiled_code_t *bytecode_p)
   jerry_release_value (column);
 
   return result;
-#endif /* JERRY_DEBUG_SYMBOL */
+#endif /* JERRY_SOURCE_INFO */
 }
 
 /**

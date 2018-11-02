@@ -410,16 +410,16 @@ jerry_parse (const jerry_char_t *resource_name_p, /**< resource name (usually a 
                                       is_strict,
                                       &bytecode_data_p);
 
-#ifndef JERRY_DEBUG_SYMBOL
+#ifndef JERRY_SOURCE_INFO
   JERRY_UNUSED (resource_name_p);
   JERRY_UNUSED (resource_name_length);
-#endif /* !JERRY_DEBUG_SYMBOL */
+#endif /* !JERRY_SOURCE_INFO */
 
   if (ECMA_IS_VALUE_ERROR (parse_status))
   {
     return ecma_create_error_reference_from_context ();
   }
-#ifdef JERRY_DEBUG_SYMBOL
+#ifdef JERRY_SOURCE_INFO
   else
   {
     if (resource_name_p && resource_name_length > 0)
@@ -432,7 +432,7 @@ jerry_parse (const jerry_char_t *resource_name_p, /**< resource name (usually a 
       bytecode_data_p->source = ECMA_VALUE_EMPTY;
     }
   }
-#endif /* JERRY_DEBUG_SYMBOL */
+#endif /* JERRY_SOURCE_INFO */
 
   ecma_free_value (parse_status);
 
@@ -527,16 +527,16 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
                                       is_strict,
                                       &bytecode_data_p);
 
-#ifndef JERRY_DEBUG_SYMBOL
+#ifndef JERRY_SOURCE_INFO
   JERRY_UNUSED (resource_name_p);
   JERRY_UNUSED (resource_name_length);
-#endif /* !JERRY_DEBUG_SYMBOL */
+#endif /* !JERRY_SOURCE_INFO */
 
   if (ECMA_IS_VALUE_ERROR (parse_status))
   {
     return ecma_create_error_reference_from_context ();
   }
-#ifdef JERRY_DEBUG_SYMBOL
+#ifdef JERRY_SOURCE_INFO
   else
   {
     if (resource_name_p && resource_name_length > 0)
@@ -549,7 +549,7 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
        bytecode_data_p->source = ECMA_VALUE_EMPTY;
     }
   }
-#endif /* JERRY_DEBUG_SYMBOL */
+#endif /* JERRY_SOURCE_INFO */
 
   ecma_free_value (parse_status);
 

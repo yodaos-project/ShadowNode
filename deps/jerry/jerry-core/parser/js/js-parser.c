@@ -1662,10 +1662,10 @@ parser_post_processing (parser_context_t *context_p) /**< context */
   compiled_code_p->size = (uint16_t) (total_size >> JMEM_ALIGNMENT_LOG);
   compiled_code_p->refs = 1;
   compiled_code_p->status_flags = CBC_CODE_FLAGS_FUNCTION;
-#ifdef JERRY_DEBUG_SYMBOL
+#ifdef JERRY_SOURCE_INFO
   compiled_code_p->source = ECMA_VALUE_EMPTY;
   compiled_code_p->name = ECMA_VALUE_EMPTY;
-#endif /* JERRY_DEBUG_SYMBOL */
+#endif /* JERRY_SOURCE_INFO */
 
   if (needs_uint16_arguments)
   {
@@ -2278,11 +2278,11 @@ parser_parse_source (const jerry_char_t *resource_name_p, /**< resource name (us
     JERRY_ASSERT (context.allocated_buffer_p == NULL);
 
     compiled_code = parser_post_processing (&context);
-#ifdef JERRY_DEBUG_SYMBOL
+#ifdef JERRY_SOURCE_INFO
     compiled_code->source = context.resource_name;
     compiled_code->line = 1;
     compiled_code->column = 1;
-#endif /* JERRY_DEBUG_SYMBOL */
+#endif /* JERRY_SOURCE_INFO */
     parser_list_free (&context.literal_pool);
 
 #ifdef PARSER_DUMP_BYTE_CODE
@@ -2437,11 +2437,11 @@ parser_parse_function (parser_context_t *context_p, /**< context */
 {
   parser_saved_context_t saved_context;
   ecma_compiled_code_t *compiled_code_p;
-#ifdef JERRY_DEBUG_SYMBOL
+#ifdef JERRY_SOURCE_INFO
   ecma_value_t name = ECMA_VALUE_EMPTY;
   uint16_t line = (uint16_t) context_p->token.line;
   uint16_t column = (uint16_t) context_p->token.column;
-#endif /* JERRY_DEBUG_SYMBOL */
+#endif /* JERRY_SOURCE_INFO */
 
   JERRY_ASSERT (status_flags & PARSER_IS_FUNCTION);
   parser_save_context (context_p, &saved_context);
@@ -2469,11 +2469,11 @@ parser_parse_function (parser_context_t *context_p, /**< context */
                                     &context_p->token.lit_location,
                                     LEXER_IDENT_LITERAL);
 
-#ifdef JERRY_DEBUG_SYMBOL
+#ifdef JERRY_SOURCE_INFO
     /* record function name in bytecode */
     name = ecma_find_or_create_literal_string (context_p->lit_object.literal_p->u.char_p,
                                                context_p->lit_object.literal_p->prop.length);
-#endif /* JERRY_DEBUG_SYMBOL */
+#endif /* JERRY_SOURCE_INFO */
 
 #ifdef JERRY_DEBUGGER
     if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
@@ -2560,11 +2560,11 @@ parser_parse_function (parser_context_t *context_p, /**< context */
 
   parser_restore_context (context_p, &saved_context);
 
-#ifdef JERRY_DEBUG_SYMBOL
+#ifdef JERRY_SOURCE_INFO
   compiled_code_p->name = name;
   compiled_code_p->line = line;
   compiled_code_p->column = column;
-#endif /* JERRY_DEBUG_SYMBOL */
+#endif /* JERRY_SOURCE_INFO */
 
   return compiled_code_p;
 } /* parser_parse_function */
@@ -2583,10 +2583,10 @@ parser_parse_arrow_function (parser_context_t *context_p, /**< context */
   parser_saved_context_t saved_context;
   ecma_compiled_code_t *compiled_code_p;
 
-#ifdef JERRY_DEBUG_SYMBOL
+#ifdef JERRY_SOURCE_INFO
   uint16_t line = (uint16_t) context_p->token.line;
   uint16_t column = (uint16_t) context_p->token.column;
-#endif /* JERRY_DEBUG_SYMBOL */
+#endif /* JERRY_SOURCE_INFO */
 
   JERRY_ASSERT ((status_flags & PARSER_IS_FUNCTION)
                  && (status_flags & PARSER_IS_ARROW_FUNCTION));
@@ -2677,10 +2677,10 @@ parser_parse_arrow_function (parser_context_t *context_p, /**< context */
 
   compiled_code_p = parser_post_processing (context_p);
 
-#ifdef JERRY_DEBUG_SYMBOL
+#ifdef JERRY_SOURCE_INFO
   compiled_code_p->line = line;
   compiled_code_p->column = column;
-#endif /* JERRY_DEBUG_SYMBOL */
+#endif /* JERRY_SOURCE_INFO */
 
 #ifdef PARSER_DUMP_BYTE_CODE
   if (context_p->is_show_opcodes)
