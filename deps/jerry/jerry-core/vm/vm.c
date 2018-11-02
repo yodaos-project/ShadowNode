@@ -1432,8 +1432,6 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
         {
           JERRY_CONTEXT (error_value) = left_value;
           JERRY_CONTEXT (status_flags) |= ECMA_STATUS_EXCEPTION;
-          JERRY_CONTEXT (stack_index) = 0;
-          memset( JERRY_CONTEXT(stack_frames), 0, 10 );
 
           result = ECMA_VALUE_ERROR;
           left_value = ECMA_VALUE_UNDEFINED;
@@ -2718,15 +2716,6 @@ error:
       }
 
       stack_top_p = frame_ctx_p->registers_p + register_end + frame_ctx_p->context_depth;
-      {
-        jmem_cpointer_t byte_code_cp;
-        JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, frame_ctx_p->bytecode_header_p);
-        uint32_t idx = JERRY_CONTEXT (stack_index);
-        if (idx < 10) {
-          JERRY_CONTEXT (stack_frames) [idx] = (uint32_t) byte_code_cp;
-          JERRY_CONTEXT (stack_index) += 1;
-        }
-      }
 
 #ifdef JERRY_DEBUGGER
       if ((JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)

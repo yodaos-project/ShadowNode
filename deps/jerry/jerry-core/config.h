@@ -120,4 +120,9 @@
  */
 #define CONFIG_VM_STACK_FRAME_INLINED_VALUES_NUMBER (16)
 
+/**
+ * Max stack trace depth users can get
+ */
+#define CONFIG_CONTEXT_STACK_MAX_DEPTH (10)
+
 #endif /* !CONFIG_H */

@@ -200,7 +200,7 @@ jerry_init (jerry_init_flag_t flags) /**< combination of Jerry flags */
   jmem_init ();
   ecma_init ();
 
-  JERRY_CONTEXT (stack_max_depth) = 10;
+  JERRY_CONTEXT (stack_max_depth) = CONFIG_CONTEXT_STACK_MAX_DEPTH;
 } /* jerry_init */
 
 /**
