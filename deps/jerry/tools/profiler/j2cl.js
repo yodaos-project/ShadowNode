@@ -1,4 +1,10 @@
 
+/* Convert jerry CPU profiler data into collapse stack file.
+ * It convert every input line
+ * time,function1(source1:line1:column1),...,functionn(sourcen:linen:columnn)
+ * to line
+ * functionn(sourcen:linen:columnn);...;function1(source1:line1:column1) time
+ * Call graph is functionn->...->function1
 const fs = require('fs');
 
 const args = process.argv.splice(2);
