@@ -15,9 +15,6 @@ function connect(endpoint, opts) {
     client.once('connect', function() {
       resolve(client);
     });
-    client.once('error', function(err) {
-      console.log(`connect ${bridge} error`, err);
-    });
   });
 }
 
