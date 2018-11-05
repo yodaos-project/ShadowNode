@@ -2,6 +2,7 @@
 
 var mqtt = require('mqtt');
 var assert = require('assert');
+var common = require('../common');
 var bridge = 'mqtt://test.mosquitto.org:1883';
 
 var opts = {
@@ -14,6 +15,9 @@ function connect(endpoint, opts) {
     client.once('connect', function() {
       resolve(client);
     });
+    client.once('error', function(err) {
+      console.log(`connect ${bridge} error`, err);
+    });
   });
 }
 
@@ -24,19 +28,19 @@ Promise.all([
   var yorkie = results[0];
   var babeee = results[1];
 
-  babeee.subscribe('u/love', function() {
+  babeee.subscribe('u/love', common.mustCall(function() {
     console.log('babeee subscribed u/love');
     setTimeout(function() {
       yorkie.publish('u/love', 'endless');
       console.log('yorkie sent endless love');
     }, 500);
-  });
-  babeee.on('message', function(channel, message) {
+  }));
+  babeee.on('message', common.mustCall(function(channel, message) {
     assert.equal(channel, 'u/love');
     assert.equal(message + '', 'endless');
     console.log('babeee receives the message from yorkie');
 
     babeee.disconnect();
     yorkie.disconnect();
-  });
+  }));
 });
