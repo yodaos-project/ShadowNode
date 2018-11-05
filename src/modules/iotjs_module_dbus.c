@@ -279,7 +279,8 @@ static jerry_value_t iotjs_dbus_decode_message(DBusMessage* message) {
       case DBUS_TYPE_STRING: {
         const char* value;
         dbus_message_iter_get_basic(&iter, &value);
-        jerry_value_t jval = jerry_create_string_from_utf8((jerry_char_t*)value);
+        jerry_value_t jval =
+            jerry_create_string_from_utf8((jerry_char_t*)value);
         jerry_set_property_by_index(results, index, jval);
         jerry_release_value(jval);
       } break;
