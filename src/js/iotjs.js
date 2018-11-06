@@ -408,46 +408,14 @@
     }
   }
 
-  var nextTickQueue = [];
+  var next_tick = Module.require('internal_process_next_tick');
+  process.nextTick = next_tick.nextTick;
+  process._onNextTick = next_tick._onNextTick;
 
-  process.nextTick = nextTick;
-  process._onNextTick = _onNextTick;
   global.setImmediate = setImmediate;
-
-  function _onNextTick() {
-    // clone nextTickQueue to new array object, and calls function
-    // iterating the cloned array. This is because,
-    // during processing nextTick
-    // a callback could add another next tick callback using
-    // `process.nextTick()`, if we calls back iterating original
-    // `nextTickQueue` that could turn into infinite loop.
-
-    var callbacks = nextTickQueue.slice(0);
-    nextTickQueue = [];
-
-    var len = callbacks.length;
-    for (var i = 0; i < len; ++i) {
-      try {
-        callbacks[i]();
-      } catch (e) {
-        process._onUncaughtException(e);
-      }
-    }
-
-    return nextTickQueue.length > 0;
-  }
-
-
-  function nextTick(callback) {
-    var args = Array.prototype.slice.call(arguments);
-    args[0] = null;
-    nextTickQueue.push(Function.prototype.bind.apply(callback, args));
-  }
-
-
   function setImmediate(callback) {
     // TODO(Yorkie): use nextTick for now...
-    nextTick(callback);
+    process.nextTick(callback);
   }
 
   var os = Module.require('os');

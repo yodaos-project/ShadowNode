@@ -14,6 +14,7 @@
     { "name": "test_dbus_after_destroy.js" },
     { "name": "test_dbus_define.js" },
     { "name": "test_dbus_introspectable.js" },
+    { "name": "test_dbus_send_utf8.js" },
     { "name": "test_dbus_service_and_call.js" },
     { "name": "test_dbus_signal.js" },
     { "name": "test_dgram_1_server_1_client.js" },
