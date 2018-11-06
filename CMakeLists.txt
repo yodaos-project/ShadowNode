@@ -58,6 +58,8 @@ if(NOT DEFINED DISABLE_ES2015)
   set(FEATURE_PROFILE "es2015-subset")
 endif()
 
+set(FEATURE_PROFILE ${CMAKE_CURRENT_SOURCE_DIR}/profiles/jerry/default.profile)
+
 if(FEATURE_CPU_PROFILER)
   set(FEATURE_FUNCTION_NAME ON)
 endif()
