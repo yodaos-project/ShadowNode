@@ -49,6 +49,9 @@ jerry_value_t InitConstants() {
   SET_CONSTANT(constants, S_IFSOCK);
   SET_CONSTANT(constants, TLS_CHUNK_MAX_SIZE);
   SET_CONSTANT(constants, INT32_MAX_VALUE);
+  // uv constants
+  SET_CONSTANT(constants, UV_PRIORITY_LOW);
+  SET_CONSTANT(constants, UV_PRIORITY_HIGHEST);
 
   // define uv errnos
 #define V(name, _) SET_CONSTANT(constants, UV_##name);

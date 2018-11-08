@@ -82,3 +82,26 @@ The properties available on the assigned network address object include:
   ]
 }
 ```
+
+## os.getPriority([pid])
+
+* `pid` {integer} The process ID to retrieve scheduling priority for.
+  **Default** `0`.
+* Returns: {integer}
+
+The `os.getPriority()` method returns the scheduling priority for the process
+specified by `pid`. If `pid` is not provided, or is `0`, the priority of the
+current process is returned.
+
+## os.setPriority([pid, ]priority)
+
+* `pid` {integer} The process ID to set scheduling priority for.
+  **Default** `0`.
+* `priority` {integer} The scheduling priority to assign to the process.
+
+The `os.setPriority()` method attempts to set the scheduling priority for the
+process specified by `pid`. If `pid` is not provided, or is `0`, the priority
+of the current process is used.
+
+The `priority` input must be an integer between `-20` (high priority) and `19`
+(low priority).

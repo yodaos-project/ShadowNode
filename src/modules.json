@@ -299,6 +299,7 @@
     },
     "os": {
       "js_file": "js/os.js",
+      "require": ["constants"],
       "native_files": ["modules/iotjs_module_os.c"],
       "init": "InitOs"
     },
