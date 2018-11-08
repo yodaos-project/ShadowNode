@@ -118,14 +118,8 @@ static void onUVCheckCallback(uv_check_t* handle) {
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONUVCHECK);
   IOTJS_ASSERT(jerry_value_is_function(jonunuvcheck));
 
-  jerry_value_t jres = jerry_call_function(jonunuvcheck, process, NULL, 0);
+  iotjs_make_callback(jonunuvcheck, process, iotjs_jargs_get_empty());
 
-  if (jerry_value_has_error_flag(jres)) {
-    jerry_value_clear_error_flag(&jres);
-    iotjs_uncaught_exception(jres);
-  }
-
-  jerry_release_value(jres);
   jerry_release_value(jonunuvcheck);
 }
 
