@@ -415,9 +415,29 @@
   process._onNextTick = next_tick._onNextTick;
 
   global.setImmediate = setImmediate;
+  process._onUVCheck = function () {
+    var callbacks = process.__immediateCallbacks;
+    process.__immediateCallbacks = null;
+    callbacks.forEach(it => {
+      try {
+        it();
+      } catch (err) {
+        process._onUncaughtException(err);
+      }
+    });
+    if (process.__immediateCallbacks == null) {
+      process._stopUVCheck();
+    }
+  }
   function setImmediate(callback) {
-    // TODO(Yorkie): use nextTick for now...
-    process.nextTick(callback);
+    if (typeof callback !== 'function') {
+      throw new Error('Expect a function on setImmediate');
+    }
+    if (process.__immediateCallbacks == null) {
+      process.__immediateCallbacks = [];
+      process._startUVCheck();
+    }
+    process.__immediateCallbacks.push(callback);
   }
 
   var os = Module.require('os');
