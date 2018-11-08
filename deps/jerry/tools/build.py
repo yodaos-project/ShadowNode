@@ -161,7 +161,6 @@ def generate_build_options(arguments):
     build_options.append('-DJERRY_CMDLINE_SNAPSHOT=%s' % arguments.jerry_cmdline_snapshot)
     build_options.append('-DJERRY_PORT_DEFAULT=%s' % arguments.jerry_port_default)
     build_options.append('-DJERRY_EXT=%s' % arguments.jerry_ext)
-    build_options.append('-DFEATURE_FUNCTION_NAME=%s' % arguments.jerry_function_name)
     build_options.append('-DFEATURE_HEAP_PROFILER=%s' % arguments.jerry_heap_profiler)
     build_options.append('-DJERRY_LIBC=%s' % arguments.jerry_libc)
     build_options.append('-DJERRY_LIBM=%s' % arguments.jerry_libm)

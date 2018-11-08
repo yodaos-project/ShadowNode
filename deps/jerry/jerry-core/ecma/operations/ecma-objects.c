@@ -1972,14 +1972,14 @@ ecma_object_get_name (ecma_object_t *obj_p)
     }
     case ECMA_OBJECT_TYPE_FUNCTION:
     {
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
       ecma_extended_object_t *func_obj_p = (ecma_extended_object_t *) obj_p;
       const ecma_compiled_code_t *bytecode_data_p = ecma_op_function_get_compiled_code (func_obj_p);
       if (bytecode_data_p->name != ECMA_VALUE_EMPTY)
       {
         return ecma_get_string_from_value (bytecode_data_p->name);
       }
-#endif /* JERRY_FUNCTION_NAME */
+#endif /* JERRY_SOURCE_INFO */
       break;
     }
     case ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION:

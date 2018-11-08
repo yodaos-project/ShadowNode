@@ -301,24 +301,7 @@ JS_FUNCTION(GetStackFrames) {
     depth = jerry_get_number_value(jargv[0]);
   }
 
-  // create frames
-  uint32_t* frames = malloc(sizeof(uint32_t) * depth);
-  memset(frames, 0, sizeof(uint32_t) * depth);
-  jerry_get_backtrace_depth(frames, depth);
-
-  jerry_value_t jframes = jerry_create_array(depth);
-  for (uint32_t i = 0; i < depth; ++i) {
-    jerry_set_property_by_index(jframes, i, jerry_create_number(frames[i]));
-  }
-
-  free(frames);
-  return jframes;
-}
-
-
-JS_FUNCTION(ReadParserDump) {
-  int pos = JS_GET_ARG(0, number);
-  return jerry_read_parser_dump(pos);
+  return jerry_get_backtrace_depth(depth);
 }
 
 
@@ -675,7 +658,6 @@ jerry_value_t InitProcess() {
   // errors
   iotjs_jval_set_method(process, "_createUVException", CreateUVException);
   iotjs_jval_set_method(process, "_getStackFrames", GetStackFrames);
-  iotjs_jval_set_method(process, "_readParserDump", ReadParserDump);
 
 
   // virtual machine
