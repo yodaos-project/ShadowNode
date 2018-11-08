@@ -182,6 +182,7 @@ process_generate (cli_state_t *cli_state_p, /**< cli state */
   size_t source_length = 0;
   const char *save_literals_file_name_p = NULL;
   bool static_snapshot = false;
+  const char *file_name_p = NULL;
 
   cli_change_opts (cli_state_p, generate_opts);
 
@@ -252,7 +253,7 @@ process_generate (cli_state_t *cli_state_p, /**< cli state */
       }
       case CLI_OPT_DEFAULT:
       {
-        const char *file_name_p = cli_consume_string (cli_state_p);
+        file_name_p = cli_consume_string (cli_state_p);
 
         if (cli_state_p->error == NULL)
         {
@@ -299,7 +300,9 @@ process_generate (cli_state_t *cli_state_p, /**< cli state */
 
   if (static_snapshot)
   {
-    snapshot_size = jerry_parse_and_save_static_snapshot ((jerry_char_t *) source_p,
+    snapshot_size = jerry_parse_and_save_static_snapshot ((jerry_char_t *) file_name_p,
+                                                          strlen (file_name_p),
+                                                          (jerry_char_t *) source_p,
                                                           source_length,
                                                           is_snapshot_mode_for_global,
                                                           false,
@@ -308,7 +311,9 @@ process_generate (cli_state_t *cli_state_p, /**< cli state */
   }
   else
   {
-    snapshot_size = jerry_parse_and_save_snapshot ((jerry_char_t *) source_p,
+    snapshot_size = jerry_parse_and_save_snapshot ((jerry_char_t *) file_name_p,
+                                                   strlen (file_name_p),
+                                                   (jerry_char_t *) source_p,
                                                    source_length,
                                                    is_snapshot_mode_for_global,
                                                    false,

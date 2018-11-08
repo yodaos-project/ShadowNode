@@ -401,6 +401,8 @@ ecma_vist_object_references (ecma_object_t *object_p, /**< object to mark from *
               ecma_visit_object_callback_t callback, /**< visit object callback */
               void *callback_args); /** callback args */
 
+ecma_value_t ecma_make_frame (const ecma_compiled_code_t *bytecode_p);
+
 /**
  * @}
  * @}
