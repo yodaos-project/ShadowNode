@@ -467,17 +467,19 @@ JS_FUNCTION(StartUVCheck) {
   iotjs_environment_t* iotjs_env = iotjs_environment_get();
   uv_loop_t* iotjs_loop = iotjs_environment_loop(iotjs_env);
   status = uv_check_init(iotjs_loop, &check_handle);
-  if (status != 0) {
-    return jerry_create_number(status);
-  }
+  IOTJS_ASSERT(status == 0);
+
   check_handle.data = (void*)(uintptr_t) true;
   status = uv_check_start(&check_handle, onUVCheckCallback);
-  return jerry_create_number(status);
+  IOTJS_ASSERT(status == 0);
+
+  return jerry_create_undefined();
 }
 
 JS_FUNCTION(StopUVCheck) {
   int status = uv_check_stop(&check_handle);
-  return jerry_create_number(status);
+  IOTJS_ASSERT(status == 0);
+  return jerry_create_undefined();
 }
 
 JS_FUNCTION(OpenNativeModule) {
