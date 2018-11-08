@@ -112,15 +112,14 @@ static jerry_value_t WrapEval(const char* name, size_t name_len, char* source,
 }
 
 static uv_check_t check_handle;
-static void onUVCheckCallback(uv_check_t* handle) {
+static void UVCheckCallback(uv_check_t* handle) {
   const jerry_value_t process = iotjs_module_get("process");
-  jerry_value_t jonunuvcheck =
+  jerry_value_t jonuvcheck =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONUVCHECK);
-  IOTJS_ASSERT(jerry_value_is_function(jonunuvcheck));
+  IOTJS_ASSERT(jerry_value_is_function(jonuvcheck));
 
-  iotjs_make_callback(jonunuvcheck, process, iotjs_jargs_get_empty());
-
-  jerry_release_value(jonunuvcheck);
+  iotjs_make_callback(jonuvcheck, process, iotjs_jargs_get_empty());
+  jerry_release_value(jonuvcheck);
 }
 
 JS_FUNCTION(Compile) {
@@ -461,16 +460,18 @@ JS_FUNCTION(ForceGC) {
 JS_FUNCTION(StartUVCheck) {
   int status;
   if (check_handle.data != NULL) {
-    status = uv_check_start(&check_handle, onUVCheckCallback);
-    return jerry_create_number(status);
+    status = uv_check_start(&check_handle, UVCheckCallback);
+    IOTJS_ASSERT(status == 0);
+    return jerry_create_undefined();
   }
   iotjs_environment_t* iotjs_env = iotjs_environment_get();
   uv_loop_t* iotjs_loop = iotjs_environment_loop(iotjs_env);
   status = uv_check_init(iotjs_loop, &check_handle);
   IOTJS_ASSERT(status == 0);
 
+  /** indicates check_handle has been started */
   check_handle.data = (void*)(uintptr_t) true;
-  status = uv_check_start(&check_handle, onUVCheckCallback);
+  status = uv_check_start(&check_handle, UVCheckCallback);
   IOTJS_ASSERT(status == 0);
 
   return jerry_create_undefined();
@@ -479,6 +480,8 @@ JS_FUNCTION(StartUVCheck) {
 JS_FUNCTION(StopUVCheck) {
   int status = uv_check_stop(&check_handle);
   IOTJS_ASSERT(status == 0);
+  /** indicates check_handle has been stopped */
+  check_handle.data = NULL;
   return jerry_create_undefined();
 }
 

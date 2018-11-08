@@ -415,9 +415,10 @@
   process._onNextTick = next_tick._onNextTick;
 
   global.setImmediate = setImmediate;
+  var immediateQueue = []
   process._onUVCheck = function () {
-    var callbacks = process.__immediateCallbacks;
-    process.__immediateCallbacks = null;
+    var callbacks = immediateQueue;
+    immediateQueue = [];
     callbacks.forEach(it => {
       try {
         it();
@@ -425,7 +426,7 @@
         process._onUncaughtException(err);
       }
     });
-    if (process.__immediateCallbacks == null) {
+    if (immediateQueue.length === 0) {
       process._stopUVCheck();
     }
   }
@@ -433,11 +434,10 @@
     if (typeof callback !== 'function') {
       throw new Error('Expect a function on setImmediate');
     }
-    if (process.__immediateCallbacks == null) {
-      process.__immediateCallbacks = [];
+    if (immediateQueue.length === 0) {
       process._startUVCheck();
     }
-    process.__immediateCallbacks.push(callback);
+    immediateQueue.push(callback);
   }
 
   var os = Module.require('os');
