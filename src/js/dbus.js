@@ -38,13 +38,14 @@ function convertData2Array(data) {
 
 /**
  * @class Bus
- * @param {String} name - the bus name
+ * @param {String} name - the bus name.
+ * @param {Number} delayOnWait - the total delay for waiting dbus connection.
  */
-function Bus(name) {
+function Bus(name, delayOnWait) {
   EventEmitter.call(this);
   this.name = name || 'session';
   this.dbus = new DBus();
-  this.dbus.getBus(DBUS_TYPES[this.name]);
+  this.dbus.getBus(DBUS_TYPES[this.name], delayOnWait);
   this.dbus.setSignalHandler(this.handleSignal.bind(this));
   this._object = null;
 }
@@ -512,13 +513,14 @@ ServiceInterface.prototype.update = util.deprecate(function() {
  * @module dbus
  * @method getBus
  * @param {String} name
+ * @param {Number} delayOnWait
  */
-function getBus(name) {
+function getBus(name, delayOnWait) {
   if (_busInstance === false) {
     throw new Error('dbus connection has been destroyed');
   }
   if (_busInstance === null) {
-    _busInstance = new Bus(name);
+    _busInstance = new Bus(name, delayOnWait);
   }
   return _busInstance;
 }

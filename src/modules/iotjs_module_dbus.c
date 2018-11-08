@@ -2,6 +2,7 @@
 #include "iotjs_objectwrap.h"
 #include <dbus/dbus.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 typedef struct {
   iotjs_jobjectwrap_t jobjectwrap;
@@ -23,9 +24,10 @@ static iotjs_dbus_t* iotjs_dbus_create(const jerry_value_t jdbus);
 static void iotjs_dbus_destroy(iotjs_dbus_t* dbus);
 static void iotjs_dbus_watcher_close(void* data);
 
+#define IOTJS_DBUS_CONN_DELAY 100 * 1000
 #define IOTJS_DBUS_RELEASE_HANDLE()                            \
   do {                                                         \
-    if (!_this->destroyed) {                                   \
+    if (_this->connection != NULL && !_this->destroyed) {      \
       dbus_connection_unref(_this->connection);                \
       iotjs_dbus_watcher_close((void*)&_this->watcher);        \
       uv_close((uv_handle_t*)&_this->connection_handle, NULL); \
@@ -412,9 +414,6 @@ JS_FUNCTION(DbusConstructor) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_dbus_t, dbus);
 
   _this->connection_handle.data = _this;
-  uv_async_init(uv_default_loop(), &_this->connection_handle,
-                iotjs_dbus_connection_cb);
-
   return jerry_create_undefined();
 }
 
@@ -423,15 +422,38 @@ JS_FUNCTION(GetBus) {
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_dbus_t, dbus);
 
   DBusError error;
-  dbus_error_init(&error);
-
   DJS_CHECK_ARGS(1, number);
   int type = JS_GET_ARG(0, number);
-  if (type == 0 /* BUS_SYSTEM */) {
-    _this->connection = dbus_bus_get(DBUS_BUS_SYSTEM, &error);
-  } else if (type == 1 /* BUS_SESSION */) {
-    _this->connection = dbus_bus_get(DBUS_BUS_SESSION, &error);
+  int wait = 1000; // default is 1s
+  if (jerry_value_is_number(jargv[1])) {
+    wait = iotjs_jval_as_number(jargv[1]);
   }
+  wait *= 1000;
+
+  // FIXME(Yorkie): currently the implementation waits synchronously because it
+  // might be used in edge-case, when the dbus-daemon is unavailable or the unix
+  // path is not found.
+  do {
+    dbus_error_init(&error);
+    if (type == 0 /* BUS_SYSTEM */) {
+      _this->connection = dbus_bus_get(DBUS_BUS_SYSTEM, &error);
+    } else if (type == 1 /* BUS_SESSION */) {
+      _this->connection = dbus_bus_get(DBUS_BUS_SESSION, &error);
+    }
+
+    if (_this->connection != NULL)
+      break;
+
+    fprintf(stderr, "DBUS(%s) %s\n", error.name, error.message);
+    if (wait <= 0 ||
+        (strcmp(error.name, "org.freedesktop.DBus.Error.FileNotFound") != 0 &&
+         strcmp(error.name, "org.freedesktop.DBus.Error.Failed") != 0)) {
+      break;
+    } else {
+      usleep(IOTJS_DBUS_CONN_DELAY);
+      wait -= IOTJS_DBUS_CONN_DELAY;
+    }
+  } while (_this->connection == NULL);
 
   if (_this->connection == NULL) {
     if (dbus_error_is_set(&error)) {
@@ -439,6 +461,9 @@ JS_FUNCTION(GetBus) {
     } else {
       return JS_CREATE_ERROR(COMMON, "failed to get dbus object");
     }
+  } else {
+    uv_async_init(uv_default_loop(), &_this->connection_handle,
+                  iotjs_dbus_connection_cb);
   }
 
   dbus_connection_set_exit_on_disconnect(_this->connection, false);
