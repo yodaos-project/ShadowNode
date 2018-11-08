@@ -112,14 +112,13 @@ static jerry_value_t WrapEval(const char* name, size_t name_len, char* source,
 }
 
 static uv_check_t check_handle;
-static void onUVCheckCallback (uv_check_t* handle) {
+static void onUVCheckCallback(uv_check_t* handle) {
   const jerry_value_t process = iotjs_module_get("process");
   jerry_value_t jonunuvcheck =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONUVCHECK);
   IOTJS_ASSERT(jerry_value_is_function(jonunuvcheck));
 
-  jerry_value_t jres =
-      jerry_call_function(jonunuvcheck, process, NULL, 0);
+  jerry_value_t jres = jerry_call_function(jonunuvcheck, process, NULL, 0);
 
   if (jerry_value_has_error_flag(jres)) {
     jerry_value_clear_error_flag(&jres);
@@ -477,7 +476,7 @@ JS_FUNCTION(StartUVCheck) {
   if (status != 0) {
     return jerry_create_number(status);
   }
-  check_handle.data = (void*)(uintptr_t)true;
+  check_handle.data = (void*)(uintptr_t) true;
   status = uv_check_start(&check_handle, onUVCheckCallback);
   return jerry_create_number(status);
 }
