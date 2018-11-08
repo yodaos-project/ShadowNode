@@ -246,6 +246,8 @@ class TestRunner(object):
             for key, val in options["env"].items():
                 if key == u"NODE_PATH":
                     my_env[key] = fs.join(options["root"], val)
+                elif key == u"DBUS_SESSION_BUS_ADDRESS":
+                    my_env[key] = val
 
         signal.alarm(options["timeout"])
 
