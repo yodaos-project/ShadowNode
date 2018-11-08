@@ -13,4 +13,5 @@ try {
 }
 
 var diff = Date.now() - start;
+console.log(`consumes ${diff}ms`);
 assert.equal(Math.abs(diff - 1000) < 100, true);
