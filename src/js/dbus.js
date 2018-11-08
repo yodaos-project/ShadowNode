@@ -39,7 +39,7 @@ function convertData2Array(data) {
 /**
  * @class Bus
  * @param {String} name - the bus name.
- * @param {Number} delayOnWait - the total delay in ms for waiting dbus connection.
+ * @param {Number} delayOnWait - the total delay for waiting dbus connection.
  */
 function Bus(name, delayOnWait) {
   EventEmitter.call(this);
