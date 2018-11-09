@@ -98,6 +98,22 @@ function strictEqual(actual, expected, message) {
   }
 }
 
+function deepStrictEqual(actual, expected, message) {
+  if (typeof expected !== 'object') {
+    return strictEqual(actual, expected, message);
+  }
+
+  strictEqual(
+    Object.keys(actual).length,
+    Object.keys(expected).length,
+    message
+  );
+
+  for (var key in expected) {
+    deepStrictEqual(actual[key], expected[key], message);
+  }
+}
+
 
 function deepStrictEqual(actual, expected, message) {
   if (typeof expected !== 'object') {
