@@ -81,6 +81,20 @@ napi_status napi_create_object(napi_env env, napi_value* result) {
   NAPI_RETURN(napi_ok);
 }
 
+napi_status napi_create_symbol(napi_env env, napi_value description,
+                               napi_value* result) {
+  NAPI_TRY_ENV(env);
+  napi_valuetype type;
+  NAPI_INTERNAL_CALL(napi_typeof(env, description, &type));
+  // TODO: Symbol is not implemented in JerryScript yet.
+  if (type == napi_string) {
+    NAPI_ASSIGN(result, description);
+  } else {
+    NAPI_INTERNAL_CALL(napi_create_object(env, result));
+  }
+  NAPI_RETURN(napi_ok);
+}
+
 #define DEF_NAPI_CREATE_ERROR(type, jerry_error_type)                         \
   napi_status napi_create_##type(napi_env env, napi_value code,               \
                                  napi_value msg, napi_value* result) {        \
