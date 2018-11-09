@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable strict */
+
 (function() {
   this.global = this;
   // update the process.env firstly
@@ -47,17 +49,17 @@
   };
 
   var module = Module.require('module');
-  var fs = Module.require('fs');
 
   function makeStackTrace(frames) {
     return frames
 
       .map((info) => {
-        if(info === undefined) {
+        if (info === undefined) {
           return '';
         }
         return '    ' +
-          `at ${info.name} (${info.source}${info.line ? ':' + info.line + ':' + info.column: ''})`;
+          // eslint-disable-next-line max-len
+          `at ${info.name} (${info.source}${info.line ? ':' + info.line + ':' + info.column : ''})`;
       })
       .join('\n');
   }
@@ -173,8 +175,8 @@
       enumerable: false,
       get: function() {
         if (this.__stack__ === undefined) {
-          this.__stack__ = `${this.name || 'Error'}: ${this.message}\n`
-            + makeStackTrace(this.__frames__ || []);
+          this.__stack__ = `${this.name || 'Error'}: ${this.message}\n` +
+            makeStackTrace(this.__frames__ || []);
         }
         return this.__stack__;
       },
@@ -511,7 +513,8 @@
       signalWraps[type] = wrap;
     });
     process.on('removeListener', function(type) {
-      if (signalWraps[type] !== undefined && this.listeners(type).length === 0) {
+      if (signalWraps[type] !== undefined &&
+        this.listeners(type).length === 0) {
         signalWraps[type].stop();
         delete signalWraps[type];
       }
