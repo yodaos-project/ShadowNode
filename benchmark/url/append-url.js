@@ -7,7 +7,7 @@ var bench = common.createBenchmark(main, {
 
 var urlObject = require('./url.json');
 
-function appendUrl (urlObject) {
+function appendUrl(urlObject) {
   var protocol = urlObject.protocol;
   var hostname = urlObject.hostname;
   var pathname = urlObject.pathname;
