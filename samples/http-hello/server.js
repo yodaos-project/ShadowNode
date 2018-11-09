@@ -12,15 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var http = require('http');
 var port = 8080;
 
 http.createServer(function(req, res) {
-  if (req.method == 'GET') {
+  if (req.method === 'GET') {
     status(res, 'Hello, IoT.JS!');
 
-  } else if (req.method == 'POST') {
+  } else if (req.method === 'POST') {
     receive(req, function(data) {
       var obj = JSON.parse(data);
       obj.answer = 'Hello, There!';
