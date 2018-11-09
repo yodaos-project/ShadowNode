@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable strict */
+
 (function() {
   this.global = this;
   // update the process.env firstly
@@ -47,7 +49,6 @@
   };
 
   var module = Module.require('module');
-  var fs = Module.require('fs');
 
   /**
    * Dump Parser
@@ -64,7 +65,7 @@
 
     this.data = '';
     try {
-      var chunk = false
+      var chunk = false;
       var offset = 0;
       do {
         chunk = process._readParserDump(offset);
@@ -89,13 +90,13 @@
   };
 
   DumpParser.prototype.genTable = function genTable(start) {
-    var file = null
+    var file = null;
     var lines = this.lines.slice(start);
 
     lines.forEach(function onParseLine(line) {
       if (/.*:/.test(line)) {
         file = line.slice(0, -1);
-        return
+        return;
       }
       var m = line.match(/(\+ ([a-zA-Z0-9_]*))?( \[(\d+),(\d+)\])? (\d+)/);
       if (m) {
@@ -124,7 +125,8 @@
       }, [])
       .map((info) => {
         return '    ' +
-          `at ${info.name} (${info.source}${info.line ? ':' + info.line + ':' + info.column: ''})`;
+          // eslint-disable-next-line max-len
+          `at ${info.name} (${info.source}${info.line ? ':' + info.line + ':' + info.column : ''})`;
       })
       .join('\n');
   }
@@ -240,8 +242,8 @@
       enumerable: false,
       get: function() {
         if (this.__stack__ === undefined) {
-          this.__stack__ = `${this.name || 'Error'}: ${this.message}\n`
-            + makeStackTraceFromDump(this.__frames__ || []);
+          this.__stack__ = `${this.name || 'Error'}: ${this.message}\n` +
+            makeStackTraceFromDump(this.__frames__ || []);
         }
         return this.__stack__;
       },
@@ -578,7 +580,8 @@
       signalWraps[type] = wrap;
     });
     process.on('removeListener', function(type) {
-      if (signalWraps[type] !== undefined && this.listeners(type).length === 0) {
+      if (signalWraps[type] !== undefined &&
+        this.listeners(type).length === 0) {
         signalWraps[type].stop();
         delete signalWraps[type];
       }
