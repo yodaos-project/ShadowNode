@@ -697,8 +697,9 @@ jerry_value_t InitProcess() {
   iotjs_jval_set_method(process, "_createUVException", CreateUVException);
   iotjs_jval_set_method(process, "_getStackFrames", GetStackFrames);
 
-  iotjs_jval_set_method(process, "_startUVCheck", StartUVCheck);
-  iotjs_jval_set_method(process, "_stopUVCheck", StopUVCheck);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING__STARTUVCHECK,
+                        StartUVCheck);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING__STOPUVCHECK, StopUVCheck);
 
 
   // virtual machine
