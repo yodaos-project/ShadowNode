@@ -30,9 +30,11 @@ extern "C"
 /**
  * Snapshot functions.
  */
-size_t jerry_parse_and_save_snapshot (const jerry_char_t *source_p, size_t source_size, bool is_for_global,
+size_t jerry_parse_and_save_snapshot (const jerry_char_t *resource_name_p, size_t resource_name_length,
+                                      const jerry_char_t *source_p, size_t source_size, bool is_for_global,
                                       bool is_strict, uint32_t *buffer_p, size_t buffer_size);
-size_t jerry_parse_and_save_static_snapshot (const jerry_char_t *source_p, size_t source_size, bool is_for_global,
+size_t jerry_parse_and_save_static_snapshot (const jerry_char_t *resource_name_p, size_t resource_name_length,
+                                             const jerry_char_t *source_p, size_t source_size, bool is_for_global,
                                              bool is_strict, uint32_t *buffer_p, size_t buffer_size);
 jerry_value_t jerry_exec_snapshot (const uint32_t *snapshot_p, size_t snapshot_size, bool copy_bytecode);
 jerry_value_t jerry_exec_snapshot_at (const uint32_t *snapshot_p, size_t snapshot_size,
@@ -42,10 +44,14 @@ size_t jerry_merge_snapshots (const uint32_t **inp_buffers_p, size_t *inp_buffer
 size_t jerry_parse_and_save_literals (const jerry_char_t *source_p, size_t source_size, bool is_strict,
                                       uint32_t *buffer_p, size_t buffer_size, bool is_c_format);
 
-size_t jerry_parse_and_save_function_snapshot (const jerry_char_t *source_p, size_t source_size,
+size_t jerry_parse_and_save_function_snapshot (const jerry_char_t *resource_name_p, /**< resource name (usually a file name) */
+                                               size_t resource_name_length, /**< length of resource name */
+                                               const jerry_char_t *source_p, size_t source_size,
                                                const jerry_char_t *args_p, size_t args_size,
                                                bool is_strict, uint32_t *buffer_p, size_t buffer_size);
-size_t jerry_parse_and_save_static_function_snapshot (const jerry_char_t *source_p, size_t source_size,
+size_t jerry_parse_and_save_static_function_snapshot (const jerry_char_t *resource_name_p, /**< resource name (usually a file name) */
+                                                      size_t resource_name_length, /**< length of resource name */
+                                                      const jerry_char_t *source_p, size_t source_size,
                                                       const jerry_char_t *args_p, size_t args_size,
                                                       bool is_strict, uint32_t *buffer_p, size_t buffer_size);
 jerry_value_t jerry_load_function_snapshot_at (const uint32_t *function_snapshot_p,

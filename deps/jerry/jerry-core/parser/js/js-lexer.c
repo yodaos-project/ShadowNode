@@ -1891,6 +1891,10 @@ lexer_construct_function_object (parser_context_t *context_p, /**< context */
   compiled_code_p = parser_parse_function (context_p, extra_status_flags);
 #endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
 
+#ifdef JERRY_SOURCE_INFO
+  compiled_code_p->source = context_p->resource_name;
+#endif /* JERRY_SOURCE_INFO */
+
   literal_p->u.bytecode_p = compiled_code_p;
   literal_p->type = LEXER_FUNCTION_LITERAL;
 

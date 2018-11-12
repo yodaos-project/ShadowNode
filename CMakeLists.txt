@@ -58,13 +58,7 @@ if(NOT DEFINED DISABLE_ES2015)
   set(FEATURE_PROFILE "es2015-subset")
 endif()
 
-if(FEATURE_CPU_PROFILER)
-  set(FEATURE_FUNCTION_NAME ON)
-endif()
-
-if(FEATURE_HEAP_PROFILER)
-  set(FEATURE_FUNCTION_NAME ON)
-endif()
+set(FEATURE_PROFILE ${CMAKE_CURRENT_SOURCE_DIR}/profiles/jerry/default.profile)
 
 macro(iotjs_add_flags VAR)
   foreach(_flag ${ARGN})
@@ -148,6 +142,9 @@ string(TOUPPER "${TARGET_OS}" TARGET_OS)
 
 set(ROOT_DIR ${CMAKE_SOURCE_DIR})
 set(ARCHIVE_DIR ${CMAKE_BINARY_DIR}/lib)
+
+# if generates Xcode projects, /usr/local/lib shall be explicitly linked
+link_directories(/usr/local/lib)
 
 include(ExternalProject)
 

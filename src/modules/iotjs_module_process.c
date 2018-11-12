@@ -111,6 +111,16 @@ static jerry_value_t WrapEval(const char* name, size_t name_len, char* source,
   return res;
 }
 
+static uv_check_t check_handle;
+static void UVCheckCallback(uv_check_t* handle) {
+  const jerry_value_t process = iotjs_module_get("process");
+  jerry_value_t jonuvcheck =
+      iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONUVCHECK);
+  IOTJS_ASSERT(jerry_value_is_function(jonuvcheck));
+
+  iotjs_make_callback(jonuvcheck, process, iotjs_jargs_get_empty());
+  jerry_release_value(jonuvcheck);
+}
 
 JS_FUNCTION(Compile) {
   DJS_CHECK_ARGS(1, string);
@@ -301,24 +311,7 @@ JS_FUNCTION(GetStackFrames) {
     depth = jerry_get_number_value(jargv[0]);
   }
 
-  // create frames
-  uint32_t* frames = malloc(sizeof(uint32_t) * depth);
-  memset(frames, 0, sizeof(uint32_t) * depth);
-  jerry_get_backtrace_depth(frames, depth);
-
-  jerry_value_t jframes = jerry_create_array(depth);
-  for (uint32_t i = 0; i < depth; ++i) {
-    jerry_set_property_by_index(jframes, i, jerry_create_number(frames[i]));
-  }
-
-  free(frames);
-  return jframes;
-}
-
-
-JS_FUNCTION(ReadParserDump) {
-  int pos = JS_GET_ARG(0, number);
-  return jerry_read_parser_dump(pos);
+  return jerry_get_backtrace_depth(depth);
 }
 
 
@@ -462,6 +455,34 @@ JS_FUNCTION(CreateUVException) {
 JS_FUNCTION(ForceGC) {
   jerry_gc();
   return jerry_create_boolean(true);
+}
+
+JS_FUNCTION(StartUVCheck) {
+  int status;
+  if (check_handle.data != NULL) {
+    status = uv_check_start(&check_handle, UVCheckCallback);
+    IOTJS_ASSERT(status == 0);
+    return jerry_create_undefined();
+  }
+  iotjs_environment_t* iotjs_env = iotjs_environment_get();
+  uv_loop_t* iotjs_loop = iotjs_environment_loop(iotjs_env);
+  status = uv_check_init(iotjs_loop, &check_handle);
+  IOTJS_ASSERT(status == 0);
+
+  /** indicates check_handle has been started */
+  check_handle.data = (void*)(uintptr_t) true;
+  status = uv_check_start(&check_handle, UVCheckCallback);
+  IOTJS_ASSERT(status == 0);
+
+  return jerry_create_undefined();
+}
+
+JS_FUNCTION(StopUVCheck) {
+  int status = uv_check_stop(&check_handle);
+  IOTJS_ASSERT(status == 0);
+  /** indicates check_handle has been stopped */
+  check_handle.data = NULL;
+  return jerry_create_undefined();
 }
 
 JS_FUNCTION(OpenNativeModule) {
@@ -675,7 +696,10 @@ jerry_value_t InitProcess() {
   // errors
   iotjs_jval_set_method(process, "_createUVException", CreateUVException);
   iotjs_jval_set_method(process, "_getStackFrames", GetStackFrames);
-  iotjs_jval_set_method(process, "_readParserDump", ReadParserDump);
+
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING__STARTUVCHECK,
+                        StartUVCheck);
+  iotjs_jval_set_method(process, IOTJS_MAGIC_STRING__STOPUVCHECK, StopUVCheck);
 
 
   // virtual machine

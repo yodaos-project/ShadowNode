@@ -397,9 +397,9 @@ static void
 jerry_snapshot_set_offsets (uint32_t *buffer_p, /**< buffer */
                             uint32_t size, /**< buffer size */
                             lit_mem_to_snapshot_id_map_entry_t *lit_map_p /**< literal map */
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
                             , uint32_t literals_num /**< number of literals */
-#endif /* JERRY_FUNCTION_NAME */
+#endif /* JERRY_SOURCE_INFO */
                            )
 {
   JERRY_ASSERT (size > 0);
@@ -472,16 +472,20 @@ jerry_snapshot_set_offsets (uint32_t *buffer_p, /**< buffer */
         }
       }
 
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
       /* patch function name literal */
       for (uint32_t i = 0; i < literals_num; i++)
       {
+        if ((bytecode_p->source != ECMA_VALUE_EMPTY) && (lit_map_p[i].literal_id == bytecode_p->source))
+        {
+          bytecode_p->source = lit_map_p[i].literal_offset;
+        }
         if ((bytecode_p->name != ECMA_VALUE_EMPTY) && (lit_map_p[i].literal_id == bytecode_p->name))
         {
           bytecode_p->name = lit_map_p[i].literal_offset;
         }
       }
-#endif /* JERRY_FUNCTION_NAME */
+#endif /* JERRY_SOURCE_INFO */
 
       /* Set reference counter to 1. */
       bytecode_p->refs = 1;
@@ -679,12 +683,16 @@ snapshot_load_compiled_code (const uint8_t *base_addr_p, /**< base address of th
     }
   }
 
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
+  if (bytecode_p->source != ECMA_VALUE_EMPTY)
+  {
+    bytecode_p->source = ecma_snapshot_get_literal (literal_base_p, bytecode_p->source);
+  }
   if (bytecode_p->name != ECMA_VALUE_EMPTY)
   {
     bytecode_p->name = ecma_snapshot_get_literal (literal_base_p, bytecode_p->name);
   }
-#endif /* JERRY_FUNCTION_NAME */
+#endif /* JERRY_SOURCE_INFO */
 
   return bytecode_p;
 } /* snapshot_load_compiled_code */
@@ -712,7 +720,9 @@ typedef enum
  *         0 - otherwise.
  */
 static size_t
-jerry_parse_and_save_snapshot_with_args (const jerry_char_t *source_p, /**< script source */
+jerry_parse_and_save_snapshot_with_args (const jerry_char_t *resource_name_p, /**< resource name (usually a file name) */
+                                         size_t resource_name_length, /**< length of resource name */
+                                         const jerry_char_t *source_p, /**< script source */
                                          size_t source_size, /**< script source size */
                                          const jerry_char_t *args_p, /**< arguments string */
                                          size_t args_size, /**< arguments string size */
@@ -731,7 +741,9 @@ jerry_parse_and_save_snapshot_with_args (const jerry_char_t *source_p, /**< scri
   globals.regex_found = false;
   globals.class_found = false;
 
-  parse_status = parser_parse_script (args_p,
+  parse_status = parser_parse_script (resource_name_p,
+                                      resource_name_length,
+                                      args_p,
                                       args_size,
                                       source_p,
                                       source_size,
@@ -794,9 +806,9 @@ jerry_parse_and_save_snapshot_with_args (const jerry_char_t *source_p, /**< scri
     jerry_snapshot_set_offsets (buffer_p + (aligned_header_size / sizeof (uint32_t)),
                                 (uint32_t) (header.lit_table_offset - aligned_header_size),
                                 lit_map_p
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
                                 , literals_num
-#endif /* JERRY_FUNCTION_NAME */
+#endif /* JERRY_SOURCE_INFO */
                                );
   }
 
@@ -829,7 +841,9 @@ jerry_parse_and_save_snapshot_with_args (const jerry_char_t *source_p, /**< scri
  *         0 - otherwise.
  */
 size_t
-jerry_parse_and_save_snapshot (const jerry_char_t *source_p, /**< script source */
+jerry_parse_and_save_snapshot (const jerry_char_t *resource_name_p, /**< resource name (usually a file name) */
+                               size_t resource_name_length, /**< length of resource name */
+                               const jerry_char_t *source_p, /**< script source */
                                size_t source_size, /**< script source size */
                                bool is_for_global, /**< snapshot would be executed as global (true)
                                                     *   or eval (false) */
@@ -841,7 +855,9 @@ jerry_parse_and_save_snapshot (const jerry_char_t *source_p, /**< script source 
   uint32_t flags = (!is_for_global ? JERRY_SNAPSHOT_SAVE_EVAL : 0);
   flags |= (is_strict ? JERRY_SNAPSHOT_SAVE_STRICT : 0);
 
-  return jerry_parse_and_save_snapshot_with_args (source_p,
+  return jerry_parse_and_save_snapshot_with_args (resource_name_p,
+                                                  resource_name_length,
+                                                  source_p,
                                                   source_size,
                                                   NULL,
                                                   0,
@@ -849,6 +865,8 @@ jerry_parse_and_save_snapshot (const jerry_char_t *source_p, /**< script source 
                                                   buffer_p,
                                                   buffer_size);
 #else /* !JERRY_ENABLE_SNAPSHOT_SAVE */
+  JERRY_UNUSED (resource_name_p);
+  JERRY_UNUSED (resource_name_length);
   JERRY_UNUSED (source_p);
   JERRY_UNUSED (source_size);
   JERRY_UNUSED (is_for_global);
@@ -870,7 +888,9 @@ jerry_parse_and_save_snapshot (const jerry_char_t *source_p, /**< script source 
  *         0 - otherwise.
  */
 size_t
-jerry_parse_and_save_static_snapshot (const jerry_char_t *source_p, /**< script source */
+jerry_parse_and_save_static_snapshot (const jerry_char_t *resource_name_p, /**< resource name (usually a file name) */
+                                      size_t resource_name_length, /**< length of resource name */
+                                      const jerry_char_t *source_p, /**< script source */
                                       size_t source_size, /**< script source size */
                                       bool is_for_global, /**< snapshot would be executed as global (true)
                                                            *   or eval (false) */
@@ -883,7 +903,9 @@ jerry_parse_and_save_static_snapshot (const jerry_char_t *source_p, /**< script 
   flags |= (!is_for_global ? JERRY_SNAPSHOT_SAVE_EVAL : 0);
   flags |= (is_strict ? JERRY_SNAPSHOT_SAVE_STRICT : 0);
 
-  return jerry_parse_and_save_snapshot_with_args (source_p,
+  return jerry_parse_and_save_snapshot_with_args (resource_name_p,
+                                                  resource_name_length,
+                                                  source_p,
                                                   source_size,
                                                   NULL,
                                                   0,
@@ -891,6 +913,8 @@ jerry_parse_and_save_static_snapshot (const jerry_char_t *source_p, /**< script 
                                                   buffer_p,
                                                   buffer_size);
 #else /* !JERRY_ENABLE_SNAPSHOT_SAVE */
+  JERRY_UNUSED (resource_name_p);
+  JERRY_UNUSED (resource_name_length);
   JERRY_UNUSED (source_p);
   JERRY_UNUSED (source_size);
   JERRY_UNUSED (is_for_global);
@@ -1158,14 +1182,20 @@ scan_snapshot_functions (const uint8_t *buffer_p, /**< snapshot buffer start */
         }
       }
 
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
+      if (bytecode_p->source != ECMA_VALUE_EMPTY)
+      {
+        ecma_value_t lit_value = ecma_snapshot_get_literal (literal_base_p, bytecode_p->source);
+        bytecode_p->source = lit_value;
+        ecma_save_literals_append_value (lit_value, lit_pool_p);
+      }
       if (bytecode_p->name != ECMA_VALUE_EMPTY)
       {
         ecma_value_t lit_value = ecma_snapshot_get_literal (literal_base_p, bytecode_p->name);
         bytecode_p->name = lit_value;
         ecma_save_literals_append_value (lit_value, lit_pool_p);
       }
-#endif /* JERRY_FUNCTION_NAME */
+#endif /* JERRY_SOURCE_INFO */
     }
 
     buffer_p += code_size;
@@ -1180,9 +1210,9 @@ static void
 update_literal_offsets (uint8_t *buffer_p, /**< snapshot buffer start */
                         const uint8_t *buffer_end_p, /**< snapshot buffer end */
                         lit_mem_to_snapshot_id_map_entry_t *lit_map_p /**< literal map */
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
                         , uint32_t literals_num /**< number of literals */
-#endif /* JERRY_FUNCTION_NAME */
+#endif /* JERRY_SOURCE_INFO */
                        )
 {
   JERRY_ASSERT (buffer_end_p > buffer_p);
@@ -1254,16 +1284,20 @@ update_literal_offsets (uint8_t *buffer_p, /**< snapshot buffer start */
         }
       }
 
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
       /* patch function name literal */
       for (uint32_t i = 0; i < literals_num; i++)
       {
+        if ((bytecode_p->source != ECMA_VALUE_EMPTY) && (lit_map_p[i].literal_id == bytecode_p->source))
+        {
+          bytecode_p->source = lit_map_p[i].literal_offset;
+        }
         if ((bytecode_p->name != ECMA_VALUE_EMPTY) && (lit_map_p[i].literal_id == bytecode_p->name))
         {
           bytecode_p->name = lit_map_p[i].literal_offset;
         }
       }
-#endif /* JERRY_FUNCTION_NAME */
+#endif /* JERRY_SOURCE_INFO */
     }
 
     buffer_p += code_size;
@@ -1387,9 +1421,9 @@ jerry_merge_snapshots (const uint32_t **inp_buffers_p, /**< array of (pointers t
     update_literal_offsets (dst_p,
                             dst_p + current_header_p->lit_table_offset - start_offset,
                             lit_map_p
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
                             , literals_num
-#endif /* JERRY_FUNCTION_NAME */
+#endif /* JERRY_SOURCE_INFO */
                            );
 
     uint32_t current_offset = (uint32_t) (dst_p - (uint8_t *) out_buffer_p) - start_offset;
@@ -1679,6 +1713,8 @@ jerry_parse_and_save_literals (const jerry_char_t *source_p, /**< script source 
   ecma_compiled_code_t *bytecode_data_p;
   parse_status = parser_parse_script (NULL,
                                       0,
+                                      NULL,
+                                      0,
                                       source_p,
                                       source_size,
                                       is_strict,
@@ -1858,7 +1894,9 @@ jerry_parse_and_save_literals (const jerry_char_t *source_p, /**< script source 
  *           and snapshot support is enabled in current configuration through JERRY_ENABLE_SNAPSHOT_SAVE),
  *         0 - otherwise.
  */
-size_t jerry_parse_and_save_function_snapshot (const jerry_char_t *source_p, /**< function body source */
+size_t jerry_parse_and_save_function_snapshot (const jerry_char_t *resource_name_p, /**< resource name (usually a file name) */
+                                               size_t resource_name_length, /**< length of resource name */
+                                               const jerry_char_t *source_p, /**< function body source */
                                                size_t source_size, /**< function body size */
                                                const jerry_char_t *args_p, /**< arguments string */
                                                size_t args_size, /**< arguments string size */
@@ -1869,7 +1907,9 @@ size_t jerry_parse_and_save_function_snapshot (const jerry_char_t *source_p, /**
 #ifdef JERRY_ENABLE_SNAPSHOT_SAVE
   uint32_t flags = (is_strict ? JERRY_SNAPSHOT_SAVE_STRICT : 0);
 
-  return jerry_parse_and_save_snapshot_with_args (source_p,
+  return jerry_parse_and_save_snapshot_with_args (resource_name_p,
+                                                  resource_name_length,
+                                                  source_p,
                                                   source_size,
                                                   args_p,
                                                   args_size,
@@ -1877,6 +1917,8 @@ size_t jerry_parse_and_save_function_snapshot (const jerry_char_t *source_p, /**
                                                   buffer_p,
                                                   buffer_size);
 #else /* !JERRY_ENABLE_SNAPSHOT_SAVE */
+  JERRY_UNUSED (resource_name_p);
+  JERRY_UNUSED (resource_name_length);
   JERRY_UNUSED (source_p);
   JERRY_UNUSED (source_size);
   JERRY_UNUSED (args_p);
@@ -1898,7 +1940,9 @@ size_t jerry_parse_and_save_function_snapshot (const jerry_char_t *source_p, /**
  *           current configuration through JERRY_ENABLE_SNAPSHOT_SAVE),
  *         0 - otherwise.
  */
-size_t jerry_parse_and_save_static_function_snapshot (const jerry_char_t *source_p, /**< function body source */
+size_t jerry_parse_and_save_static_function_snapshot (const jerry_char_t *resource_name_p, /**< resource name (usually a file name) */
+                                                      size_t resource_name_length, /**< length of resource name */
+                                                      const jerry_char_t *source_p, /**< function body source */
                                                       size_t source_size, /**< function body size */
                                                       const jerry_char_t *args_p, /**< arguments string */
                                                       size_t args_size, /**< arguments string size */
@@ -1910,7 +1954,9 @@ size_t jerry_parse_and_save_static_function_snapshot (const jerry_char_t *source
   uint32_t flags = JERRY_SNAPSHOT_SAVE_STATIC;
   flags |= (is_strict ? JERRY_SNAPSHOT_SAVE_STRICT : 0);
 
-  return jerry_parse_and_save_snapshot_with_args (source_p,
+  return jerry_parse_and_save_snapshot_with_args (resource_name_p,
+                                                  resource_name_length,
+                                                  source_p,
                                                   source_size,
                                                   args_p,
                                                   args_size,
@@ -1918,6 +1964,8 @@ size_t jerry_parse_and_save_static_function_snapshot (const jerry_char_t *source
                                                   buffer_p,
                                                   buffer_size);
 #else /* !JERRY_ENABLE_SNAPSHOT_SAVE */
+  JERRY_UNUSED (resource_name_p);
+  JERRY_UNUSED (resource_name_length);
   JERRY_UNUSED (source_p);
   JERRY_UNUSED (source_size);
   JERRY_UNUSED (args_p);

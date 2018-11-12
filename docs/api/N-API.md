@@ -38,12 +38,8 @@ Use [node-gyp](https://github.com/nodejs/node-gyp) whenever possible, since N-AP
 #### Working with JavaScript Values - Abstract Operations
 - napi_is_dataview
 
-#### Working with JavaScript Functions
-- napi_get_new_target
-
 #### Custom Asynchronous Operations
-- napi_async_init
-- napi_async_destroy
+Though N-API functions for creating/destroying async contexts are available, they do not work as expected as `async_hooks` has not been implemented.
 
 #### Memory Management
 - napi_adjust_external_memory

@@ -1662,9 +1662,10 @@ parser_post_processing (parser_context_t *context_p) /**< context */
   compiled_code_p->size = (uint16_t) (total_size >> JMEM_ALIGNMENT_LOG);
   compiled_code_p->refs = 1;
   compiled_code_p->status_flags = CBC_CODE_FLAGS_FUNCTION;
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
+  compiled_code_p->source = ECMA_VALUE_EMPTY;
   compiled_code_p->name = ECMA_VALUE_EMPTY;
-#endif /* JERRY_FUNCTION_NAME */
+#endif /* JERRY_SOURCE_INFO */
 
   if (needs_uint16_arguments)
   {
@@ -2010,13 +2011,6 @@ parser_post_processing (parser_context_t *context_p) /**< context */
                                      compiled_code_p);
   }
 
-  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
-  {
-    jmem_cpointer_t compressed_compiled_code_cp;
-    JMEM_CP_SET_NON_NULL_POINTER (compressed_compiled_code_cp, compiled_code_p);
-    fprintf (JERRY_CONTEXT (parser_dump_fd), " %u\n", compressed_compiled_code_cp);
-  }
-
 #ifdef JERRY_DEBUGGER
   if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
   {
@@ -2159,7 +2153,9 @@ parser_parse_function_arguments (parser_context_t *context_p, /**< context */
  * @return compiled code
  */
 static ecma_compiled_code_t *
-parser_parse_source (const uint8_t *arg_list_p, /**< function argument list */
+parser_parse_source (const jerry_char_t *resource_name_p, /**< resource name (usually a file name) */
+                     size_t resource_name_length, /**< length of resource name */
+                     const uint8_t *arg_list_p, /**< function argument list */
                      size_t arg_list_size, /**< size of function argument list */
                      const uint8_t *source_p, /**< valid UTF-8 source code */
                      size_t source_size, /**< size of the source code */
@@ -2168,7 +2164,14 @@ parser_parse_source (const uint8_t *arg_list_p, /**< function argument list */
 {
   parser_context_t context;
   ecma_compiled_code_t *compiled_code;
-
+  if (resource_name_p && resource_name_length > 0)
+  {
+    context.resource_name = ecma_find_or_create_literal_string (resource_name_p, (lit_utf8_size_t) resource_name_length);
+  }
+  else
+  {
+    context.resource_name = ECMA_VALUE_EMPTY;
+  }
   context.error = PARSER_ERR_NO_ERROR;
   context.allocated_buffer_p = NULL;
 
@@ -2282,6 +2285,11 @@ parser_parse_source (const uint8_t *arg_list_p, /**< function argument list */
     JERRY_ASSERT (context.allocated_buffer_p == NULL);
 
     compiled_code = parser_post_processing (&context);
+#ifdef JERRY_SOURCE_INFO
+    compiled_code->source = context.resource_name;
+    compiled_code->line = 1;
+    compiled_code->column = 1;
+#endif /* JERRY_SOURCE_INFO */
     parser_list_free (&context.literal_pool);
 
 #ifdef PARSER_DUMP_BYTE_CODE
@@ -2463,9 +2471,11 @@ parser_parse_function (parser_context_t *context_p, /**< context */
 {
   parser_saved_context_t saved_context;
   ecma_compiled_code_t *compiled_code_p;
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
   ecma_value_t name = ECMA_VALUE_EMPTY;
-#endif /* JERRY_FUNCTION_NAME */
+  uint16_t line = (uint16_t) context_p->token.line;
+  uint16_t column = (uint16_t) context_p->token.column;
+#endif /* JERRY_SOURCE_INFO */
 
   JERRY_ASSERT (status_flags & PARSER_IS_FUNCTION);
   parser_save_context (context_p, &saved_context);
@@ -2499,11 +2509,11 @@ parser_parse_function (parser_context_t *context_p, /**< context */
                                     &context_p->token.lit_location,
                                     LEXER_IDENT_LITERAL);
 
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
     /* record function name in bytecode */
     name = ecma_find_or_create_literal_string (context_p->lit_object.literal_p->u.char_p,
                                                context_p->lit_object.literal_p->prop.length);
-#endif /* JERRY_FUNCTION_NAME */
+#endif /* JERRY_SOURCE_INFO */
 
 #ifdef JERRY_DEBUGGER
     if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
@@ -2512,18 +2522,6 @@ parser_parse_function (parser_context_t *context_p, /**< context */
                                   JERRY_DEBUGGER_NO_SUBTYPE,
                                   context_p->lit_object.literal_p->u.char_p,
                                   context_p->lit_object.literal_p->prop.length);
-    }
-
-    if (JERRY_CONTEXT (parser_dump_fd) != NULL)
-    {
-      char func_name[context_p->lit_object.literal_p->prop.length + 1];
-      memset (func_name, 0, 
-              (size_t) context_p->lit_object.literal_p->prop.length + 1);
-      memcpy (func_name, 
-              context_p->lit_object.literal_p->u.char_p, 
-              context_p->lit_object.literal_p->prop.length);
-
-      fprintf (JERRY_CONTEXT (parser_dump_fd), "+ %s", func_name);
     }
 #endif /* JERRY_DEBUGGER */
 
@@ -2545,11 +2543,6 @@ parser_parse_function (parser_context_t *context_p, /**< context */
   }
 
 #ifdef JERRY_DEBUGGER
-  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
-  {
-    fprintf (JERRY_CONTEXT (parser_dump_fd), " [%d,%d]", debugger_line, debugger_column);
-  }
-
   if ((JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
       && jerry_debugger_send_parse_function (debugger_line, debugger_column))
   {
@@ -2613,9 +2606,11 @@ parser_parse_function (parser_context_t *context_p, /**< context */
 
   parser_restore_context (context_p, &saved_context);
 
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
   compiled_code_p->name = name;
-#endif /* JERRY_FUNCTION_NAME */
+  compiled_code_p->line = line;
+  compiled_code_p->column = column;
+#endif /* JERRY_SOURCE_INFO */
 
   return compiled_code_p;
 } /* parser_parse_function */
@@ -2634,6 +2629,11 @@ parser_parse_arrow_function (parser_context_t *context_p, /**< context */
   parser_saved_context_t saved_context;
   ecma_compiled_code_t *compiled_code_p;
 
+#ifdef JERRY_SOURCE_INFO
+  uint16_t line = (uint16_t) context_p->token.line;
+  uint16_t column = (uint16_t) context_p->token.column;
+#endif /* JERRY_SOURCE_INFO */
+
   JERRY_ASSERT ((status_flags & PARSER_IS_FUNCTION)
                  && (status_flags & PARSER_IS_ARROW_FUNCTION));
   parser_save_context (context_p, &saved_context);
@@ -2645,13 +2645,6 @@ parser_parse_arrow_function (parser_context_t *context_p, /**< context */
     JERRY_DEBUG_MSG ("\n--- Arrow function parsing start ---\n\n");
   }
 #endif /* PARSER_DUMP_BYTE_CODE */
-
-  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
-  {
-    fprintf (JERRY_CONTEXT (parser_dump_fd), " [%d,%d]", 
-                            context_p->token.line, 
-                            context_p->token.column);
-  }
 
 #ifdef JERRY_DEBUGGER
   if ((JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
@@ -2729,6 +2722,11 @@ parser_parse_arrow_function (parser_context_t *context_p, /**< context */
   }
 
   compiled_code_p = parser_post_processing (context_p);
+
+#ifdef JERRY_SOURCE_INFO
+  compiled_code_p->line = line;
+  compiled_code_p->column = column;
+#endif /* JERRY_SOURCE_INFO */
 
 #ifdef PARSER_DUMP_BYTE_CODE
   if (context_p->is_show_opcodes)
@@ -2834,7 +2832,9 @@ parser_send_breakpoints (parser_context_t *context_p, /**< context */
  *         syntax error - otherwise
  */
 ecma_value_t
-parser_parse_script (const uint8_t *arg_list_p, /**< function argument list */
+parser_parse_script (const uint8_t *resource_name_p, /**< resource name (usually a file name) */
+                     size_t resource_name_length, /**< length of resource name */
+                     const uint8_t *arg_list_p, /**< function argument list */
                      size_t arg_list_size, /**< size of function argument list */
                      const uint8_t *source_p, /**< source code */
                      size_t source_size, /**< size of the source code */
@@ -2854,7 +2854,9 @@ parser_parse_script (const uint8_t *arg_list_p, /**< function argument list */
   }
 #endif /* JERRY_DEBUGGER */
 
-  *bytecode_data_p = parser_parse_source (arg_list_p,
+  *bytecode_data_p = parser_parse_source (resource_name_p,
+                                          resource_name_length,
+                                          arg_list_p,
                                           arg_list_size,
                                           source_p,
                                           source_size,

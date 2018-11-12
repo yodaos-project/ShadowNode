@@ -1445,8 +1445,6 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
         {
           JERRY_CONTEXT (error_value) = left_value;
           JERRY_CONTEXT (status_flags) |= ECMA_STATUS_EXCEPTION;
-          JERRY_CONTEXT (stack_index) = 0;
-          memset( JERRY_CONTEXT(stack_frames), 0, 10 );
 
           result = ECMA_VALUE_ERROR;
           left_value = ECMA_VALUE_UNDEFINED;
@@ -2731,15 +2729,6 @@ error:
       }
 
       stack_top_p = frame_ctx_p->registers_p + register_end + frame_ctx_p->context_depth;
-      {
-        jmem_cpointer_t byte_code_cp;
-        JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, frame_ctx_p->bytecode_header_p);
-        uint32_t idx = JERRY_CONTEXT (stack_index);
-        if (idx < 10) {
-          JERRY_CONTEXT (stack_frames) [idx] = (uint32_t) byte_code_cp;
-          JERRY_CONTEXT (stack_index) += 1;
-        }
-      }
 
 #ifdef JERRY_DEBUGGER
       if ((JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
@@ -2840,15 +2829,42 @@ error:
 #undef READ_LITERAL_INDEX
 
 #ifdef JERRY_CPU_PROFILER
+static
+void print_string (FILE *fp, ecma_value_t string)
+{
+  JERRY_ASSERT (ecma_is_value_string (string));
+
+  ecma_string_t *string_p = ecma_get_string_from_value (string);
+  lit_utf8_size_t sz = ecma_string_get_utf8_size (string_p);
+  lit_utf8_byte_t buffer_p[sz+1];
+  buffer_p[sz] = '\0';
+  ecma_string_to_utf8_bytes (string_p, buffer_p, sz);
+  fprintf (fp, "%s", buffer_p);
+}
+
+static
+void print_frame (FILE *fp, const ecma_compiled_code_t *bytecode_p)
+{
+  fprintf (fp, ",");
+  if (bytecode_p->name != ECMA_VALUE_EMPTY)
+  {
+    print_string (fp, bytecode_p->name);
+  }
+  fprintf (fp, "(");
+  if (bytecode_p->source != ECMA_VALUE_EMPTY)
+  {
+    print_string (fp, bytecode_p->source);
+  }
+  fprintf (fp, ":%u:%u)", bytecode_p->line, bytecode_p->column);
+}
+
 static void
 print_prof_stack (FILE *fp)
 {
   for (vm_frame_ctx_t *ctx_p = JERRY_CONTEXT (vm_top_context_p);
        ctx_p != NULL; ctx_p = ctx_p->prev_context_p)
   {
-    jmem_cpointer_t byte_code_cp;
-    JMEM_CP_SET_NON_NULL_POINTER (byte_code_cp, ctx_p->bytecode_header_p);
-    fprintf (fp, ",%u", (uint32_t) byte_code_cp);
+    print_frame (JERRY_CONTEXT (cpu_profiling_fp), ctx_p->bytecode_header_p);
   }
   fprintf (fp, "\n");
 }

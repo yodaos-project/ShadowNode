@@ -62,7 +62,9 @@ static void test_function_snapshot (void)
   const char *code_to_snapshot_p = "return a + b";
 
   jerry_init (flags);
-  size_t function_snapshot_size = jerry_parse_and_save_function_snapshot ((jerry_char_t *) code_to_snapshot_p,
+  size_t function_snapshot_size = jerry_parse_and_save_function_snapshot (NULL,
+                                                                          0,
+                                                                          (jerry_char_t *) code_to_snapshot_p,
                                                                           strlen (code_to_snapshot_p),
                                                                           (jerry_char_t *) args_p,
                                                                           strlen (args_p),
@@ -132,7 +134,9 @@ static void test_function_arguments_snapshot (void)
                                       "}"
                                       "f(3,4,5);");
     jerry_init (JERRY_INIT_EMPTY);
-    size_t global_mode_snapshot_size = jerry_parse_and_save_snapshot ((jerry_char_t *) code_to_snapshot_p,
+    size_t global_mode_snapshot_size = jerry_parse_and_save_snapshot (NULL,
+                                                                      0,
+                                                                      (jerry_char_t *) code_to_snapshot_p,
                                                                       strlen (code_to_snapshot_p),
                                                                       true,
                                                                       false,
@@ -142,7 +146,9 @@ static void test_function_arguments_snapshot (void)
     jerry_cleanup ();
 
     jerry_init (JERRY_INIT_EMPTY);
-    size_t eval_mode_snapshot_size = jerry_parse_and_save_snapshot ((jerry_char_t *) code_to_snapshot_p,
+    size_t eval_mode_snapshot_size = jerry_parse_and_save_snapshot (NULL,
+                                                                    0,
+                                                                    (jerry_char_t *) code_to_snapshot_p,
                                                                     strlen (code_to_snapshot_p),
                                                                     false,
                                                                     false,
@@ -199,7 +205,9 @@ main (void)
     const char *code_to_snapshot_p = "(function () { return 'string from snapshot'; }) ();";
 
     jerry_init (JERRY_INIT_EMPTY);
-    size_t global_mode_snapshot_size = jerry_parse_and_save_snapshot ((jerry_char_t *) code_to_snapshot_p,
+    size_t global_mode_snapshot_size = jerry_parse_and_save_snapshot (NULL,
+                                                                      0,
+                                                                      (jerry_char_t *) code_to_snapshot_p,
                                                                       strlen (code_to_snapshot_p),
                                                                       true,
                                                                       false,
@@ -211,25 +219,32 @@ main (void)
     const uint8_t expected_data[] =
     {
       0x4A, 0x52, 0x52, 0x59, 0x32, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x48, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x68, 0x00, 0x00, 0x00,
       0x01, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00, 0x00,
-      0x03, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
-      0x00, 0x00, 0x00, 0x01, 0x18, 0x00, 0x00, 0x00,
-      0x28, 0x00, 0xB7, 0x46, 0x00, 0x00, 0x00, 0x00,
-      0x03, 0x00, 0x01, 0x00, 0x41, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x01, 0x01, 0x07, 0x00, 0x00, 0x00,
+      0x05, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00,
+      0x08, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00,
+      0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00,
+      0x00, 0x01, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00,
+      0x28, 0x00, 0xB8, 0x46, 0x00, 0x00, 0x00, 0x00,
+      0x05, 0x00, 0x01, 0x00, 0x41, 0x00, 0x07, 0x00,
+      0x08, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00,
+      0x01, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x01, 0x01, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00,
       0x47, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x14, 0x00, 0x73, 0x74, 0x72, 0x69, 0x6E, 0x67,
       0x20, 0x66, 0x72, 0x6F, 0x6D, 0x20, 0x73, 0x6E,
       0x61, 0x70, 0x73, 0x68, 0x6F, 0x74
     };
+
     fprintf(stdout, "snapshot size: %lu / %zu\n", sizeof (expected_data), global_mode_snapshot_size);
     TEST_ASSERT (sizeof (expected_data) == global_mode_snapshot_size);
     TEST_ASSERT (0 == memcmp (expected_data, global_mode_snapshot_buffer, sizeof (expected_data)));
 
     jerry_cleanup ();
     jerry_init (JERRY_INIT_EMPTY);
-    size_t eval_mode_snapshot_size = jerry_parse_and_save_snapshot ((jerry_char_t *) code_to_snapshot_p,
+    size_t eval_mode_snapshot_size = jerry_parse_and_save_snapshot (NULL,
+                                                                    0,
+                                                                    (jerry_char_t *) code_to_snapshot_p,
                                                                     strlen (code_to_snapshot_p),
                                                                     false,
                                                                     false,
@@ -270,7 +285,9 @@ main (void)
                                   sizeof (magic_string_lengths) / sizeof (jerry_length_t),
                                   magic_string_lengths);
 
-    size_t global_mode_snapshot_size = jerry_parse_and_save_static_snapshot ((jerry_char_t *) code_to_snapshot_p,
+    size_t global_mode_snapshot_size = jerry_parse_and_save_static_snapshot (NULL,
+                                                                             0,
+                                                                             (jerry_char_t *) code_to_snapshot_p,
                                                                              strlen (code_to_snapshot_p),
                                                                              true,
                                                                              false,
@@ -297,7 +314,9 @@ main (void)
     const char *code_to_snapshot_p = "123";
 
     jerry_init (JERRY_INIT_EMPTY);
-    snapshot_sizes[0] = jerry_parse_and_save_snapshot ((jerry_char_t *) code_to_snapshot_p,
+    snapshot_sizes[0] = jerry_parse_and_save_snapshot (NULL,
+                                                       0,
+                                                       (jerry_char_t *) code_to_snapshot_p,
                                                        strlen (code_to_snapshot_p),
                                                        true,
                                                        false,
@@ -309,7 +328,9 @@ main (void)
     code_to_snapshot_p = "456";
 
     jerry_init (JERRY_INIT_EMPTY);
-    snapshot_sizes[1] = jerry_parse_and_save_snapshot ((jerry_char_t *) code_to_snapshot_p,
+    snapshot_sizes[1] = jerry_parse_and_save_snapshot (NULL,
+                                                       0,
+                                                       (jerry_char_t *) code_to_snapshot_p,
                                                        strlen (code_to_snapshot_p),
                                                        true,
                                                        false,
