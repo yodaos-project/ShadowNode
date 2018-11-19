@@ -158,6 +158,7 @@ napi_status napi_create_threadsafe_function(
 
   tsfn->invocation_head = NULL;
   tsfn->invocation_tail = NULL;
+  tsfn->queue_size = 0;
 
   tsfn->aborted = false;
 
