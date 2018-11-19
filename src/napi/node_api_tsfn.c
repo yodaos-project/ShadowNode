@@ -32,7 +32,8 @@ static void tsfn_async_close_cb(uv_handle_t* handle) {
   uv_mutex_t* op_mutex = tsfn->op_mutex;
 
   thread_finalize_cb(env, thread_finalize_data, context);
-  NAPI_ASSERT(tsfn->invocation_head == NULL, "TSFN invocation shall be cleared before closing async handle.");
+  NAPI_ASSERT(tsfn->invocation_head == NULL,
+              "TSFN invocation shall be cleared before closing async handle.");
 
   jerry_release_value(AS_JERRY_VALUE(func));
   napi_async_destroy(env, async_context);
