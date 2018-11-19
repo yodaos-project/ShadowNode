@@ -31,14 +31,8 @@ static void tsfn_async_close_cb(uv_handle_t* handle) {
   uv_cond_t* async_cond = tsfn->async_cond;
   uv_mutex_t* op_mutex = tsfn->op_mutex;
 
-  iotjs_tsfn_invocation_t* invocation = tsfn->invocation_head;
-  while (invocation != NULL) {
-    iotjs_tsfn_invocation_t* tobereleased = invocation;
-    invocation = invocation->next;
-    IOTJS_RELEASE(tobereleased);
-  }
-
   thread_finalize_cb(env, thread_finalize_data, context);
+  NAPI_ASSERT(tsfn->invocation_head == NULL, "TSFN invocation shall be cleared before closing async handle.");
 
   jerry_release_value(AS_JERRY_VALUE(func));
   napi_async_destroy(env, async_context);
@@ -55,13 +49,13 @@ static void tsfn_async_callback(uv_async_t* handle) {
   tsfn->invocation_head = NULL;
   tsfn->invocation_tail = NULL;
   tsfn->queue_size = 0;
-  uv_mutex_unlock(tsfn->op_mutex);
-  uv_cond_signal(tsfn->async_cond);
 
   napi_env env = tsfn->env;
   napi_value func = tsfn->func;
   void* context = tsfn->context;
   napi_threadsafe_function_call_js call_js_cb = tsfn->call_js_cb;
+  uv_mutex_unlock(tsfn->op_mutex);
+  uv_cond_signal(tsfn->async_cond);
 
   while (invocation != NULL) {
     jerryx_handle_scope scope;
@@ -93,7 +87,7 @@ static void tsfn_async_callback(uv_async_t* handle) {
   }
 
   uv_mutex_lock(tsfn->op_mutex);
-  if (tsfn->thread_count == 0 && tsfn->queue_size == 0) {
+  if ((tsfn->thread_count == 0 && tsfn->queue_size == 0) || tsfn->aborted) {
     uv_close((uv_handle_t*)tsfn->async_handle, tsfn_async_close_cb);
   }
   uv_mutex_unlock(tsfn->op_mutex);
@@ -208,10 +202,6 @@ napi_status napi_call_threadsafe_function(
   uv_mutex_lock(tsfn->op_mutex);
   napi_status ret_status = napi_ok;
 
-  if (tsfn->aborted) {
-    ret_status = napi_closing;
-    goto clean;
-  }
 
   if (tsfn->max_queue_size != 0 && tsfn->queue_size == tsfn->max_queue_size) {
     switch (is_blocking) {
@@ -226,6 +216,11 @@ napi_status napi_call_threadsafe_function(
         NAPI_ASSERT(false,
                     "Unrecognized mode on napi_call_threadsafe_function.");
     }
+  }
+
+  if (tsfn->aborted) {
+    ret_status = napi_closing;
+    goto clean;
   }
 
   iotjs_tsfn_invocation_t* tsfn_invocation =
@@ -284,8 +279,12 @@ napi_status napi_release_threadsafe_function(
                   "Unrecognized mode on napi_release_threadsafe_function.");
   }
 
-  if (tsfn->thread_count == 0 || tsfn->aborted) {
-    uv_close((uv_handle_t*)tsfn->async_handle, tsfn_async_close_cb);
+  if ((tsfn->thread_count == 0 && tsfn->queue_size == 0) || tsfn->aborted) {
+    /**
+     * No uv methods are thread safe except `uv_async_send`.
+     * Just notifying main thread that the tsfn is closing.
+     */
+    uv_async_send(tsfn->async_handle);
   }
 
   uv_mutex_unlock(tsfn->op_mutex);
