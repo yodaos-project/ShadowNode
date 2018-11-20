@@ -52,3 +52,6 @@ Though N-API functions for creating/destroying async contexts are available, the
 
 #### Script execution
 - napi_run_script
+
+#### Experimental functions
+- napi_add_finalizer

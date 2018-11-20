@@ -1,4 +1,4 @@
-// Pulled from nodejs/node#8742cbfef0d31d7fad49ced7d11e6827b932b101 v10.8.0 using tools/pull-napi.sh
+// Pulled from nodejs/node#daff0be5b31f769357d943f9694f866b7d286647 v10.13.0 using tools/pull-napi.sh
 
 #ifndef SRC_NODE_API_TYPES_H_
 #define SRC_NODE_API_TYPES_H_
