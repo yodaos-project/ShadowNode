@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
 #include <execinfo.h>
 #endif
 
@@ -95,39 +95,15 @@ void iotjs_buffer_release(char* buffer) {
 }
 
 void print_stacktrace() {
-#if defined(__linux__) && defined(DEBUG)
-  // TODO: support other platforms
-  const int numOfStackTrace = 100;
-  void* buffer[numOfStackTrace];
-  char command[256];
-
-  int nptrs = backtrace(buffer, numOfStackTrace);
-  char** strings = backtrace_symbols(buffer, nptrs);
-
-  if (strings == NULL) {
-    perror("backtrace_symbols");
-    exit(EXIT_FAILURE);
+#if (defined(__linux__) || defined(__APPLE__))
+  void* bt[IOTJS_BACKTRACE_LEN];
+  int size = backtrace(bt, IOTJS_BACKTRACE_LEN);
+  char** bt_sym_strs = backtrace_symbols(bt, size);
+  for (int idx = 0; idx < size; ++idx) {
+    fprintf(stderr, "%s\n", bt_sym_strs[idx]);
   }
-
-  printf("\n[Backtrace]:\n");
-  for (int j = 0; j < nptrs - 2; j++) { // remove the last two
-    int idx = 0;
-    while (strings[j][idx] != '\0') {
-      if (strings[j][idx] == '(') {
-        break;
-      }
-      idx++;
-    }
-    snprintf(command, sizeof(command), "addr2line %p -e %.*s", buffer[j], idx,
-             strings[j]);
-
-    if (system(command)) {
-      break;
-    }
-  }
-
-  free(strings);
-#endif // defined(__linux__) && defined(DEBUG)
+  free(bt_sym_strs);
+#endif // (defined(__linux__) || defined(__APPLE__))
 }
 
 void force_terminate() {
