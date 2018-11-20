@@ -213,7 +213,6 @@ napi_status napi_call_threadsafe_function(
       case napi_tsfn_nonblocking:
         ret_status = napi_queue_full;
         goto clean;
-        break;
       case napi_tsfn_blocking:
         uv_cond_wait(&tsfn->async_cond, &tsfn->op_mutex);
         break;
