@@ -103,6 +103,7 @@ void print_stacktrace() {
   for (int idx = 0; idx < size; ++idx) {
     fprintf(stderr, "%s\n", bt_strs[idx]);
   }
+  free(bt_strs);
 #endif // (defined(__linux__) || defined(__APPLE__))
 }
 

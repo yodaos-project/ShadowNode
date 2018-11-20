@@ -216,5 +216,6 @@ void napi_fatal_error(const char* location, size_t location_len,
   for (int idx = 0; idx < size; ++idx) {
     fprintf(stderr, "%s\n", bt_strs[idx]);
   }
+  free(bt_strs);
   abort();
 }
