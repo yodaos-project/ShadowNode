@@ -52,14 +52,3 @@ Though N-API functions for creating/destroying async contexts are available, the
 
 #### Script execution
 - napi_run_script
-
-#### Asynchronous Thread-safe Function Calls
-> Experimental
-
-- napi_create_threadsafe_function
-- napi_get_threadsafe_function_context
-- napi_call_threadsafe_function
-- napi_acquire_threadsafe_function
-- napi_release_threadsafe_function
-- napi_ref_threadsafe_function
-- napi_unref_threadsafe_function
