@@ -28,8 +28,8 @@ static void tsfn_async_close_cb(uv_handle_t* handle) {
   void* context = tsfn->context;
   napi_async_context async_context = tsfn->async_context;
 
-  uv_cond_t* async_cond = tsfn->async_cond;
-  uv_mutex_t* op_mutex = tsfn->op_mutex;
+  uv_cond_t* async_cond = &tsfn->async_cond;
+  uv_mutex_t* op_mutex = &tsfn->op_mutex;
 
   thread_finalize_cb(env, thread_finalize_data, context);
   NAPI_ASSERT(tsfn->invocation_head == NULL,
@@ -39,12 +39,16 @@ static void tsfn_async_close_cb(uv_handle_t* handle) {
   napi_async_destroy(env, async_context);
   uv_cond_destroy(async_cond);
   uv_mutex_destroy(op_mutex);
+  IOTJS_RELEASE(tsfn);
 }
 
 static void tsfn_async_callback(uv_async_t* handle) {
   iotjs_threadsafe_function_t* tsfn =
       (iotjs_threadsafe_function_t*)handle->data;
-  uv_mutex_lock(tsfn->op_mutex);
+  uv_mutex_t* op_mutex = &tsfn->op_mutex;
+  uv_cond_t* async_cond = &tsfn->async_cond;
+
+  uv_mutex_lock(op_mutex);
   iotjs_tsfn_invocation_t* invocation = tsfn->invocation_head;
 
   tsfn->invocation_head = NULL;
@@ -55,8 +59,8 @@ static void tsfn_async_callback(uv_async_t* handle) {
   napi_value func = tsfn->func;
   void* context = tsfn->context;
   napi_threadsafe_function_call_js call_js_cb = tsfn->call_js_cb;
-  uv_mutex_unlock(tsfn->op_mutex);
-  uv_cond_signal(tsfn->async_cond);
+  uv_mutex_unlock(op_mutex);
+  uv_cond_signal(async_cond);
 
   while (invocation != NULL) {
     jerryx_handle_scope scope;
@@ -87,11 +91,11 @@ static void tsfn_async_callback(uv_async_t* handle) {
     IOTJS_RELEASE(tobereleased);
   }
 
-  uv_mutex_lock(tsfn->op_mutex);
+  uv_mutex_lock(op_mutex);
   if ((tsfn->thread_count == 0 && tsfn->queue_size == 0) || tsfn->aborted) {
-    uv_close((uv_handle_t*)tsfn->async_handle, tsfn_async_close_cb);
+    uv_close((uv_handle_t*)&tsfn->async_handle, tsfn_async_close_cb);
   }
-  uv_mutex_unlock(tsfn->op_mutex);
+  uv_mutex_unlock(op_mutex);
 }
 
 napi_status napi_create_threadsafe_function(
@@ -106,6 +110,8 @@ napi_status napi_create_threadsafe_function(
               "Expect an non-null out result pointer on "
               "napi_create_threadsafe_function.");
 
+  iotjs_threadsafe_function_t* tsfn = IOTJS_ALLOC(iotjs_threadsafe_function_t);
+
   bool napi_async_inited = false, uv_async_inited = false,
        uv_cond_inited = false, uv_mutex_inited = false, func_acquired = false;
 
@@ -114,7 +120,7 @@ napi_status napi_create_threadsafe_function(
                                      &async_context));
   napi_async_inited = true;
 
-  uv_async_t* async_handle = IOTJS_ALLOC(uv_async_t);
+  uv_async_t* async_handle = &tsfn->async_handle;
   iotjs_environment_t* iotjs_env = iotjs_environment_get();
   uv_loop_t* iotjs_loop = iotjs_environment_loop(iotjs_env);
   int uv_status = uv_async_init(iotjs_loop, async_handle, tsfn_async_callback);
@@ -123,7 +129,7 @@ napi_status napi_create_threadsafe_function(
   }
   uv_async_inited = true;
 
-  uv_cond_t* async_cond = IOTJS_ALLOC(uv_cond_t);
+  uv_cond_t* async_cond = &tsfn->async_cond;
   uv_status = uv_cond_init(async_cond);
   if (uv_status != 0) {
     goto clean;
@@ -131,7 +137,7 @@ napi_status napi_create_threadsafe_function(
   uv_cond_inited = true;
 
 
-  uv_mutex_t* op_mutex = IOTJS_ALLOC(uv_mutex_t);
+  uv_mutex_t* op_mutex = &tsfn->op_mutex;
   uv_status = uv_mutex_init(op_mutex);
   if (uv_status != 0) {
     goto clean;
@@ -141,7 +147,6 @@ napi_status napi_create_threadsafe_function(
   func = AS_NAPI_VALUE(jerry_acquire_value(AS_JERRY_VALUE(func)));
   func_acquired = true;
 
-  iotjs_threadsafe_function_t* tsfn = IOTJS_ALLOC(iotjs_threadsafe_function_t);
   tsfn->env = env;
   tsfn->func = func;
   tsfn->max_queue_size = max_queue_size;
@@ -152,9 +157,6 @@ napi_status napi_create_threadsafe_function(
   tsfn->call_js_cb = call_js_cb;
 
   tsfn->async_context = async_context;
-  tsfn->async_handle = async_handle;
-  tsfn->async_cond = async_cond;
-  tsfn->op_mutex = op_mutex;
 
   tsfn->invocation_head = NULL;
   tsfn->invocation_tail = NULL;
@@ -183,6 +185,7 @@ clean:
   if (uv_mutex_inited) {
     uv_mutex_destroy(op_mutex);
   }
+  IOTJS_RELEASE(tsfn);
   NAPI_RETURN_WITH_MSG(napi_generic_failure,
                        "Unexpected error on napi_create_threadsafe_function.");
 }
@@ -201,7 +204,7 @@ napi_status napi_call_threadsafe_function(
     napi_threadsafe_function_call_mode is_blocking) {
   iotjs_threadsafe_function_t* tsfn = (iotjs_threadsafe_function_t*)func;
 
-  uv_mutex_lock(tsfn->op_mutex);
+  uv_mutex_lock(&tsfn->op_mutex);
   napi_status ret_status = napi_ok;
 
 
@@ -212,7 +215,7 @@ napi_status napi_call_threadsafe_function(
         goto clean;
         break;
       case napi_tsfn_blocking:
-        uv_cond_wait(tsfn->async_cond, tsfn->op_mutex);
+        uv_cond_wait(&tsfn->async_cond, &tsfn->op_mutex);
         break;
       default:
         NAPI_ASSERT(false,
@@ -241,27 +244,27 @@ napi_status napi_call_threadsafe_function(
   }
   ++tsfn->queue_size;
 
-  uv_async_send(tsfn->async_handle);
+  uv_async_send(&tsfn->async_handle);
 
 clean:
-  uv_mutex_unlock(tsfn->op_mutex);
+  uv_mutex_unlock(&tsfn->op_mutex);
   return ret_status;
 }
 
 napi_status napi_acquire_threadsafe_function(napi_threadsafe_function func) {
   iotjs_threadsafe_function_t* tsfn = (iotjs_threadsafe_function_t*)func;
-  uv_mutex_lock(tsfn->op_mutex);
+  uv_mutex_lock(&tsfn->op_mutex);
 
   ++tsfn->thread_count;
 
-  uv_mutex_unlock(tsfn->op_mutex);
+  uv_mutex_unlock(&tsfn->op_mutex);
   return napi_ok;
 }
 
 napi_status napi_release_threadsafe_function(
     napi_threadsafe_function func, napi_threadsafe_function_release_mode mode) {
   iotjs_threadsafe_function_t* tsfn = (iotjs_threadsafe_function_t*)func;
-  uv_mutex_lock(tsfn->op_mutex);
+  uv_mutex_lock(&tsfn->op_mutex);
 
   if (tsfn->thread_count > 0) {
     --tsfn->thread_count;
@@ -286,10 +289,10 @@ napi_status napi_release_threadsafe_function(
      * No uv methods are thread safe except `uv_async_send`.
      * Just notifying main thread that the tsfn is closing.
      */
-    uv_async_send(tsfn->async_handle);
+    uv_async_send(&tsfn->async_handle);
   }
 
-  uv_mutex_unlock(tsfn->op_mutex);
+  uv_mutex_unlock(&tsfn->op_mutex);
   return napi_ok;
 }
 
@@ -298,7 +301,7 @@ napi_status napi_unref_threadsafe_function(napi_env env,
   NAPI_TRY_ENV(env);
   iotjs_threadsafe_function_t* tsfn = (iotjs_threadsafe_function_t*)func;
 
-  uv_unref((uv_handle_t*)tsfn->async_handle);
+  uv_unref((uv_handle_t*)&tsfn->async_handle);
 
   NAPI_RETURN(napi_ok);
 }
@@ -308,7 +311,7 @@ napi_status napi_ref_threadsafe_function(napi_env env,
   NAPI_TRY_ENV(env);
   iotjs_threadsafe_function_t* tsfn = (iotjs_threadsafe_function_t*)func;
 
-  uv_ref((uv_handle_t*)tsfn->async_handle);
+  uv_ref((uv_handle_t*)&tsfn->async_handle);
 
   NAPI_RETURN(napi_ok);
 }

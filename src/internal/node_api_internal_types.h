@@ -134,9 +134,9 @@ struct iotjs_threadsafe_function_s {
   napi_threadsafe_function_call_js call_js_cb;
 
   napi_async_context async_context;
-  uv_async_t* async_handle;
-  uv_cond_t* async_cond;
-  uv_mutex_t* op_mutex;
+  uv_async_t async_handle;
+  uv_cond_t async_cond;
+  uv_mutex_t op_mutex;
 
   iotjs_tsfn_invocation_t* invocation_head;
   iotjs_tsfn_invocation_t* invocation_tail;
