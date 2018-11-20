@@ -97,6 +97,13 @@ static void iotjs_environment_destroy(iotjs_environment_t* env) {
     }
     iotjs_buffer_release((char*)_this->argv);
   }
+
+  if (_this->immediate_check_handle != NULL) {
+    IOTJS_RELEASE(_this->immediate_check_handle);
+  }
+  if (_this->immediate_idle_handle != NULL) {
+    IOTJS_RELEASE(_this->immediate_idle_handle);
+  }
 }
 
 void iotjs_environment_print_help() {

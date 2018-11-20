@@ -111,8 +111,11 @@ static jerry_value_t WrapEval(const char* name, size_t name_len, char* source,
   return res;
 }
 
-static uv_check_t check_handle;
-static void UVCheckCallback(uv_check_t* handle) {
+static void ImmediateIdleCallback(uv_idle_t* handle) {
+  // nothing to do on immediate idle callback
+}
+
+static void ImmediateCheckCallback(uv_check_t* handle) {
   const jerry_value_t process = iotjs_module_get("process");
   jerry_value_t jonuvcheck =
       iotjs_jval_get_property(process, IOTJS_MAGIC_STRING__ONUVCHECK);
@@ -459,29 +462,47 @@ JS_FUNCTION(ForceGC) {
 
 JS_FUNCTION(StartUVCheck) {
   int status;
-  if (check_handle.data != NULL) {
-    status = uv_check_start(&check_handle, UVCheckCallback);
-    IOTJS_ASSERT(status == 0);
-    return jerry_create_undefined();
-  }
-  iotjs_environment_t* iotjs_env = iotjs_environment_get();
-  uv_loop_t* iotjs_loop = iotjs_environment_loop(iotjs_env);
-  status = uv_check_init(iotjs_loop, &check_handle);
-  IOTJS_ASSERT(status == 0);
+  iotjs_environment_t* env = iotjs_environment_get();
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_environment_t, env);
+  uv_loop_t* loop = iotjs_environment_loop(env);
 
-  /** indicates check_handle has been started */
-  check_handle.data = (void*)(uintptr_t) true;
-  status = uv_check_start(&check_handle, UVCheckCallback);
+  if (_this->immediate_idle_handle == NULL) {
+    _this->immediate_idle_handle = IOTJS_ALLOC(uv_idle_t);
+    uv_idle_init(loop, _this->immediate_idle_handle);
+  }
+  if (_this->immediate_idle_handle->data == NULL) {
+    status = uv_idle_start(_this->immediate_idle_handle, ImmediateIdleCallback);
+    IOTJS_ASSERT(status == 0);
+    /** indicates idle_handle has been started */
+    _this->immediate_idle_handle->data = (void*)(uintptr_t) true;
+  }
+
+  if (_this->immediate_check_handle == NULL) {
+    _this->immediate_check_handle = IOTJS_ALLOC(uv_check_t);
+    status = uv_check_init(loop, _this->immediate_check_handle);
+    IOTJS_ASSERT(status == 0);
+  }
+
+  status =
+      uv_check_start(_this->immediate_check_handle, ImmediateCheckCallback);
   IOTJS_ASSERT(status == 0);
 
   return jerry_create_undefined();
 }
 
 JS_FUNCTION(StopUVCheck) {
-  int status = uv_check_stop(&check_handle);
+  int status;
+
+  iotjs_environment_t* env = iotjs_environment_get();
+  IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_environment_t, env);
+
+  status = uv_check_stop(_this->immediate_check_handle);
+  IOTJS_ASSERT(status == 0);
+  status = uv_idle_stop(_this->immediate_idle_handle);
   IOTJS_ASSERT(status == 0);
   /** indicates check_handle has been stopped */
-  check_handle.data = NULL;
+  _this->immediate_idle_handle->data = NULL;
+
   return jerry_create_undefined();
 }
 
