@@ -34,6 +34,8 @@ typedef struct iotjs_function_info_s iotjs_function_info_t;
 typedef struct iotjs_napi_env_s iotjs_napi_env_t;
 typedef struct iotjs_object_info_s iotjs_object_info_t;
 typedef struct iotjs_reference_s iotjs_reference_t;
+typedef struct iotjs_tsfn_invocation_s iotjs_tsfn_invocation_t;
+typedef struct iotjs_threadsafe_function_s iotjs_threadsafe_function_t;
 
 typedef enum {
   napi_module_load_ok = 0,
@@ -112,6 +114,35 @@ struct iotjs_async_context_s {
   napi_env env;
   napi_value async_resource;
   napi_value async_resource_name;
+};
+
+struct iotjs_tsfn_invocation_s {
+  iotjs_tsfn_invocation_t* next;
+  void* data;
+};
+
+struct iotjs_threadsafe_function_s {
+  napi_env env;
+  napi_value func;
+
+  size_t max_queue_size;
+  size_t thread_count;
+
+  void* thread_finalize_data;
+  napi_finalize thread_finalize_cb;
+  void* context;
+  napi_threadsafe_function_call_js call_js_cb;
+
+  napi_async_context async_context;
+  uv_async_t async_handle;
+  uv_cond_t async_cond;
+  uv_mutex_t op_mutex;
+
+  iotjs_tsfn_invocation_t* invocation_head;
+  iotjs_tsfn_invocation_t* invocation_tail;
+  size_t queue_size;
+
+  bool aborted;
 };
 
 #endif // IOTJS_NODE_API_TYPES_H

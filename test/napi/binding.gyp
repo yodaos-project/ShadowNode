@@ -51,6 +51,10 @@
     {
       "target_name": "napi_thread_safe",
       "sources": [ "napi_thread_safe.c" ]
+    },
+    {
+      "target_name": "napi_tsfn",
+      "sources": [ "napi_tsfn.c" ]
     }
   ]
 }
