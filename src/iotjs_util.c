@@ -96,14 +96,13 @@ void iotjs_buffer_release(char* buffer) {
 
 void print_stacktrace() {
 #if (defined(__linux__) || defined(__APPLE__))
-  const int numOfStackTrace = 25;
-  void* bt[numOfStackTrace];
-  int size = backtrace(bt, numOfStackTrace);
-  char** bt_strs = backtrace_symbols(bt, size);
+  void* bt[IOTJS_BACKTRACE_LEN];
+  int size = backtrace(bt, IOTJS_BACKTRACE_LEN);
+  char** bt_sym_strs = backtrace_symbols(bt, size);
   for (int idx = 0; idx < size; ++idx) {
-    fprintf(stderr, "%s\n", bt_strs[idx]);
+    fprintf(stderr, "%s\n", bt_sym_strs[idx]);
   }
-  free(bt_strs);
+  free(bt_sym_strs);
 #endif // (defined(__linux__) || defined(__APPLE__))
 }
 
