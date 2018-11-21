@@ -6,7 +6,7 @@ var iterations = 500;
 
 var x = 0;
 var workDone = common.mustCall((status) => {
-  assert.strictEqual(status, 0, 'Work completed successfully');
+  assert.strictEqual(status, 0);
   if (++x < iterations) {
     setImmediate(() => test_async.DoRepeatedWork(workDone));
   }
