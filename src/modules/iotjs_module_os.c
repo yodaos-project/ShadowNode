@@ -65,12 +65,14 @@ JS_FUNCTION(GetInterfaceAddresses) {
     if (interfaces[i].address.address4.sin_family == AF_INET) {
       uv_ip4_name(&interfaces[i].address.address4, ip, sizeof(ip));
       uv_ip4_name(&interfaces[i].netmask.netmask4, netmask, sizeof(netmask));
-      uv_ip4_name(&interfaces[i].broadcast.broadcast4, broadcast, sizeof(broadcast));
+      uv_ip4_name(&interfaces[i].broadcast.broadcast4,
+        broadcast, sizeof(broadcast));
       family = jerry_create_string((jerry_char_t*)"IPv4");
     } else if (interfaces[i].address.address4.sin_family == AF_INET6) {
       uv_ip6_name(&interfaces[i].address.address6, ip, sizeof(ip));
       uv_ip6_name(&interfaces[i].netmask.netmask6, netmask, sizeof(netmask));
-      uv_ip6_name(&interfaces[i].broadcast.broadcast6, broadcast, sizeof(broadcast));
+      uv_ip6_name(&interfaces[i].broadcast.broadcast6,
+        broadcast, sizeof(broadcast));
       family = jerry_create_string((jerry_char_t*)"IPv6");
     } else {
       strncpy(ip, "<unknown sa family>", INET6_ADDRSTRLEN);
