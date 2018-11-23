@@ -74,6 +74,7 @@ ecma_arraybuffer_new_object (ecma_length_t length) /**< length of the arraybuffe
 ecma_object_t *
 ecma_arraybuffer_new_object_external (ecma_length_t length, /**< length of the buffer_p to use */
                                       void *buffer_p, /**< pointer for ArrayBuffer's buffer backing */
+                                      void *free_hint, /**< hint params of buffer free callback */
                                       ecma_object_native_free_callback_t free_cb) /**< buffer free callback */
 {
   ecma_object_t *prototype_obj_p = ecma_builtin_get (ECMA_BUILTIN_ID_ARRAYBUFFER_PROTOTYPE);
@@ -87,6 +88,7 @@ ecma_arraybuffer_new_object_external (ecma_length_t length, /**< length of the b
   array_object_p->extended_object.u.class_prop.u.length = length;
 
   array_object_p->buffer_p = buffer_p;
+  array_object_p->free_hint = free_hint;
   array_object_p->free_cb = free_cb;
 
   return object_p;

@@ -2955,6 +2955,7 @@ jerry_create_arraybuffer (const jerry_length_t size) /**< size of the ArrayBuffe
 jerry_value_t
 jerry_create_arraybuffer_external (const jerry_length_t size, /**< size of the buffer to used */
                                    uint8_t *buffer_p, /**< buffer to use as the ArrayBuffer's backing */
+                                   void *free_hint, /**< hint params of buffer free callback */
                                    jerry_object_native_free_callback_t free_cb) /**< buffer free callback */
 {
   jerry_assert_api_available ();
@@ -2967,6 +2968,7 @@ jerry_create_arraybuffer_external (const jerry_length_t size, /**< size of the b
 
   ecma_object_t *arraybuffer = ecma_arraybuffer_new_object_external (size,
                                                                      buffer_p,
+                                                                     free_hint,
                                                                      (ecma_object_native_free_callback_t) free_cb);
   return jerry_return (ecma_make_object_value (arraybuffer));
 #else /* CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
@@ -3131,12 +3133,8 @@ jerry_get_arraybuffer_pointer (const jerry_value_t value) /**< Array Buffer to u
   }
 
   ecma_object_t *buffer_p = ecma_get_object_from_value (buffer);
-  if (ECMA_ARRAYBUFFER_HAS_EXTERNAL_MEMORY (buffer_p))
-  {
-    jerry_acquire_value (value);
-    lit_utf8_byte_t *mem_buffer_p = ecma_arraybuffer_get_buffer (buffer_p);
-    return (uint8_t *const) mem_buffer_p;
-  }
+  lit_utf8_byte_t *mem_buffer_p = ecma_arraybuffer_get_buffer (buffer_p);
+  return (uint8_t *const) mem_buffer_p;
 #else /* CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
   JERRY_UNUSED (value);
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
