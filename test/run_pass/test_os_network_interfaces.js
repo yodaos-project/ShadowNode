@@ -10,8 +10,9 @@ var family = {
 
 var net_info = os.networkInterfaces();
 
-for (var net_name in net_info) {
-  net_info[net_name].forEach(net => {
+for (var name in net_info) {
+  assert(net_info[name].length);
+  net_info[name].forEach(net => {
     assert.equal(typeof net.address, 'string');
     assert.equal(typeof net.netmask, 'string');
     assert.equal(family[net.family], 1);
