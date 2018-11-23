@@ -295,9 +295,11 @@ int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
 
     if (ent->ifa_dstaddr) {
       if (ent->ifa_dstaddr->sa_family == AF_INET6) {
-        address->broadcast.broadcast6 = *((struct sockaddr_in6*) ent->ifa_dstaddr);
+        address->broadcast.broadcast6 =
+          *((struct sockaddr_in6*) ent->ifa_dstaddr);
       } else {
-        address->broadcast.broadcast4 = *((struct sockaddr_in*) ent->ifa_dstaddr);
+        address->broadcast.broadcast4 =
+          *((struct sockaddr_in*) ent->ifa_dstaddr);
       }
     }
     
