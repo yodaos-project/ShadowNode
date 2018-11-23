@@ -1055,6 +1055,10 @@ struct uv_interface_address_s {
     struct sockaddr_in netmask4;
     struct sockaddr_in6 netmask6;
   } netmask;
+  union {
+    struct sockaddr_in broadcast4;
+    struct sockaddr_in6 broadcast6;
+  } broadcast;
 };
 
 struct uv_passwd_s {
