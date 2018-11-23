@@ -1,6 +1,34 @@
 'use strict';
 var assert = require('assert');
+var os = require('os');
 var mustCallChecks = [];
+
+var isWindows = process.platform === 'win32';
+var isAIX = process.platform === 'aix';
+var isLinuxPPCBE = (process.platform === 'linux') &&
+                     (process.arch === 'ppc64') &&
+                     (os.endianness() === 'BE');
+var isSunOS = process.platform === 'sunos';
+var isFreeBSD = process.platform === 'freebsd';
+var isOpenBSD = process.platform === 'openbsd';
+var isLinux = process.platform === 'linux';
+var isOSX = process.platform === 'darwin';
+
+var isOSXMojave = isOSX && (os.release().indexOf('18') >= 0);
+
+var is = {
+  number: function(value, key) {
+    // TODO: assert(!Number.isNaN(value), `${key} should not be NaN`);
+    // Number.isNaN() should be supported.
+    assert.strictEqual(typeof value, 'number');
+  },
+  string: function(value) { assert.strictEqual(typeof value, 'string'); },
+  array: function(value) { assert.ok(Array.isArray(value)); },
+  object: function(value) {
+    assert.strictEqual(typeof value, 'object');
+    assert.notStrictEqual(value, null);
+  }
+};
 
 function mustCall(fn, criteria) {
   if (typeof fn === 'number') {
@@ -61,6 +89,18 @@ function expectsError(fn, exact) {
 }
 
 module.exports = {
+  isWindows: isWindows,
+  isAIX: isAIX,
+  isLinuxPPCBE: isLinuxPPCBE,
+  isSunOS: isSunOS,
+  isFreeBSD: isFreeBSD,
+  isOpenBSD: isOpenBSD,
+  isLinux: isLinux,
+  isOSX: isOSX,
+  isOSXMojave: isOSXMojave,
+
+  is: is,
+
   mustCall: mustCall,
   expectsError: expectsError
 };
