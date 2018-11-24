@@ -14,8 +14,6 @@ var isOpenBSD = process.platform === 'openbsd';
 var isLinux = process.platform === 'linux';
 var isOSX = process.platform === 'darwin';
 
-var isOSXMojave = isOSX && (os.release().indexOf('18') >= 0);
-
 var is = {
   number: function(value, key) {
     // TODO: assert(!Number.isNaN(value), `${key} should not be NaN`);
@@ -97,7 +95,6 @@ module.exports = {
   isOpenBSD: isOpenBSD,
   isLinux: isLinux,
   isOSX: isOSX,
-  isOSXMojave: isOSXMojave,
 
   is: is,
 

@@ -27,20 +27,21 @@ if (common.isWindows) {
   assert.strictEqual(EOL, '\n');
 }
 
-var family = {
-  IPv4: 1,
-  IPv6: 1
-};
+var interfaces = os.networkInterfaces();
+if (os.platform() === 'darwin') {
+    var actual = interfaces.lo0.filter(function(e){
+      return e.address === '127.0.0.1' &&
+              e.netmask === '255.0.0.0' &&
+               e.family === 'IPv4';
+    });
+    
+    var expected = [{
+      address: '127.0.0.1',
+      netmask: '255.0.0.0',
+      family: 'IPv4',
+      broadcast: "127.0.0.1",
+      mac: '00:00:00:00:00:00'
+    }];
 
-var net_info = os.networkInterfaces();
-
-for (var name in net_info) {
-  assert(net_info[name].length);
-  net_info[name].forEach(net => {
-    assert.equal(typeof net.address, 'string');
-    assert.equal(typeof net.netmask, 'string');
-    assert.equal(family[net.family], 1);
-    assert.equal(typeof net.broadcast, 'string');
-    assert.equal(typeof net.mac, 'string');
-  });
+    assert.deepStrictEqual(actual, expected);
 }

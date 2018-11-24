@@ -36,6 +36,7 @@
 'use strict';
 
 var util = require('util');
+var comparisons = require('comparisons');
 
 
 function AssertionError(options) {
@@ -94,6 +95,13 @@ function notEqual(actual, expected, message) {
 function strictEqual(actual, expected, message) {
   if (actual !== expected) {
     fail(actual, expected, message, '===');
+  }
+}
+
+
+function deepStrictEqual(actual, expected, message) {
+  if (!comparisons.isDeepStrictEqual(actual, expected)) {
+    fail(actual, expected, message, 'deepStrictEqual');
   }
 }
 
@@ -189,6 +197,7 @@ assert.equal = equal;
 // eslint-disable-next-line no-restricted-properties
 assert.notEqual = notEqual;
 assert.strictEqual = strictEqual;
+assert.deepStrictEqual = deepStrictEqual;
 assert.notStrictEqual = notStrictEqual;
 assert.throws = throws;
 assert.doesNotThrow = doesNotThrow;
