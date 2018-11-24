@@ -26,7 +26,7 @@ set(FEATURE_MEM_STATS          OFF      CACHE BOOL   "Enable memory statistics?"
 set(FEATURE_MEM_STRESS_TEST    OFF      CACHE BOOL   "Enable mem-stress test?")
 set(FEATURE_CPU_PROFILER       OFF      CACHE BOOL   "Enable Cpu profiler?")
 set(FEATURE_HEAP_PROFILER      OFF      CACHE BOOL   "Enable Heap profiler?")
-set(FEATURE_FUNCTION_NAME      OFF      CACHE BOOL   "Enable saving Javascript function name?")
+set(FEATURE_SOURCE_INFO        ON       CACHE BOOL   "Enable saving Javascript source info?")
 set(FEATURE_PARSER_DUMP        OFF      CACHE BOOL   "Enable parser byte-code dumps?")
 set(FEATURE_PROFILE            "es5.1"  CACHE STRING "Use default or other profile?")
 set(FEATURE_REGEXP_STRICT_MODE OFF      CACHE BOOL   "Enable regexp strict mode?")
@@ -70,7 +70,7 @@ message(STATUS "FEATURE_MEM_STATS           " ${FEATURE_MEM_STATS})
 message(STATUS "FEATURE_MEM_STRESS_TEST     " ${FEATURE_MEM_STRESS_TEST})
 message(STATUS "FEATURE_CPU_PROFILER        " ${FEATURE_CPU_PROFILER})
 message(STATUS "FEATURE_HEAP_PROFILER       " ${FEATURE_HEAP_PROFILER})
-message(STATUS "FEATURE_FUNCTION_NAME       " ${FEATURE_FUNCTION_NAME})
+message(STATUS "FEATURE_SOURCE_INFO         " ${FEATURE_SOURCE_INFO})
 message(STATUS "FEATURE_PARSER_DUMP         " ${FEATURE_PARSER_DUMP} ${FEATURE_PARSER_DUMP_MESSAGE})
 message(STATUS "FEATURE_PROFILE             " ${FEATURE_PROFILE})
 message(STATUS "FEATURE_REGEXP_STRICT_MODE  " ${FEATURE_REGEXP_STRICT_MODE})
@@ -198,9 +198,9 @@ if (FEATURE_HEAP_PROFILER)
   set(DEFINES_JERRY ${DEFINES_JERRY} JERRY_HEAP_PROFILER)
 endif()
 
-# Save function name
-if(FEATURE_FUNCTION_NAME)
-  set(DEFINES_JERRY ${DEFINES_JERRY} JERRY_FUNCTION_NAME)
+# Source info
+if(FEATURE_SOURCE_INFO)
+  set(DEFINES_JERRY ${DEFINES_JERRY} JERRY_SOURCE_INFO)
 endif()
 
 # Enable debugger

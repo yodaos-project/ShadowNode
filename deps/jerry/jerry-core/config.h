@@ -37,6 +37,7 @@
  */
 #ifdef CONFIG_DISABLE_ES2015
 # define CONFIG_DISABLE_ES2015_ARROW_FUNCTION
+# define CONFIG_DISABLE_ES2015_CLASS
 # define CONFIG_DISABLE_ES2015_BUILTIN
 # define CONFIG_DISABLE_ES2015_PROMISE_BUILTIN
 # define CONFIG_DISABLE_ES2015_TEMPLATE_STRINGS
@@ -119,5 +120,10 @@
  * Number of ecma values inlined into VM stack frame
  */
 #define CONFIG_VM_STACK_FRAME_INLINED_VALUES_NUMBER (16)
+
+/**
+ * Max stack trace depth users can get
+ */
+#define CONFIG_CONTEXT_STACK_MAX_DEPTH (10)
 
 #endif /* !CONFIG_H */

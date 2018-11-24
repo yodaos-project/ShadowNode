@@ -1585,6 +1585,47 @@ ecma_bytecode_deref (ecma_compiled_code_t *bytecode_p) /**< byte code pointer */
                         ((size_t) bytecode_p->size) << JMEM_ALIGNMENT_LOG);
 } /* ecma_bytecode_deref */
 
+ecma_value_t
+ecma_make_frame (const ecma_compiled_code_t *bytecode_p)
+{
+#ifndef JERRY_SOURCE_INFO
+  JERRY_UNUSED (bytecode_p);
+  return jerry_create_undefined ();
+#else /* !JERRY_SOURCE_INFO */
+  if (bytecode_p == NULL)
+  {
+    return jerry_create_undefined ();
+  }
+
+  jerry_value_t result = jerry_create_object ();
+  jerry_value_t propname;
+
+  propname = jerry_create_string ((const jerry_char_t*) "source");
+  jerry_value_t source = (bytecode_p->source != ECMA_VALUE_EMPTY) ? bytecode_p->source : jerry_create_undefined();
+  jerry_set_property (result, propname, source);
+  jerry_release_value (propname);
+
+  propname = jerry_create_string ((const jerry_char_t*) "name");
+  jerry_value_t name = (bytecode_p->name != ECMA_VALUE_EMPTY) ? bytecode_p->name : jerry_create_undefined();
+  jerry_set_property (result, propname, name);
+  jerry_release_value (propname);
+
+  propname = jerry_create_string ((const jerry_char_t*) "line");
+  jerry_value_t line = jerry_create_number (bytecode_p->line);
+  jerry_set_property (result, propname, line);
+  jerry_release_value (propname);
+  jerry_release_value (line);
+
+  propname = jerry_create_string ((const jerry_char_t*) "column");
+  jerry_value_t column = jerry_create_number (bytecode_p->column);
+  jerry_set_property (result, propname, jerry_create_number (bytecode_p->column));
+  jerry_release_value (propname);
+  jerry_release_value (column);
+
+  return result;
+#endif /* JERRY_SOURCE_INFO */
+}
+
 /**
  * @}
  * @}

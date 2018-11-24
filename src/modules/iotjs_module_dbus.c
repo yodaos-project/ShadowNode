@@ -204,15 +204,13 @@ static bool iotjs_dbus_encode_jobject(jerry_value_t val, DBusMessageIter* iter,
     case DBUS_TYPE_OBJECT_PATH:
     case DBUS_TYPE_SIGNATURE: {
       jerry_size_t size = jerry_get_string_size(val);
-      jerry_char_t buffer[size + 1];
-      jerry_string_to_utf8_char_buffer(val, buffer, size);
+      char* buffer = iotjs_buffer_allocate(size + 1);
+      jerry_char_t* jerry_buffer = (jerry_char_t*)(buffer);
+      jerry_string_to_utf8_char_buffer(val, jerry_buffer, size);
+      buffer[size] = '\0';
 
-      char* data = iotjs_buffer_allocate(size + 1);
-      memset(data, 0, size + 1);
-      strncpy(data, (char*)buffer, size);
-
-      dbus_bool_t r = dbus_message_iter_append_basic(iter, type, &data);
-      dbus_free(data);
+      dbus_bool_t r = dbus_message_iter_append_basic(iter, type, &buffer);
+      IOTJS_RELEASE(buffer);
       if (!r)
         return false;
     } break;
@@ -281,7 +279,8 @@ static jerry_value_t iotjs_dbus_decode_message(DBusMessage* message) {
       case DBUS_TYPE_STRING: {
         const char* value;
         dbus_message_iter_get_basic(&iter, &value);
-        jerry_value_t jval = jerry_create_string((jerry_char_t*)value);
+        jerry_value_t jval =
+            jerry_create_string_from_utf8((jerry_char_t*)value);
         jerry_set_property_by_index(results, index, jval);
         jerry_release_value(jval);
       } break;

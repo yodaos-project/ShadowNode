@@ -317,6 +317,8 @@
               VM_OC_RET) \
   CBC_OPCODE (CBC_RETURN_WITH_LITERAL, CBC_HAS_LITERAL_ARG, 0, \
               VM_OC_RET | VM_OC_GET_LITERAL) \
+  CBC_OPCODE (CBC_SET_LITERAL_PROPERTY, CBC_HAS_LITERAL_ARG | CBC_HAS_LITERAL_ARG2, 0, \
+              VM_OC_SET_PROPERTY | VM_OC_GET_LITERAL_LITERAL) \
   CBC_OPCODE (CBC_BREAKPOINT_ENABLED, CBC_NO_FLAG, 0, \
               VM_OC_BREAKPOINT_ENABLED) \
   CBC_OPCODE (CBC_BREAKPOINT_DISABLED, CBC_NO_FLAG, 0, \
@@ -539,6 +541,12 @@
   /* Basic opcodes. */ \
   CBC_OPCODE (CBC_EXT_DEBUGGER, CBC_NO_FLAG, 0, \
               VM_OC_NONE) \
+  CBC_OPCODE (CBC_EXT_SET_STATIC_PROPERTY, CBC_HAS_LITERAL_ARG | CBC_HAS_LITERAL_ARG2, 0, \
+              VM_OC_SET_PROPERTY | VM_OC_GET_LITERAL_LITERAL) \
+  CBC_OPCODE (CBC_EXT_SET_STATIC_SETTER, CBC_HAS_LITERAL_ARG | CBC_HAS_LITERAL_ARG2, 0, \
+              VM_OC_SET_SETTER | VM_OC_GET_LITERAL_LITERAL) \
+  CBC_OPCODE (CBC_EXT_SET_STATIC_GETTER, CBC_HAS_LITERAL_ARG | CBC_HAS_LITERAL_ARG2, 0, \
+              VM_OC_SET_GETTER | VM_OC_GET_LITERAL_LITERAL) \
   \
   /* Binary compound assignment opcodes with pushing the result. */ \
   CBC_EXT_BINARY_LVALUE_OPERATION (CBC_EXT_ASSIGN_ADD, \
@@ -655,6 +663,7 @@ typedef enum
   CBC_CODE_FLAGS_ARROW_FUNCTION = (1u << 7), /**< this function is an arrow function */
   CBC_CODE_FLAGS_STATIC_FUNCTION = (1u << 8), /**< this function is a static snapshot function */
   CBC_CODE_FLAGS_DEBUGGER_IGNORE = (1u << 9), /**< this function should be ignored by debugger */
+  CBC_CODE_FLAGS_CONSTRUCTOR = (1u << 10), /**< this function is a constructor */
 } cbc_code_flags;
 
 #define CBC_OPCODE(arg1, arg2, arg3, arg4) arg1,

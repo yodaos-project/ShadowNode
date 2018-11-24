@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var I2C = require('i2c');
 var i2c = new I2C();
@@ -24,7 +25,7 @@ var iotChar = [0x00, 0x00, 0x00, 0x00,
                0x44, 0x22, 0xCE, 0x23,
                0x00, 0x00, 0x00, 0x00];
 
-var writeLed = function(wire, data) {
+var writeLed = (wire, data) => {
   // 0x00 is a initial signal for writing
   var buffer = [0x00].concat(data);
   wire.write(buffer);

@@ -79,6 +79,11 @@ typedef enum
   PARSER_ERR_MULTIPLE_DEFAULTS_NOT_ALLOWED,           /**< multiple default cases are not allowed */
   PARSER_ERR_DEFAULT_NOT_IN_SWITCH,                   /**< default statement is not in switch block */
   PARSER_ERR_CASE_NOT_IN_SWITCH,                      /**< case statement is not in switch block */
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  PARSER_ERR_MULTIPLE_CLASS_CONSTRUCTORS,             /**< multiple class constructor */
+  PARSER_ERR_CLASS_CONSTRUCTOR_AS_ACCESSOR,           /**< class constructor cannot be an accessor */
+  PARSER_ERR_CLASS_STATIC_PROTOTYPE,                  /**< static method name 'prototype' is not allowed */
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
   PARSER_ERR_LEFT_PAREN_EXPECTED,                     /**< left paren expected */
   PARSER_ERR_LEFT_BRACE_EXPECTED,                     /**< left brace expected */
@@ -131,7 +136,8 @@ typedef struct
 } parser_error_location_t;
 
 /* Note: source must be a valid UTF-8 string */
-ecma_value_t parser_parse_script (const uint8_t *arg_list_p, size_t arg_list_size,
+ecma_value_t parser_parse_script (const uint8_t *resource_name_p, size_t resource_name_length,
+                                  const uint8_t *arg_list_p, size_t arg_list_size,
                                   const uint8_t *source_p, size_t source_size,
                                   bool is_strict, ecma_compiled_code_t **bytecode_data_p);
 
