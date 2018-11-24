@@ -101,7 +101,7 @@ function strictEqual(actual, expected, message) {
 
 function deepStrictEqual(actual, expected, message) {
   if (!comparisons.isDeepStrictEqual(actual, expected)) {
-    fail(actual, expected, message, 'deepStrictEqual');
+    fail(actual, expected, message, '===');
   }
 }
 
