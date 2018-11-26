@@ -22,18 +22,41 @@ assert.ok(platform.length > 0);
 
 var interfaces = os.networkInterfaces();
 
-var actual = interfaces.lo0.filter(function(e){
-  return e.address === '127.0.0.1' &&
-          e.netmask === '255.0.0.0' &&
-            e.family === 'IPv4';
-});
-
-var expected = [{
-  address: '127.0.0.1',
-  netmask: '255.0.0.0',
-  family: 'IPv4',
-  broadcast: "127.0.0.1",
-  mac: '00:00:00:00:00:00'
-}];
-
-assert.deepStrictEqual(actual, expected);
+switch (platform) {
+  case 'linux': {
+    var actual = interfaces.lo.filter(function(e){
+      return e.address === '127.0.0.1' &&
+              e.netmask === '255.0.0.0' &&
+                e.family === 'IPv4';
+    });
+    
+    var expected = [{
+      address: '127.0.0.1',
+      netmask: '255.0.0.0',
+      family: 'IPv4',
+      broadcast: "127.0.0.1",
+      mac: '00:00:00:00:00:00'
+    }];
+    
+    assert.deepStrictEqual(actual, expected);
+    break;
+  }
+  case 'darwin': {
+    var actual = interfaces.lo0.filter(function(e){
+      return e.address === '127.0.0.1' &&
+              e.netmask === '255.0.0.0' &&
+                e.family === 'IPv4';
+    });
+    
+    var expected = [{
+      address: '127.0.0.1',
+      netmask: '255.0.0.0',
+      family: 'IPv4',
+      broadcast: "127.0.0.1",
+      mac: '00:00:00:00:00:00'
+    }];
+    
+    assert.deepStrictEqual(actual, expected);
+    break;
+  }
+}
