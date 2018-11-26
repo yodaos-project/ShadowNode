@@ -36,7 +36,7 @@
 'use strict';
 
 var util = require('util');
-var comparisons = require('comparisons');
+var comparisons = require('internal_comparisons');
 
 
 function AssertionError(options) {

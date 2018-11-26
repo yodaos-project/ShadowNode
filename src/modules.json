@@ -56,9 +56,9 @@
     },
     "assert": {
       "js_file": "js/assert.js",
-      "require": ["util", "comparisons"]
+      "require": ["util", "internal_comparisons"]
     },
-    "comparisons": {
+    "internal_comparisons": {
       "js_file": "internal/util/comparisons.js",
       "require": ["console"]
     },
