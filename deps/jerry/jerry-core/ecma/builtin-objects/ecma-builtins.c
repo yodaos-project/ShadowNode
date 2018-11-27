@@ -805,10 +805,12 @@ ecma_builtin_try_to_instantiate_property (ecma_object_t *object_p, /**< object *
          *  So routine id are not consist to declaration in their inc.h.
          *  Magic string id of name should be set correctly.
          */
-        JERRY_ASSERT (builtin_id ==ECMA_BUILTIN_ID_DATE_PROTOTYPE || builtin_id == ECMA_BUILTIN_ID_MATH );
+#if (!defined CONFIG_DISABLE_DATE_BUILTIN) && (!defined CONFIG_DISABLE_MATH_BUILTIN)
+        JERRY_ASSERT (builtin_id == ECMA_BUILTIN_ID_DATE_PROTOTYPE || builtin_id == ECMA_BUILTIN_ID_MATH );
+#endif /* !define CONFIG_DISABLE_DATE_BUILTIN && !define CONFIG_DISABLE_MATH_BUILTIN */
         ecma_builtin_routine_set_name (builtin_id,
-                                                                    ECMA_GET_ROUTINE_ID (curr_property_p->value),
-                                                                    magic_string_id);
+                                       ECMA_GET_ROUTINE_ID (curr_property_p->value),
+                                       magic_string_id);
       }
       value = ecma_make_object_value (func_obj_p);
       break;
