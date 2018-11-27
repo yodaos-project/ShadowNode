@@ -806,8 +806,13 @@ ecma_builtin_try_to_instantiate_property (ecma_object_t *object_p, /**< object *
          *  Magic string id of name should be set correctly.
          */
 #if (!defined CONFIG_DISABLE_DATE_BUILTIN) && (!defined CONFIG_DISABLE_MATH_BUILTIN)
-        JERRY_ASSERT (builtin_id == ECMA_BUILTIN_ID_DATE_PROTOTYPE || builtin_id == ECMA_BUILTIN_ID_MATH );
-#endif /* !define CONFIG_DISABLE_DATE_BUILTIN && !define CONFIG_DISABLE_MATH_BUILTIN */
+        JERRY_ASSERT (builtin_id == ECMA_BUILTIN_ID_DATE_PROTOTYPE || builtin_id == ECMA_BUILTIN_ID_MATH);
+#elif (defined CONFIG_DISABLE_DATE_BUILTIN) && (!defined CONFIG_DISABLE_MATH_BUILTIN)
+        JERRY_ASSERT (builtin_id == ECMA_BUILTIN_ID_MATH);
+#elif (!defined CONFIG_DISABLE_DATE_BUILTIN) && (defined CONFIG_DISABLE_MATH_BUILTIN)
+        JERRY_ASSERT (builtin_id == ECMA_BUILTIN_ID_DATE_PROTOTYPE);
+#endif
+
         ecma_builtin_routine_set_name (builtin_id,
                                        ECMA_GET_ROUTINE_ID (curr_property_p->value),
                                        magic_string_id);
