@@ -11,11 +11,8 @@ Use [node-gyp](https://github.com/nodejs/node-gyp) whenever possible, since N-AP
 #### Working with JavaScript Values
 
 ##### Object Creation Functions
-- napi_create_arraybuffer
-- napi_create_external_arraybuffer
 - napi_create_external_buffer
 - napi_create_symbol
-- napi_create_typedarray
 - napi_create_dataview
 
 ##### Functions to convert from C types to N-API
@@ -26,8 +23,6 @@ Use [node-gyp](https://github.com/nodejs/node-gyp) whenever possible, since N-AP
 - napi_create_string_utf16
 
 ##### Functions to convert from N-API to C types
-- napi_get_arraybuffer_info
-- napi_get_typedarray_info
 - napi_get_dataview_info
 - napi_get_value_bigint_int64
 - napi_get_value_bigint_uint64

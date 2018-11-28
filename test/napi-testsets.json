@@ -73,6 +73,7 @@
     { "name": "napi_string.test.js", "skip": false },
     { "name": "napi_thread_safe.test.js", "skip": false, "expected-failure": true },
     { "name": "napi_tsfn.test.js", "skip": false },
+    { "name": "napi_typedarray.test.js", "skip": false },
     { "name": "napi.test.js", "skip": false }
   ]
 }
