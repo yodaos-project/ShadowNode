@@ -723,7 +723,7 @@ ecma_gc_free_object (ecma_object_t *object_p) /**< object to free */
 
             if (array_p->free_cb != NULL)
             {
-              (array_p->free_cb) (array_p->buffer_p);
+              (array_p->free_cb) (array_p->free_hint);
             }
           }
           else
