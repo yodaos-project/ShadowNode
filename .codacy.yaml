@@ -2,3 +2,4 @@
 exclude_paths:
   - 'samples/**'
   - 'test/addons-napi/**'
+  - 'deps/mbedtls/**'
