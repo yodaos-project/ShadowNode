@@ -1433,6 +1433,7 @@ typedef struct
 {
   ecma_extended_object_t extended_object; /**< extended object part */
   void *buffer_p; /**< external buffer pointer */
+  void *free_hint; /**< hint params of buffer free callback */
   ecma_object_native_free_callback_t free_cb; /**<  the free callback for the above buffer pointer */
 } ecma_arraybuffer_external_info;
 

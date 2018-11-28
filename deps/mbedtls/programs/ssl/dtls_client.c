@@ -37,7 +37,7 @@
     !defined(MBEDTLS_NET_C)  || !defined(MBEDTLS_TIMING_C) ||             \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) ||        \
     !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_RSA_C) ||      \
-    !defined(MBEDTLS_CERTS_C)
+    !defined(MBEDTLS_CERTS_C) || !defined(MBEDTLS_PEM_PARSE_C)
 int main( void )
 {
     mbedtls_printf( "MBEDTLS_SSL_CLI_C and/or MBEDTLS_SSL_PROTO_DTLS and/or "
@@ -203,7 +203,7 @@ int main( int argc, char *argv[] )
     /*
      * 4. Handshake
      */
-    mbedtls_printf( "  . Performing the SSL/TLS handshake..." );
+    mbedtls_printf( "  . Performing the DTLS handshake..." );
     fflush( stdout );
 
     do ret = mbedtls_ssl_handshake( &ssl );
