@@ -479,6 +479,7 @@ bool jerry_value_is_arraybuffer (const jerry_value_t value);
 jerry_value_t jerry_create_arraybuffer (const jerry_length_t size);
 jerry_value_t jerry_create_arraybuffer_external (const jerry_length_t size,
                                                  uint8_t *buffer_p,
+                                                 void *free_hint,
                                                  jerry_object_native_free_callback_t free_cb);
 jerry_length_t jerry_arraybuffer_write (const jerry_value_t value,
                                         jerry_length_t offset,
