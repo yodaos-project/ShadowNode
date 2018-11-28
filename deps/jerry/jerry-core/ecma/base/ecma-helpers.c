@@ -748,8 +748,7 @@ ecma_free_property (ecma_object_t *object_p, /**< object the property belongs to
     {
       if (ECMA_PROPERTY_GET_NAME_TYPE (*property_p) == ECMA_DIRECT_STRING_MAGIC)
       {
-        if (name_cp == LIT_INTERNAL_MAGIC_STRING_NATIVE_HANDLE
-            || name_cp == LIT_INTERNAL_MAGIC_STRING_NATIVE_POINTER)
+        if (name_cp == LIT_INTERNAL_MAGIC_STRING_NATIVE_POINTER)
         {
           ecma_free_native_pointer (property_p);
           break;
