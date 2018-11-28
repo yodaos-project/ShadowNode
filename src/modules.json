@@ -56,11 +56,10 @@
     },
     "assert": {
       "js_file": "js/assert.js",
-      "require": ["util", "internal_comparisons"]
+      "require": ["util", "internal_util_comparisons"]
     },
-    "internal_comparisons": {
-      "js_file": "internal/util/comparisons.js",
-      "require": ["console"]
+    "internal_util_comparisons": {
+      "js_file": "internal/util/comparisons.js"
     },
     "ble": {
       "js_file": "js/ble.js",
