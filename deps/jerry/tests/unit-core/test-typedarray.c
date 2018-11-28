@@ -239,7 +239,7 @@ test_typedarray_complex_creation (test_entry_t test_entries[], /**< test cases *
 
       if (use_external_buffer)
       {
-        arraybuffer = jerry_create_arraybuffer_external (arraybuffer_size, buffer_ext, NULL);
+        arraybuffer = jerry_create_arraybuffer_external (arraybuffer_size, buffer_ext, NULL, NULL);
       }
       else
       {
