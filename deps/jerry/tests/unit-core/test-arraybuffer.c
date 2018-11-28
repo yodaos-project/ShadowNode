@@ -274,7 +274,7 @@ main (void)
     uint8_t buffer_p[buffer_size];
     memset (buffer_p, base_value, buffer_size);
 
-    jerry_value_t arrayb = jerry_create_arraybuffer_external (buffer_size, buffer_p, test_free_cb);
+    jerry_value_t arrayb = jerry_create_arraybuffer_external (buffer_size, buffer_p, buffer_p, test_free_cb);
     uint8_t new_value = 123;
     jerry_length_t copied = jerry_arraybuffer_write (arrayb, 0, &new_value, 1);
     TEST_ASSERT (copied == 1);
@@ -305,7 +305,7 @@ main (void)
     const uint32_t buffer_size = 20;
     uint8_t buffer_p[buffer_size];
     {
-      jerry_value_t input_buffer = jerry_create_arraybuffer_external (buffer_size, buffer_p, NULL);
+      jerry_value_t input_buffer = jerry_create_arraybuffer_external (buffer_size, buffer_p, NULL, NULL);
       register_js_value ("input_buffer", input_buffer);
       jerry_release_value (input_buffer);
     }
@@ -341,8 +341,6 @@ main (void)
       sum += data[i];
     }
 
-    jerry_release_value (buffer);
-
     const char *eval_test_arraybuffer_p = (
       "var sum = 0;"
       "for (var i = 0; i < array.length; i++)"
@@ -364,7 +362,7 @@ main (void)
 
   /* Test ArrayBuffer external with invalid arguments */
   {
-    jerry_value_t input_buffer = jerry_create_arraybuffer_external (0, NULL, NULL);
+    jerry_value_t input_buffer = jerry_create_arraybuffer_external (0, NULL, NULL, NULL);
     TEST_ASSERT (jerry_value_has_error_flag (input_buffer));
     TEST_ASSERT (jerry_get_error_type (input_buffer) == JERRY_ERROR_RANGE);
     jerry_release_value (input_buffer);

@@ -327,6 +327,24 @@ typedef enum
 } ecma_property_types_t;
 
 /**
+ * Property name listing options.
+ */
+typedef enum
+{
+  ECMA_LIST_NO_OPTS = (0), /**< no options are provided */
+  ECMA_LIST_ARRAY_INDICES = (1 << 0), /**< exclude properties with names
+                                       *   that are not indices */
+  ECMA_LIST_ENUMERABLE = (1 << 1), /**< exclude non-enumerable properties */
+  ECMA_LIST_PROTOTYPE = (1 << 2), /**< list properties from prototype chain */
+} ecma_list_properties_options_t;
+
+/**
+ * List enumerable properties and include the prototype chain.
+ */
+#define ECMA_LIST_ENUMERABLE_PROTOTYPE (ECMA_LIST_ENUMERABLE | ECMA_LIST_PROTOTYPE)
+
+
+/**
  * Property type mask.
  */
 #define ECMA_PROPERTY_TYPE_MASK 0x3
@@ -1415,6 +1433,7 @@ typedef struct
 {
   ecma_extended_object_t extended_object; /**< extended object part */
   void *buffer_p; /**< external buffer pointer */
+  void *free_hint; /**< hint params of buffer free callback */
   ecma_object_native_free_callback_t free_cb; /**<  the free callback for the above buffer pointer */
 } ecma_arraybuffer_external_info;
 

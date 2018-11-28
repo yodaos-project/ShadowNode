@@ -361,7 +361,7 @@ jerry_run_simple (const jerry_char_t *script_source_p, /**< script source */
 
   jerry_init (flags);
 
-  jerry_value_t parse_ret_val = jerry_parse (NULL, 0, script_source_p, script_source_size, false);
+  jerry_value_t parse_ret_val = jerry_parse (NULL, 0, script_source_p, script_source_size, JERRY_PARSE_NO_OPTS);
 
   if (!ecma_is_value_error_reference (parse_ret_val))
   {
@@ -393,8 +393,22 @@ jerry_parse (const jerry_char_t *resource_name_p, /**< resource name (usually a 
              size_t resource_name_length, /**< length of resource name */
              const jerry_char_t *source_p, /**< script source */
              size_t source_size, /**< script source size */
-             bool is_strict) /**< strict mode */
+             uint32_t parse_opts) /**< jerry_parse_opts_t option bits */
 {
+#if defined JERRY_DEBUGGER && !defined JERRY_DISABLE_JS_PARSER
+  if ((JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
+      && resource_name_length > 0)
+  {
+    jerry_debugger_send_string (JERRY_DEBUGGER_SOURCE_CODE_NAME,
+                                JERRY_DEBUGGER_NO_SUBTYPE,
+                                resource_name_p,
+                                resource_name_length);
+  }
+#else /* !(JERRY_DEBUGGER && !JERRY_DISABLE_JS_PARSER) */
+  JERRY_UNUSED (resource_name_p);
+  JERRY_UNUSED (resource_name_length);
+#endif /* JERRY_DEBUGGER && !JERRY_DISABLE_JS_PARSER */
+
 #ifndef JERRY_DISABLE_JS_PARSER
   jerry_assert_api_available ();
 
@@ -407,7 +421,7 @@ jerry_parse (const jerry_char_t *resource_name_p, /**< resource name (usually a 
                                       0,
                                       source_p,
                                       source_size,
-                                      is_strict,
+                                      (parse_opts & JERRY_PARSE_STRICT_MODE) != 0,
                                       &bytecode_data_p);
 
 #ifndef JERRY_SOURCE_INFO
@@ -445,40 +459,10 @@ jerry_parse (const jerry_char_t *resource_name_p, /**< resource name (usually a 
 #else /* JERRY_DISABLE_JS_PARSER */
   JERRY_UNUSED (source_p);
   JERRY_UNUSED (source_size);
-  JERRY_UNUSED (is_strict);
 
   return jerry_throw (ecma_raise_syntax_error (ECMA_ERR_MSG ("The parser has been disabled.")));
 #endif /* !JERRY_DISABLE_JS_PARSER */
 } /* jerry_parse */
-
-/**
- * Parse script and construct an ECMAScript function. The lexical
- * environment is set to the global lexical environment. The name
- * (usually a file name) is also passed to this function which is
- * used by the debugger to find the source code.
- *
- * @return function object value - if script was parsed successfully,
- *         thrown error - otherwise
- */
-jerry_value_t
-jerry_parse_named_resource (const jerry_char_t *resource_name_p, /**< resource name (usually a file name) */
-                            size_t resource_name_length, /**< length of resource name */
-                            const jerry_char_t *source_p, /**< script source */
-                            size_t source_size, /**< script source size */
-                            bool is_strict) /**< strict mode */
-{
-#if defined JERRY_DEBUGGER && !defined JERRY_DISABLE_JS_PARSER
-  if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
-  {
-    jerry_debugger_send_string (JERRY_DEBUGGER_SOURCE_CODE_NAME,
-                                JERRY_DEBUGGER_NO_SUBTYPE,
-                                resource_name_p,
-                                resource_name_length);
-  }
-#endif /* JERRY_DEBUGGER && !JERRY_DISABLE_JS_PARSER */
-
-  return jerry_parse (resource_name_p, resource_name_length, source_p, source_size, is_strict);
-} /* jerry_parse_named_resource */
 
 /**
  * Parse function and construct an EcmaScript function. The lexical
@@ -494,7 +478,7 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
                       size_t arg_list_size, /**< script source size */
                       const jerry_char_t *source_p, /**< script source */
                       size_t source_size, /**< script source size */
-                      bool is_strict) /**< strict mode */
+                      uint32_t parse_opts) /**< jerry_parse_opts_t option bits */
 {
 #if defined JERRY_DEBUGGER && !defined JERRY_DISABLE_JS_PARSER
   if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
@@ -524,7 +508,7 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
                                       arg_list_size,
                                       source_p,
                                       source_size,
-                                      is_strict,
+                                      (parse_opts & JERRY_PARSE_STRICT_MODE) != 0,
                                       &bytecode_data_p);
 
 #ifndef JERRY_SOURCE_INFO
@@ -564,7 +548,7 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
   JERRY_UNUSED (arg_list_size);
   JERRY_UNUSED (source_p);
   JERRY_UNUSED (source_size);
-  JERRY_UNUSED (is_strict);
+  JERRY_UNUSED (parse_opts);
 
   return jerry_throw (ecma_raise_syntax_error (ECMA_ERR_MSG ("The parser has been disabled.")));
 #endif /* !JERRY_DISABLE_JS_PARSER */
@@ -2692,7 +2676,7 @@ jerry_foreach_object_property (const jerry_value_t obj_val, /**< object value */
   }
 
   ecma_object_t *object_p = ecma_get_object_from_value (obj_value);
-  ecma_collection_header_t *names_p = ecma_op_object_get_property_names (object_p, false, true, true);
+  ecma_collection_header_t *names_p = ecma_op_object_get_property_names (object_p, ECMA_LIST_ENUMERABLE_PROTOTYPE);
   ecma_value_t *ecma_value_p = ecma_collection_iterator_init (names_p);
 
   ecma_value_t property_value = ECMA_VALUE_EMPTY;
@@ -2955,6 +2939,7 @@ jerry_create_arraybuffer (const jerry_length_t size) /**< size of the ArrayBuffe
 jerry_value_t
 jerry_create_arraybuffer_external (const jerry_length_t size, /**< size of the buffer to used */
                                    uint8_t *buffer_p, /**< buffer to use as the ArrayBuffer's backing */
+                                   void *free_hint, /**< hint params of buffer free callback */
                                    jerry_object_native_free_callback_t free_cb) /**< buffer free callback */
 {
   jerry_assert_api_available ();
@@ -2967,6 +2952,7 @@ jerry_create_arraybuffer_external (const jerry_length_t size, /**< size of the b
 
   ecma_object_t *arraybuffer = ecma_arraybuffer_new_object_external (size,
                                                                      buffer_p,
+                                                                     free_hint,
                                                                      (ecma_object_native_free_callback_t) free_cb);
   return jerry_return (ecma_make_object_value (arraybuffer));
 #else /* CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
@@ -3131,12 +3117,8 @@ jerry_get_arraybuffer_pointer (const jerry_value_t value) /**< Array Buffer to u
   }
 
   ecma_object_t *buffer_p = ecma_get_object_from_value (buffer);
-  if (ECMA_ARRAYBUFFER_HAS_EXTERNAL_MEMORY (buffer_p))
-  {
-    jerry_acquire_value (value);
-    lit_utf8_byte_t *mem_buffer_p = ecma_arraybuffer_get_buffer (buffer_p);
-    return (uint8_t *const) mem_buffer_p;
-  }
+  lit_utf8_byte_t *mem_buffer_p = ecma_arraybuffer_get_buffer (buffer_p);
+  return (uint8_t *const) mem_buffer_p;
 #else /* CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
   JERRY_UNUSED (value);
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
