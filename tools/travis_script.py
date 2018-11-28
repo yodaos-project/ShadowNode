@@ -10,7 +10,7 @@ BUILDTYPES = ['debug', 'release']
 
 def build_jerry():
     ex.check_run_cmd('./deps/jerry/tools/run-tests.py',
-                     ['--unittests --jerry-test-suite'])
+                     ['--unittests', '--jerry-test-suite'])
 
 
 def build_iotjs(buildtype, args=[], env=[]):
