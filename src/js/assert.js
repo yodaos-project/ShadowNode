@@ -97,6 +97,22 @@ function strictEqual(actual, expected, message) {
   }
 }
 
+function deepStrictEqual(actual, expected, message) {
+  if (typeof expected !== 'object') {
+    return strictEqual(actual, expected, message);
+  }
+
+  strictEqual(
+    Object.keys(actual).length,
+    Object.keys(expected).length,
+    message
+  );
+
+  for (var key in expected) {
+    deepStrictEqual(actual[key], expected[key], message);
+  }
+}
+
 
 function notStrictEqual(actual, expected, message) {
   if (actual === expected) {
@@ -189,6 +205,7 @@ assert.equal = equal;
 // eslint-disable-next-line no-restricted-properties
 assert.notEqual = notEqual;
 assert.strictEqual = strictEqual;
+assert.deepStrictEqual = deepStrictEqual;
 assert.notStrictEqual = notStrictEqual;
 assert.throws = throws;
 assert.doesNotThrow = doesNotThrow;

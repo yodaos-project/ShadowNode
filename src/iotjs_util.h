@@ -18,6 +18,10 @@
 
 #include "iotjs_string.h"
 
+#ifndef IOTJS_BACKTRACE_LEN
+#define IOTJS_BACKTRACE_LEN 25
+#endif
+
 char* iotjs__file_read(const char* path, size_t* outlen);
 // Return value should be released with iotjs_string_destroy()
 iotjs_string_t iotjs_file_read(const char* path);

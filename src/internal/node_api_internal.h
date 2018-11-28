@@ -19,6 +19,7 @@
 #include "iotjs_def.h"
 #include "jerryscript-ext/handle-scope.h"
 #include "jerryscript.h"
+#define NAPI_EXPERIMENTAL
 #include "internal/node_api_internal_types.h"
 #include "node_api.h"
 

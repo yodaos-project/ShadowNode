@@ -38,12 +38,8 @@ Use [node-gyp](https://github.com/nodejs/node-gyp) whenever possible, since N-AP
 #### Working with JavaScript Values - Abstract Operations
 - napi_is_dataview
 
-#### Working with JavaScript Functions
-- napi_get_new_target
-
 #### Custom Asynchronous Operations
-- napi_async_init
-- napi_async_destroy
+Though N-API functions for creating/destroying async contexts are available, they do not work as expected as `async_hooks` has not been implemented.
 
 #### Memory Management
 - napi_adjust_external_memory
@@ -57,13 +53,5 @@ Use [node-gyp](https://github.com/nodejs/node-gyp) whenever possible, since N-AP
 #### Script execution
 - napi_run_script
 
-#### Asynchronous Thread-safe Function Calls
-> Experimental
-
-- napi_create_threadsafe_function
-- napi_get_threadsafe_function_context
-- napi_call_threadsafe_function
-- napi_acquire_threadsafe_function
-- napi_release_threadsafe_function
-- napi_ref_threadsafe_function
-- napi_unref_threadsafe_function
+#### Experimental functions
+- napi_add_finalizer

@@ -89,7 +89,6 @@ napi_status napi_create_object(napi_env env, napi_value* result) {
     jerry_value_t jval_code = AS_JERRY_VALUE(code);                           \
     jerry_value_t jval_msg = AS_JERRY_VALUE(msg);                             \
                                                                               \
-    NAPI_TRY_TYPE(string, jval_code);                                         \
     NAPI_TRY_TYPE(string, jval_msg);                                          \
                                                                               \
     jerry_size_t msg_size = jerry_get_utf8_string_size(jval_msg);             \
@@ -107,8 +106,12 @@ napi_status napi_create_object(napi_env env, napi_value* result) {
      * error flag.                                                            \
      */                                                                       \
     jerryx_create_handle(jval_error);                                         \
-                                                                              \
-    iotjs_jval_set_property_jval(jval_error, "code", jval_code);              \
+    /** code has to be an JS string type, thus it can not be an number 0 */   \
+    if (code != NULL) {                                                       \
+      NAPI_TRY_TYPE(string, jval_code);                                       \
+      iotjs_jval_set_property_jval(jval_error, IOTJS_MAGIC_STRING_CODE,       \
+                                   jval_code);                                \
+    }                                                                         \
     NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_error));                           \
                                                                               \
     NAPI_RETURN(napi_ok);                                                     \

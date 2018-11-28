@@ -6,11 +6,11 @@ var bench = common.createBenchmark(main, {
 });
 
 function test2() {
-  throw new Error('yo')
+  throw new Error('yo');
 }
 
 function test() {
-  test2()
+  test2();
 }
 
 function main(opts) {
@@ -18,9 +18,10 @@ function main(opts) {
   bench.start();
   for (var i = 0; i < n; i += 1) {
     try {
-      test()
+      test();
     } catch (err) {
-      var stack = err.stack
+      // eslint-disable-next-line no-unused-vars
+      var stack = err.stack;
     }
   }
   bench.end(n);

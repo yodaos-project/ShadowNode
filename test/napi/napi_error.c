@@ -39,6 +39,15 @@ static napi_value GetError(napi_env env, napi_callback_info info) {
   return error;
 }
 
+static napi_value GetNoCodeError(napi_env env, napi_callback_info info) {
+  napi_value error, message;
+  NAPI_CALL(env,
+            napi_create_string_utf8(env, "foobar", NAPI_AUTO_LENGTH, &message));
+  NAPI_CALL(env, napi_create_error(env, NULL, message, &error));
+
+  return error;
+}
+
 static napi_value Init(napi_env env, napi_value exports) {
   napi_value message;
   NAPI_CALL(env,
@@ -50,6 +59,7 @@ static napi_value Init(napi_env env, napi_value exports) {
   SET_NAMED_METHOD(env, error, "ThrowCreatedError", ThrowCreatedError);
   SET_NAMED_METHOD(env, error, "RethrowError", RethrowError);
   SET_NAMED_METHOD(env, error, "GetError", GetError);
+  SET_NAMED_METHOD(env, error, "GetNoCodeError", GetNoCodeError);
 
   NAPI_CALL(env, napi_throw(env, error));
 

@@ -67,10 +67,12 @@
     { "name": "napi_make_callback_error.test.js", "skip": false },
     { "name": "napi_make_callback_recurse.test.js", "skip": ["all"], "reason": "micro tasks queue is not not implemented" },
     { "name": "napi_make_callback.test.js", "skip": false },
+    { "name": "napi_new_target.test.js", "skip": false },
     { "name": "napi_object_wrap.test.js", "skip": false },
     { "name": "napi_reference.test.js", "skip": false },
     { "name": "napi_string.test.js", "skip": false },
     { "name": "napi_thread_safe.test.js", "skip": false, "expected-failure": true },
+    { "name": "napi_tsfn.test.js", "skip": false },
     { "name": "napi.test.js", "skip": false }
   ]
 }

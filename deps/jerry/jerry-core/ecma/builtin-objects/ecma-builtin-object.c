@@ -313,7 +313,7 @@ ecma_builtin_object_object_seal (ecma_value_t this_arg, /**< 'this' argument */
     /* 2. */
     ecma_object_t *obj_p = ecma_get_object_from_value (arg);
 
-    ecma_collection_header_t *props_p = ecma_op_object_get_property_names (obj_p, false, false, false);
+    ecma_collection_header_t *props_p = ecma_op_object_get_property_names (obj_p, ECMA_LIST_NO_OPTS);
 
     ecma_value_t *ecma_value_p = ecma_collection_iterator_init (props_p);
 
@@ -386,7 +386,7 @@ ecma_builtin_object_object_freeze (ecma_value_t this_arg, /**< 'this' argument *
     /* 2. */
     ecma_object_t *obj_p = ecma_get_object_from_value (arg);
 
-    ecma_collection_header_t *props_p = ecma_op_object_get_property_names (obj_p, false, false, false);
+    ecma_collection_header_t *props_p = ecma_op_object_get_property_names (obj_p, ECMA_LIST_NO_OPTS);
 
     ecma_value_t *ecma_value_p = ecma_collection_iterator_init (props_p);
 
@@ -508,7 +508,7 @@ ecma_builtin_object_object_is_sealed (ecma_value_t this_arg, /**< 'this' argumen
       is_sealed = true;
 
       /* 2. */
-      ecma_collection_header_t *props_p = ecma_op_object_get_property_names (obj_p, false, false, false);
+      ecma_collection_header_t *props_p = ecma_op_object_get_property_names (obj_p, ECMA_LIST_NO_OPTS);
 
       ecma_value_t *ecma_value_p = ecma_collection_iterator_init (props_p);
 
@@ -578,7 +578,7 @@ ecma_builtin_object_object_is_frozen (ecma_value_t this_arg, /**< 'this' argumen
       is_frozen = true;
 
       /* 2. */
-      ecma_collection_header_t *props_p = ecma_op_object_get_property_names (obj_p, false, false, false);
+      ecma_collection_header_t *props_p = ecma_op_object_get_property_names (obj_p, ECMA_LIST_NO_OPTS);
 
       ecma_value_t *ecma_value_p = ecma_collection_iterator_init (props_p);
 
@@ -825,7 +825,7 @@ ecma_builtin_object_object_define_properties (ecma_value_t this_arg, /**< 'this'
 
     ecma_object_t *props_p = ecma_get_object_from_value (props);
     /* 3. */
-    ecma_collection_header_t *prop_names_p = ecma_op_object_get_property_names (props_p, false, true, false);
+    ecma_collection_header_t *prop_names_p = ecma_op_object_get_property_names (props_p, ECMA_LIST_ENUMERABLE);
     uint32_t property_number = prop_names_p->item_count;
 
     ecma_value_t *ecma_value_p = ecma_collection_iterator_init (prop_names_p);
