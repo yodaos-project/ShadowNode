@@ -47,8 +47,19 @@ function isBuffer(arg) {
   return arg instanceof Buffer;
 }
 
+
 function isRegExp(arg) {
   return arg instanceof RegExp;
+}
+
+
+function isDate(arg) {
+  return arg instanceof Date;
+}
+
+
+function isError(arg) {
+  return arg instanceof Error;
 }
 
 
@@ -290,6 +301,8 @@ exports.isFinite = isFinite;
 exports.isFunction = isFunction;
 exports.isBuffer = isBuffer;
 exports.isRegExp = isRegExp;
+exports.isDate = isDate;
+exports.isError = isError;
 exports.isArray = Array.isArray;
 exports.exceptionWithHostPort = exceptionWithHostPort;
 exports.errnoException = errnoException;
