@@ -240,13 +240,13 @@ vm_run_global (const ecma_compiled_code_t *bytecode_p) /**< pointer to bytecode 
  */
 ecma_value_t
 vm_run_eval (ecma_compiled_code_t *bytecode_data_p, /**< byte-code data */
-             bool is_direct) /**< is eval called in direct mode? */
+             uint32_t parse_opts) /**< ecma_parse_opts_t option bits */
 {
   ecma_value_t this_binding;
   ecma_object_t *lex_env_p;
 
   /* ECMA-262 v5, 10.4.2 */
-  if (is_direct)
+  if (parse_opts & ECMA_PARSE_DIRECT_EVAL)
   {
     this_binding = ecma_copy_value (JERRY_CONTEXT (vm_top_context_p)->this_binding);
     lex_env_p = JERRY_CONTEXT (vm_top_context_p)->lex_env_p;
@@ -271,7 +271,7 @@ vm_run_eval (ecma_compiled_code_t *bytecode_data_p, /**< byte-code data */
                                           bytecode_data_p,
                                           this_binding,
                                           lex_env_p,
-                                          true,
+                                          parse_opts,
                                           NULL,
                                           0);
 
@@ -2999,7 +2999,7 @@ vm_run (const ecma_extended_object_t *func_obj_p, /**< function object */
         const ecma_compiled_code_t *bytecode_header_p, /**< byte-code data header */
         ecma_value_t this_binding_value, /**< value of 'ThisBinding' */
         ecma_object_t *lex_env_p, /**< lexical environment to use */
-        bool is_eval_code, /**< is the code is eval code (ECMA-262 v5, 10.1) */
+        uint32_t parse_opts, /**< ecma_parse_opts_t option bits */
         const ecma_value_t *arg_list_p, /**< arguments list */
         ecma_length_t arg_list_len) /**< length of arguments list */
 {
@@ -3035,7 +3035,7 @@ vm_run (const ecma_extended_object_t *func_obj_p, /**< function object */
   frame_ctx.prev_context_p = JERRY_CONTEXT (vm_top_context_p);
   frame_ctx.this_binding = this_binding_value;
   frame_ctx.context_depth = 0;
-  frame_ctx.is_eval_code = is_eval_code;
+  frame_ctx.is_eval_code = parse_opts & ECMA_PARSE_DIRECT_EVAL;
   frame_ctx.call_operation = VM_NO_EXEC_OP;
 
   /* Use JERRY_MAX() to avoid array declaration with size 0. */
