@@ -327,6 +327,24 @@ typedef enum
 } ecma_property_types_t;
 
 /**
+ * Property name listing options.
+ */
+typedef enum
+{
+  ECMA_LIST_NO_OPTS = (0), /**< no options are provided */
+  ECMA_LIST_ARRAY_INDICES = (1 << 0), /**< exclude properties with names
+                                       *   that are not indices */
+  ECMA_LIST_ENUMERABLE = (1 << 1), /**< exclude non-enumerable properties */
+  ECMA_LIST_PROTOTYPE = (1 << 2), /**< list properties from prototype chain */
+} ecma_list_properties_options_t;
+
+/**
+ * List enumerable properties and include the prototype chain.
+ */
+#define ECMA_LIST_ENUMERABLE_PROTOTYPE (ECMA_LIST_ENUMERABLE | ECMA_LIST_PROTOTYPE)
+
+
+/**
  * Property type mask.
  */
 #define ECMA_PROPERTY_TYPE_MASK 0x3
@@ -814,9 +832,12 @@ typedef struct
                                       *    the byte code is function or regular expression.
                                       *    If function, the other flags must be CBC_CODE_FLAGS...
                                       *    If regexp, the other flags must be RE_FLAG... */
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
+  ecma_value_t source;                /**< ecma value of function name */
   ecma_value_t name;                /**< ecma value of function name */
-#endif /* JERRY_FUNCTION_NAME */
+  uint16_t line;                    /**< line number of function start location */
+  uint16_t column;                  /**< column number of function start location */
+#endif /* JERRY_SOURCE_INFO */
 } ecma_compiled_code_t;
 
 #ifdef JERRY_ENABLE_SNAPSHOT_EXEC

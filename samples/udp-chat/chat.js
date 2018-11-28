@@ -29,52 +29,53 @@
  * This will handle everything and the "chat" activity will be printed on
  * the console
  */
+'use strict';
 
-var dgram = require('dgram'),
-  log_enabled = true,
-  socket = null,
-  mode = 'client', // client / server
-  messages = [ // some sentences to send over udp
-    'Hello! How are you?',
-    'The wether was great last weekend, what did you do?',
-    'Last weekend I was trekking in the mountains, it was great.',
-    'How\'s the family?',
-    'My family is great.',
-    'I have watched a great film yesterday.',
-    'I have to go to the dentist.',
-    'What\'s on your mind?',
-    'It\'s getting late.',
-    'You can do anything you want.',
-    'I love camping in the woods',
-    'Do you like rock music?',
-    'I like pop music.',
-    'I would really like to spend some time with you.',
-    'My dad owns a radio store.',
-    'I had great success with building my business'
-  ],
-  names = [ // few available nicknames
-    'phil',
-    'tom',
-    'kate',
-    'john',
-    'george'
-  ],
-  nickname = '',
-  remote = {},
-  clients = [],
-  MSG = {
-    INQUIRE_SERVER: 'is_anyone_here',
-    INQUIRE_SERVER_ADDR: 'i_am_here_dave',
-    JOIN: 'join',
-    CHAT: 'chat'
-  },
-  joined = false,
-  PORT = 9292,
-  bcastTimer = null,
-  converseTimer = null,
-  CONVERSE_INTERVAL = (1 + (Math.random() * 3)) * 1000, // between 1 and 3
-  BCAST_TTL = 1000, // 1s wait for response
-  BCAST_ADDR = '255.255.255.255';
+var dgram = require('dgram');
+var log_enabled = true;
+var socket = null;
+var mode = 'client'; // client / server
+var messages = [ // some sentences to send over udp
+  'Hello! How are you?',
+  'The wether was great last weekend, what did you do?',
+  'Last weekend I was trekking in the mountains, it was great.',
+  'How\'s the family?',
+  'My family is great.',
+  'I have watched a great film yesterday.',
+  'I have to go to the dentist.',
+  'What\'s on your mind?',
+  'It\'s getting late.',
+  'You can do anything you want.',
+  'I love camping in the woods',
+  'Do you like rock music?',
+  'I like pop music.',
+  'I would really like to spend some time with you.',
+  'My dad owns a radio store.',
+  'I had great success with building my business'
+];
+var names = [ // few available nicknames
+  'phil',
+  'tom',
+  'kate',
+  'john',
+  'george'
+];
+var nickname = '';
+var remote = {};
+var clients = [];
+var MSG = {
+  INQUIRE_SERVER: 'is_anyone_here',
+  INQUIRE_SERVER_ADDR: 'i_am_here_dave',
+  JOIN: 'join',
+  CHAT: 'chat'
+};
+var joined = false;
+var PORT = 9292;
+var bcastTimer = null;
+var converseTimer = null;
+var CONVERSE_INTERVAL = (1 + (Math.random() * 3)) * 1000; // between 1 and 3
+var BCAST_TTL = 1000; // 1s wait for response
+var BCAST_ADDR = '255.255.255.255';
 
 // log only if log_enabled flag is set to true
 function log(/* ...args */) {
@@ -122,8 +123,8 @@ function cleanup() {
 
 // sends a random message to udp server/clients
 function converse() {
-  var message = randomMessage(),
-    msg = new Buffer(wrapToString(MSG.CHAT, nickname, message));
+  var message = randomMessage();
+  var msg = new Buffer(wrapToString(MSG.CHAT, nickname, message));
 
   if (mode === 'server') {
     console.log(nickname + ': ' + message); // log my messages
@@ -174,8 +175,8 @@ function join() {
 
 // sends supplied message to connected clients
 function forwardMessageToClients(message) {
-  var i = 0,
-    l = clients.length;
+  var i = 0;
+  var l = clients.length;
 
   for (; i < l; ++i) {
     socket.send(

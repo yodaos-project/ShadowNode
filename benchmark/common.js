@@ -35,7 +35,7 @@ Benchmark.prototype._parseArgs = function(argv, configs) {
   var cliOptions = {};
   var extraOptions = {};
   var validArgRE = /^(.+?)=([\s\S]*)$/;
-  
+
   // Parse configuration arguments
   argv.forEach((arg) => {
     var match = arg.match(validArgRE);
@@ -216,4 +216,3 @@ Benchmark.prototype.report = function(rate, elapsed) {
     type: 'report'
   });
 };
-

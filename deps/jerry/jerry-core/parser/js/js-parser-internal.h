@@ -67,6 +67,10 @@ typedef enum
   PARSER_IS_ARROW_FUNCTION = (1u << 18),      /**< an arrow function is parsed */
   PARSER_ARROW_PARSE_ARGS = (1u << 19),       /**< parse the argument list of an arrow function */
 #endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  PARSER_IS_CLASS = (1u << 20),               /**< statements parsed inside class body */
+  PARSER_CLASS_CONSTRUCTOR = (1u << 21),      /**< a class constructor is parsed */
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 } parser_general_flags_t;
 
 /**
@@ -272,6 +276,7 @@ typedef struct
   /* Lexer members. */
   lexer_token_t token;                        /**< current token */
   lexer_lit_object_t lit_object;              /**< current literal object */
+  ecma_value_t resource_name;                 /**< resource name (usually a file name) */
   const uint8_t *source_p;                    /**< next source byte */
   const uint8_t *source_end_p;                /**< last source byte */
   parser_line_counter_t line;                 /**< current line */
@@ -414,6 +419,10 @@ void parser_set_continues_to_current_position (parser_context_t *context_p, pars
 
 void lexer_next_token (parser_context_t *context_p);
 bool lexer_check_colon (parser_context_t *context_p);
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+bool lexer_check_left_paren (parser_context_t *context_p);
+void lexer_skip_empty_statements (parser_context_t *context_p);
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 #ifndef CONFIG_DISABLE_ES2015_ARROW_FUNCTION
 lexer_token_type_t lexer_check_arrow (parser_context_t *context_p);
 #endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
@@ -427,7 +436,9 @@ void lexer_construct_literal_object (parser_context_t *context_p, lexer_lit_loca
 bool lexer_construct_number_object (parser_context_t *context_p, bool push_number_allowed, bool is_negative_number);
 uint16_t lexer_construct_function_object (parser_context_t *context_p, uint32_t extra_status_flags);
 void lexer_construct_regexp_object (parser_context_t *context_p, bool parse_only);
-bool lexer_compare_identifier_to_current (parser_context_t *context_p, const lexer_lit_location_t *right);
+bool lexer_compare_identifier_to_current (parser_context_t *context_p, const lexer_lit_location_t *right_ident_p);
+bool lexer_compare_raw_identifier_to_current (parser_context_t *context_p, const char *right_ident_p,
+                                              size_t right_ident_length);
 
 /**
  * @}
@@ -439,6 +450,9 @@ bool lexer_compare_identifier_to_current (parser_context_t *context_p, const lex
 /* Parser functions. */
 
 void parser_parse_expression (parser_context_t *context_p, int options);
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+void parser_parse_class (parser_context_t *context_p, bool is_statement);
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
 /**
  * @}
@@ -470,6 +484,9 @@ ecma_compiled_code_t *parser_parse_function (parser_context_t *context_p, uint32
 #ifndef CONFIG_DISABLE_ES2015_ARROW_FUNCTION
 ecma_compiled_code_t *parser_parse_arrow_function (parser_context_t *context_p, uint32_t status_flags);
 #endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+ecma_compiled_code_t *parser_create_class_implicit_constructor (parser_context_t *context_p);
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
 /* Error management. */
 

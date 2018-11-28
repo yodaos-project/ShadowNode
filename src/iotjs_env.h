@@ -48,6 +48,8 @@ typedef struct {
 
   // I/O event loop.
   uv_loop_t* loop;
+  uv_idle_t* immediate_idle_handle;
+  uv_check_t* immediate_check_handle;
 
   // store all handlewrap objects
   list_t* handlewrap_queue;

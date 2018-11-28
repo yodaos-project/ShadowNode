@@ -29,22 +29,23 @@
  * effect
  *
  */
+'use strict';
 
-var PWM = require('pwm'),
-  pwm = new PWM(),
-  GPIO = require('gpio'),
-  gpio = new GPIO(),
-  LOW = 0,
-  HIGH = 1,
-  FADE_TIME = 10000, // 10 seconds
-  log_enabled = true,
-  direction = 0, // 0 off 1 on
-  buttonPin = 50,
-  pwmPin = 0,
-  step = 0.05,
-  value = LOW,
-  buttonDevice = null,
-  pwmDevice = null;
+var PWM = require('pwm');
+var pwm = new PWM();
+var GPIO = require('gpio');
+var gpio = new GPIO();
+var LOW = 0;
+var HIGH = 1;
+var FADE_TIME = 10000; // 10 seconds
+var log_enabled = true;
+var direction = 0; // 0 off 1 on
+var buttonPin = 50;
+var pwmPin = 0;
+var step = 0.05;
+var value = LOW;
+var buttonDevice = null;
+var pwmDevice = null;
 
 // log only when log_enabled flag is set to true
 function log(/* ...args */) {
