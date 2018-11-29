@@ -5,6 +5,11 @@ function isNull(arg) {
 }
 
 
+function isNaN(arg) {
+  return String(arg) === 'NaN';
+}
+
+
 function isUndefined(arg) {
   return arg === undefined;
 }
@@ -291,6 +296,7 @@ function promisify(original) {
 
 
 exports.isNull = isNull;
+exports.isNaN = isNaN;
 exports.isUndefined = isUndefined;
 exports.isNullOrUndefined = isNullOrUndefined;
 exports.isNumber = isNumber;
