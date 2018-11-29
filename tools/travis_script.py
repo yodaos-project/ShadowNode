@@ -8,9 +8,9 @@ from common_py.system.executor import Executor as ex
 BUILDTYPES = ['debug', 'release']
 
 
-# check if current pull request depends on path
-# return -1 if not depends, else if depends
 def check_change(path):
+    '''Check if current pull request depends on path.
+    Return -1 if not depends, else if depends.'''
     commit_range = os.getenv('TRAVIS_COMMIT_RANGE').partition('...')
     commit_head = commit_range[0]
     commit_base = commit_range[2]
