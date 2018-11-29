@@ -377,7 +377,7 @@ parser_parse_class_literal (parser_context_t *context_p, /**< context */
       {
       lexer_skip_empty_statements (context_p);
     }
-     lexer_expect_object_literal_id (context_p, false);
+     lexer_expect_object_literal_id (context_p, LEXER_OBJ_IDENT_CLASS_METHOD);
      if (context_p->token.type == LEXER_RIGHT_BRACE)
     {
       break;
@@ -397,7 +397,7 @@ parser_parse_class_literal (parser_context_t *context_p, /**< context */
         status_flags = PARSER_IS_FUNCTION | PARSER_IS_CLOSURE | PARSER_IS_PROPERTY_SETTER;
         opcode = is_static ? CBC_EXT_SET_STATIC_SETTER : CBC_EXT_SET_SETTER;
       }
-       lexer_expect_object_literal_id (context_p, true);
+      lexer_expect_object_literal_id (context_p, LEXER_OBJ_IDENT_ONLY_IDENTIFIERS);
       literal_index = context_p->lit_object.index;
        if (!is_static && lexer_compare_raw_identifier_to_current (context_p, "constructor", 11))
       {
@@ -522,7 +522,7 @@ parser_parse_class (parser_context_t *context_p, /**< context */
    context_p->literal_count++;
    bool is_strict = context_p->status_flags & PARSER_IS_STRICT;
    /* 14.5. A ClassBody is always strict code. */
-  context_p->status_flags |= PARSER_IS_STRICT | PARSER_IS_CLASS;
+  context_p->status_flags |= PARSER_IS_STRICT;
    /* ClassDeclaration is parsed. Continue with class body. */
   parser_parse_class_literal (context_p, constructor_literal_p);
  #ifdef JERRY_DEBUGGER
@@ -544,7 +544,7 @@ parser_parse_class (parser_context_t *context_p, /**< context */
     parser_emit_cbc_literal (context_p, CBC_ASSIGN_SET_IDENT, class_ident_index);
   }
    parser_flush_cbc (context_p);
-   context_p->status_flags &= (uint32_t) ~PARSER_IS_CLASS;
+
    if (!is_strict)
   {
     /* Restore flag */
@@ -568,7 +568,7 @@ parser_parse_object_literal (parser_context_t *context_p) /**< context */
 
   while (true)
   {
-    lexer_expect_object_literal_id (context_p, false);
+    lexer_expect_object_literal_id (context_p, LEXER_OBJ_IDENT_NO_OPTS);
 
     if (context_p->token.type == LEXER_RIGHT_BRACE)
     {
@@ -596,7 +596,7 @@ parser_parse_object_literal (parser_context_t *context_p) /**< context */
         item_type = PARSER_OBJECT_PROPERTY_SETTER;
       }
 
-      lexer_expect_object_literal_id (context_p, true);
+      lexer_expect_object_literal_id (context_p, LEXER_OBJ_IDENT_CLASS_METHOD | LEXER_OBJ_IDENT_ONLY_IDENTIFIERS);
       literal_index = context_p->lit_object.index;
 
       parser_append_object_literal_item (context_p, literal_index, item_type);
