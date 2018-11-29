@@ -2343,14 +2343,12 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
           object_p = ecma_get_object_from_value (result);
 
           with_env_p = ecma_create_object_lex_env (frame_ctx_p->lex_env_p, object_p);
-
           ecma_deref_object (object_p);
 
           VM_PLUS_EQUAL_U16 (frame_ctx_p->context_depth, PARSER_WITH_CONTEXT_STACK_ALLOCATION);
           stack_top_p += PARSER_WITH_CONTEXT_STACK_ALLOCATION;
 
           stack_top_p[-1] = VM_CREATE_CONTEXT (VM_CONTEXT_WITH, branch_offset);
-          stack_top_p[-2] = ecma_make_object_value (frame_ctx_p->lex_env_p);
 
           frame_ctx_p->lex_env_p = with_env_p;
           continue;
@@ -2497,8 +2495,9 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
 
           if (VM_GET_CONTEXT_TYPE (stack_top_p[-1]) == VM_CONTEXT_CATCH)
           {
-            ecma_deref_object (frame_ctx_p->lex_env_p);
-            frame_ctx_p->lex_env_p = ecma_get_object_from_value (stack_top_p[-2]);
+            ecma_object_t *lex_env_p = frame_ctx_p->lex_env_p;
+            frame_ctx_p->lex_env_p = ecma_get_lex_env_outer_reference (lex_env_p);
+            ecma_deref_object (lex_env_p);
           }
 
           stack_top_p[-1] = (ecma_value_t) VM_CREATE_CONTEXT (VM_CONTEXT_FINALLY_JUMP, branch_offset);
@@ -2846,7 +2845,6 @@ error:
           ecma_string_t *catch_name_p = ecma_get_string_from_value (literal_start_p[literal_index]);
           ecma_op_create_mutable_binding (catch_env_p, catch_name_p, false);
 
-          stack_top_p[-2 - 1] = ecma_make_object_value (frame_ctx_p->lex_env_p);
           frame_ctx_p->lex_env_p = catch_env_p;
         }
         else
