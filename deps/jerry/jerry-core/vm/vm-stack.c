@@ -26,6 +26,9 @@
  * @{
  */
 
+JERRY_STATIC_ASSERT (PARSER_WITH_CONTEXT_STACK_ALLOCATION == PARSER_SUPER_CLASS_CONTEXT_STACK_ALLOCATION,
+                     parser_with_context_stack_allocation_must_be_equal_to_parser_super_class_context_stack_allocation);
+
 /**
  * Abort (finalize) the current stack context, and remove it.
  *
@@ -54,6 +57,9 @@ vm_stack_context_abort (vm_frame_ctx_t *frame_ctx_p, /**< frame context */
       break;
     }
     case VM_CONTEXT_CATCH:
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+    case VM_CONTEXT_SUPER_CLASS:
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
     {
       JERRY_ASSERT (PARSER_TRY_CONTEXT_STACK_ALLOCATION > PARSER_WITH_CONTEXT_STACK_ALLOCATION);
 

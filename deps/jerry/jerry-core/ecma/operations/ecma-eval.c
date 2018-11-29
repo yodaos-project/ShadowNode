@@ -22,6 +22,7 @@
 #include "ecma-lex-env.h"
 #include "js-parser.h"
 #include "vm.h"
+#include "jcontext.h"
 
 /** \addtogroup ecma ECMA
  * @{
@@ -89,6 +90,12 @@ ecma_op_eval_chars_buffer (const lit_utf8_byte_t *code_p, /**< code characters b
   {
     parse_opts &= (uint32_t) ~ECMA_PARSE_STRICT_MODE;
   }
+
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  parse_opts |= ECMA_GET_SUPER_EVAL_PARSER_OPTS ();
+
+  ECMA_CLEAR_SUPER_EVAL_PARSER_OPTS ();
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
   ecma_value_t parse_status = parser_parse_script (NULL,
                                                    0,

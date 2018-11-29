@@ -343,11 +343,23 @@ static const keyword_string_t keyword_length_4[9] =
   LEXER_KEYWORD_END ()
 };
 
+#ifndef CONFIG_DISABLE_ES2015
+/**
+ * Number of keywords with 5 characters.
+ */
+#define KEYWORD_LENGTH_COUNT 11
+#else /* CONFIG_DISABLE_ES2015 */
+#define KEYWORD_LENGTH_COUNT 10
+#endif /* !CONFIG_DISABLE_ES2015 */
+
 /**
  * Keywords with 5 characters.
  */
-static const keyword_string_t keyword_length_5[10] =
+static const keyword_string_t keyword_length_5[KEYWORD_LENGTH_COUNT] =
 {
+#ifndef CONFIG_DISABLE_ES2015
+  LEXER_KEYWORD ("await", LEXER_KEYW_AWAIT),
+#endif /* !CONFIG_DISABLE_ES2015 */
   LEXER_KEYWORD ("break", LEXER_KEYW_BREAK),
   LEXER_KEYWORD ("catch", LEXER_KEYW_CATCH),
   LEXER_KEYWORD ("class", LEXER_KEYW_CLASS),
@@ -880,25 +892,25 @@ lexer_parse_number (parser_context_t *context_p) /**< context */
       while (source_p < source_end_p
              && lit_char_is_hex_digit (source_p[0]));
     }
-    else if (source_p[1] == LIT_CHAR_UPPERCASE_O || 
+    else if (source_p[1] == LIT_CHAR_UPPERCASE_O ||
              source_p[1] == LIT_CHAR_LOWERCASE_O ||
              (source_p[1] >= LIT_CHAR_0 && source_p[1] <= LIT_CHAR_7))
     {
       context_p->token.extra_value = LEXER_NUMBER_OCTAL;
 
-      if (source_p[1] == LIT_CHAR_UPPERCASE_O || 
+      if (source_p[1] == LIT_CHAR_UPPERCASE_O ||
           source_p[1] == LIT_CHAR_LOWERCASE_O)
       {
         source_p++;
       }
       else if (context_p->status_flags & PARSER_IS_STRICT)
       {
-        // FIXME(Yorkie): In strict mode, only legacyOctalIntegerLiteral 
+        // FIXME(Yorkie): In strict mode, only legacyOctalIntegerLiteral
         // is disallowed, but OctalIntegerLiteral is allowed.
         parser_raise_error (context_p, PARSER_ERR_OCTAL_NUMBER_NOT_ALLOWED);
       }
 
-      do 
+      do
       {
         source_p++;
       }
@@ -1285,38 +1297,22 @@ lexer_next_token (parser_context_t *context_p) /**< context */
 #undef LEXER_TYPE_D_TOKEN
 
 /**
- * Checks whether the next token is a colon.
+ * Checks whether the next token is the specified character.
  *
- * @return true - if the next token is a colon
+ * @return true - if the next is the specified character
  *         false - otherwise
  */
 bool
-lexer_check_colon (parser_context_t *context_p) /**< context */
+lexer_check_next_character (parser_context_t *context_p, /**< context */
+                            lit_utf8_byte_t character) /**< specified character */
 {
   lexer_skip_spaces (context_p);
 
   context_p->token.flags = (uint8_t) (context_p->token.flags | LEXER_NO_SKIP_SPACES);
 
   return (context_p->source_p < context_p->source_end_p
-          && context_p->source_p[0] == (uint8_t) LIT_CHAR_COLON);
-} /* lexer_check_colon */
-
-#ifndef CONFIG_DISABLE_ES2015_CLASS
-/**
- * Checks whether the next token is a left parenthesis.
- *
- * @return true - if the next token is a left parenthesis
- *         false - otherwise
- */
-bool
-lexer_check_left_paren (parser_context_t *context_p) /**< context */
-{
-  lexer_skip_spaces (context_p);
-   context_p->token.flags = (uint8_t) (context_p->token.flags | LEXER_NO_SKIP_SPACES);
-   return (context_p->source_p < context_p->source_end_p
-          && context_p->source_p[0] == (uint8_t) LIT_CHAR_LEFT_PAREN);
-} /* lexer_check_left_paren */
-#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+          && context_p->source_p[0] == (uint8_t) character);
+} /* lexer_check_next_character */
 
 #ifndef CONFIG_DISABLE_ES2015_ARROW_FUNCTION
 
@@ -1779,7 +1775,7 @@ lexer_construct_number_object (parser_context_t *context_p, /**< context */
     }
 
     num = 0;
-    do 
+    do
     {
       src_p++;
       num = num * 8 + (ecma_number_t) (*src_p - LIT_CHAR_0);

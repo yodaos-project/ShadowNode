@@ -84,7 +84,7 @@ typedef struct
   ecma_value_t error_value; /**< currently thrown error value */
   uint32_t lit_magic_string_ex_count; /**< external magic strings count */
   uint32_t jerry_init_flags; /**< run-time configuration flags */
-  uint32_t status_flags; /**< run-time flags */
+  uint32_t status_flags; /**< run-time flags (the top 8 bits are used for passing class parsing options) */
 
   uint32_t stack_max_depth; /*< max stack trace depth users can get */
 
