@@ -9,8 +9,8 @@ BUILDTYPES = ['debug', 'release']
 
 
 def check_change(path):
-    '''Check if current pull request depends on path.
-    Return -1 if not depends, else if depends.'''
+    '''Check if current pull request depends on path,
+    return -1 if not depends, else if depends.'''
     travis_branch = os.getenv('TRAVIS_BRANCH')
     commit_diff = ex.run_cmd_output('git',
                                     [
