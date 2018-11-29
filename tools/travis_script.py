@@ -8,8 +8,21 @@ from common_py.system.executor import Executor as ex
 BUILDTYPES = ['debug', 'release']
 
 
+def check_change(path):
+    '''Check if current pull request depends on path.
+    Return -1 if not depends, else if depends.'''
+    commit_range = os.getenv('TRAVIS_COMMIT_RANGE').partition('...')
+    commit_head = commit_range[0]
+    commit_base = commit_range[2]
+    commit_diff = ex.run_cmd_output('git',
+                                    ['diff', commit_head, commit_base], True)
+    return commit_diff.find(path)
+
+
 def build_jerry():
-    ex.check_run_cmd('./deps/jerry/tools/run-tests.py', ['--unittests'])
+    if check_change('deps/jerry') != -1:
+        ex.check_run_cmd('./deps/jerry/tools/run-tests.py',
+                         ['--unittests', '--jerry-test-suite'])
 
 
 def build_iotjs(buildtype, args=[], env=[]):
