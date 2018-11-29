@@ -31,12 +31,16 @@ assert.deepStrictEqual({
 }, {
  a: 1
 });
+assert.deepStrictEqual([1, 2, 3], [1, 2, 3]);
 assert.throws(function() {
   assert.deepStrictEqual({
     a: 1
   }, {
     a: 0
   });
+}, assert.AssertionError);
+assert.throws(function() {
+  assert.deepStrictEqual([1, 2, 3], [1, 2]);
 }, assert.AssertionError);
 
 assert.throws(function() {
