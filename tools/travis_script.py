@@ -11,11 +11,13 @@ BUILDTYPES = ['debug', 'release']
 def check_change(path):
     '''Check if current pull request depends on path.
     Return -1 if not depends, else if depends.'''
-    commit_range = os.getenv('TRAVIS_COMMIT_RANGE').partition('...')
-    commit_head = commit_range[0]
-    commit_base = commit_range[2]
+    travis_branch = os.getenv('TRAVIS_BRANCH')
     commit_diff = ex.run_cmd_output('git',
-                                    ['diff', commit_head, commit_base], True)
+                                    [
+                                        'diff',
+                                        '--name-only',
+                                        'HEAD...' + travis_branch],
+                                    True)
     return commit_diff.find(path)
 
 
