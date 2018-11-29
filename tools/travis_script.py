@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import commands
 
 from common_py.system.executor import Executor as ex
 
@@ -10,8 +9,14 @@ BUILDTYPES = ['debug', 'release']
 
 
 def build_jerry():
-    ex.check_run_cmd('./deps/jerry/tools/run-tests.py',
-                     ['--unittests', '--jerry-test-suite'])
+    # run jerry test only on demand
+    commit_range = os.getenv('TRAVIS_COMMIT_RANGE').partition('...')
+    commit_head = commit_range[0]
+    commit_base = commit_range[2]
+    commit_diff = ex.run_cmd_output('git', ['diff', commit_head, commit_base], True)
+    if commit_diff.find('deps/jerry') != -1:
+        ex.check_run_cmd('./deps/jerry/tools/run-tests.py',
+                         ['--unittests', '--jerry-test-suite'])
 
 
 def build_iotjs(buildtype, args=[], env=[]):
@@ -22,16 +27,7 @@ def build_iotjs(buildtype, args=[], env=[]):
 if __name__ == '__main__':
     test = os.getenv('OPTS')
     if test == 'host-linux':
-        # run jerry test only on demand
-        commit_range = os.getenv('TRAVIS_COMMIT_RANGE').partition('...')
-        commit_head = commit_range[0]
-        commit_base = commit_range[2]
-        find_cmd = 'git diff ' + \
-                   commit_head + ' ' + commit_base + \
-                   ' | grep \"deps/jerry\"'
-        return_code, find_output = commands.getstatusoutput(find_cmd)
-        if find_output:
-            build_jerry()
+        build_jerry()
         for buildtype in BUILDTYPES:
             build_iotjs(buildtype, [
                 '--run-test=full',
