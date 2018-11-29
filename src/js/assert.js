@@ -110,7 +110,7 @@ function strictDeepEqual(val1, val2) {
     if (Array.isArray(val2) && val1.length === val2.length) {
       var i;
       for (i = 0; i < val1.length; i++) {
-        if (!strictDeepEqual(val1[i], val2[i])) {
+        if (!isDeepStrictEqual(val1[i], val2[i])) {
           return false;
         }
       }
