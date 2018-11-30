@@ -93,6 +93,24 @@ typedef enum
   ECMA_TYPE___MAX = ECMA_TYPE_ERROR /** highest value for ecma types */
 } ecma_type_t;
 
+
+/**
+ * Option flags for script parsing.
+ * Note:
+ *      The enum members must be kept in sync with parser_general_flags_t
+ */
+typedef enum
+{
+  ECMA_PARSE_NO_OPTS = 0, /**< no options passed */
+  ECMA_PARSE_STRICT_MODE = (1u << 0), /**< enable strict mode */
+  ECMA_PARSE_DIRECT_EVAL = (1u << 1), /**< eval is called directly (ECMA-262 v5, 15.1.2.1.1) */
+  /* These three status flags must be in this order. See PARSER_CLASS_PARSE_OPTS_OFFSET. */
+  ECMA_PARSE_CLASS_CONSTRUCTOR = (1u << 2), /**< a class constructor is being parsed (this value must be kept in
+                                             *   in sync with PARSER_CLASS_CONSTRUCTOR) */
+  ECMA_PARSE_HAS_SUPER = (1u << 3), /**< the current context has super reference */
+  ECMA_PARSE_HAS_STATIC_SUPER = (1u << 4), /**< the current context is a static class method */
+} ecma_parse_opts_t;
+
 /**
  * Description of an ecma value
  *
@@ -170,7 +188,8 @@ enum
   ECMA_VALUE_NOT_FOUND = ECMA_MAKE_VALUE (7), /**< a special value returned by
                                                              *   ecma_op_object_find */
   ECMA_VALUE_REGISTER_REF = ECMA_MAKE_VALUE (8), /**< register reference,
-                                                                *   a special "base" value for vm */
+                                                  *   a special "base" value for vm */
+  ECMA_VALUE_IMPLICIT_CONSTRUCTOR = ECMA_MAKE_VALUE (9), /**< special value for bound class constructors */
 };
 
 /**
@@ -244,11 +263,6 @@ typedef ecma_value_t (*ecma_external_handler_t) (const ecma_value_t function_obj
                                                  const ecma_length_t args_count);
 
 /**
- * Native free callback of an object (deprecated).
- */
-typedef void (*ecma_object_free_callback_t) (const uintptr_t native_p);
-
-/**
  * Native free callback of an object.
  */
 typedef void (*ecma_object_native_free_callback_t) (void *native_p);
@@ -267,11 +281,7 @@ typedef struct
 typedef struct
 {
   void *data_p; /**< points to the data of the object */
-  union
-  {
-    ecma_object_free_callback_t callback_p; /**< callback */
-    ecma_object_native_info_t *info_p; /**< native info */
-  } u;
+  ecma_object_native_info_t *info_p; /**< native info */
 } ecma_native_pointer_t;
 
 /**
@@ -318,10 +328,11 @@ typedef enum
  */
 typedef enum
 {
-  ECMA_PROPERTY_TYPE_SPECIAL, /**< internal property */
+  ECMA_PROPERTY_TYPE_SPECIAL, /**< special purpose property (deleted / hashmap) */
   ECMA_PROPERTY_TYPE_NAMEDDATA, /**< property is named data */
   ECMA_PROPERTY_TYPE_NAMEDACCESSOR, /**< property is named accessor */
-  ECMA_PROPERTY_TYPE_VIRTUAL, /**< property is virtual */
+  ECMA_PROPERTY_TYPE_INTERNAL, /**< internal property with custom data field */
+  ECMA_PROPERTY_TYPE_VIRTUAL = ECMA_PROPERTY_TYPE_INTERNAL, /**< property is virtual data property */
 
   ECMA_PROPERTY_TYPE__MAX = ECMA_PROPERTY_TYPE_VIRTUAL, /**< highest value for property types. */
 } ecma_property_types_t;
@@ -401,6 +412,18 @@ typedef enum
 #define ECMA_PROPERTY_NAME_TYPE_SHIFT (ECMA_PROPERTY_FLAG_SHIFT + 4)
 
 /**
+ * Convert data property to internal property.
+ */
+#define ECMA_CONVERT_DATA_PROPERTY_TO_INTERNAL_PROPERTY(property_p) \
+   *(property_p) = (uint8_t) (*(property_p) + (ECMA_PROPERTY_TYPE_INTERNAL - ECMA_PROPERTY_TYPE_NAMEDDATA))
+
+/**
+ * Convert internal property to data property.
+ */
+#define ECMA_CONVERT_INTERNAL_PROPERTY_TO_DATA_PROPERTY(property_p) \
+   *(property_p) = (uint8_t) (*(property_p) - (ECMA_PROPERTY_TYPE_INTERNAL - ECMA_PROPERTY_TYPE_NAMEDDATA))
+
+/**
  * Special property identifiers.
  */
 typedef enum
@@ -411,7 +434,7 @@ typedef enum
   ECMA_SPECIAL_PROPERTY_DELETED, /**< deleted property */
 
   ECMA_SPECIAL_PROPERTY__COUNT /**< Number of special property types */
-} ecma_internal_property_id_t;
+} ecma_special_property_id_t;
 
 /**
  * Define special property type.
@@ -428,15 +451,6 @@ typedef enum
  * Type of hash-map property.
  */
 #define ECMA_PROPERTY_TYPE_HASHMAP ECMA_SPECIAL_PROPERTY_VALUE (ECMA_SPECIAL_PROPERTY_HASHMAP)
-
-/**
- * Name constant of a deleted property.
- */
-#ifdef JERRY_CPOINTER_32_BIT
-#define ECMA_PROPERTY_DELETED_NAME 0xffffffffu
-#else /* !JERRY_CPOINTER_32_BIT */
-#define ECMA_PROPERTY_DELETED_NAME 0xffffu
-#endif /* JERRY_CPOINTER_32_BIT */
 
 /**
  * Type of property not found.
@@ -540,8 +554,7 @@ typedef struct
  * Returns true if the property pointer is a property pair.
  */
 #define ECMA_PROPERTY_IS_PROPERTY_PAIR(property_header_p) \
-  (ECMA_PROPERTY_GET_TYPE ((property_header_p)->types[0]) != ECMA_PROPERTY_TYPE_VIRTUAL \
-   && (property_header_p)->types[0] != ECMA_PROPERTY_TYPE_HASHMAP)
+  ((property_header_p)->types[0] != ECMA_PROPERTY_TYPE_HASHMAP)
 
 /**
  * Returns true if the property is named property.
@@ -644,14 +657,43 @@ typedef enum
   /* Types between 0 - 12 are ecma_object_type_t which can have a built-in flag. */
 
   ECMA_LEXICAL_ENVIRONMENT_DECLARATIVE = 13, /**< declarative lexical environment */
-  ECMA_LEXICAL_ENVIRONMENT_OBJECT_BOUND = 14, /**< object-bound lexical environment */
-  ECMA_LEXICAL_ENVIRONMENT_THIS_OBJECT_BOUND = 15, /**< object-bound lexical environment
-                                                   *   with provideThis flag */
+  ECMA_LEXICAL_ENVIRONMENT_THIS_OBJECT_BOUND = 14, /**< object-bound lexical environment
+                                                    *   with provideThis flag */
+  ECMA_LEXICAL_ENVIRONMENT_SUPER_OBJECT_BOUND = 15, /**< object-bound lexical environment
+                                                     *   with provided super reference */
 
   ECMA_LEXICAL_ENVIRONMENT_TYPE_START = ECMA_LEXICAL_ENVIRONMENT_DECLARATIVE, /**< first lexical
-                                                                               *    environment type */
-  ECMA_LEXICAL_ENVIRONMENT_TYPE__MAX = ECMA_LEXICAL_ENVIRONMENT_THIS_OBJECT_BOUND /**< maximum value */
+                                                                               *   environment type */
+  ECMA_LEXICAL_ENVIRONMENT_TYPE__MAX = ECMA_LEXICAL_ENVIRONMENT_SUPER_OBJECT_BOUND /**< maximum value */
 } ecma_lexical_environment_type_t;
+
+/**
+ * Offset for JERRY_CONTEXT (status_flags) top 8 bits.
+ */
+#define ECMA_SUPER_EVAL_OPTS_OFFSET (32 - 8)
+
+/**
+ * Set JERRY_CONTEXT (status_flags) top 8 bits to the specified 'opts'.
+ */
+#define ECMA_SET_SUPER_EVAL_PARSER_OPTS(opts) \
+  do \
+  { \
+    JERRY_CONTEXT (status_flags) |= ((uint32_t) opts << ECMA_SUPER_EVAL_OPTS_OFFSET) | ECMA_STATUS_DIRECT_EVAL; \
+  } while (0)
+
+/**
+ * Get JERRY_CONTEXT (status_flags) top 8 bits.
+ */
+#define ECMA_GET_SUPER_EVAL_PARSER_OPTS() (JERRY_CONTEXT (status_flags) >> ECMA_SUPER_EVAL_OPTS_OFFSET)
+
+/**
+ * Clear JERRY_CONTEXT (status_flags) top 8 bits.
+ */
+#define ECMA_CLEAR_SUPER_EVAL_PARSER_OPTS() \
+  do \
+  { \
+    JERRY_CONTEXT (status_flags) &= ((1 << ECMA_SUPER_EVAL_OPTS_OFFSET) - 1); \
+  } while (0)
 
 /**
  * Ecma object type mask for getting the object type.

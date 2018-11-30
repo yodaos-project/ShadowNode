@@ -56,7 +56,7 @@ def force_str(string):
 
 
 def parse_literals(code):
-    JERRY_SNAPSHOT_VERSION = 50
+    JERRY_SNAPSHOT_VERSION = 51
     JERRY_SNAPSHOT_MAGIC = 0x5952524A
 
     literals = set()

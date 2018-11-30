@@ -191,11 +191,6 @@ typedef jerry_value_t (*jerry_external_handler_t) (const jerry_value_t function_
                                                    const jerry_length_t args_count);
 
 /**
- * Native free callback of an object (deprecated).
- */
-typedef void (*jerry_object_free_callback_t) (const uintptr_t native_p);
-
-/**
  * Native free callback of an object.
  */
 typedef void (*jerry_object_native_free_callback_t) (void *native_p);
@@ -271,7 +266,7 @@ jerry_value_t jerry_parse_function (const jerry_char_t *resource_name_p, size_t 
                                     const jerry_char_t *arg_list_p, size_t arg_list_size,
                                     const jerry_char_t *source_p, size_t source_size, uint32_t parse_opts);
 jerry_value_t jerry_run (const jerry_value_t func_val);
-jerry_value_t jerry_eval (const jerry_char_t *source_p, size_t source_size, bool is_strict);
+jerry_value_t jerry_eval (const jerry_char_t *source_p, size_t source_size, uint32_t parse_opts);
 
 jerry_value_t jerry_run_all_enqueued_jobs (void);
 
@@ -441,12 +436,6 @@ jerry_value_t jerry_construct_object (const jerry_value_t func_obj_val, const je
 jerry_value_t jerry_get_object_keys (const jerry_value_t obj_val);
 jerry_value_t jerry_get_prototype (const jerry_value_t obj_val);
 jerry_value_t jerry_set_prototype (const jerry_value_t obj_val, const jerry_value_t proto_obj_val);
-
-JERRY_DEPRECATED_API
-bool jerry_get_object_native_handle (const jerry_value_t obj_val, uintptr_t *out_handle_p);
-JERRY_DEPRECATED_API
-void jerry_set_object_native_handle (const jerry_value_t obj_val, uintptr_t handle_p,
-                                     jerry_object_free_callback_t freecb_p);
 
 bool jerry_get_object_native_pointer (const jerry_value_t obj_val,
                                       void **out_native_pointer_p,
