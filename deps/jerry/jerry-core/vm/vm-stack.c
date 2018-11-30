@@ -57,9 +57,6 @@ vm_stack_context_abort (vm_frame_ctx_t *frame_ctx_p, /**< frame context */
       break;
     }
     case VM_CONTEXT_CATCH:
-#ifndef CONFIG_DISABLE_ES2015_CLASS
-    case VM_CONTEXT_SUPER_CLASS:
-#endif /* !CONFIG_DISABLE_ES2015_CLASS */
     {
       JERRY_ASSERT (PARSER_TRY_CONTEXT_STACK_ALLOCATION > PARSER_WITH_CONTEXT_STACK_ALLOCATION);
 
@@ -70,6 +67,9 @@ vm_stack_context_abort (vm_frame_ctx_t *frame_ctx_p, /**< frame context */
       /* FALLTHRU */
     }
     case VM_CONTEXT_WITH:
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+    case VM_CONTEXT_SUPER_CLASS:
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
     {
       ecma_object_t *lex_env_p = frame_ctx_p->lex_env_p;
       frame_ctx_p->lex_env_p = ecma_get_lex_env_outer_reference (lex_env_p);
