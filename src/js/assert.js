@@ -97,19 +97,64 @@ function strictEqual(actual, expected, message) {
   }
 }
 
+function strictDeepEqual(val1, val2) {
+  if (util.isNumber(val1)) {
+    if (util.isNumber(val2)) {
+      return (isNaN(val1) && isNaN(val2)) || (val1 === val2);
+    } else {
+      return false;
+    }
+  }
+  if (Array.isArray(val1)) {
+    if (Array.isArray(val2) && val1.length === val2.length) {
+      var i;
+      for (i = 0; i < val1.length; i++) {
+        if (!isDeepStrictEqual(val1[i], val2[i])) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (util.isDate(val1) && util.isDate(val2)) {
+    return val1.getTime() === val2.getTime();
+  }
+  if (util.isRegExp(val1) && util.isRegExp(val1)) {
+    return val1.source === val2.source && val1.flags === val2.flags;
+  }
+  if (util.isError(val1) && util.isError(val2)) {
+    return val1.message !== val2.message;
+  }
+  var aKeys = Object.keys(val1);
+  if (aKeys.length !== Object.keys(val2).length) {
+    return false;
+  }
+  for (i = 0; i < aKeys.length; i++) {
+    var key = aKeys[i];
+    if (!val2.hasOwnProperty(key) || val1[key] !== val2[key]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isDeepStrictEqual(val1, val2) {
+  if (val1 && val1 === val2) {
+    return true;
+  }
+  return strictDeepEqual(val1, val2);
+}
+
+
 function deepStrictEqual(actual, expected, message) {
   if (typeof expected !== 'object') {
     return strictEqual(actual, expected, message);
   }
 
-  strictEqual(
-    Object.keys(actual).length,
-    Object.keys(expected).length,
-    message
-  );
-
-  for (var key in expected) {
-    deepStrictEqual(actual[key], expected[key], message);
+  if (!isDeepStrictEqual(actual, expected)) {
+    fail(actual, expected, message, '===');
   }
 }
 

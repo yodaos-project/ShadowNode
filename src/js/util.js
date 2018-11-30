@@ -5,6 +5,16 @@ function isNull(arg) {
 }
 
 
+function isDate(arg) {
+  return arg instanceof Date;
+}
+
+
+function isError(arg) {
+  return arg instanceof Error;
+}
+
+
 function isUndefined(arg) {
   return arg === undefined;
 }
@@ -299,3 +309,5 @@ exports.format = format;
 exports.formatValue = formatValue;
 exports.deprecate = deprecate;
 exports.promisify = promisify;
+exports.isDate = isDate;
+exports.isError = isError;
