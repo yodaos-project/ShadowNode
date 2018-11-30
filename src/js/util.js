@@ -5,6 +5,21 @@ function isNull(arg) {
 }
 
 
+function isNaN(arg) {
+  return String(arg) === 'NaN';
+}
+
+
+function isDate(arg) {
+  return arg instanceof Date;
+}
+
+
+function isError(arg) {
+  return arg instanceof Error;
+}
+
+
 function isUndefined(arg) {
   return arg === undefined;
 }
@@ -280,6 +295,7 @@ function promisify(original) {
 
 
 exports.isNull = isNull;
+exports.isNaN = isNaN;
 exports.isUndefined = isUndefined;
 exports.isNullOrUndefined = isNullOrUndefined;
 exports.isNumber = isNumber;
@@ -299,3 +315,5 @@ exports.format = format;
 exports.formatValue = formatValue;
 exports.deprecate = deprecate;
 exports.promisify = promisify;
+exports.isDate = isDate;
+exports.isError = isError;
