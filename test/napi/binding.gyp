@@ -55,6 +55,10 @@
     {
       "target_name": "napi_tsfn",
       "sources": [ "napi_tsfn.c" ]
+    },
+    {
+      "target_name": "napi_typedarray",
+      "sources": [ "napi_typedarray.c" ]
     }
   ]
 }

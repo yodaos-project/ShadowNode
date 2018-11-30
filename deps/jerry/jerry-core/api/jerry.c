@@ -2958,6 +2958,7 @@ jerry_create_arraybuffer_external (const jerry_length_t size, /**< size of the b
 #else /* CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
   JERRY_UNUSED (size);
   JERRY_UNUSED (buffer_p);
+  JERRY_UNUSED (free_hint);
   JERRY_UNUSED (free_cb);
   return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG ("ArrayBuffer not supported.")));
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
