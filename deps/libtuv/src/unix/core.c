@@ -48,6 +48,8 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -874,3 +876,24 @@ int uv__open_cloexec(const char* path, int flags) {
   return fd;
 }
 
+
+int uv_os_getpriority(uv_pid_t pid, int* priority) {
+  int r;
+  if (priority == NULL)
+    return UV_EINVAL;
+  errno = 0;
+  r = getpriority(PRIO_PROCESS, (int) pid);
+  if (r == -1 && errno != 0)
+    return UV__ERR(errno);
+  *priority = r;
+  return 0;
+}
+
+
+int uv_os_setpriority(uv_pid_t pid, int priority) {
+  if (priority < UV_PRIORITY_HIGHEST || priority > UV_PRIORITY_LOW)
+    return UV_EINVAL;
+  if (setpriority(PRIO_PROCESS, (int) pid, priority) != 0)
+    return UV__ERR(errno);
+  return 0;
+}

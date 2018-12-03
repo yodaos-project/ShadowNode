@@ -1,5 +1,7 @@
 'use strict';
 
+var constants = require('constants');
+
 exports.hostname = function() {
   return native.getHostname();
 };
@@ -14,6 +16,43 @@ exports.totalmem = function() {
 
 exports.freemem = function() {
   return native.getFreeMem();
+};
+
+exports.getPriority = function(pid) {
+  if (pid === undefined) {
+    pid = 0;
+  } else {
+    pid = Number(pid);
+  }
+
+  var err = native.getPriority(pid);
+  if (err instanceof Error) {
+    throw err;
+  }
+  return err;
+};
+
+exports.setPriority = function(pid, priority) {
+  if (priority === undefined) {
+    priority = pid;
+    pid = 0;
+  } else {
+    pid = Number(pid);
+  }
+
+  if (typeof priority !== 'number') {
+    throw new TypeError('priority must be a number');
+  }
+  if (priority > constants.UV_PRIORITY_LOW ||
+    priority < constants.UV_PRIORITY_HIGHEST) {
+    throw new RangeError(
+      'The value of "priority" is out of range. It must be' +
+      `> ${constants.UV_PRIORITY_HIGHEST} && < ${constants.UV_PRIORITY_LOW}.`);
+  }
+  var err = native.setPriority(pid, priority);
+  if (err instanceof Error) {
+    throw err;
+  }
 };
 
 exports.platform = function() {
