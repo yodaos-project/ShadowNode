@@ -100,7 +100,7 @@ function strictEqual(actual, expected, message) {
 function strictDeepEqual(val1, val2) {
   if (util.isNumber(val1)) {
     if (util.isNumber(val2)) {
-      return (util.isNaN(val1) && util.isNaN(val2)) || (val1 === val2);
+      return (isNaN(val1) && isNaN(val2)) || (val1 === val2);
     } else {
       return false;
     }
