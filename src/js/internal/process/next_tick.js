@@ -13,6 +13,7 @@ module.exports._onNextTick = function _onNextTick() {
   var i = 0;
   while (i < nextTickQueue.length) {
     var tickArgs = nextTickQueue[i];
+    delete nextTickQueue[i];
     var callback = tickArgs[0];
     try {
       switch (tickArgs.length) {
