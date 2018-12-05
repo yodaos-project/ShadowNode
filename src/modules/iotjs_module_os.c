@@ -42,6 +42,7 @@ JS_FUNCTION(GetInterfaceAddresses) {
   uint32_t count, i;
   char ip[INET6_ADDRSTRLEN];
   char netmask[INET6_ADDRSTRLEN];
+  char broadcast[INET6_ADDRSTRLEN];
   char mac[18];
 
   int err = uv_interface_addresses(&interfaces, (int*)&count);
@@ -65,10 +66,14 @@ JS_FUNCTION(GetInterfaceAddresses) {
     if (interfaces[i].address.address4.sin_family == AF_INET) {
       uv_ip4_name(&interfaces[i].address.address4, ip, sizeof(ip));
       uv_ip4_name(&interfaces[i].netmask.netmask4, netmask, sizeof(netmask));
+      uv_ip4_name(&interfaces[i].broadcast.broadcast4, broadcast,
+                  sizeof(broadcast));
       family = jerry_create_string((jerry_char_t*)"IPv4");
     } else if (interfaces[i].address.address4.sin_family == AF_INET6) {
       uv_ip6_name(&interfaces[i].address.address6, ip, sizeof(ip));
       uv_ip6_name(&interfaces[i].netmask.netmask6, netmask, sizeof(netmask));
+      uv_ip6_name(&interfaces[i].broadcast.broadcast6, broadcast,
+                  sizeof(broadcast));
       family = jerry_create_string((jerry_char_t*)"IPv6");
     } else {
       strncpy(ip, "<unknown sa family>", INET6_ADDRSTRLEN);
@@ -80,6 +85,8 @@ JS_FUNCTION(GetInterfaceAddresses) {
     jerry_value_t ip_name = jerry_create_string((const jerry_char_t*)"address");
     jerry_value_t netmask_name =
         jerry_create_string((const jerry_char_t*)"netmask");
+    jerry_value_t broadcast_name =
+        jerry_create_string((const jerry_char_t*)"broadcast");
     jerry_value_t family_name =
         jerry_create_string((const jerry_char_t*)"family");
     jerry_value_t mac_name = jerry_create_string((const jerry_char_t*)"mac");
@@ -89,23 +96,28 @@ JS_FUNCTION(GetInterfaceAddresses) {
     jerry_value_t ip_data = jerry_create_string((const jerry_char_t*)ip);
     jerry_value_t netmask_data =
         jerry_create_string((const jerry_char_t*)netmask);
+    jerry_value_t broadcast_data =
+        jerry_create_string((const jerry_char_t*)broadcast);
     jerry_value_t mac_data = jerry_create_string((const jerry_char_t*)mac);
 
     jerry_set_property(addr, name_key, name_data);
     jerry_set_property(addr, ip_name, ip_data);
     jerry_set_property(addr, netmask_name, netmask_data);
+    jerry_set_property(addr, broadcast_name, broadcast_data);
     jerry_set_property(addr, family_name, family);
     jerry_set_property(addr, mac_name, mac_data);
 
     jerry_release_value(name_key);
     jerry_release_value(ip_name);
     jerry_release_value(netmask_name);
+    jerry_release_value(broadcast_name);
     jerry_release_value(family_name);
     jerry_release_value(mac_name);
 
     jerry_release_value(name_data);
     jerry_release_value(ip_data);
     jerry_release_value(netmask_data);
+    jerry_release_value(broadcast_data);
     jerry_release_value(family);
     jerry_release_value(mac_data);
 
