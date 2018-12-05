@@ -24,8 +24,25 @@ assert.notEqual(1, 2);
 assert.strictEqual(0, 0);
 assert.throws(function() {
   assert.strictEqual(1, 0);
-},
-              assert.AssertionError);
+}, assert.AssertionError);
+
+assert.deepStrictEqual({
+  a: 1
+}, {
+ a: 1
+});
+assert.deepStrictEqual([1, 2, 3], [1, 2, 3]);
+assert.throws(function() {
+  assert.deepStrictEqual({
+    a: 1
+  }, {
+    a: 0
+  });
+}, assert.AssertionError);
+
+assert.throws(function() {
+  assert.deepStrictEqual([1, 2, 3], [1, 2]);
+}, assert.AssertionError);
 
 assert.throws(function() {
   assert.notStrictEqual(true, true);
