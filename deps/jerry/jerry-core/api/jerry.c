@@ -421,7 +421,7 @@ jerry_parse (const jerry_char_t *resource_name_p, /**< resource name (usually a 
                                       0,
                                       source_p,
                                       source_size,
-                                      (parse_opts & JERRY_PARSE_STRICT_MODE) != 0,
+                                      parse_opts,
                                       &bytecode_data_p);
 
 #ifndef JERRY_SOURCE_INFO
@@ -508,7 +508,7 @@ jerry_parse_function (const jerry_char_t *resource_name_p, /**< resource name (u
                                       arg_list_size,
                                       source_p,
                                       source_size,
-                                      (parse_opts & JERRY_PARSE_STRICT_MODE) != 0,
+                                      parse_opts,
                                       &bytecode_data_p);
 
 #ifndef JERRY_SOURCE_INFO
@@ -605,14 +605,13 @@ jerry_run (const jerry_value_t func_val) /**< function to run */
 jerry_value_t
 jerry_eval (const jerry_char_t *source_p, /**< source code */
             size_t source_size, /**< length of source code */
-            bool is_strict) /**< source must conform with strict mode */
+            uint32_t parse_opts) /**< jerry_parse_opts_t option bits */
 {
   jerry_assert_api_available ();
 
   return jerry_return (ecma_op_eval_chars_buffer ((const lit_utf8_byte_t *) source_p,
                                                   source_size,
-                                                  false,
-                                                  is_strict));
+                                                  parse_opts));
 } /* jerry_eval */
 
 /**
@@ -2357,6 +2356,7 @@ jerry_invoke_function (bool is_invoke_as_constructor, /**< true - invoke functio
     JERRY_ASSERT (jerry_value_is_constructor (func_obj_val));
 
     return jerry_return (ecma_op_function_construct (ecma_get_object_from_value (func_obj_val),
+                                                     ECMA_VALUE_UNDEFINED,
                                                      args_p,
                                                      args_count));
   }
@@ -2509,73 +2509,6 @@ jerry_set_prototype (const jerry_value_t obj_val, /**< object value */
 } /* jerry_set_prototype */
 
 /**
- * Get native handle, associated with specified object.
- *
- * Note: This API is deprecated, please use jerry_get_object_native_pointer instaed.
- *
- * @return true - if there is an associated handle (handle is returned through out_handle_p),
- *         false - otherwise
- */
-bool
-jerry_get_object_native_handle (const jerry_value_t obj_val, /**< object to get handle from */
-                                uintptr_t *out_handle_p) /**< [out] handle value */
-{
-  jerry_assert_api_available ();
-
-  jerry_value_t obj_value = jerry_get_arg_value (obj_val);
-
-  if (!ecma_is_value_object (obj_value))
-  {
-    return false;
-  }
-
-  ecma_native_pointer_t *native_pointer_p;
-  native_pointer_p = ecma_get_native_pointer_value (ecma_get_object_from_value (obj_value),
-                                                    LIT_INTERNAL_MAGIC_STRING_NATIVE_HANDLE);
-
-  if (native_pointer_p == NULL)
-  {
-    return false;
-  }
-
-  *out_handle_p = (uintptr_t) native_pointer_p->data_p;
-  return true;
-} /* jerry_get_object_native_handle */
-
-/**
- * Set native handle and an optional free callback for the specified object.
- *
- * Note: This API is deprecated, please use jerry_set_object_native_pointer instaed.
- *
- * Note:
- *      If native handle was already set for the object, its value is updated.
- *
- * Note:
- *      If a non-NULL free callback is specified, it will be called
- *      by the garbage collector when the object is freed. The free
- *      callback always overwrites the previous value, so passing
- *      a NULL value deletes the current free callback.
- */
-void
-jerry_set_object_native_handle (const jerry_value_t obj_val, /**< object to set handle in */
-                                uintptr_t handle_p, /**< handle value */
-                                jerry_object_free_callback_t freecb_p) /**< object free callback or NULL */
-{
-  jerry_assert_api_available ();
-
-  jerry_value_t obj_value = jerry_get_arg_value (obj_val);
-
-  if (ecma_is_value_object (obj_value))
-  {
-    ecma_object_t *object_p = ecma_get_object_from_value (obj_value);
-
-    ecma_create_native_handle_property (object_p,
-                                        (void *) handle_p,
-                                        (void *) (ecma_external_pointer_t) freecb_p);
-  }
-} /* jerry_set_object_native_handle */
-
-/**
  * Get native pointer and its type information, associated with specified object.
  *
  * Note:
@@ -2601,8 +2534,7 @@ jerry_get_object_native_pointer (const jerry_value_t obj_val, /**< object to get
   }
 
   ecma_native_pointer_t *native_pointer_p;
-  native_pointer_p = ecma_get_native_pointer_value (ecma_get_object_from_value (obj_value),
-                                                    LIT_INTERNAL_MAGIC_STRING_NATIVE_POINTER);
+  native_pointer_p = ecma_get_native_pointer_value (ecma_get_object_from_value (obj_value));
 
   if (native_pointer_p == NULL)
   {
@@ -2616,7 +2548,7 @@ jerry_get_object_native_pointer (const jerry_value_t obj_val, /**< object to get
 
   if (out_native_info_p != NULL)
   {
-    *out_native_info_p = (const jerry_object_native_info_t *) native_pointer_p->u.info_p;
+    *out_native_info_p = (const jerry_object_native_info_t *) native_pointer_p->info_p;
   }
 
   return true;

@@ -298,7 +298,7 @@ ecma_collection_iterator_next (ecma_value_t *iterator_p);
 ecma_object_t *ecma_create_object (ecma_object_t *prototype_object_p, size_t ext_object_size, ecma_object_type_t type);
 ecma_object_t *ecma_create_decl_lex_env (ecma_object_t *outer_lexical_environment_p);
 ecma_object_t *ecma_create_object_lex_env (ecma_object_t *outer_lexical_environment_p, ecma_object_t *binding_obj_p,
-                                           bool provide_this);
+                                           ecma_lexical_environment_type_t type);
 bool ecma_is_lexical_environment (const ecma_object_t *object_p) __attr_pure___;
 bool ecma_get_object_extensible (const ecma_object_t *object_p) __attr_pure___;
 void ecma_set_object_extensible (ecma_object_t *object_p, bool is_extensible);
@@ -311,7 +311,6 @@ ecma_lexical_environment_type_t ecma_get_lex_env_type (const ecma_object_t *obje
 ecma_object_t *ecma_get_lex_env_outer_reference (const ecma_object_t *object_p) __attr_pure___;
 ecma_property_header_t *ecma_get_property_list (const ecma_object_t *object_p) __attr_pure___;
 ecma_object_t *ecma_get_lex_env_binding_object (const ecma_object_t *object_p) __attr_pure___;
-bool ecma_get_lex_env_provide_this (const ecma_object_t *object_p) __attr_pure___;
 
 ecma_property_value_t *
 ecma_create_named_data_property (ecma_object_t *object_p, ecma_string_t *name_p, uint8_t prop_attributes,
@@ -362,10 +361,8 @@ void ecma_bytecode_ref (ecma_compiled_code_t *bytecode_p);
 void ecma_bytecode_deref (ecma_compiled_code_t *bytecode_p);
 
 /* ecma-helpers-external-pointers.c */
-bool ecma_create_native_handle_property (ecma_object_t *obj_p, void *handle_p, void *free_cb);
 bool ecma_create_native_pointer_property (ecma_object_t *obj_p, void *native_p, void *info_p);
-ecma_native_pointer_t *ecma_get_native_pointer_value (ecma_object_t *obj_p, lit_magic_string_id_t id);
-void ecma_free_native_pointer (ecma_property_t *prop_p);
+ecma_native_pointer_t *ecma_get_native_pointer_value (ecma_object_t *obj_p);
 
 /* ecma-helpers-conversion.c */
 ecma_number_t ecma_utf8_string_to_number (const lit_utf8_byte_t *str_p, lit_utf8_size_t str_size);

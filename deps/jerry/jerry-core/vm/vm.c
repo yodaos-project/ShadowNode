@@ -240,13 +240,13 @@ vm_run_global (const ecma_compiled_code_t *bytecode_p) /**< pointer to bytecode 
  */
 ecma_value_t
 vm_run_eval (ecma_compiled_code_t *bytecode_data_p, /**< byte-code data */
-             bool is_direct) /**< is eval called in direct mode? */
+             uint32_t parse_opts) /**< ecma_parse_opts_t option bits */
 {
   ecma_value_t this_binding;
   ecma_object_t *lex_env_p;
 
   /* ECMA-262 v5, 10.4.2 */
-  if (is_direct)
+  if (parse_opts & ECMA_PARSE_DIRECT_EVAL)
   {
     this_binding = ecma_copy_value (JERRY_CONTEXT (vm_top_context_p)->this_binding);
     lex_env_p = JERRY_CONTEXT (vm_top_context_p)->lex_env_p;
@@ -271,7 +271,7 @@ vm_run_eval (ecma_compiled_code_t *bytecode_data_p, /**< byte-code data */
                                           bytecode_data_p,
                                           this_binding,
                                           lex_env_p,
-                                          true,
+                                          parse_opts,
                                           NULL,
                                           0);
 
@@ -387,6 +387,59 @@ vm_get_implicit_this_value (ecma_value_t *this_value_p) /**< [in,out] this value
   return false;
 } /* vm_get_implicit_this_value */
 
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+/**
+ * 'super(...)' function call handler.
+ */
+static void
+vm_super_call (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
+{
+  JERRY_ASSERT (frame_ctx_p->call_operation == VM_EXEC_SUPER_CALL);
+  JERRY_ASSERT (frame_ctx_p->byte_code_p[0] == CBC_EXT_OPCODE);
+
+  uint32_t arguments_list_len = frame_ctx_p->byte_code_p[2];
+
+  ecma_value_t *stack_top_p = frame_ctx_p->stack_top_p - arguments_list_len;
+
+  ecma_value_t func_value = stack_top_p[-1];
+  ecma_value_t completion_value;
+  ecma_op_set_super_called (frame_ctx_p->lex_env_p);
+  ecma_value_t this_value = ecma_op_get_class_this_binding (frame_ctx_p->lex_env_p);
+
+  if (!ecma_is_constructor (func_value))
+  {
+    completion_value = ecma_raise_type_error ("Class extends value is not a constructor.");
+  }
+  else
+  {
+    completion_value = ecma_op_function_construct (ecma_get_object_from_value (func_value),
+                                                   this_value,
+                                                   stack_top_p,
+                                                   arguments_list_len);
+
+    if (this_value != completion_value && ecma_is_value_object (completion_value))
+    {
+      ecma_op_set_class_prototype (completion_value, this_value);
+      ecma_op_set_class_this_binding (frame_ctx_p->lex_env_p, completion_value);
+    }
+  }
+
+  /* Free registers. */
+  for (uint32_t i = 0; i < arguments_list_len; i++)
+  {
+    ecma_fast_free_value (stack_top_p[i]);
+  }
+
+  ecma_free_value (stack_top_p[-1]);
+  stack_top_p[-1] = completion_value;
+
+  frame_ctx_p->stack_top_p = stack_top_p;
+
+  /* 'super (...)' call continues as a normal 'Function call' */
+  frame_ctx_p->call_operation = VM_EXEC_CALL;
+} /* vm_super_call */
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
 /**
  * 'Function call' opcode handler.
  *
@@ -499,6 +552,7 @@ opfunc_construct (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
     ecma_object_t *constructor_obj_p = ecma_get_object_from_value (constructor_value);
 
     completion_value = ecma_op_function_construct (constructor_obj_p,
+                                                   ECMA_VALUE_UNDEFINED,
                                                    stack_top_p,
                                                    arguments_list_len);
   }
@@ -929,11 +983,6 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
 
       switch (VM_OC_GROUP_GET_INDEX (opcode_data))
       {
-        case VM_OC_NONE:
-        {
-          JERRY_ASSERT (opcode == CBC_EXT_DEBUGGER);
-          continue;
-        }
         case VM_OC_POP:
         {
           JERRY_ASSERT (stack_top_p > frame_ctx_p->registers_p + register_end);
@@ -1024,23 +1073,26 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
           *stack_top_p++ = ecma_make_object_value (obj_p);
           continue;
         }
+#ifndef CONFIG_DISABLE_ES2015_OBJECT_INITIALIZER
+        case VM_OC_SET_COMPUTED_PROPERTY:
+        {
+          /* Swap values. */
+          left_value ^= right_value;
+          right_value ^= left_value;
+          left_value ^= right_value;
+          /* FALLTHRU */
+        }
+#endif /* !CONFIG_DISABLE_ES2015_OBJECT_INITIALIZER */
         case VM_OC_SET_PROPERTY:
         {
-#ifndef CONFIG_DISABLE_ES2015_CLASS
-          const int index = (byte_code_start_p[0] == CBC_EXT_OPCODE) ? -2 : -1;
-#else
-          const int index = -1;
-#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+          JERRY_STATIC_ASSERT (VM_OC_NON_STATIC_FLAG == VM_OC_BACKWARD_BRANCH,
+                               vm_oc_non_static_flag_must_be_equal_to_vm_oc_backward_branch);
 
-          ecma_object_t *object_p = ecma_get_object_from_value (stack_top_p[index]);
-          ecma_string_t *prop_name_p;
-          ecma_property_t *property_p;
+          JERRY_ASSERT ((opcode_data >> VM_OC_NON_STATIC_SHIFT) <= 0x1);
 
-          if (ecma_is_value_string (right_value))
-          {
-            prop_name_p = ecma_get_string_from_value (right_value);
-          }
-          else
+          result = right_value;
+
+          if (unlikely (!ecma_is_value_string (right_value)))
           {
             result = ecma_op_to_string (right_value);
 
@@ -1048,11 +1100,30 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
             {
               goto error;
             }
-
-            prop_name_p = ecma_get_string_from_value (result);
           }
 
-          property_p = ecma_find_named_property (object_p, prop_name_p);
+          ecma_string_t *prop_name_p = ecma_get_string_from_value (result);
+
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+          if (unlikely (ecma_compare_ecma_string_to_magic_id (prop_name_p, LIT_MAGIC_STRING_PROTOTYPE))
+              && !(opcode_data & VM_OC_NON_STATIC_FLAG))
+          {
+            if (!ecma_is_value_string (right_value))
+            {
+              ecma_deref_ecma_string (prop_name_p);
+            }
+
+            result = ecma_raise_type_error (ECMA_ERR_MSG ("prototype property of a class is non-configurable"));
+            goto error;
+          }
+
+          const int index = (int) (opcode_data >> VM_OC_NON_STATIC_SHIFT) - 2;
+#else /* CONFIG_DISABLE_ES2015_CLASS */
+          const int index = -1;
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
+          ecma_object_t *object_p = ecma_get_object_from_value (stack_top_p[index]);
+          ecma_property_t *property_p = ecma_find_named_property (object_p, prop_name_p);
 
           if (property_p != NULL
               && ECMA_PROPERTY_GET_TYPE (*property_p) != ECMA_PROPERTY_TYPE_NAMEDDATA)
@@ -1087,17 +1158,49 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
         case VM_OC_SET_GETTER:
         case VM_OC_SET_SETTER:
         {
-          JERRY_ASSERT (byte_code_start_p[0] == CBC_EXT_OPCODE);
+          JERRY_ASSERT ((opcode_data >> VM_OC_NON_STATIC_SHIFT) <= 0x1);
+
+          result = left_value;
+
+          if (unlikely (!ecma_is_value_string (left_value)))
+          {
+            result = ecma_op_to_string (left_value);
+
+            if (ECMA_IS_VALUE_ERROR (result))
+            {
+              goto error;
+            }
+          }
+
+          ecma_string_t *prop_name_p = ecma_get_string_from_value (result);
+
 #ifndef CONFIG_DISABLE_ES2015_CLASS
-          const int index = (byte_code_start_p[1] > CBC_EXT_SET_SETTER) ? -2 : -1;
-#else
+          if (unlikely (ecma_compare_ecma_string_to_magic_id (prop_name_p, LIT_MAGIC_STRING_PROTOTYPE))
+              && !(opcode_data & VM_OC_NON_STATIC_FLAG))
+          {
+            if (!ecma_is_value_string (left_value))
+            {
+              ecma_deref_ecma_string (prop_name_p);
+            }
+
+            result = ecma_raise_type_error (ECMA_ERR_MSG ("prototype property of a class is non-configurable"));
+            goto error;
+          }
+
+          const int index = (int) (opcode_data >> VM_OC_NON_STATIC_SHIFT) - 2;
+#else /* CONFIG_DISABLE_ES2015_CLASS */
           const int index = -1;
 #endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
           opfunc_set_accessor (VM_OC_GROUP_GET_INDEX (opcode_data) == VM_OC_SET_GETTER,
                                stack_top_p[index],
-                               left_value,
+                               prop_name_p,
                                right_value);
+
+          if (!ecma_is_value_string (left_value))
+          {
+            ecma_deref_ecma_string (prop_name_p);
+          }
 
           goto free_both_values;
         }
@@ -1113,6 +1216,313 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
           *stack_top_p++ = result;
           continue;
         }
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+        case VM_OC_SUPER_CALL:
+        {
+          if (frame_ctx_p->call_operation == VM_NO_EXEC_OP)
+          {
+            frame_ctx_p->call_operation = VM_EXEC_SUPER_CALL;
+            frame_ctx_p->byte_code_p = byte_code_start_p;
+            frame_ctx_p->stack_top_p = stack_top_p;
+            frame_ctx_p->call_block_result = block_result;
+            return ECMA_VALUE_UNDEFINED;
+          }
+
+          byte_code_p++;
+          frame_ctx_p->call_operation = VM_NO_EXEC_OP;
+
+          result = *(--stack_top_p);
+          block_result = frame_ctx_p->call_block_result;
+
+          if (ECMA_IS_VALUE_ERROR (result))
+          {
+            goto error;
+          }
+
+          if (!(opcode_data & (VM_OC_PUT_STACK | VM_OC_PUT_BLOCK)))
+          {
+            ecma_fast_free_value (result);
+          }
+          else if (opcode_data & VM_OC_PUT_STACK)
+          {
+            *stack_top_p++ = result;
+          }
+          else
+          {
+            ecma_fast_free_value (block_result);
+            block_result = result;
+          }
+
+          continue;
+        }
+        case VM_OC_CLASS_HERITAGE:
+        {
+          ecma_value_t super_value = *(--stack_top_p);
+          ecma_object_t *super_class_p;
+          branch_offset += (int32_t) (byte_code_start_p - frame_ctx_p->byte_code_start_p);
+
+          JERRY_ASSERT (frame_ctx_p->registers_p + register_end + frame_ctx_p->context_depth == stack_top_p);
+
+          if (ecma_is_value_null (super_value))
+          {
+            super_class_p = ecma_create_object (NULL, 0, ECMA_OBJECT_TYPE_GENERAL);
+          }
+          else
+          {
+            result = ecma_op_to_object (super_value);
+            ecma_free_value (super_value);
+
+            if (ECMA_IS_VALUE_ERROR (result) || !ecma_is_constructor (result))
+            {
+              if (ECMA_IS_VALUE_ERROR (result))
+              {
+                ecma_free_value (JERRY_CONTEXT (error_value));
+              }
+
+              ecma_free_value (result);
+
+              result = ecma_raise_type_error ("Value provided by class extends is not an object or null.");
+              goto error;
+            }
+            else
+            {
+              super_class_p = ecma_get_object_from_value (result);
+            }
+          }
+
+          ecma_object_t *super_env_p = ecma_create_object_lex_env (frame_ctx_p->lex_env_p,
+                                                                   super_class_p,
+                                                                   ECMA_LEXICAL_ENVIRONMENT_SUPER_OBJECT_BOUND);
+
+          ecma_deref_object (super_class_p);
+
+          VM_PLUS_EQUAL_U16 (frame_ctx_p->context_depth, PARSER_SUPER_CLASS_CONTEXT_STACK_ALLOCATION);
+          stack_top_p += PARSER_SUPER_CLASS_CONTEXT_STACK_ALLOCATION;
+
+          stack_top_p[-1] = VM_CREATE_CONTEXT (VM_CONTEXT_SUPER_CLASS, branch_offset);
+
+          frame_ctx_p->lex_env_p = super_env_p;
+
+          continue;
+        }
+        case VM_OC_CLASS_INHERITANCE:
+        {
+          ecma_value_t child_value = stack_top_p[-2];
+          ecma_value_t child_prototype_value = stack_top_p[-1];
+
+          ecma_object_t *child_class_p = ecma_get_object_from_value (child_value);
+          ecma_object_t *child_prototype_class_p = ecma_get_object_from_value (child_prototype_value);
+          ecma_property_value_t *prop_value_p;
+
+          prop_value_p = ecma_create_named_data_property (child_prototype_class_p,
+                                                          ecma_get_magic_string (LIT_MAGIC_STRING_CONSTRUCTOR),
+                                                          ECMA_PROPERTY_CONFIGURABLE_WRITABLE,
+                                                          NULL);
+
+          ecma_named_data_property_assign_value (child_prototype_class_p, prop_value_p, child_value);
+
+          ecma_object_t *super_class_p = ecma_get_lex_env_binding_object (frame_ctx_p->lex_env_p);
+
+          if (ecma_get_object_prototype (super_class_p))
+          {
+            ecma_value_t super_prototype_value = ecma_op_object_get_by_magic_id (super_class_p,
+                                                                                 LIT_MAGIC_STRING_PROTOTYPE);
+            if (ecma_get_object_type (super_class_p) == ECMA_OBJECT_TYPE_BOUND_FUNCTION
+                && !ecma_is_value_object (super_prototype_value))
+            {
+              ecma_free_value (super_prototype_value);
+              result = ecma_raise_type_error (ECMA_ERR_MSG ("Class extends value does not have valid "
+                                                            "prototype property."));
+              goto error;
+            }
+            if (!(ECMA_IS_VALUE_ERROR (super_prototype_value) || !ecma_is_value_object (super_prototype_value)))
+            {
+              ecma_object_t *super_prototype_class_p = ecma_get_object_from_value (super_prototype_value);
+
+              ECMA_SET_POINTER (child_prototype_class_p->prototype_or_outer_reference_cp, super_prototype_class_p);
+              ECMA_SET_POINTER (child_class_p->prototype_or_outer_reference_cp, super_class_p);
+
+            }
+            ecma_free_value (super_prototype_value);
+          }
+
+          continue;
+        }
+        case VM_OC_PUSH_CLASS_CONSTRUCTOR:
+        {
+          ecma_object_t *prototype_obj_p = ecma_builtin_get (ECMA_BUILTIN_ID_FUNCTION_PROTOTYPE);
+
+          ecma_object_t *function_obj_p = ecma_create_object (prototype_obj_p,
+                                                              sizeof (ecma_extended_object_t),
+                                                              ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION);
+
+
+          ecma_deref_object (prototype_obj_p);
+
+          ecma_extended_object_t *ext_func_obj_p = (ecma_extended_object_t *) function_obj_p;
+          ext_func_obj_p->u.external_handler_cb = ecma_op_function_implicit_constructor_handler_cb;
+
+          *stack_top_p++ = ecma_make_object_value (function_obj_p);
+
+          continue;
+        }
+        case VM_OC_SET_CLASS_CONSTRUCTOR:
+        {
+          ecma_object_t *new_constructor_obj_p = ecma_get_object_from_value (left_value);
+          ecma_object_t *current_constructor_obj_p = ecma_get_object_from_value (stack_top_p[-2]);
+
+          ecma_extended_object_t *new_ext_func_obj_p = (ecma_extended_object_t *) new_constructor_obj_p;
+          ecma_extended_object_t *current_ext_func_obj_p = (ecma_extended_object_t *) current_constructor_obj_p;
+
+          uint16_t type_flags_refs = current_constructor_obj_p->type_flags_refs;
+          const int new_type = ECMA_OBJECT_TYPE_FUNCTION - ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION;
+          current_constructor_obj_p->type_flags_refs = (uint16_t) (type_flags_refs + new_type);
+
+          ecma_compiled_code_t *bytecode_p;
+          bytecode_p = (ecma_compiled_code_t *) ecma_op_function_get_compiled_code (new_ext_func_obj_p);
+          bytecode_p->status_flags |= CBC_CODE_FLAGS_CONSTRUCTOR;
+          ecma_bytecode_ref ((ecma_compiled_code_t *) bytecode_p);
+          ECMA_SET_INTERNAL_VALUE_POINTER (current_ext_func_obj_p->u.function.bytecode_cp,
+                                           bytecode_p);
+          ECMA_SET_INTERNAL_VALUE_POINTER (current_ext_func_obj_p->u.function.scope_cp,
+                                           ECMA_GET_INTERNAL_VALUE_POINTER (const ecma_object_t,
+                                                                            new_ext_func_obj_p->u.function.scope_cp));
+          ecma_deref_object (new_constructor_obj_p);
+          continue;
+        }
+        case VM_OC_PUSH_IMPL_CONSTRUCTOR:
+        {
+          ecma_object_t *current_constructor_obj_p = ecma_get_object_from_value (stack_top_p[-2]);
+
+          uint16_t type_flags_refs = current_constructor_obj_p->type_flags_refs;
+          const int new_type = ECMA_OBJECT_TYPE_BOUND_FUNCTION - ECMA_OBJECT_TYPE_EXTERNAL_FUNCTION;
+          current_constructor_obj_p->type_flags_refs = (uint16_t) (type_flags_refs + new_type);
+
+          ecma_extended_object_t *ext_function_p = (ecma_extended_object_t *) current_constructor_obj_p;
+          ecma_object_t *super_obj_p = ecma_op_resolve_super_reference_value (frame_ctx_p->lex_env_p);
+
+          ECMA_SET_INTERNAL_VALUE_POINTER (ext_function_p->u.bound_function.target_function,
+                                           super_obj_p);
+          ext_function_p->u.bound_function.args_len_or_this = ECMA_VALUE_IMPLICIT_CONSTRUCTOR;
+
+          continue;
+        }
+        case VM_OC_CLASS_EXPR_CONTEXT_END:
+        {
+          JERRY_ASSERT (frame_ctx_p->registers_p + register_end + frame_ctx_p->context_depth == stack_top_p - 1);
+
+          JERRY_ASSERT (VM_GET_CONTEXT_TYPE (stack_top_p[-2]) == VM_CONTEXT_SUPER_CLASS);
+          stack_top_p = vm_stack_context_abort (frame_ctx_p, stack_top_p - 1);
+
+          JERRY_ASSERT (frame_ctx_p->registers_p + register_end + frame_ctx_p->context_depth == stack_top_p);
+          stack_top_p++;
+          stack_top_p[-1] = *stack_top_p;
+          continue;
+        }
+        case VM_OC_CLASS_EVAL:
+        {
+          ECMA_SET_SUPER_EVAL_PARSER_OPTS (*byte_code_p++);
+          continue;
+        }
+        case VM_OC_PUSH_CONSTRUCTOR_SUPER:
+        {
+          JERRY_ASSERT (byte_code_start_p[0] == CBC_EXT_OPCODE);
+
+          bool is_super_called = ecma_op_is_super_called (frame_ctx_p->lex_env_p);
+
+          if (byte_code_start_p[1] != CBC_EXT_PUSH_CONSTRUCTOR_SUPER_PROP)
+          {
+            /* Calling super(...) */
+            if (is_super_called)
+            {
+              result = ecma_raise_reference_error (ECMA_ERR_MSG ("Super constructor may only be called once."));
+
+              goto error;
+            }
+          }
+          else if (!is_super_called)
+          {
+            /* Reference to super.method or super["method"] */
+            result = ecma_raise_reference_error (ECMA_ERR_MSG ("Must call super constructor in derived class before "
+                                                               "accessing 'super'."));
+            goto error;
+          }
+
+          /* FALLTHRU */
+        }
+        case VM_OC_PUSH_SUPER:
+        {
+          JERRY_ASSERT (byte_code_start_p[0] == CBC_EXT_OPCODE);
+
+          if (byte_code_start_p[1] == CBC_EXT_PUSH_SUPER
+              || byte_code_start_p[1] == CBC_EXT_PUSH_CONSTRUCTOR_SUPER_PROP)
+          {
+            ecma_object_t *super_class_p = ecma_op_resolve_super_reference_value (frame_ctx_p->lex_env_p);
+
+            ecma_value_t super_prototype = ecma_op_object_get_by_magic_id (super_class_p,
+                                                                           LIT_MAGIC_STRING_PROTOTYPE);
+
+            if (ECMA_IS_VALUE_ERROR (super_prototype))
+            {
+              result = super_prototype;
+              goto error;
+            }
+
+            *stack_top_p++ = super_prototype;
+          }
+          else
+          {
+            ecma_object_t *super_class_p = ecma_op_resolve_super_reference_value (frame_ctx_p->lex_env_p);
+            *stack_top_p++ = ecma_fast_copy_value (ecma_make_object_value (super_class_p));
+          }
+
+          continue;
+        }
+        case VM_OC_PUSH_CONSTRUCTOR_THIS:
+        {
+          if (!ecma_op_is_super_called (frame_ctx_p->lex_env_p))
+          {
+            result = ecma_raise_reference_error (ECMA_ERR_MSG ("Must call super constructor in derived class before "
+                                                               "accessing 'this' or returning from it."));
+            goto error;
+          }
+
+          *stack_top_p++ = ecma_copy_value (ecma_op_get_class_this_binding (frame_ctx_p->lex_env_p));
+          continue;
+        }
+        case VM_OC_SUPER_PROP_REFERENCE:
+        {
+          const int index = (byte_code_start_p[1] == CBC_EXT_SUPER_PROP_ASSIGN) ? -1 : -3;
+          ecma_free_value (stack_top_p[index]);
+          stack_top_p[index] = ecma_copy_value (frame_ctx_p->this_binding);
+          continue;
+        }
+        case VM_OC_CONSTRUCTOR_RET:
+        {
+          result = left_value;
+          left_value = ECMA_VALUE_UNDEFINED;
+
+          if (!ecma_is_value_object (result))
+          {
+            if (ecma_is_value_undefined (result))
+            {
+              if (!ecma_op_is_super_called (frame_ctx_p->lex_env_p))
+              {
+                result = ecma_raise_reference_error (ECMA_ERR_MSG ("Must call super constructor in derived class "
+                                                                   "before returning from derived constructor"));
+              }
+            }
+            else
+            {
+              ecma_free_value (result);
+              result = ecma_raise_type_error (ECMA_ERR_MSG ("Derived constructors may only "
+                                                            "return object or undefined."));
+            }
+          }
+
+          goto error;
+        }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
         case VM_OC_PUSH_ELISON:
         {
           *stack_top_p++ = ECMA_VALUE_ARRAY_HOLE;
@@ -2294,7 +2704,7 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
 
           with_env_p = ecma_create_object_lex_env (frame_ctx_p->lex_env_p,
                                                    object_p,
-                                                   true);
+                                                   ECMA_LEXICAL_ENVIRONMENT_THIS_OBJECT_BOUND);
 
           ecma_deref_object (object_p);
 
@@ -2302,7 +2712,6 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
           stack_top_p += PARSER_WITH_CONTEXT_STACK_ALLOCATION;
 
           stack_top_p[-1] = VM_CREATE_CONTEXT (VM_CONTEXT_WITH, branch_offset);
-          stack_top_p[-2] = ecma_make_object_value (frame_ctx_p->lex_env_p);
 
           frame_ctx_p->lex_env_p = with_env_p;
           continue;
@@ -2449,8 +2858,9 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
 
           if (VM_GET_CONTEXT_TYPE (stack_top_p[-1]) == VM_CONTEXT_CATCH)
           {
-            ecma_deref_object (frame_ctx_p->lex_env_p);
-            frame_ctx_p->lex_env_p = ecma_get_object_from_value (stack_top_p[-2]);
+            ecma_object_t *lex_env_p = frame_ctx_p->lex_env_p;
+            frame_ctx_p->lex_env_p = ecma_get_lex_env_outer_reference (lex_env_p);
+            ecma_deref_object (lex_env_p);
           }
 
           stack_top_p[-1] = (ecma_value_t) VM_CREATE_CONTEXT (VM_CONTEXT_FINALLY_JUMP, branch_offset);
@@ -2538,9 +2948,9 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
           JERRY_ASSERT (frame_ctx_p->registers_p + register_end + frame_ctx_p->context_depth == stack_top_p);
           continue;
         }
+#ifdef JERRY_DEBUGGER
         case VM_OC_BREAKPOINT_ENABLED:
         {
-#ifdef JERRY_DEBUGGER
           if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_VM_IGNORE)
           {
             continue;
@@ -2553,12 +2963,10 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
           frame_ctx_p->byte_code_p = byte_code_start_p;
 
           jerry_debugger_breakpoint_hit (JERRY_DEBUGGER_BREAKPOINT_HIT);
-#endif /* JERRY_DEBUGGER */
           continue;
         }
         case VM_OC_BREAKPOINT_DISABLED:
         {
-#ifdef JERRY_DEBUGGER
           if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_VM_IGNORE)
           {
             continue;
@@ -2597,11 +3005,14 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
           {
             jerry_debugger_breakpoint_hit (JERRY_DEBUGGER_BREAKPOINT_HIT);
           }
-#endif /* JERRY_DEBUGGER */
           continue;
         }
+#endif /* JERRY_DEBUGGER */
         default:
         {
+          JERRY_ASSERT (VM_OC_GROUP_GET_INDEX (opcode_data) == VM_OC_NONE);
+
+          jerry_fatal (ERR_DISABLED_BYTE_CODE);
           JERRY_UNREACHABLE ();
           continue;
         }
@@ -2797,7 +3208,6 @@ error:
           ecma_string_t *catch_name_p = ecma_get_string_from_value (literal_start_p[literal_index]);
           ecma_op_create_mutable_binding (catch_env_p, catch_name_p, false);
 
-          stack_top_p[-2 - 1] = ecma_make_object_value (frame_ctx_p->lex_env_p);
           frame_ctx_p->lex_env_p = catch_env_p;
         }
         else
@@ -2947,6 +3357,12 @@ vm_execute (vm_frame_ctx_t *frame_ctx_p, /**< frame context */
     {
       opfunc_call (frame_ctx_p);
     }
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+    else if (frame_ctx_p->call_operation == VM_EXEC_SUPER_CALL)
+    {
+      vm_super_call (frame_ctx_p);
+    }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
     else
     {
       JERRY_ASSERT (frame_ctx_p->call_operation == VM_EXEC_CONSTRUCT);
@@ -2999,7 +3415,7 @@ vm_run (const ecma_extended_object_t *func_obj_p, /**< function object */
         const ecma_compiled_code_t *bytecode_header_p, /**< byte-code data header */
         ecma_value_t this_binding_value, /**< value of 'ThisBinding' */
         ecma_object_t *lex_env_p, /**< lexical environment to use */
-        bool is_eval_code, /**< is the code is eval code (ECMA-262 v5, 10.1) */
+        uint32_t parse_opts, /**< ecma_parse_opts_t option bits */
         const ecma_value_t *arg_list_p, /**< arguments list */
         ecma_length_t arg_list_len) /**< length of arguments list */
 {
@@ -3035,7 +3451,7 @@ vm_run (const ecma_extended_object_t *func_obj_p, /**< function object */
   frame_ctx.prev_context_p = JERRY_CONTEXT (vm_top_context_p);
   frame_ctx.this_binding = this_binding_value;
   frame_ctx.context_depth = 0;
-  frame_ctx.is_eval_code = is_eval_code;
+  frame_ctx.is_eval_code = parse_opts & ECMA_PARSE_DIRECT_EVAL;
   frame_ctx.call_operation = VM_NO_EXEC_OP;
 
   /* Use JERRY_MAX() to avoid array declaration with size 0. */

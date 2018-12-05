@@ -272,7 +272,7 @@ test_typedarray_complex_creation (test_entry_t test_entries[], /**< test cases *
       "array[0] = 0x11223344;");
     jerry_value_t result = jerry_eval ((jerry_char_t *) eval_src_p,
                                        strlen (eval_src_p),
-                                       true);
+                                       JERRY_PARSE_STRICT_MODE);
     TEST_ASSERT (!jerry_value_has_error_flag (result));
     jerry_release_value (result);
 
@@ -383,7 +383,7 @@ main (void)
       "};");
     jerry_value_t result = jerry_eval ((jerry_char_t *) eval_src_p,
                                        strlen (eval_src_p),
-                                       true);
+                                       JERRY_PARSE_STRICT_MODE);
 
     TEST_ASSERT (!jerry_value_has_error_flag (result));
     jerry_release_value (result);

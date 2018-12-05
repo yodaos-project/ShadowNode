@@ -12,13 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-try
+function throw_error(snippet)
 {
-  // This should be failed in ECMA-262 v5.1
-  eval("({ get 1() {}, 1:1 })");
-  assert (false);
+  try
+  {
+    eval(snippet);
+    assert (false);
+  }
+  catch (e)
+  {
+    assert (e instanceof SyntaxError);
+  }
 }
-catch (e)
+
+function throw_error_strict(snippet)
 {
-  assert (e instanceof SyntaxError);
+  'use strict'
+
+  try
+  {
+    eval(snippet);
+    assert (false);
+  }
+  catch (e)
+  {
+    assert (e instanceof SyntaxError);
+  }
 }
+
+// These should be failed in ECMA-262 v5.1
+throw_error_strict("({a:1, a:2})");
+throw_error("({a:1, get a() { return 1 }})");
+throw_error("({get a() {return undefined}, get a() {return undefined}})");
+throw_error("({ get 1() {}, 1:1 })");
