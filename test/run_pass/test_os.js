@@ -29,7 +29,7 @@ var expected = [
     address: '127.0.0.1',
     netmask: '255.0.0.0', 
     family: 'IPv4',
-    broadcast: "127.0.0.1",
+    broadcast: '127.0.0.1',
     mac: '00:00:00:00:00:00'
   }
 ];
