@@ -9,16 +9,16 @@ switch (os.platform()) {
   case 'linux': {
     actual = interfaces.lo.filter(function (e) {
       return e.address === '127.0.0.1' &&
-              e.netmask === '255.0.0.0' &&
-               e.family === 'IPv4';
+             e.netmask === '255.0.0.0' &&
+             e.family === 'IPv4';
     });
     break;
   }
   case 'darwin': {
     actual = interfaces.lo0.filter(function (e) {
       return e.address === '127.0.0.1' &&
-              e.netmask === '255.0.0.0' &&
-              e.family === 'IPv4';
+             e.netmask === '255.0.0.0' &&
+             e.family === 'IPv4';
     });
     break;
   }
