@@ -339,6 +339,16 @@ int uv_interface_addresses(uv_interface_address_t** addresses, int* count) {
       address->netmask.netmask4 = *((struct sockaddr_in*) ent->ifa_netmask);
     }
 
+    if (ent->ifa_dstaddr) {
+      if (ent->ifa_dstaddr->sa_family == AF_INET6) {
+        address->broadcast.broadcast6 =
+          *((struct sockaddr_in6*) ent->ifa_dstaddr);
+      } else {
+        address->broadcast.broadcast4 =
+          *((struct sockaddr_in*) ent->ifa_dstaddr);
+      }
+    }
+
     address->is_internal = !!(ent->ifa_flags & IFF_LOOPBACK);
 
     address++;
