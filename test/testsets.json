@@ -100,6 +100,7 @@
     { "name": "test_net_https_post_status_codes.js", "timeout": 40, "skip": ["all"], "reason": "Implemented only for Tizen" },
     { "name": "test_net_https_request_response.js", "timeout": 40, "skip": ["all"], "reason": "Implemented only for Tizen" },
     { "name": "test_net_https_timeout.js", "timeout": 40, "skip": ["all"], "reason": "Implemented only for Tizen" },
+    { "name": "test_os.js" },
     { "name": "test_os_priority.js" },
     { "name": "test_process.js" },
     { "name": "test_process_chdir.js" },

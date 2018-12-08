@@ -76,6 +76,7 @@ exports.networkInterfaces = function() {
       address: item.address,
       netmask: item.netmask,
       family: item.family,
+      broadcast: item.broadcast,
       mac: item.mac,
     });
   }
