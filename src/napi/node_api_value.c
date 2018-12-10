@@ -335,7 +335,7 @@ napi_status napi_get_typedarray_info(napi_env env, napi_value typedarray,
    * WARNING: if the arraybuffer is managed by js engine,
    * write beyond address limit may lead to an unpredictable result.
    */
-  uint8_t* ptr = jerry_get_arraybuffer_pointer(jval);
+  uint8_t* ptr = jerry_get_arraybuffer_pointer(jval_arraybuffer);
 
   NAPI_ASSIGN(type, ntype);
   NAPI_ASSIGN(length, jlength);

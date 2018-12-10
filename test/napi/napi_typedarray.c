@@ -37,13 +37,17 @@ static napi_value Multiply(napi_env env, napi_callback_info info) {
   napi_value input_buffer;
   size_t byte_offset;
   size_t i, length;
-  NAPI_CALL(env, napi_get_typedarray_info(env, input_array, &type, &length,
-                                          NULL, &input_buffer, &byte_offset));
+  void* typed_data;
+  NAPI_CALL(env,
+            napi_get_typedarray_info(env, input_array, &type, &length,
+                                     &typed_data, &input_buffer, &byte_offset));
 
   void* data;
   size_t byte_length;
   NAPI_CALL(env,
             napi_get_arraybuffer_info(env, input_buffer, &data, &byte_length));
+  NAPI_ASSERT(env, typed_data == data,
+              "typed array data pointer shall be equal with array buffer");
 
   napi_value output_buffer;
   void* output_ptr = NULL;
