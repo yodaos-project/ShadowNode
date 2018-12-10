@@ -27,9 +27,13 @@ function ClientRequest(options, cb) {
   this.aborted = undefined;
 
   // get port, host and method.
-  var port = options.port = options.port || 80;
-  var host = options.host = options.hostname || options.host || '127.0.0.1';
+  var port = this.port = options.port = options.port || 80;
+  var host = this.host = options.host =
+    options.hostname ||
+    options.host ||
+    '127.0.0.1';
   var method = options.method || 'GET';
+  var Socket = options.Socket || net.Socket;
   this.path = options.path || '/';
 
   var methodIsString = (typeof method === 'string');
@@ -71,35 +75,34 @@ function ClientRequest(options, cb) {
     this.once('response', cb);
   }
 
-  // Create socket.
-  var socket = new net.Socket();
-
-  // connect server.
-  socket.connect(port, host);
-
   // setup connection information.
-  setupConnection(this, socket);
+  this.setupConnection(Socket);
 }
 
 util.inherits(ClientRequest, OutgoingMessage);
 
 exports.ClientRequest = ClientRequest;
 
+ClientRequest.prototype.setupConnection = function setupConnection(Socket) {
+  // Create socket.
+  var socket = new Socket({ port: this.port, host: this.host });
 
-function setupConnection(req, socket) {
+  // connect server.
+  socket.connect(this.port, this.host);
+
   var parser = common.createHTTPParser();
   parser.reinitialize(HTTPParser.RESPONSE);
   socket.parser = parser;
-  socket._httpMessage = req;
+  socket._httpMessage = this;
 
   parser.socket = socket;
   parser.incoming = null;
   parser._headers = [];
   parser.onIncoming = parserOnIncomingClient;
 
-  req.socket = socket;
-  req.connection = socket;
-  req.parser = parser;
+  this.socket = socket;
+  this.connection = socket;
+  this.parser = parser;
 
   socket.on('error', socketOnError);
   socket.on('data', socketOnData);
@@ -107,10 +110,10 @@ function setupConnection(req, socket) {
   socket.on('close', socketOnClose);
 
   // socket emitted when a socket is assigned to req
-  process.nextTick(function() {
-    req.emit('socket', socket);
+  process.nextTick(() => {
+    this.emit('socket', socket);
   });
-}
+};
 
 function cleanUpSocket(socket) {
   var parser = socket.parser;
@@ -171,10 +174,23 @@ function socketOnData(d) {
   var req = this._httpMessage;
   var parser = this.parser;
 
-  var ret = parser.execute(d);
-  if (ret instanceof Error) {
-    cleanUpSocket(socket);
-    req.emit('error', ret);
+  if (!this._buffer) {
+    this._buffer = d;
+  } else {
+    this._buffer = Buffer.concat([this._buffer, d]);
+  }
+
+  if (this._buffer.valid('utf8')) {
+    ondata(this._buffer);
+    this._buffer = null;
+  }
+
+  function ondata(valid) {
+    var ret = parser.execute(valid);
+    if (ret instanceof Error) {
+      cleanUpSocket(socket);
+      req.emit('error', ret);
+    }
   }
 }
 
