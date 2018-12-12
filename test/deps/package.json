@@ -1,0 +1,16 @@
+{
+  "name": "deps",
+  "version": "1.0.0",
+  "description": "dependences for tests",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm start"
+  },
+  "author": "lolBig <chhxxc@gmail.com>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "cricetulu": "^1.0.2",
+    "mosca": "^2.8.3",
+    "websocket": "^1.0.28"
+  }
+}

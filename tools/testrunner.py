@@ -327,6 +327,10 @@ def get_args():
 
 
 def main():
+    subprocess.Popen(["node", "./test/deps/index.js"],
+                     stdout=subprocess.PIPE,
+                     stderr=subprocess.PIPE)
+
     options = get_args()
 
     testrunner = TestRunner(options)

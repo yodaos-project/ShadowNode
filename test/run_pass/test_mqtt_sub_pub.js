@@ -3,7 +3,7 @@
 var mqtt = require('mqtt');
 var assert = require('assert');
 var common = require('../common');
-var bridge = 'mqtt://test.mosquitto.org:1883';
+var bridge = 'mqtt://127.0.0.1:1883';
 
 var opts = {
   reconnectPeriod: -1,
