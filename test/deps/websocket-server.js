@@ -4,7 +4,7 @@ var http = require('http');
 var fs = require('fs');
 var https = require('https');
 var path = require('path');
-var keyPath = path.resolve(__dirname, './test-key.pem')
+var keyPath = path.resolve(__dirname, './test-key.pem');
 var certPath = path.resolve(__dirname, './test-cert.pem')
 
 var port = 8080;
