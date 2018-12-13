@@ -1,8 +1,8 @@
 'use strict';
 var path = require('path');
 var mosca = require('mosca');
-var keyPath = path.resolve(__dirname, './test-key.pem')
-var certPath = path.resolve(__dirname, './test-cert.pem')
+var keyPath = path.resolve(__dirname, './test-key.pem');
+var certPath = path.resolve(__dirname, './test-cert.pem');
 
 var port = 1883;
 var idx = process.argv.indexOf('--port');
