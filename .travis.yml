@@ -35,7 +35,7 @@ script:
 - sudo $(which node) tools/http_server.js --port 80 &
 - sudo $(which node) tools/http_server.js --ssl --port 443 &
 # start websocket & mqtt service for testsets
-- sudo $(npm install) --prefix test/deps
+- sudo $(which npm) install --prefix test/deps
 - sudo $(which node) test/deps/
 # start dbus service
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export $(dbus-launch); fi
