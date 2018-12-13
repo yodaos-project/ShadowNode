@@ -22,6 +22,14 @@
 
 #ifndef JERRY_DISABLE_JS_PARSER
 
+JERRY_STATIC_ASSERT ((int) ECMA_PARSE_STRICT_MODE == (int) PARSER_IS_STRICT,
+                     ecma_parse_strict_mode_must_be_equal_to_parser_is_strict);
+
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+JERRY_STATIC_ASSERT ((ECMA_PARSE_CLASS_CONSTRUCTOR << PARSER_CLASS_PARSE_OPTS_OFFSET) == PARSER_CLASS_CONSTRUCTOR,
+                     ecma_class_parse_options_must_be_able_to_be_shifted_to_ecma_general_flags);
+#endif /* !CONFIG_DISABLE_ES2015 */
+
 /** \addtogroup parser Parser
  * @{
  *
@@ -1208,6 +1216,13 @@ parse_print_final_cbc (ecma_compiled_code_t *compiled_code_p, /**< compiled code
   }
 #endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
 
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  if (compiled_code_p->status_flags & CBC_CODE_FLAGS_CONSTRUCTOR)
+  {
+    JERRY_DEBUG_MSG (",constructor");
+  }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
   JERRY_DEBUG_MSG ("]\n");
 
   JERRY_DEBUG_MSG ("  Argument range end: %d\n", (int) argument_end);
@@ -1488,7 +1503,15 @@ parser_post_processing (parser_context_t *context_p) /**< context */
       flags = cbc_ext_flags[ext_opcode];
       PARSER_NEXT_BYTE (page_p, offset);
       length++;
+
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+      if (ext_opcode == CBC_EXT_CONSTRUCTOR_RETURN)
+      {
+        last_opcode = CBC_RETURN;
+      }
+#endif /* !CONFIG_DISABLE_ES2015 */
     }
+
 
     while (flags & (CBC_HAS_LITERAL_ARG | CBC_HAS_LITERAL_ARG2))
     {
@@ -1662,9 +1685,10 @@ parser_post_processing (parser_context_t *context_p) /**< context */
   compiled_code_p->size = (uint16_t) (total_size >> JMEM_ALIGNMENT_LOG);
   compiled_code_p->refs = 1;
   compiled_code_p->status_flags = CBC_CODE_FLAGS_FUNCTION;
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
+  compiled_code_p->source = ECMA_VALUE_EMPTY;
   compiled_code_p->name = ECMA_VALUE_EMPTY;
-#endif /* JERRY_FUNCTION_NAME */
+#endif /* JERRY_SOURCE_INFO */
 
   if (needs_uint16_arguments)
   {
@@ -1729,6 +1753,13 @@ parser_post_processing (parser_context_t *context_p) /**< context */
   }
 #endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
 
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  if (context_p->status_flags & PARSER_CLASS_CONSTRUCTOR)
+  {
+    compiled_code_p->status_flags |= CBC_CODE_FLAGS_CONSTRUCTOR;
+  }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
   literal_pool_p = (ecma_value_t *) byte_code_p;
   literal_pool_p -= context_p->register_count;
   byte_code_p += literal_length;
@@ -1779,7 +1810,7 @@ parser_post_processing (parser_context_t *context_p) /**< context */
     }
 
     /* Storing the opcode */
-    *dst_p++ = opcode;
+    *dst_p++ = (uint8_t) opcode;
     real_offset++;
     PARSER_NEXT_BYTE_UPDATE (page_p, offset, real_offset);
     flags = cbc_flags[opcode];
@@ -1801,7 +1832,7 @@ parser_post_processing (parser_context_t *context_p) /**< context */
       branch_offset_length = CBC_BRANCH_OFFSET_LENGTH (ext_opcode);
 
       /* Storing the extended opcode */
-      *dst_p++ = ext_opcode;
+      *dst_p++ = (uint8_t) ext_opcode;
       opcode_p++;
       real_offset++;
       PARSER_NEXT_BYTE_UPDATE (page_p, offset, real_offset);
@@ -2003,13 +2034,6 @@ parser_post_processing (parser_context_t *context_p) /**< context */
                                      compiled_code_p);
   }
 
-  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
-  {
-    jmem_cpointer_t compressed_compiled_code_cp;
-    JMEM_CP_SET_NON_NULL_POINTER (compressed_compiled_code_cp, compiled_code_p);
-    fprintf (JERRY_CONTEXT (parser_dump_fd), " %u\n", compressed_compiled_code_cp);
-  }
-
 #ifdef JERRY_DEBUGGER
   if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
   {
@@ -2152,16 +2176,25 @@ parser_parse_function_arguments (parser_context_t *context_p, /**< context */
  * @return compiled code
  */
 static ecma_compiled_code_t *
-parser_parse_source (const uint8_t *arg_list_p, /**< function argument list */
+parser_parse_source (const jerry_char_t *resource_name_p, /**< resource name (usually a file name) */
+                     size_t resource_name_length, /**< length of resource name */
+                     const uint8_t *arg_list_p, /**< function argument list */
                      size_t arg_list_size, /**< size of function argument list */
                      const uint8_t *source_p, /**< valid UTF-8 source code */
                      size_t source_size, /**< size of the source code */
-                     int strict_mode, /**< strict mode */
+                     uint32_t parse_opts, /**< ecma_parse_opts_t option bits */
                      parser_error_location_t *error_location_p) /**< error location */
 {
   parser_context_t context;
   ecma_compiled_code_t *compiled_code;
-
+  if (resource_name_p && resource_name_length > 0)
+  {
+    context.resource_name = ecma_find_or_create_literal_string (resource_name_p, (lit_utf8_size_t) resource_name_length);
+  }
+  else
+  {
+    context.resource_name = ECMA_VALUE_EMPTY;
+  }
   context.error = PARSER_ERR_NO_ERROR;
   context.allocated_buffer_p = NULL;
 
@@ -2195,11 +2228,11 @@ parser_parse_source (const uint8_t *arg_list_p, /**< function argument list */
   context.stack_limit = 0;
   context.last_context_p = NULL;
   context.last_statement.current_p = NULL;
+  context.status_flags |= parse_opts & PARSER_STRICT_MODE_MASK;
 
-  if (strict_mode)
-  {
-    context.status_flags |= PARSER_IS_STRICT;
-  }
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  context.status_flags |= PARSER_GET_CLASS_PARSER_OPTS (parse_opts);
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
   context.token.flags = 0;
   context.line = 1;
@@ -2275,6 +2308,11 @@ parser_parse_source (const uint8_t *arg_list_p, /**< function argument list */
     JERRY_ASSERT (context.allocated_buffer_p == NULL);
 
     compiled_code = parser_post_processing (&context);
+#ifdef JERRY_SOURCE_INFO
+    compiled_code->source = context.resource_name;
+    compiled_code->line = 1;
+    compiled_code->column = 1;
+#endif /* JERRY_SOURCE_INFO */
     parser_list_free (&context.literal_pool);
 
 #ifdef PARSER_DUMP_BYTE_CODE
@@ -2429,9 +2467,11 @@ parser_parse_function (parser_context_t *context_p, /**< context */
 {
   parser_saved_context_t saved_context;
   ecma_compiled_code_t *compiled_code_p;
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
   ecma_value_t name = ECMA_VALUE_EMPTY;
-#endif /* JERRY_FUNCTION_NAME */
+  uint16_t line = (uint16_t) context_p->token.line;
+  uint16_t column = (uint16_t) context_p->token.column;
+#endif /* JERRY_SOURCE_INFO */
 
   JERRY_ASSERT (status_flags & PARSER_IS_FUNCTION);
   parser_save_context (context_p, &saved_context);
@@ -2440,7 +2480,13 @@ parser_parse_function (parser_context_t *context_p, /**< context */
 #ifdef PARSER_DUMP_BYTE_CODE
   if (context_p->is_show_opcodes)
   {
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+    bool is_constructor = context_p->status_flags & PARSER_CLASS_CONSTRUCTOR;
+    JERRY_DEBUG_MSG (is_constructor ? "\n--- Class constructor parsing start ---\n\n"
+                                    : "\n--- Function parsing start ---\n\n");
+#else /* CONFIG_DISABLE_ES2015_CLASS */
     JERRY_DEBUG_MSG ("\n--- Function parsing start ---\n\n");
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
   }
 #endif /* PARSER_DUMP_BYTE_CODE */
 
@@ -2459,11 +2505,11 @@ parser_parse_function (parser_context_t *context_p, /**< context */
                                     &context_p->token.lit_location,
                                     LEXER_IDENT_LITERAL);
 
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
     /* record function name in bytecode */
     name = ecma_find_or_create_literal_string (context_p->lit_object.literal_p->u.char_p,
                                                context_p->lit_object.literal_p->prop.length);
-#endif /* JERRY_FUNCTION_NAME */
+#endif /* JERRY_SOURCE_INFO */
 
 #ifdef JERRY_DEBUGGER
     if (JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
@@ -2472,18 +2518,6 @@ parser_parse_function (parser_context_t *context_p, /**< context */
                                   JERRY_DEBUGGER_NO_SUBTYPE,
                                   context_p->lit_object.literal_p->u.char_p,
                                   context_p->lit_object.literal_p->prop.length);
-    }
-
-    if (JERRY_CONTEXT (parser_dump_fd) != NULL)
-    {
-      char func_name[context_p->lit_object.literal_p->prop.length + 1];
-      memset (func_name, 0, 
-              (size_t) context_p->lit_object.literal_p->prop.length + 1);
-      memcpy (func_name, 
-              context_p->lit_object.literal_p->u.char_p, 
-              context_p->lit_object.literal_p->prop.length);
-
-      fprintf (JERRY_CONTEXT (parser_dump_fd), "+ %s", func_name);
     }
 #endif /* JERRY_DEBUGGER */
 
@@ -2505,11 +2539,6 @@ parser_parse_function (parser_context_t *context_p, /**< context */
   }
 
 #ifdef JERRY_DEBUGGER
-  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
-  {
-    fprintf (JERRY_CONTEXT (parser_dump_fd), " [%d,%d]", debugger_line, debugger_column);
-  }
-
   if ((JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
       && jerry_debugger_send_parse_function (debugger_line, debugger_column))
   {
@@ -2555,21 +2584,36 @@ parser_parse_function (parser_context_t *context_p, /**< context */
   }
 
   lexer_next_token (context_p);
+
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  if ((context_p->status_flags & PARSER_CLASS_CONSTRUCTOR_SUPER) == PARSER_CLASS_CONSTRUCTOR_SUPER)
+  {
+    context_p->status_flags |= PARSER_LEXICAL_ENV_NEEDED;
+  }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
   parser_parse_statements (context_p);
   compiled_code_p = parser_post_processing (context_p);
 
 #ifdef PARSER_DUMP_BYTE_CODE
   if (context_p->is_show_opcodes)
   {
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+    bool is_constructor = context_p->status_flags & PARSER_CLASS_CONSTRUCTOR;
+    JERRY_DEBUG_MSG (is_constructor ? "\n--- Class constructor parsing end ---\n\n"
+                                    : "\n--- Function parsing end ---\n\n");
+#else /* CONFIG_DISABLE_ES2015_CLASS */
     JERRY_DEBUG_MSG ("\n--- Function parsing end ---\n\n");
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
   }
 #endif /* PARSER_DUMP_BYTE_CODE */
 
   parser_restore_context (context_p, &saved_context);
 
-#ifdef JERRY_FUNCTION_NAME
+#ifdef JERRY_SOURCE_INFO
   compiled_code_p->name = name;
-#endif /* JERRY_FUNCTION_NAME */
+  compiled_code_p->line = line;
+  compiled_code_p->column = column;
+#endif /* JERRY_SOURCE_INFO */
 
   return compiled_code_p;
 } /* parser_parse_function */
@@ -2588,10 +2632,18 @@ parser_parse_arrow_function (parser_context_t *context_p, /**< context */
   parser_saved_context_t saved_context;
   ecma_compiled_code_t *compiled_code_p;
 
+#ifdef JERRY_SOURCE_INFO
+  uint16_t line = (uint16_t) context_p->token.line;
+  uint16_t column = (uint16_t) context_p->token.column;
+#endif /* JERRY_SOURCE_INFO */
+
   JERRY_ASSERT ((status_flags & PARSER_IS_FUNCTION)
                  && (status_flags & PARSER_IS_ARROW_FUNCTION));
   parser_save_context (context_p, &saved_context);
   context_p->status_flags |= status_flags | PARSER_ARGUMENTS_NOT_NEEDED;
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  context_p->status_flags |= saved_context.status_flags & PARSER_CLASS_HAS_SUPER;
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
 #ifdef PARSER_DUMP_BYTE_CODE
   if (context_p->is_show_opcodes)
@@ -2599,13 +2651,6 @@ parser_parse_arrow_function (parser_context_t *context_p, /**< context */
     JERRY_DEBUG_MSG ("\n--- Arrow function parsing start ---\n\n");
   }
 #endif /* PARSER_DUMP_BYTE_CODE */
-
-  if (JERRY_CONTEXT (parser_dump_fd) != NULL)
-  {
-    fprintf (JERRY_CONTEXT (parser_dump_fd), " [%d,%d]", 
-                            context_p->token.line, 
-                            context_p->token.column);
-  }
 
 #ifdef JERRY_DEBUGGER
   if ((JERRY_CONTEXT (debugger_flags) & JERRY_DEBUGGER_CONNECTED)
@@ -2683,6 +2728,11 @@ parser_parse_arrow_function (parser_context_t *context_p, /**< context */
   }
 
   compiled_code_p = parser_post_processing (context_p);
+
+#ifdef JERRY_SOURCE_INFO
+  compiled_code_p->line = line;
+  compiled_code_p->column = column;
+#endif /* JERRY_SOURCE_INFO */
 
 #ifdef PARSER_DUMP_BYTE_CODE
   if (context_p->is_show_opcodes)
@@ -2788,11 +2838,13 @@ parser_send_breakpoints (parser_context_t *context_p, /**< context */
  *         syntax error - otherwise
  */
 ecma_value_t
-parser_parse_script (const uint8_t *arg_list_p, /**< function argument list */
+parser_parse_script (const uint8_t *resource_name_p, /**< resource name (usually a file name) */
+                     size_t resource_name_length, /**< length of resource name */
+                     const uint8_t *arg_list_p, /**< function argument list */
                      size_t arg_list_size, /**< size of function argument list */
                      const uint8_t *source_p, /**< source code */
                      size_t source_size, /**< size of the source code */
-                     bool is_strict, /**< strict mode */
+                     uint32_t parse_opts, /**< ecma_parse_opts_t option bits */
                      ecma_compiled_code_t **bytecode_data_p) /**< [out] JS bytecode */
 {
 #ifndef JERRY_DISABLE_JS_PARSER
@@ -2808,11 +2860,13 @@ parser_parse_script (const uint8_t *arg_list_p, /**< function argument list */
   }
 #endif /* JERRY_DEBUGGER */
 
-  *bytecode_data_p = parser_parse_source (arg_list_p,
+  *bytecode_data_p = parser_parse_source (resource_name_p,
+                                          resource_name_length,
+                                          arg_list_p,
                                           arg_list_size,
                                           source_p,
                                           source_size,
-                                          is_strict,
+                                          parse_opts,
                                           &parser_error);
 
   if (!*bytecode_data_p)
@@ -2884,7 +2938,7 @@ parser_parse_script (const uint8_t *arg_list_p, /**< function argument list */
   JERRY_UNUSED (arg_list_size);
   JERRY_UNUSED (source_p);
   JERRY_UNUSED (source_size);
-  JERRY_UNUSED (is_strict);
+  JERRY_UNUSED (parse_opts);
   JERRY_UNUSED (bytecode_data_p);
 
   return ecma_raise_syntax_error (ECMA_ERR_MSG ("The parser has been disabled."));

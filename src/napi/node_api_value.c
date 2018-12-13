@@ -18,6 +18,19 @@
 #include "internal/node_api_internal.h"
 #include "modules/iotjs_module_buffer.h"
 
+static void iotjs_napi_arraybuffer_external_free_cb(void* native_p) {
+  iotjs_arraybuffer_external_info_t* info =
+      (iotjs_arraybuffer_external_info_t*)native_p;
+  napi_env env = info->env;
+  void* external_data = info->external_data;
+  void* finalize_hint = info->finalize_hint;
+  napi_finalize finalize_cb = info->finalize_cb;
+  if (finalize_cb != NULL) {
+    finalize_cb(env, external_data, finalize_hint);
+  }
+  IOTJS_RELEASE(info);
+}
+
 napi_status napi_create_array(napi_env env, napi_value* result) {
   NAPI_TRY_ENV(env);
   JERRYX_CREATE(jval, jerry_create_array(0));
@@ -30,6 +43,41 @@ napi_status napi_create_array_with_length(napi_env env, size_t length,
   NAPI_TRY_ENV(env);
   JERRYX_CREATE(jval, jerry_create_array(length));
   NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
+  NAPI_RETURN(napi_ok);
+}
+
+napi_status napi_create_arraybuffer(napi_env env, size_t byte_length,
+                                    void** data, napi_value* result) {
+  NAPI_TRY_ENV(env);
+  JERRYX_CREATE(jval, jerry_create_arraybuffer(byte_length));
+  uint8_t* data_ptr = jerry_get_arraybuffer_pointer(jval);
+  NAPI_ASSIGN(data, data_ptr);
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
+  NAPI_RETURN(napi_ok);
+}
+
+napi_status napi_create_external_arraybuffer(napi_env env, void* external_data,
+                                             size_t byte_length,
+                                             napi_finalize finalize_cb,
+                                             void* finalize_hint,
+                                             napi_value* result) {
+  NAPI_TRY_ENV(env);
+  NAPI_WEAK_ASSERT_MSG(napi_invalid_arg, external_data != NULL,
+                       "External data pointer could not be NULL.");
+  NAPI_WEAK_ASSERT_MSG(napi_invalid_arg, byte_length != 0,
+                       "External data byte length could not be 0.");
+
+  iotjs_arraybuffer_external_info_t* info =
+      IOTJS_ALLOC(iotjs_arraybuffer_external_info_t);
+  info->env = env;
+  info->external_data = external_data;
+  info->finalize_hint = finalize_hint;
+  info->finalize_cb = finalize_cb;
+
+  JERRYX_CREATE(jval_arrbuf, jerry_create_arraybuffer_external(
+                                 byte_length, external_data, info,
+                                 iotjs_napi_arraybuffer_external_free_cb));
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_arrbuf));
   NAPI_RETURN(napi_ok);
 }
 
@@ -81,6 +129,42 @@ napi_status napi_create_object(napi_env env, napi_value* result) {
   NAPI_RETURN(napi_ok);
 }
 
+napi_status napi_create_typedarray(napi_env env, napi_typedarray_type type,
+                                   size_t length, napi_value arraybuffer,
+                                   size_t byte_offset, napi_value* result) {
+  NAPI_TRY_ENV(env);
+
+  jerry_typedarray_type_t jtype;
+#define CASE_NAPI_TYPEDARRAY_TYPE(type_name, jtype_name) \
+  case napi_##type_name##_array:                         \
+    jtype = JERRY_TYPEDARRAY_##jtype_name;               \
+    break;
+
+  switch (type) {
+    CASE_NAPI_TYPEDARRAY_TYPE(int8, INT8);
+    CASE_NAPI_TYPEDARRAY_TYPE(uint8, UINT8);
+    CASE_NAPI_TYPEDARRAY_TYPE(uint8_clamped, UINT8CLAMPED);
+    CASE_NAPI_TYPEDARRAY_TYPE(int16, INT16);
+    CASE_NAPI_TYPEDARRAY_TYPE(uint16, UINT16);
+    CASE_NAPI_TYPEDARRAY_TYPE(int32, INT32);
+    CASE_NAPI_TYPEDARRAY_TYPE(uint32, UINT32);
+    CASE_NAPI_TYPEDARRAY_TYPE(float32, FLOAT32);
+    CASE_NAPI_TYPEDARRAY_TYPE(float64, FLOAT64);
+    default:
+      jtype = JERRY_TYPEDARRAY_INVALID;
+  }
+#undef CASE_NAPI_TYPEDARRAY_TYPE
+
+  jerry_value_t jval_arraybuffer = AS_JERRY_VALUE(arraybuffer);
+  JERRYX_CREATE(jval,
+                jerry_create_typedarray_for_arraybuffer_sz(jtype,
+                                                           jval_arraybuffer,
+                                                           byte_offset,
+                                                           length));
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
+  NAPI_RETURN(napi_ok);
+}
+
 #define DEF_NAPI_CREATE_ERROR(type, jerry_error_type)                         \
   napi_status napi_create_##type(napi_env env, napi_value code,               \
                                  napi_value msg, napi_value* result) {        \
@@ -89,7 +173,6 @@ napi_status napi_create_object(napi_env env, napi_value* result) {
     jerry_value_t jval_code = AS_JERRY_VALUE(code);                           \
     jerry_value_t jval_msg = AS_JERRY_VALUE(msg);                             \
                                                                               \
-    NAPI_TRY_TYPE(string, jval_code);                                         \
     NAPI_TRY_TYPE(string, jval_msg);                                          \
                                                                               \
     jerry_size_t msg_size = jerry_get_utf8_string_size(jval_msg);             \
@@ -107,8 +190,12 @@ napi_status napi_create_object(napi_env env, napi_value* result) {
      * error flag.                                                            \
      */                                                                       \
     jerryx_create_handle(jval_error);                                         \
-                                                                              \
-    iotjs_jval_set_property_jval(jval_error, "code", jval_code);              \
+    /** code has to be an JS string type, thus it can not be an number 0 */   \
+    if (code != NULL) {                                                       \
+      NAPI_TRY_TYPE(string, jval_code);                                       \
+      iotjs_jval_set_property_jval(jval_error, IOTJS_MAGIC_STRING_CODE,       \
+                                   jval_code);                                \
+    }                                                                         \
     NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_error));                           \
                                                                               \
     NAPI_RETURN(napi_ok);                                                     \
@@ -171,6 +258,23 @@ napi_status napi_get_array_length(napi_env env, napi_value value,
   NAPI_RETURN(napi_ok);
 }
 
+napi_status napi_get_arraybuffer_info(napi_env env, napi_value arraybuffer,
+                                      void** data, size_t* byte_length) {
+  NAPI_TRY_ENV(env);
+  jerry_value_t jval = AS_JERRY_VALUE(arraybuffer);
+  jerry_length_t len = jerry_get_arraybuffer_byte_length(jval);
+
+  /**
+   * WARNING: if the arraybuffer is managed by js engine,
+   * write beyond address limit may lead to an unpredictable result.
+   */
+  uint8_t* ptr = jerry_get_arraybuffer_pointer(jval);
+
+  NAPI_ASSIGN(byte_length, len);
+  NAPI_ASSIGN(data, ptr);
+  NAPI_RETURN(napi_ok);
+}
+
 napi_status napi_get_buffer_info(napi_env env, napi_value value, void** data,
                                  size_t* length) {
   NAPI_TRY_ENV(env);
@@ -188,6 +292,56 @@ napi_status napi_get_prototype(napi_env env, napi_value object,
   jerry_value_t jval = AS_JERRY_VALUE(object);
   JERRYX_CREATE(jval_proto, jerry_get_prototype(jval));
   NAPI_ASSIGN(result, AS_NAPI_VALUE(jval_proto));
+  NAPI_RETURN(napi_ok);
+}
+
+napi_status napi_get_typedarray_info(napi_env env, napi_value typedarray,
+                                     napi_typedarray_type* type, size_t* length,
+                                     void** data, napi_value* arraybuffer,
+                                     size_t* byte_offset) {
+  NAPI_TRY_ENV(env);
+  jerry_value_t jval = AS_JERRY_VALUE(typedarray);
+  jerry_typedarray_type_t jtype = jerry_get_typedarray_type(jval);
+
+  napi_typedarray_type ntype;
+#define CASE_JERRY_TYPEDARRAY_TYPE(jtype_name, type_name) \
+  case JERRY_TYPEDARRAY_##jtype_name:                     \
+    ntype = napi_##type_name##_array;                     \
+    break;
+
+  switch (jtype) {
+    CASE_JERRY_TYPEDARRAY_TYPE(INT8, int8);
+    CASE_JERRY_TYPEDARRAY_TYPE(UINT8, uint8);
+    CASE_JERRY_TYPEDARRAY_TYPE(UINT8CLAMPED, uint8_clamped);
+    CASE_JERRY_TYPEDARRAY_TYPE(INT16, int16);
+    CASE_JERRY_TYPEDARRAY_TYPE(UINT16, uint16);
+    CASE_JERRY_TYPEDARRAY_TYPE(INT32, int32);
+    CASE_JERRY_TYPEDARRAY_TYPE(UINT32, uint32);
+    CASE_JERRY_TYPEDARRAY_TYPE(FLOAT32, float32);
+    CASE_JERRY_TYPEDARRAY_TYPE(FLOAT64, float64);
+    default:
+      NAPI_ASSERT(0, "Unknown Jerry TypedArray Type.");
+  }
+#undef CASE_JERRY_TYPEDARRAY_TYPE
+
+  jerry_length_t jlength = jerry_get_typedarray_length(jval);
+  jerry_length_t jbyte_offset;
+  jerry_length_t jbyte_length;
+  JERRYX_CREATE(jval_arraybuffer,
+                jerry_get_typedarray_buffer(jval, &jbyte_offset,
+                                            &jbyte_length));
+
+  /**
+   * WARNING: if the arraybuffer is managed by js engine,
+   * write beyond address limit may lead to an unpredictable result.
+   */
+  uint8_t* ptr = jerry_get_arraybuffer_pointer(jval_arraybuffer);
+
+  NAPI_ASSIGN(type, ntype);
+  NAPI_ASSIGN(length, jlength);
+  NAPI_ASSIGN(data, ptr);
+  NAPI_ASSIGN(arraybuffer, AS_NAPI_VALUE(jval_arraybuffer));
+  NAPI_ASSIGN(byte_offset, jbyte_offset);
   NAPI_RETURN(napi_ok);
 }
 

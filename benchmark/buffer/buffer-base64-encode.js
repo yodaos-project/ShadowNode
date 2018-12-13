@@ -14,9 +14,9 @@ function main(opts) {
   var i;
   for (i = 0; i < 256; ++i)
     s += String.fromCharCode(i);
-  for (i = 0; i < len; i += 256) 
+  for (i = 0; i < len; i += 256)
     b.write(s, i, 256, 'ascii');
-  
+
   bench.start();
   for (i = 0; i < n; ++i)
     b.toString('base64');

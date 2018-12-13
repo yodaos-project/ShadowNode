@@ -330,7 +330,7 @@ strict_equals (jerry_value_t a,
   jerry_value_t res;
 
   is_equal_src = "var isEqual = function(a, b) { return (a === b); }; isEqual";
-  is_equal_fn_val = jerry_eval ((jerry_char_t *) is_equal_src, strlen (is_equal_src), false);
+  is_equal_fn_val = jerry_eval ((jerry_char_t *) is_equal_src, strlen (is_equal_src), JERRY_PARSE_NO_OPTS);
   TEST_ASSERT (!jerry_value_has_error_flag (is_equal_fn_val));
   args[0] = a;
   args[1] = b;
@@ -366,7 +366,11 @@ main (void)
 
   jerry_init (JERRY_INIT_EMPTY);
 
-  parsed_code_val = jerry_parse ((jerry_char_t *) test_source, strlen (test_source), false);
+  parsed_code_val = jerry_parse (NULL,
+                                 0,
+                                 (jerry_char_t *) test_source,
+                                 strlen (test_source),
+                                 JERRY_PARSE_NO_OPTS);
   TEST_ASSERT (!jerry_value_has_error_flag (parsed_code_val));
 
   res = jerry_run (parsed_code_val);
@@ -872,7 +876,7 @@ main (void)
 
   jerry_value_t v_in = jerry_create_number (10.5);
   jerry_set_property_by_index (array_obj_val, 5, v_in);
-  
+
   jerry_value_t v_has_out = jerry_has_property_by_index (array_obj_val, 5);
   TEST_ASSERT (jerry_value_to_boolean (v_has_out) == true);
 
@@ -941,7 +945,7 @@ main (void)
   jerry_release_value (res);
 
   /* Test: jerry_value_to_primitive */
-  obj_val = jerry_eval ((jerry_char_t *) "new String ('hello')", 20, false);
+  obj_val = jerry_eval ((jerry_char_t *) "new String ('hello')", 20, JERRY_PARSE_NO_OPTS);
   TEST_ASSERT (!jerry_value_has_error_flag (obj_val));
   TEST_ASSERT (jerry_value_is_object (obj_val));
   TEST_ASSERT (!jerry_value_is_string (obj_val));
@@ -975,7 +979,7 @@ main (void)
 
   /* Test: eval */
   const char *eval_code_src_p = "(function () { return 123; })";
-  val_t = jerry_eval ((jerry_char_t *) eval_code_src_p, strlen (eval_code_src_p), true);
+  val_t = jerry_eval ((jerry_char_t *) eval_code_src_p, strlen (eval_code_src_p), JERRY_PARSE_STRICT_MODE);
   TEST_ASSERT (!jerry_value_has_error_flag (val_t));
   TEST_ASSERT (jerry_value_is_object (val_t));
   TEST_ASSERT (jerry_value_is_function (val_t));
@@ -996,7 +1000,7 @@ main (void)
 
   /* Test: spaces */
   eval_code_src_p = "\x0a \x0b \x0c \xc2\xa0 \xe2\x80\xa8 \xe2\x80\xa9 \xef\xbb\xbf 4321";
-  val_t = jerry_eval ((jerry_char_t *) eval_code_src_p, strlen (eval_code_src_p), true);
+  val_t = jerry_eval ((jerry_char_t *) eval_code_src_p, strlen (eval_code_src_p), JERRY_PARSE_STRICT_MODE);
   TEST_ASSERT (!jerry_value_has_error_flag (val_t));
   TEST_ASSERT (jerry_value_is_number (val_t)
                && jerry_get_number_value (val_t) == 4321.0);
@@ -1029,7 +1033,7 @@ main (void)
                                                  strlen (func_arg_list),
                                                  (const jerry_char_t *) func_src,
                                                  strlen (func_src),
-                                                 false);
+                                                 JERRY_PARSE_NO_OPTS);
 
   TEST_ASSERT (!jerry_value_has_error_flag (func_val));
 
@@ -1072,9 +1076,11 @@ main (void)
     jerry_init (JERRY_INIT_SHOW_OPCODES);
 
     const char *parser_err_src_p = "b = 'hello';\nvar a = (;";
-    parsed_code_val = jerry_parse ((jerry_char_t *) parser_err_src_p,
+    parsed_code_val = jerry_parse (NULL,
+                                   0,
+                                   (jerry_char_t *) parser_err_src_p,
                                    strlen (parser_err_src_p),
-                                   false);
+                                   JERRY_PARSE_NO_OPTS);
     TEST_ASSERT (jerry_value_has_error_flag (parsed_code_val));
     jerry_value_clear_error_flag (&parsed_code_val);
     jerry_value_t err_str_val = jerry_value_to_string (parsed_code_val);
@@ -1100,7 +1106,11 @@ main (void)
                                 magic_string_lengths);
 
   const char *ms_code_src_p = "var global = {}; var console = [1]; var process = 1;";
-  parsed_code_val = jerry_parse ((jerry_char_t *) ms_code_src_p, strlen (ms_code_src_p), false);
+  parsed_code_val = jerry_parse (NULL,
+                                 0,
+                                 (jerry_char_t *) ms_code_src_p,
+                                 strlen (ms_code_src_p),
+                                 JERRY_PARSE_NO_OPTS);
   TEST_ASSERT (!jerry_value_has_error_flag (parsed_code_val));
 
   res = jerry_run (parsed_code_val);
@@ -1127,7 +1137,7 @@ main (void)
   const char *test_magic_str_access_src_p = "'console'.charAt(6) == 'e'";
   res = jerry_eval ((const jerry_char_t *) test_magic_str_access_src_p,
                     strlen (test_magic_str_access_src_p),
-                    false);
+                    JERRY_PARSE_NO_OPTS);
   TEST_ASSERT (jerry_value_is_boolean (res));
   TEST_ASSERT (jerry_get_boolean_value (res) == true);
 

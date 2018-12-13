@@ -245,6 +245,16 @@ typedef struct uv_udp_send_s uv_udp_send_t;
 typedef struct uv_fs_s uv_fs_t;
 typedef struct uv_work_s uv_work_t;
 
+#define UV_PRIORITY_LOW 19
+#define UV_PRIORITY_BELOW_NORMAL 10
+#define UV_PRIORITY_NORMAL 0
+#define UV_PRIORITY_ABOVE_NORMAL -7
+#define UV_PRIORITY_HIGH -14
+#define UV_PRIORITY_HIGHEST -20
+
+UV_EXTERN int uv_os_getpriority(uv_pid_t pid, int* priority);
+UV_EXTERN int uv_os_setpriority(uv_pid_t pid, int priority);
+
 /* None of the above. */
 typedef struct uv_cpu_info_s uv_cpu_info_t;
 typedef struct uv_interface_address_s uv_interface_address_t;
@@ -1055,6 +1065,10 @@ struct uv_interface_address_s {
     struct sockaddr_in netmask4;
     struct sockaddr_in6 netmask6;
   } netmask;
+  union {
+    struct sockaddr_in broadcast4;
+    struct sockaddr_in6 broadcast6;
+  } broadcast;
 };
 
 struct uv_passwd_s {

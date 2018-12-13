@@ -23,7 +23,7 @@ static int check_pointer( void *p )
 /* END_SUITE_HELPERS */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
-void mbedtls_memory_buffer_alloc_self_test( )
+void mbedtls_memory_buffer_alloc_self_test(  )
 {
     TEST_ASSERT( mbedtls_memory_buffer_alloc_self_test( 1 ) == 0 );
 }
@@ -31,10 +31,9 @@ void mbedtls_memory_buffer_alloc_self_test( )
 
 /* BEGIN_CASE depends_on:MBEDTLS_MEMORY_DEBUG */
 void memory_buffer_alloc_free_alloc( int a_bytes, int b_bytes, int c_bytes,
-                                        int d_bytes,
-                                     int free_a, int free_b, int free_c,
-                                        int free_d,
-                                     int e_bytes, int f_bytes )
+                                     int d_bytes, int free_a, int free_b,
+                                     int free_c, int free_d, int e_bytes,
+                                     int f_bytes )
 {
     unsigned char buf[1024];
     unsigned char *ptr_a = NULL, *ptr_b = NULL, *ptr_c = NULL, *ptr_d = NULL,
@@ -190,7 +189,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MEMORY_DEBUG */
-void memory_buffer_alloc_oom_test()
+void memory_buffer_alloc_oom_test(  )
 {
     unsigned char buf[1024];
     unsigned char *ptr_a = NULL, *ptr_b = NULL, *ptr_c = NULL;
@@ -232,3 +231,31 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_MEMORY_DEBUG */
+void memory_buffer_small_buffer( )
+{
+    unsigned char buf[1];
+
+    mbedtls_memory_buffer_alloc_init( buf, sizeof( buf ) );
+    TEST_ASSERT( mbedtls_memory_buffer_alloc_verify() != 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_MEMORY_DEBUG */
+void memory_buffer_underalloc( )
+{
+    unsigned char buf[100];
+    size_t i;
+
+    mbedtls_memory_buffer_alloc_init( buf, sizeof( buf ) );
+    for( i = 1; i < MBEDTLS_MEMORY_ALIGN_MULTIPLE; i++ )
+    {
+        TEST_ASSERT( mbedtls_calloc( 1,
+                     (size_t)-( MBEDTLS_MEMORY_ALIGN_MULTIPLE - i ) ) == NULL );
+        TEST_ASSERT( mbedtls_memory_buffer_alloc_verify() == 0 );
+    }
+
+exit:
+    mbedtls_memory_buffer_alloc_free();
+}
+/* END_CASE */

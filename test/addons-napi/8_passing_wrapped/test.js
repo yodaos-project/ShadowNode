@@ -12,5 +12,6 @@ assert.strictEqual(result, 30);
 
 // Make sure the native destructor gets called.
 obj1 = null;
+obj2 = null;
 global.gc();
-assert.strictEqual(addon.finalizeCount(), 1);
+assert.strictEqual(addon.finalizeCount(), 2);

@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 2.8)
 project(IOTJS C)
 
 set(IOTJS_VERSION_MAJOR 0)
-set(IOTJS_VERSION_MINOR 10)
+set(IOTJS_VERSION_MINOR 11)
 set(IOTJS_VERSION_PATCH 0)
 
 # Do a few default checks
@@ -58,13 +58,7 @@ if(NOT DEFINED DISABLE_ES2015)
   set(FEATURE_PROFILE "es2015-subset")
 endif()
 
-if(FEATURE_CPU_PROFILER)
-  set(FEATURE_FUNCTION_NAME ON)
-endif()
-
-if(FEATURE_HEAP_PROFILER)
-  set(FEATURE_FUNCTION_NAME ON)
-endif()
+set(FEATURE_PROFILE ${CMAKE_CURRENT_SOURCE_DIR}/profiles/jerry/default.profile)
 
 macro(iotjs_add_flags VAR)
   foreach(_flag ${ARGN})

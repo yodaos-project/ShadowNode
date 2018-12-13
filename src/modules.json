@@ -13,6 +13,7 @@
         "https",
         "mqtt",
         "net",
+        "internal_process_next_tick",
         "os",
         "path",
         "profiler",
@@ -293,8 +294,12 @@
       "js_file": "js/net.js",
       "require": ["assert", "events", "stream", "tcp", "util"]
     },
+    "internal_process_next_tick": {
+      "js_file": "js/internal/process/next_tick.js"
+    },
     "os": {
       "js_file": "js/os.js",
+      "require": ["constants"],
       "native_files": ["modules/iotjs_module_os.c"],
       "init": "InitOs"
     },

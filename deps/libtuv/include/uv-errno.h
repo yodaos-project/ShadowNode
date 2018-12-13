@@ -23,6 +23,11 @@
 #define UV_ERRNO_H_
 
 #include <errno.h>
+#if EDOM > 0
+# define UV__ERR(x) (-(x))
+#else
+# define UV__ERR(x) (x)
+#endif
 
 #define UV__EOF     (-4095)
 #define UV__UNKNOWN (-4094)

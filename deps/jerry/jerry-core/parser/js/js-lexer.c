@@ -274,6 +274,23 @@ lexer_skip_spaces (parser_context_t *context_p) /**< context */
   }
 } /* lexer_skip_spaces */
 
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+/**
+ * Skip all the continuous empty statements.
+ */
+void
+lexer_skip_empty_statements (parser_context_t *context_p) /**< context */
+{
+  lexer_skip_spaces (context_p);
+   while (context_p->source_p < context_p->source_end_p
+         && *context_p->source_p == LIT_CHAR_SEMICOLON)
+  {
+    context_p->source_p++;
+    lexer_skip_spaces (context_p);
+  }
+} /* lexer_skip_empty_statements */
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
 /**
  * Keyword data.
  */
@@ -326,11 +343,23 @@ static const keyword_string_t keyword_length_4[9] =
   LEXER_KEYWORD_END ()
 };
 
+#ifndef CONFIG_DISABLE_ES2015
+/**
+ * Number of keywords with 5 characters.
+ */
+#define KEYWORD_LENGTH_COUNT 11
+#else /* CONFIG_DISABLE_ES2015 */
+#define KEYWORD_LENGTH_COUNT 10
+#endif /* !CONFIG_DISABLE_ES2015 */
+
 /**
  * Keywords with 5 characters.
  */
-static const keyword_string_t keyword_length_5[10] =
+static const keyword_string_t keyword_length_5[KEYWORD_LENGTH_COUNT] =
 {
+#ifndef CONFIG_DISABLE_ES2015
+  LEXER_KEYWORD ("await", LEXER_KEYW_AWAIT),
+#endif /* !CONFIG_DISABLE_ES2015 */
   LEXER_KEYWORD ("break", LEXER_KEYW_BREAK),
   LEXER_KEYWORD ("catch", LEXER_KEYW_CATCH),
   LEXER_KEYWORD ("class", LEXER_KEYW_CLASS),
@@ -532,7 +561,7 @@ lexer_parse_identifier (parser_context_t *context_p, /**< context */
           break;
         }
 
-        context_p->token.type = keyword_p->type;
+        context_p->token.type = (uint8_t) keyword_p->type;
         break;
       }
       keyword_p++;
@@ -863,25 +892,25 @@ lexer_parse_number (parser_context_t *context_p) /**< context */
       while (source_p < source_end_p
              && lit_char_is_hex_digit (source_p[0]));
     }
-    else if (source_p[1] == LIT_CHAR_UPPERCASE_O || 
+    else if (source_p[1] == LIT_CHAR_UPPERCASE_O ||
              source_p[1] == LIT_CHAR_LOWERCASE_O ||
              (source_p[1] >= LIT_CHAR_0 && source_p[1] <= LIT_CHAR_7))
     {
       context_p->token.extra_value = LEXER_NUMBER_OCTAL;
 
-      if (source_p[1] == LIT_CHAR_UPPERCASE_O || 
+      if (source_p[1] == LIT_CHAR_UPPERCASE_O ||
           source_p[1] == LIT_CHAR_LOWERCASE_O)
       {
         source_p++;
       }
       else if (context_p->status_flags & PARSER_IS_STRICT)
       {
-        // FIXME(Yorkie): In strict mode, only legacyOctalIntegerLiteral 
+        // FIXME(Yorkie): In strict mode, only legacyOctalIntegerLiteral
         // is disallowed, but OctalIntegerLiteral is allowed.
         parser_raise_error (context_p, PARSER_ERR_OCTAL_NUMBER_NOT_ALLOWED);
       }
 
-      do 
+      do
       {
         source_p++;
       }
@@ -1268,21 +1297,22 @@ lexer_next_token (parser_context_t *context_p) /**< context */
 #undef LEXER_TYPE_D_TOKEN
 
 /**
- * Checks whether the next token is a colon.
+ * Checks whether the next token is the specified character.
  *
- * @return true - if the next token is a colon
+ * @return true - if the next is the specified character
  *         false - otherwise
  */
 bool
-lexer_check_colon (parser_context_t *context_p) /**< context */
+lexer_check_next_character (parser_context_t *context_p, /**< context */
+                            lit_utf8_byte_t character) /**< specified character */
 {
   lexer_skip_spaces (context_p);
 
   context_p->token.flags = (uint8_t) (context_p->token.flags | LEXER_NO_SKIP_SPACES);
 
   return (context_p->source_p < context_p->source_end_p
-          && context_p->source_p[0] == (uint8_t) LIT_CHAR_COLON);
-} /* lexer_check_colon */
+          && context_p->source_p[0] == (uint8_t) character);
+} /* lexer_check_next_character */
 
 #ifndef CONFIG_DISABLE_ES2015_ARROW_FUNCTION
 
@@ -1745,7 +1775,7 @@ lexer_construct_number_object (parser_context_t *context_p, /**< context */
     }
 
     num = 0;
-    do 
+    do
     {
       src_p++;
       num = num * 8 + (ecma_number_t) (*src_p - LIT_CHAR_0);
@@ -1856,6 +1886,10 @@ lexer_construct_function_object (parser_context_t *context_p, /**< context */
 #else /* CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
   compiled_code_p = parser_parse_function (context_p, extra_status_flags);
 #endif /* !CONFIG_DISABLE_ES2015_ARROW_FUNCTION */
+
+#ifdef JERRY_SOURCE_INFO
+  compiled_code_p->source = context_p->resource_name;
+#endif /* JERRY_SOURCE_INFO */
 
   literal_p->u.bytecode_p = compiled_code_p;
   literal_p->type = LEXER_FUNCTION_LITERAL;
@@ -2127,24 +2161,20 @@ lexer_expect_identifier (parser_context_t *context_p, /**< context */
   parser_raise_error (context_p, PARSER_ERR_IDENTIFIER_EXPECTED);
 } /* lexer_expect_identifier */
 
-static const lexer_lit_location_t lexer_get_literal =
-{
-  (const uint8_t *) "get", 3, LEXER_IDENT_LITERAL, false
-};
-
-static const lexer_lit_location_t lexer_set_literal =
-{
-  (const uint8_t *) "set", 3, LEXER_IDENT_LITERAL, false
-};
-
 /**
  * Next token must be an identifier.
  */
 void
 lexer_expect_object_literal_id (parser_context_t *context_p, /**< context */
-                                bool must_be_identifier) /**< only identifiers are accepted */
+                                uint32_t ident_opts) /**< lexer_obj_ident_opts_t option bits */
 {
   lexer_skip_spaces (context_p);
+
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  int is_class_method = ((ident_opts & LEXER_OBJ_IDENT_CLASS_METHOD)
+                         && !(ident_opts & LEXER_OBJ_IDENT_ONLY_IDENTIFIERS)
+                         && (context_p->token.type != LEXER_KEYW_STATIC));
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
   context_p->token.line = context_p->line;
   context_p->token.column = context_p->column;
@@ -2157,7 +2187,7 @@ lexer_expect_object_literal_id (parser_context_t *context_p, /**< context */
     {
       lexer_parse_identifier (context_p, false);
 
-      if (!must_be_identifier
+      if (!(ident_opts & LEXER_OBJ_IDENT_ONLY_IDENTIFIERS)
           && context_p->token.lit_location.length == 3)
       {
         lexer_skip_spaces (context_p);
@@ -2165,18 +2195,27 @@ lexer_expect_object_literal_id (parser_context_t *context_p, /**< context */
         if (context_p->source_p < context_p->source_end_p
             && context_p->source_p[0] != LIT_CHAR_COLON)
         {
-          if (lexer_compare_identifier_to_current (context_p, &lexer_get_literal))
+          if (lexer_compare_raw_identifier_to_current (context_p, "get", 3))
           {
             context_p->token.type = LEXER_PROPERTY_GETTER;
             return;
           }
-          else if (lexer_compare_identifier_to_current (context_p, &lexer_set_literal))
+          else if (lexer_compare_raw_identifier_to_current (context_p, "set", 3))
           {
             context_p->token.type = LEXER_PROPERTY_SETTER;
             return;
           }
         }
       }
+
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+      if (is_class_method
+          && lexer_compare_raw_identifier_to_current (context_p, "static", 6))
+      {
+        context_p->token.type = LEXER_KEYW_STATIC;
+        return;
+      }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
       create_literal_object = true;
     }
@@ -2186,7 +2225,23 @@ lexer_expect_object_literal_id (parser_context_t *context_p, /**< context */
       lexer_parse_string (context_p);
       create_literal_object = true;
     }
-    else if (!must_be_identifier && context_p->source_p[0] == LIT_CHAR_RIGHT_BRACE)
+#ifndef CONFIG_DISABLE_ES2015_OBJECT_INITIALIZER
+    else if (context_p->source_p[0] == LIT_CHAR_LEFT_SQUARE)
+    {
+      context_p->source_p += 1;
+      context_p->column++;
+
+      lexer_next_token (context_p);
+      parser_parse_expression (context_p, PARSE_EXPR_NO_COMMA);
+
+      if (context_p->token.type != LEXER_RIGHT_SQUARE)
+      {
+        parser_raise_error (context_p, PARSER_ERR_RIGHT_SQUARE_EXPECTED);
+      }
+      return;
+    }
+#endif /* CONFIG_DISABLE_ES2015_OBJECT_INITIALIZER */
+    else if (!(ident_opts & LEXER_OBJ_IDENT_ONLY_IDENTIFIERS) && context_p->source_p[0] == LIT_CHAR_RIGHT_BRACE)
     {
       context_p->token.type = LEXER_RIGHT_BRACE;
       context_p->source_p += 1;
@@ -2214,6 +2269,15 @@ lexer_expect_object_literal_id (parser_context_t *context_p, /**< context */
 
     if (create_literal_object)
     {
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+      if (is_class_method
+          && lexer_compare_raw_identifier_to_current (context_p, "constructor", 11))
+      {
+        context_p->token.type = LEXER_CLASS_CONSTRUCTOR;
+        return;
+      }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
       lexer_construct_literal_object (context_p,
                                       &context_p->token.lit_location,
                                       LEXER_STRING_LITERAL);
@@ -2247,11 +2311,11 @@ lexer_scan_identifier (parser_context_t *context_p, /**< context */
       if (context_p->source_p < context_p->source_end_p
           && context_p->source_p[0] != LIT_CHAR_COLON)
       {
-        if (lexer_compare_identifier_to_current (context_p, &lexer_get_literal))
+        if (lexer_compare_raw_identifier_to_current (context_p, "get", 3))
         {
           context_p->token.type = LEXER_PROPERTY_GETTER;
         }
-        else if (lexer_compare_identifier_to_current (context_p, &lexer_set_literal))
+        else if (lexer_compare_raw_identifier_to_current (context_p, "set", 3))
         {
           context_p->token.type = LEXER_PROPERTY_SETTER;
         }
@@ -2275,35 +2339,37 @@ lexer_scan_identifier (parser_context_t *context_p, /**< context */
 } /* lexer_scan_identifier */
 
 /**
- * Compares the given identifier to that which is the current token
- * in the parser context.
+ * Compares the current identifier in the context to the parameter identifier
+ *
+ * Note:
+ *   Escape sequences are allowed.
  *
  * @return true if the input identifiers are the same
  */
 bool
-lexer_compare_identifier_to_current (parser_context_t *context_p,        /**< context */
-                                     const lexer_lit_location_t *right)  /**< identifier */
+lexer_compare_identifier_to_current (parser_context_t *context_p, /**< context */
+                                     const lexer_lit_location_t *right_ident_p) /**< identifier */
 {
-  lexer_lit_location_t *left = &context_p->token.lit_location;
+  lexer_lit_location_t *left_ident_p = &context_p->token.lit_location;
   const uint8_t *left_p;
   const uint8_t *right_p;
   size_t count;
 
-  JERRY_ASSERT (left->length > 0 && right->length > 0);
+  JERRY_ASSERT (left_ident_p->length > 0 && right_ident_p->length > 0);
 
-  if (left->length != right->length)
+  if (left_ident_p->length != right_ident_p->length)
   {
     return 0;
   }
 
-  if (!left->has_escape && !right->has_escape)
+  if (!left_ident_p->has_escape && !right_ident_p->has_escape)
   {
-    return memcmp (left->char_p, right->char_p, left->length) == 0;
+    return memcmp (left_ident_p->char_p, right_ident_p->char_p, left_ident_p->length) == 0;
   }
 
-  left_p = left->char_p;
-  right_p = right->char_p;
-  count = left->length;
+  left_p = left_ident_p->char_p;
+  right_p = right_ident_p->char_p;
+  count = left_ident_p->length;
 
   do
   {
@@ -2323,9 +2389,9 @@ lexer_compare_identifier_to_current (parser_context_t *context_p,        /**< co
 
     if (*left_p == LIT_CHAR_BACKSLASH && *right_p == LIT_CHAR_BACKSLASH)
     {
-      uint16_t left_chr = lexer_hex_to_character (context_p, left_p, 6);
+      uint16_t left_chr = lexer_hex_to_character (context_p, left_p + 2, 4);
 
-      if (left_chr != lexer_hex_to_character (context_p, right_p, 6))
+      if (left_chr != lexer_hex_to_character (context_p, right_p + 2, 4))
       {
         return false;
       }
@@ -2345,7 +2411,7 @@ lexer_compare_identifier_to_current (parser_context_t *context_p,        /**< co
       right_p = swap_p;
     }
 
-    utf8_len = lit_char_to_utf8_bytes (utf8_buf, lexer_hex_to_character (context_p, left_p, 6));
+    utf8_len = lit_char_to_utf8_bytes (utf8_buf, lexer_hex_to_character (context_p, left_p + 2, 4));
     JERRY_ASSERT (utf8_len > 0);
     count -= utf8_len;
     offset = 0;
@@ -2366,6 +2432,29 @@ lexer_compare_identifier_to_current (parser_context_t *context_p,        /**< co
 
   return true;
 } /* lexer_compare_identifier_to_current */
+
+/**
+ * Compares the current identifier in the context to the parameter identifier
+ *
+ * Note:
+ *   Escape sequences are not allowed.
+ *
+ * @return true if the input identifiers are the same
+ */
+bool
+lexer_compare_raw_identifier_to_current (parser_context_t *context_p, /**< context */
+                                         const char *right_ident_p, /**< identifier */
+                                         size_t right_ident_length) /**< identifier length */
+{
+  lexer_lit_location_t *left_ident_p = &context_p->token.lit_location;
+
+  if (left_ident_p->length != right_ident_length || left_ident_p->has_escape)
+  {
+    return 0;
+  }
+
+  return memcmp (left_ident_p->char_p, right_ident_p, right_ident_length) == 0;
+} /* lexer_compare_raw_identifier_to_current */
 
 /**
  * @}

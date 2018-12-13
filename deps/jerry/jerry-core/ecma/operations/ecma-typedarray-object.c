@@ -250,7 +250,7 @@ ecma_typedarray_create_object_with_length (ecma_length_t array_length, /**< leng
                                                 ECMA_OBJECT_TYPE_PSEUDO_ARRAY);
 
   ecma_extended_object_t *ext_object_p = (ecma_extended_object_t *) object_p;
-  ext_object_p->u.pseudo_array.u1.class_id = class_id;
+  ext_object_p->u.pseudo_array.u1.class_id = (uint16_t) class_id;
   ext_object_p->u.pseudo_array.type = ECMA_PSEUDO_ARRAY_TYPEDARRAY;
   ext_object_p->u.pseudo_array.extra_info = element_size_shift;
   ext_object_p->u.pseudo_array.u2.arraybuffer = new_arraybuffer_p;
@@ -258,7 +258,7 @@ ecma_typedarray_create_object_with_length (ecma_length_t array_length, /**< leng
   ecma_free_value (new_arraybuffer_p);
 
   return ecma_make_object_value (object_p);
-} /* !ecma_typedarray_create_object_with_length */
+} /* ecma_typedarray_create_object_with_length */
 
 /**
  * Create a TypedArray object by given buffer, offset, and array_length
@@ -286,7 +286,7 @@ ecma_typedarray_create_object_with_buffer (ecma_object_t *arraybuffer_p, /**< th
   ecma_object_t *object_p = ecma_create_object (proto_p, object_size, ECMA_OBJECT_TYPE_PSEUDO_ARRAY);
 
   ecma_extended_object_t *ext_object_p = (ecma_extended_object_t *) object_p;
-  ext_object_p->u.pseudo_array.u1.class_id = class_id;
+  ext_object_p->u.pseudo_array.u1.class_id = (uint16_t) class_id;
   ext_object_p->u.pseudo_array.type = ECMA_PSEUDO_ARRAY_TYPEDARRAY;
   ext_object_p->u.pseudo_array.extra_info = element_size_shift;
   ext_object_p->u.pseudo_array.u2.arraybuffer = ecma_make_object_value (arraybuffer_p);
@@ -985,12 +985,45 @@ ecma_op_create_typedarray_with_type_and_length (ecma_object_t *obj_p, /**< Typed
     }
   }
 
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  ecma_value_t constructor_value = ecma_op_object_get_by_magic_id (obj_p, LIT_MAGIC_STRING_CONSTRUCTOR);
+
+  if (ECMA_IS_VALUE_ERROR (constructor_value)
+      || !ecma_is_value_object (constructor_value)
+      || !ecma_is_constructor (constructor_value))
+  {
+    ecma_deref_object (proto_p);
+    ecma_free_value (constructor_value);
+    return ecma_raise_type_error (ECMA_ERR_MSG ("object.constructor is not a constructor."));
+  }
+
+  ecma_object_t *constructor_object_p = ecma_get_object_from_value (constructor_value);
+  ecma_value_t constructor_prototype = ecma_op_object_get_by_magic_id (constructor_object_p,
+                                                                       LIT_MAGIC_STRING_PROTOTYPE);
+
+  ecma_deref_object (constructor_object_p);
+
+  if (ECMA_IS_VALUE_ERROR (constructor_prototype))
+  {
+    ecma_deref_object (proto_p);
+    return constructor_prototype;
+  }
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
+
   ecma_value_t new_obj = ecma_typedarray_create_object_with_length (array_length,
                                                                     proto_p,
                                                                     element_size_shift,
                                                                     class_id);
 
   ecma_deref_object (proto_p);
+
+#ifndef CONFIG_DISABLE_ES2015_CLASS
+  ecma_object_t *constructor_prototype_object_p = ecma_get_object_from_value (constructor_prototype);
+  ecma_object_t *new_obj_p = ecma_get_object_from_value (new_obj);
+  ECMA_SET_POINTER (new_obj_p->prototype_or_outer_reference_cp, constructor_prototype_object_p);
+
+  ecma_deref_object (constructor_prototype_object_p);
+#endif /* !CONFIG_DISABLE_ES2015_CLASS */
 
   return new_obj;
 } /* ecma_op_create_typedarray_with_type_and_length */

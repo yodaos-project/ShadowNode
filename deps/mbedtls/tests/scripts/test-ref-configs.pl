@@ -1,9 +1,15 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
-# test standard configurations:
-# - build
-# - run test suite
-# - run compat.sh
+# test-ref-configs.pl
+#
+# This file is part of mbed TLS (https://tls.mbed.org)
+#
+# Copyright (c) 2013-2016, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# For each reference configuration file in the configs directory, build the
+# configuration, run the test suites and compat.sh
 #
 # Usage: tests/scripts/test-ref-configs.pl [config-name [...]]
 
@@ -16,8 +22,6 @@ my %configs = (
     },
     'config-suite-b.h' => {
         'compat' => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
-    },
-    'config-picocoin.h' => {
     },
     'config-ccm-psk-tls1_2.h' => {
         'compat' => '-m tls1_2 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
@@ -49,7 +53,9 @@ my $config_h = 'include/mbedtls/config.h';
 system( "cp $config_h $config_h.bak" ) and die;
 sub abort {
     system( "mv $config_h.bak $config_h" ) and warn "$config_h not restored\n";
-    die $_[0];
+    # use an exit code between 1 and 124 for git bisect (die returns 255)
+    warn $_[0];
+    exit 1;
 }
 
 while( my ($conf, $data) = each %configs ) {
@@ -63,7 +69,7 @@ while( my ($conf, $data) = each %configs ) {
     system( "cp configs/$conf $config_h" )
         and abort "Failed to activate $conf\n";
 
-    system( "make CFLAGS='-Os -Werror'" ) and abort "Failed to build: $conf\n";
+    system( "CFLAGS='-Os -Werror -Wall -Wextra' make" ) and abort "Failed to build: $conf\n";
     system( "make test" ) and abort "Failed test suite: $conf\n";
 
     my $compat = $data->{'compat'};

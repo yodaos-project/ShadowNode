@@ -1,4 +1,4 @@
-// Pulled from nodejs/node#8742cbfef0d31d7fad49ced7d11e6827b932b101 v10.8.0 using tools/pull-napi.sh
+// Pulled from nodejs/node#daff0be5b31f769357d943f9694f866b7d286647 v10.13.0 using tools/pull-napi.sh
 
 #ifndef SRC_NODE_API_H_
 #define SRC_NODE_API_H_
@@ -600,7 +600,7 @@ NAPI_EXTERN napi_status napi_adjust_external_memory(napi_env env,
                                                     int64_t change_in_bytes,
                                                     int64_t* adjusted_value);
 
-// Runnig a script
+// Running a script
 NAPI_EXTERN napi_status napi_run_script(napi_env env,
                                         napi_value script,
                                         napi_value* result);
@@ -697,6 +697,12 @@ NAPI_EXTERN napi_status napi_get_value_bigint_words(napi_env env,
                                                     int* sign_bit,
                                                     size_t* word_count,
                                                     uint64_t* words);
+NAPI_EXTERN napi_status napi_add_finalizer(napi_env env,
+                                           napi_value js_object,
+                                           void* native_object,
+                                           napi_finalize finalize_cb,
+                                           void* finalize_hint,
+                                           napi_ref* result);
 #endif  // NAPI_EXPERIMENTAL
 
 EXTERN_C_END

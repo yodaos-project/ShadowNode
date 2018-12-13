@@ -77,6 +77,12 @@
  */
 #define JERRY_UNUSED(x) ((void) (x))
 
+#define JERRY_UNUSED_1(_1)                 JERRY_UNUSED (_1)
+#define JERRY_UNUSED_2(_1, _2)             JERRY_UNUSED (_1), JERRY_UNUSED_1 (_2)
+#define JERRY_UNUSED_3(_1, _2, _3)         JERRY_UNUSED (_1), JERRY_UNUSED_2 (_2, _3)
+#define JERRY_UNUSED_4(_1, _2, _3, _4)     JERRY_UNUSED (_1), JERRY_UNUSED_3 (_2, _3, _4)
+#define JERRY_UNUSED_5(_1, _2, _3, _4, _5) JERRY_UNUSED (_1), JERRY_UNUSED_4 (_2, _3, _4, _5)
+
 /*
  * Asserts
  *
@@ -155,5 +161,14 @@ void __noreturn jerry_fatal (jerry_fatal_code_t code);
  */
 #define JERRY_MIN(v1, v2) (((v1) < (v2)) ? (v1) : (v2))
 #define JERRY_MAX(v1, v2) (((v1) < (v2)) ? (v2) : (v1))
+
+/**
+ * Calculate the index of the first non-zero bit of a 32 bit integer value
+ */
+#define JERRY__LOG2_1(n) (((n) >= 2) ? 1 : 0)
+#define JERRY__LOG2_2(n) (((n) >= 1 << 2) ? (2 + JERRY__LOG2_1 ((n) >> 2)) : JERRY__LOG2_1 (n))
+#define JERRY__LOG2_4(n) (((n) >= 1 << 4) ? (4 + JERRY__LOG2_2 ((n) >> 4)) : JERRY__LOG2_2 (n))
+#define JERRY__LOG2_8(n) (((n) >= 1 << 8) ? (8 + JERRY__LOG2_4 ((n) >> 8)) : JERRY__LOG2_4 (n))
+#define JERRY_LOG2(n) (((n) >= 1 << 16) ? (16 + JERRY__LOG2_8 ((n) >> 16)) : JERRY__LOG2_8 (n))
 
 #endif /* !JRT_H */

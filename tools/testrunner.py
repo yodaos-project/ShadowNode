@@ -333,6 +333,8 @@ def main():
     testrunner.run()
     if testrunner.results["fail"] > 0:
         sys.exit(1)
+    if testrunner.results["timeout"] > 0:
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

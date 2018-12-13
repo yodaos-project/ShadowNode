@@ -337,8 +337,9 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
                                  const uint8_t* data, size_t size,
                                  bool strict_mode, bool* throws) {
   jerry_value_t res =
-      jerry_parse_named_resource((const jerry_char_t*)name, name_len,
-                                 (const jerry_char_t*)data, size, strict_mode);
+      jerry_parse((const jerry_char_t*)name, name_len,
+                  (const jerry_char_t*)data, size,
+                  strict_mode ? JERRY_PARSE_STRICT_MODE : JERRY_PARSE_NO_OPTS);
 
   *throws = jerry_value_has_error_flag(res);
 
