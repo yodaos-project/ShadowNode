@@ -327,20 +327,13 @@ def get_args():
 
 
 def main():
-    depsProcess = subprocess.Popen(["node", "./test/deps/index.js"],
-                                   stdout=None,
-                                   stderr=None)
-
     options = get_args()
-    # wait for deps ready
-    time.sleep(2)
     testrunner = TestRunner(options)
     testrunner.run()
     if testrunner.results["fail"] > 0:
         sys.exit(1)
     if testrunner.results["timeout"] > 0:
         sys.exit(1)
-    depsProcess.kill()
 
 if __name__ == "__main__":
     main()
