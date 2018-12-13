@@ -7,29 +7,33 @@ var path = require('path');
 var keyPath = path.resolve(__dirname, './test-key.pem')
 var certPath = path.resolve(__dirname, './test-cert.pem')
 
-var httpServer = http.createServer(function(request, response) {
-  console.log((new Date()) + ' Received request for ' + request.url);
-  response.writeHead(404);
-  response.end();
-});
-httpServer.listen(8080, function() {
-  console.log((new Date()) + ' Server is listening on port 8080');
-});
+var port = 8080;
+var idx = process.argv.indexOf('--port');
+if (idx > -1) {
+  port = Number(process.argv[idx + 1]);
+}
+var agent;
+var options;
+if (process.argv.indexOf('--ssl') > -1) {
+  agent = https;
+  options ={
+    key: fs.readFileSync(keyPath),
+    cert: fs.readFileSync(certPath)
+  }
+} else {
+  agent = http;
+}
 
-var httpsServer = https.createServer({
-  key: fs.readFileSync(keyPath),
-  cert: fs.readFileSync(certPath)
-}, function (request, response) {
-  console.log((new Date()) + ' Received request for ' + request.url);
+var httpServer = agent.createServer(options, function(request, response) {
   response.writeHead(404);
   response.end();
-})
-httpsServer.listen(8088, function() {
-  console.log((new Date()) + ' Server is listening on port 8088');
+});
+httpServer.listen(port, function() {
+  console.log(`websocket is listening on port ${port}`);
 });
 
 var wsServer = new WebSocketServer({
-  httpServer: [httpServer, httpsServer],
+  httpServer: [httpServer],
   autoAcceptConnections: false
 });
 

@@ -1,8 +1,8 @@
 var assert = require('assert');
 var common = require('../common');
 var WebSocket = require('websocket').client;
-var socketUrl = 'ws://127.0.0.1:8080/websocket/api';
-var socketSSLUrl = 'wss://127.0.0.1:8088/websocket/api';
+var socketUrl = 'ws://localhost:8080/websocket/api';
+var socketSSLUrl = 'wss://localhost:8088/websocket/api';
 var subProtocol = 'echo';
 var message = 'this is a websocket test message';
 
