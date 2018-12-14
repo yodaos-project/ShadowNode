@@ -328,6 +328,7 @@ def get_args():
 
 def main():
     options = get_args()
+
     testrunner = TestRunner(options)
     testrunner.run()
     if testrunner.results["fail"] > 0:
