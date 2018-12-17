@@ -34,6 +34,12 @@ script:
 # start http & https service
 - sudo $(which node) tools/http_server.js --port 80 &
 - sudo $(which node) tools/http_server.js --ssl --port 443 &
+# start websocket & mqtt service for testsets
+- yarn install --cwd test/deps
+- node test/deps/websocket-server.js --port 8080 &
+- node test/deps/websocket-server.js --ssl --port 8088 &
+- node test/deps/mqtt-server.js --port 9080 &
+- node test/deps/mqtt-server.js --ssl --port 9088 &
 # start dbus service
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export $(dbus-launch); fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start dbus; fi
