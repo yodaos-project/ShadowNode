@@ -35,7 +35,7 @@ script:
 - sudo $(which node) tools/http_server.js --port 80 &
 - sudo $(which node) tools/http_server.js --ssl --port 443 &
 # start websocket & mqtt service for testsets
-- npm install --prefix test/deps
+- yarn install --cwd test/deps
 - node test/deps/websocket-server.js --port 8080 &
 - node test/deps/websocket-server.js --ssl --port 8088 &
 - node test/deps/mqtt-server.js --port 9080 &
