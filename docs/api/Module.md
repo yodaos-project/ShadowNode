@@ -41,3 +41,8 @@ For each directory in search paths above:
 - If a directory `id` exists, module system consider the directory as a package:
   - If `id/package.json` contains **main** property, load the file named **main** property.
   - If `id/package.json` exists, but neither the **main** property nor the file named **main** property exist, load `index.js`.
+
+### require.resolve(request)
+* `request` {string} Module name to be queried.
+
+Get the module absolute path about `request` module but not load it.
