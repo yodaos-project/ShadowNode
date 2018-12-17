@@ -1,9 +1,8 @@
 'use strict';
-
-var mqttHost = 'mqtt://test.mosquitto.org:1883';
-var mqttsHost = 'mqtts://test.mosquitto.org:8883';
 var mqtt = require('mqtt');
 var assert = require('assert');
+var mqttHost = 'mqtt://localhost:9080';
+var mqttsHost = 'mqtts://localhost:9088';
 var common = require('../common');
 
 function test(testHost) {
