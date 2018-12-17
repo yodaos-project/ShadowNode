@@ -16,6 +16,7 @@
 var assert = require('assert');
 var http = require('http');
 var net = require('net');
+var port = require('../common').PORT;
 
 // Messages for further requests.
 var message = 'Hello IoT.js';
@@ -23,7 +24,7 @@ var message = 'Hello IoT.js';
 // Options for further requests.
 var options = {
   method: 'POST',
-  port: 3005,
+  port: port,
   path: '/',
   headers: { 'Content-Length': message.length }
 };
@@ -40,7 +41,7 @@ var server1 = http.createServer(function(request, response) {
     response.end();
   });
 });
-server1.listen(3005, 5);
+server1.listen(port, 5);
 
 // Simple request with valid utf-8 message.
 var isRequest1Finished = false;
@@ -62,11 +63,11 @@ request1.end(message, 'utf-8');
 var server2 = http.createServer(function(request, response) {
   response.end();
 });
-server2.listen(3006, 5);
+server2.listen(++port, 5);
 
 // Simple request with end callback.
 var isRequest2Finished = false;
-options.port = 3006;
+options.port = port;
 var request2 = http.request(options);
 request2.end(message, function() {
   server2.close();
@@ -93,10 +94,10 @@ var server3 = http.createServer(function(request, response) {
     response.end();
   });
 });
-server3.listen(3007, 5);
+server3.listen(++port, 5);
 
 // Simple request with buffer chunk as message parameter.
-options.port = 3007;
+options.port = port;
 var isRequest3Finished = false;
 var request3 = http.request(options, function(response) {
   var str = '';
@@ -119,12 +120,12 @@ var server4 = http.createServer(function(request, response) {
   response.writeHead(200);
   response.end();
 });
-server4.listen(3008, 5);
+server4.listen(++port, 5);
 
 var isRequest4Finished = false;
 var request4 = http.request({
   method: 'HEAD',
-  port: 3008,
+  port: port,
   path: '/'
 }, function(response) {
   response.on('end', function() {
@@ -153,9 +154,9 @@ var server5 = http.createServer(function(request, response) {
     response.end();
   });
 });
-server5.listen(3009, 5);
+server5.listen(++port, 5);
 
-options.port = 3009;
+options.port = port;
 options.headers = null;
 var isRequest5Finished = false;
 var request5 = http.request(options, function(response) {
@@ -175,11 +176,11 @@ var server6 = http.createServer(function(request, response) {
     response.end('ok');
     server6.close();
   });
-}).listen(8080, 5);
+}).listen(++port, 5);
 
 var readRequest = http.request({
-  host: '127.0.0.1',
-  port: 8080,
+  host: 'localhost',
+  port: port,
   path: '/',
   method: 'GET'
 });
@@ -200,12 +201,12 @@ var server7 = http.createServer(function(request, response) {
     response.end('ok');
     server7.close();
   });
-}).listen(3010);
+}).listen(++port);
 
 var isRequest7Finished = false;
 var readRequest = http.request({
-  host: '127.0.0.1',
-  port: 3010,
+  host: 'localhost',
+  port: port,
   path: '/',
   method: 'POST'
 });
@@ -224,12 +225,12 @@ var server8 = http.createServer(function(request, response) {
     response.end('ok');
     server8.close();
   });
-}).listen(3011);
+}).listen(++port);
 
 var isRequest8Finished = false;
 var request8 = http.request({
-  host: '127.0.0.1',
-  port: 3011,
+  host: 'localhost',
+  port: port,
   path: '/',
   method: 'POST'
 });
@@ -248,12 +249,12 @@ var server9 = http.createServer(function(request, response) {
     response.end('ok');
     server9.close();
   });
-}).listen(3012);
+}).listen(++port);
 
 var isRequest9Finished = false;
 var request9 = http.request({
-  host: '127.0.0.1',
-  port: 3012,
+  host: 'localhost',
+  port: port,
   path: '/',
   method: 'POST'
 });
