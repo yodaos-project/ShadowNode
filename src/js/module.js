@@ -18,7 +18,6 @@ var Native = require('native');
 var fs = Native.require('fs');
 var path = Native.require('path');
 var debug = Native.require('debug')('module');
-var util = Native.require('util');
 
 function iotjs_module_t(id, parent) {
   this.id = id;
