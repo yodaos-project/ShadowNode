@@ -157,7 +157,8 @@ iotjs_module_t._resolveFilepath = function(id, root, ext_index) {
       return filepath;
     }
   }
-  if (ext_index++ < exts.length) {
+  ext_index++;
+  if (ext_index < exts.length) {
     return iotjs_module_t._resolveFilepath(id, root, ext_index);
   }
 };
@@ -276,8 +277,8 @@ function _makeRequireFunction(mod) {
   }
 
   function _resolve(request) {
-    if (!util.isString(request)) {
-      throw new TypeError('module must be string');
+    if (!request || typeof request !== 'string') {
+      throw new TypeError('module must be a non-null string');
     }
 
     if (process.builtin_modules[request]) {
@@ -292,7 +293,7 @@ function _makeRequireFunction(mod) {
   }
   require.resolve = _resolve;
   require.main = mainModule;
-  require.cache = Module._cache;
+  require.cache = Module.cache;
 
   return require;
 }
