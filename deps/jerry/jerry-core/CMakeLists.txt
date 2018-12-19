@@ -164,7 +164,7 @@ if(DEFINED JERRY_HEAP_SECTION_ATTR)
   set(DEFINES_JERRY ${DEFINES_JERRY} JERRY_HEAP_SECTION_ATTR=${JERRY_HEAP_SECTION_ATTR})
 endif()
 
-#Above CONFIG_MEM_HEAP_MAX_LIMIT value in order to cut down gc frequency when jmem_heap_limit value raise
+# Above CONFIG_MEM_HEAP_MAX_LIMIT value in order to cut down gc frequency when jmem_heap_limit value raise
 if(MULTIPLY_HEAP_MAX_LIMIT_VALUE)
   set(DEFINES_JERRY ${DEFINES_JERRY} MULTIPLY_HEAP_MAX_LIMIT_VALUE=${MULTIPLY_HEAP_MAX_LIMIT_VALUE})
 endif ()
