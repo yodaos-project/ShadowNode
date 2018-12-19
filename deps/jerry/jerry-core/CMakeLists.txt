@@ -38,7 +38,7 @@ set(FEATURE_VALGRIND           OFF      CACHE BOOL   "Enable Valgrind support?")
 set(FEATURE_VALGRIND_FREYA     OFF      CACHE BOOL   "Enable Valgrind-Freya support?")
 set(FEATURE_VM_EXEC_STOP       OFF      CACHE BOOL   "Enable VM execution stopping?")
 set(MEM_HEAP_SIZE_KB           "5120"   CACHE STRING "Size of memory heap, in kilobytes")
-set(MULTIPLY_HEAP_MAX_LIMIT_VALUE "2"   CACHE STRING "Above CONFIG_MEM_HEAP_MAX_LIMIT value ")
+set(MULTIPLY_HEAP_MAX_LIMIT_VALUE "1"   CACHE STRING "Above CONFIG_MEM_HEAP_MAX_LIMIT value ")
 
 # Option overrides
 if(FEATURE_SYSTEM_ALLOCATOR)
