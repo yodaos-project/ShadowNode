@@ -38,6 +38,7 @@ set(FEATURE_VALGRIND           OFF      CACHE BOOL   "Enable Valgrind support?")
 set(FEATURE_VALGRIND_FREYA     OFF      CACHE BOOL   "Enable Valgrind-Freya support?")
 set(FEATURE_VM_EXEC_STOP       OFF      CACHE BOOL   "Enable VM execution stopping?")
 set(MEM_HEAP_SIZE_KB           "5120"   CACHE STRING "Size of memory heap, in kilobytes")
+set(MULTIPLY_HEAP_MAX_LIMIT_VALUE "2"   CACHE STRING "Above CONFIG_MEM_HEAP_MAX_LIMIT value ")
 
 # Option overrides
 if(FEATURE_SYSTEM_ALLOCATOR)
@@ -82,6 +83,7 @@ message(STATUS "FEATURE_VALGRIND            " ${FEATURE_VALGRIND})
 message(STATUS "FEATURE_VALGRIND_FREYA      " ${FEATURE_VALGRIND_FREYA})
 message(STATUS "FEATURE_VM_EXEC_STOP        " ${FEATURE_VM_EXEC_STOP})
 message(STATUS "MEM_HEAP_SIZE_KB            " ${MEM_HEAP_SIZE_KB})
+message(STATUS "MULTIPLY_HEAP_MAX_LIMIT_VALUE            " ${MULTIPLY_HEAP_MAX_LIMIT_VALUE})
 
 # Include directories
 set(INCLUDE_CORE
@@ -161,6 +163,11 @@ endif()
 if(DEFINED JERRY_HEAP_SECTION_ATTR)
   set(DEFINES_JERRY ${DEFINES_JERRY} JERRY_HEAP_SECTION_ATTR=${JERRY_HEAP_SECTION_ATTR})
 endif()
+
+#Above CONFIG_MEM_HEAP_MAX_LIMIT value in order to cut down gc frequency when jmem_heap_limit value raise
+if(MULTIPLY_HEAP_MAX_LIMIT_VALUE)
+  set(DEFINES_JERRY ${DEFINES_JERRY} MULTIPLY_HEAP_MAX_LIMIT_VALUE=${MULTIPLY_HEAP_MAX_LIMIT_VALUE})
+endif ()
 
 # Checks the optional features
 # Enable 32 bit cpointers
