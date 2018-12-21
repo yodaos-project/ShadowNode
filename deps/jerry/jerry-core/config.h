@@ -72,10 +72,6 @@
 */
 #define CONFIG_MEM_HEAP_DESIRED_LIMIT (JERRY_MIN (CONFIG_MEM_HEAP_AREA_SIZE * MULTIPLY_HEAP_MAX_LIMIT_VALUE / 32, CONFIG_MEM_HEAP_MAX_LIMIT))
 
-
-/**
- * Desired limit of heap usage
- */
 /**
  * Use 32-bit/64-bit float for ecma-numbers
  */
