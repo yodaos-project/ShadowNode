@@ -64,8 +64,10 @@
 #define PARSER_MAXIMUM_CODE_SIZE (65535 << (JMEM_ALIGNMENT_LOG))
 #endif /* !PARSER_MAXIMUM_CODE_SIZE */
 
-/* Maximum number of values pushed onto the stack by a function.
- * Limit: 65500. Recommended: 1024. */
+/*
+ * Maximum number of values pushed onto the stack by a function.
+ * Limit: 65500. Recommended: 1024.
+ */
 #ifndef PARSER_MAXIMUM_STACK_LIMIT
 #define PARSER_MAXIMUM_STACK_LIMIT 1024
 
