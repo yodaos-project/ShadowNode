@@ -40,8 +40,10 @@ JS_FUNCTION(MqttConstructor) {
       iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_USERNAME);
   jerry_value_t password =
       iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_PASSWORD);
-  jerry_value_t clientId =
+  jerry_value_t clientID =
       iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_CLIENT_ID);
+  jerry_value_t will =
+      iotjs_jval_get_property(opts, IOTJS_MAGIC_STRING_WILL);
 
   MQTTPacket_connectData options = MQTTPacket_connectData_initializer;
   options.willFlag = 0;
@@ -49,29 +51,37 @@ JS_FUNCTION(MqttConstructor) {
   options.keepAliveInterval = (int)iotjs_jval_as_number(keepalive);
   options.cleansession = 1;
 
-  if (jerry_value_is_string(username)) {
-    iotjs_string_t str = iotjs_jval_as_string(username);
-    MQTTString mqttstr = MQTTString_initializer;
-    mqttstr.lenstring.data = strdup((char*)iotjs_string_data(&str));
-    mqttstr.lenstring.len = (int)iotjs_string_size(&str);
-    options.username = mqttstr;
-    iotjs_string_destroy(&str);
-  }
-  if (jerry_value_is_string(password)) {
-    iotjs_string_t str = iotjs_jval_as_string(password);
-    MQTTString mqttstr = MQTTString_initializer;
-    mqttstr.lenstring.data = strdup((char*)iotjs_string_data(&str));
-    mqttstr.lenstring.len = (int)iotjs_string_size(&str);
-    options.password = mqttstr;
-    iotjs_string_destroy(&str);
-  }
-  if (jerry_value_is_string(clientId)) {
-    iotjs_string_t str = iotjs_jval_as_string(clientId);
-    MQTTString mqttstr = MQTTString_initializer;
-    mqttstr.lenstring.data = strdup((char*)iotjs_string_data(&str));
-    mqttstr.lenstring.len = (int)iotjs_string_size(&str);
-    options.clientID = mqttstr;
-    iotjs_string_destroy(&str);
+#define MQTT_OPTION_ASSIGN_FROM(owner, name) do { \
+  if (jerry_value_is_string(name)) { \
+    iotjs_string_t str = iotjs_jval_as_string(name); \
+    MQTTString mqttstr = MQTTString_initializer; \
+    mqttstr.lenstring.data = strdup((char*)iotjs_string_data(&str)); \
+    mqttstr.lenstring.len = (int)iotjs_string_size(&str); \
+    owner.name = mqttstr; \
+    iotjs_string_destroy(&str); \
+  } \
+} while(0)
+
+  MQTT_OPTION_ASSIGN_FROM(options, username);
+  MQTT_OPTION_ASSIGN_FROM(options, password);
+  MQTT_OPTION_ASSIGN_FROM(options, clientID);
+
+  if (jerry_value_is_object(will)) {
+    MQTTPacket_willOptions willOpts = MQTTPacket_willOptions_initializer;
+    jerry_value_t topicName = iotjs_jval_get_property(will, IOTJS_MAGIC_STRING_TOPIC);
+    jerry_value_t message = iotjs_jval_get_property(will, IOTJS_MAGIC_STRING_PAYLOAD);
+    jerry_value_t retained = iotjs_jval_get_property(will, IOTJS_MAGIC_STRING_RETAIN);
+    jerry_value_t qos = iotjs_jval_get_property(will, IOTJS_MAGIC_STRING_QOS);
+    willOpts.retained = iotjs_jval_as_boolean(retained);
+    willOpts.qos = iotjs_jval_as_number(qos);
+
+    MQTT_OPTION_ASSIGN_FROM(willOpts, topicName);
+    MQTT_OPTION_ASSIGN_FROM(willOpts, message);
+    options.will = willOpts;
+    options.willFlag = 1;
+
+    jerry_release_value(topicName);
+    jerry_release_value(message);
   }
   _this->options_ = options;
 
@@ -79,7 +89,10 @@ JS_FUNCTION(MqttConstructor) {
   jerry_release_value(keepalive);
   jerry_release_value(username);
   jerry_release_value(password);
-  jerry_release_value(clientId);
+  jerry_release_value(clientID);
+  jerry_release_value(will);
+#undef MQTT_OPTION_ASSIGN_FROM
+
   return jerry_create_undefined();
 }
 
