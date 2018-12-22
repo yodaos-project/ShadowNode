@@ -65,12 +65,12 @@
 /**
  * Max heap usage limit
  */
-#define CONFIG_MEM_HEAP_MAX_LIMIT 8192
-
+#define CONFIG_MEM_HEAP_MAX_LIMIT (8192 * HEAP_MAX_SIZE_FACTOR)
 /**
- * Desired limit of heap usage
- */
-#define CONFIG_MEM_HEAP_DESIRED_LIMIT (JERRY_MIN (CONFIG_MEM_HEAP_AREA_SIZE / 32, CONFIG_MEM_HEAP_MAX_LIMIT))
+ * Chose the minimum value as the CONFIG_MEM_HEAP_DESIRED_LIMIT which is the size
+ * that heap_limit_size spread or contracts normally n*8192 and the n is HEAP_MAX_SIZE_FACTOR
+*/
+#define CONFIG_MEM_HEAP_DESIRED_LIMIT (JERRY_MIN (CONFIG_MEM_HEAP_AREA_SIZE * HEAP_MAX_SIZE_FACTOR / 32, CONFIG_MEM_HEAP_MAX_LIMIT))
 
 /**
  * Use 32-bit/64-bit float for ecma-numbers
