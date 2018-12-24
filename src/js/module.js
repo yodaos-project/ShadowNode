@@ -211,15 +211,16 @@ iotjs_module_t.normalizePath = function(path) {
 
 
 iotjs_module_t.load = function(id, parent) {
-  var cachedModule;
+  var cachedModule = iotjs_module_t.cache[id];
+  if (cachedModule) {
+    iotjs_module_t.curr = id;
+    return cachedModule;
+  }
+
   if (process.builtin_modules[id]) {
     iotjs_module_t.curr = id;
-    cachedModule = iotjs_module_t.cache[id];
-    if (!cachedModule) {
-      cachedModule = Native.require(id);
-      iotjs_module_t.cache[id] = cachedModule;
-    }
-    return cachedModule;
+    iotjs_module_t.cache[id] = Native.require(id);
+    return iotjs_module_t.cache[id];
   }
   var module = new iotjs_module_t(id, parent);
   var modPath = iotjs_module_t.resolveModPath(module.id, module.parent);

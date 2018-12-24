@@ -25,6 +25,6 @@ var path = require('path');
     var cached = require.cache['fs'];
     assert.strictEqual(require('fs'), cached);
 
-    delete require.cache['fs'];
+    require.cache['fs'] = null;
     assert.notStrictEqual(require('fs'), cached);
 }());
