@@ -22,29 +22,29 @@ static double MAX_INTEGER_NUM = 9007199254740991;
 
 JS_FUNCTION(NumberIsInteger) {
   if (jargc == 0) {
-    return jerry_create_boolean(FALSE);
+    return jerry_create_boolean(false);
   }
 
   if (!jerry_value_is_number(jargv[0])) {
-    return jerry_create_boolean(FALSE);
+    return jerry_create_boolean(false);
   }
 
   double x = iotjs_jval_as_number(jargv[0]);
   if (isnan(x)) {
-    return jerry_create_boolean(FALSE);
+    return jerry_create_boolean(false);
   }
 
   if (!(fabs(x - floor(x)) <= PRECISION)) {
-    return jerry_create_boolean(FALSE);
+    return jerry_create_boolean(false);
   }
 
-  return jerry_create_boolean(TRUE);
+  return jerry_create_boolean(true);
 }
 
 JS_FUNCTION(NumberIsSafeInteger) {
   jerry_value_t isnum = NumberIsInteger(jfunc, jthis, jargv, jargc);
   if (!iotjs_jval_as_boolean(isnum)) {
-    return jerry_create_boolean(FALSE);
+    return jerry_create_boolean(false);
   }
 
   double x = iotjs_jval_as_number(jargv[0]);
@@ -53,11 +53,11 @@ JS_FUNCTION(NumberIsSafeInteger) {
 
 JS_FUNCTION(NumberIsFinite) {
   if (jargc == 0) {
-    return jerry_create_boolean(FALSE);
+    return jerry_create_boolean(false);
   }
 
   if (!jerry_value_is_number(jargv[0])) {
-    return jerry_create_boolean(FALSE);
+    return jerry_create_boolean(false);
   }
 
   double x = iotjs_jval_as_number(jargv[0]);
@@ -66,11 +66,11 @@ JS_FUNCTION(NumberIsFinite) {
 
 JS_FUNCTION(NumberIsNaN) {
   if (jargc == 0) {
-    return jerry_create_boolean(FALSE);
+    return jerry_create_boolean(false);
   }
 
   if (!jerry_value_is_number(jargv[0])) {
-    return jerry_create_boolean(FALSE);
+    return jerry_create_boolean(false);
   }
 
   double x = iotjs_jval_as_number(jargv[0]);
