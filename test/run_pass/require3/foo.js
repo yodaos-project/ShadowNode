@@ -15,4 +15,4 @@
 
 'use strict';
 
-require.cache['fs'] = {};
+require.cache['fs'] = { exports: {} };
