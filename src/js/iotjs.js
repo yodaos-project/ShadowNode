@@ -600,6 +600,8 @@
   }
   setupChannel();
 
+  // initlize shim
+  Module.require('shim');
   var m = Module.require('module');
   m.runMain();
 })();

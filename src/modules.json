@@ -33,7 +33,7 @@
     },
     "iotjs_core_modules": {
       "require": ["buffer", "console", "events", "fs", "module", "process",
-                  "timers"]
+                  "timers", "shim"]
     },
     "adc": {
       "platforms": {
@@ -418,6 +418,11 @@
       "init": "InitTimer",
       "js_file": "js/timers.js",
       "require": ["util"]
+    },
+    "shim": {
+      "native_files": ["modules/iotjs_module_shim.c"],
+      "init": "InitShim",
+      "js_file": "js/shim.js"
     },
     "tls": {
       "native_files": ["modules/iotjs_module_tls.c", "modules/iotjs_module_tls_bio.c"],
