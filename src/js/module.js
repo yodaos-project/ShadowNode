@@ -213,7 +213,12 @@ iotjs_module_t.normalizePath = function(path) {
 iotjs_module_t.load = function(id, parent) {
   if (process.builtin_modules[id]) {
     iotjs_module_t.curr = id;
-    return Native.require(id);
+    var cachedModule = iotjs_module_t.cache[id];
+    if(!cachedModule){
+      cachedModule = Native.require(id);
+      iotjs_module_t.cache[id] = cachedModule;
+    }
+    return cachedModule;
   }
   var module = new iotjs_module_t(id, parent);
   var modPath = iotjs_module_t.resolveModPath(module.id, module.parent);
@@ -261,7 +266,6 @@ iotjs_module_t.load = function(id, parent) {
   return module.exports;
 };
 
-
 iotjs_module_t.prototype.compile = function(snapshot) {
   var __filename = this.filename;
   var __dirname = path.dirname(__filename);
@@ -276,6 +280,7 @@ iotjs_module_t.prototype.compile = function(snapshot) {
 
   var _require = this.require.bind(this);
   _require.main = mainModule;
+  _require.cache = iotjs_module_t.cache;
 
   fn.apply(this.exports, [
     this.exports,             // exports

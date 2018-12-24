@@ -69,6 +69,7 @@
         "NODE_PATH": "require2/node_modules"
       }
     },
+    { "name": "test_module_require3.js"},
     { "name": "test_mqtt_client.js" },
     { "name": "test_mqtt_sub_pub.js" },
     { "name": "test_net_1.js" },

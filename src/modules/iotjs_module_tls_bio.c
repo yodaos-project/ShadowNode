@@ -228,7 +228,9 @@ int iotjs_bio_reset(BIO* bio) {
       bio->wrIdx = 0;
       return 0;
 
-    default: { break; }
+    default: {
+      break;
+    }
   }
 
   return SSL_BIO_ERROR;
