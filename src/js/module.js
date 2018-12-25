@@ -126,18 +126,21 @@ iotjs_module_t.resolveFilepath = function(id, directories) {
 };
 
 
-iotjs_module_t._resolveFilepath = function(id, root) {
+iotjs_module_t._resolveFilepath = function(id, root, ext_index) {
   var modulePath = root ? path.join(root, id) : id;
   var filepath;
-  var ext = '.js';
+  var exts = ['.js', '.json', '.node'];
+  if (ext_index === undefined) {
+    ext_index = 0;
+  }
 
   // id[.ext]
-  if (filepath = tryPath(modulePath, ext)) {
+  if (filepath = tryPath(modulePath, exts[ext_index])) {
     return filepath;
   }
 
   // id/index[.ext]
-  if (filepath = tryPath(modulePath + '/index', ext)) {
+  if (filepath = tryPath(modulePath + '/index', exts[ext_index])) {
     return filepath;
   }
 
@@ -149,9 +152,13 @@ iotjs_module_t._resolveFilepath = function(id, root) {
     var pkgMainFile = JSON.parse(pkgSrc).main;
 
     // pkgmain[.ext]
-    if (filepath = tryPath(modulePath + '/' + pkgMainFile, ext)) {
+    if (filepath = tryPath(modulePath + '/' + pkgMainFile, exts[ext_index])) {
       return filepath;
     }
+  }
+  ext_index++;
+  if (ext_index < exts.length) {
+    return iotjs_module_t._resolveFilepath(id, root, ext_index);
   }
 };
 
@@ -266,6 +273,34 @@ iotjs_module_t.load = function(id, parent) {
   return module.exports;
 };
 
+function _makeRequireFunction(mod) {
+  var Module = mod.constructor;
+  function require(id) {
+    return mod.require(id);
+  }
+
+  function _resolve(request) {
+    if (!request || typeof request !== 'string') {
+      throw new TypeError('module must be a non-null string');
+    }
+
+    if (process.builtin_modules[request]) {
+      return request;
+    }
+
+    var path = Module.resolveModPath(request, mod);
+    if (!path) {
+      throw new Error('Module not found: ' + request);
+    }
+    return path;
+  }
+  require.resolve = _resolve;
+  require.main = mainModule;
+  require.cache = Module.cache;
+
+  return require;
+}
+
 iotjs_module_t.prototype.compile = function(snapshot) {
   var __filename = this.filename;
   var __dirname = path.dirname(__filename);
@@ -278,9 +313,7 @@ iotjs_module_t.prototype.compile = function(snapshot) {
       throw new TypeError('Invalid snapshot file.');
   }
 
-  var _require = this.require.bind(this);
-  _require.main = mainModule;
-  _require.cache = iotjs_module_t.cache;
+  var _require = _makeRequireFunction(this);
 
   fn.apply(this.exports, [
     this.exports,             // exports
