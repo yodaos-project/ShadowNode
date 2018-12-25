@@ -12,6 +12,7 @@ function main(opts) {
   for (var i = 0; i < n; ++i) {
     require.resolve('os');
     require.resolve('../common.js');
+    require.cache = {};
   }
   bench.end(n);
 }
