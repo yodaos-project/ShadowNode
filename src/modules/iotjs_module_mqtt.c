@@ -14,14 +14,36 @@ typedef struct {
   MQTTPacket_connectData options_;
 } IOTJS_VALIDATED_STRUCT(iotjs_mqtt_t);
 
-static JNativeInfoType this_module_native_info = { .free_cb = NULL };
+static iotjs_mqtt_t* iotjs_mqtt_create(const jerry_value_t value);
+static void iotjs_mqtt_destroy(iotjs_mqtt_t* mqtt);
+static JNativeInfoType this_module_native_info = {
+  .free_cb = (jerry_object_native_free_callback_t)iotjs_mqtt_destroy
+};
 
-static iotjs_mqtt_t* iotjs_mqtt_create(const jerry_value_t value) {
+iotjs_mqtt_t* iotjs_mqtt_create(const jerry_value_t value) {
   iotjs_mqtt_t* mqtt = IOTJS_ALLOC(iotjs_mqtt_t);
   IOTJS_VALIDATED_STRUCT_CONSTRUCTOR(iotjs_mqtt_t, mqtt);
   iotjs_jobjectwrap_initialize(&_this->jobjectwrap, value,
                                &this_module_native_info);
   return mqtt;
+}
+
+void iotjs_mqtt_destroy(iotjs_mqtt_t* mqtt) {
+  IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_mqtt_t, mqtt);
+
+#define IOTJS_MQTT_RELEASE_OPTION(name)                 \
+  if (_this->options_.name.lenstring.len > 0) {         \
+    IOTJS_RELEASE(_this->options_.name.lenstring.data); \
+  }
+  IOTJS_MQTT_RELEASE_OPTION(username);
+  IOTJS_MQTT_RELEASE_OPTION(password);
+  IOTJS_MQTT_RELEASE_OPTION(clientID);
+  IOTJS_MQTT_RELEASE_OPTION(will.topicName);
+  IOTJS_MQTT_RELEASE_OPTION(will.message);
+#undef IOTJS_MQTT_RELEASE_OPTION
+
+  iotjs_jobjectwrap_destroy(&_this->jobjectwrap);
+  IOTJS_RELEASE(mqtt);
 }
 
 JS_FUNCTION(MqttConstructor) {
@@ -85,6 +107,8 @@ JS_FUNCTION(MqttConstructor) {
 
     jerry_release_value(topicName);
     jerry_release_value(message);
+    jerry_release_value(retained);
+    jerry_release_value(qos);
   }
   _this->options_ = options;
 
