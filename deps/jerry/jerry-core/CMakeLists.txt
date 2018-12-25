@@ -39,6 +39,7 @@ set(FEATURE_VALGRIND_FREYA     OFF      CACHE BOOL   "Enable Valgrind-Freya supp
 set(FEATURE_VM_EXEC_STOP       OFF      CACHE BOOL   "Enable VM execution stopping?")
 set(MEM_HEAP_SIZE_KB           "5120"   CACHE STRING "Size of memory heap, in kilobytes")
 set(HEAP_MAX_SIZE_FACTOR       "1"      CACHE STRING "Set max size of heap to CONFIG_MEM_HEAP_MAX_LIMIT multiplied by the factor")
+set(HEAP_LIMIT_SIZE            "196608" CACHE STRING "Size of the heap at the beginning, and control the heap size could not below this value")
 
 # Option overrides
 if(FEATURE_SYSTEM_ALLOCATOR)
@@ -84,6 +85,7 @@ message(STATUS "FEATURE_VALGRIND_FREYA      " ${FEATURE_VALGRIND_FREYA})
 message(STATUS "FEATURE_VM_EXEC_STOP        " ${FEATURE_VM_EXEC_STOP})
 message(STATUS "MEM_HEAP_SIZE_KB            " ${MEM_HEAP_SIZE_KB})
 message(STATUS "HEAP_MAX_SIZE_FACTOR        " ${HEAP_MAX_SIZE_FACTOR})
+message(STATUS "HEAP_LIMIT_SIZE             " ${HEAP_LIMIT_SIZE})
 
 # Include directories
 set(INCLUDE_CORE
@@ -167,6 +169,11 @@ endif()
 # Above CONFIG_MEM_HEAP_MAX_LIMIT value in order to cut down gc frequency when jmem_heap_limit value raise
 if(HEAP_MAX_SIZE_FACTOR)
   set(DEFINES_JERRY ${DEFINES_JERRY} HEAP_MAX_SIZE_FACTOR=${HEAP_MAX_SIZE_FACTOR})
+endif ()
+
+# give jerry heap size a value at the beginning, and limit the heap size could not below this value
+if(HEAP_LIMIT_SIZE)
+  set(DEFINES_JERRY ${DEFINES_JERRY} HEAP_LIMIT_SIZE=${HEAP_LIMIT_SIZE})
 endif ()
 
 # Checks the optional features

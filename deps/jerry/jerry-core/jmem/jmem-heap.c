@@ -154,7 +154,7 @@ jmem_heap_init (void)
 #ifndef JERRY_SYSTEM_ALLOCATOR
   JERRY_ASSERT ((uintptr_t) JERRY_HEAP_CONTEXT (area) % JMEM_ALIGNMENT == 0);
 
-  JERRY_CONTEXT (jmem_heap_limit) = CONFIG_MEM_HEAP_DESIRED_LIMIT;
+  JERRY_CONTEXT (jmem_heap_limit) = HEAP_LIMIT_SIZE;
 
   jmem_heap_free_t *const region_p = (jmem_heap_free_t *) JERRY_HEAP_CONTEXT (area);
 
@@ -521,6 +521,7 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
 
   while (JERRY_CONTEXT (jmem_heap_allocated_size) + CONFIG_MEM_HEAP_DESIRED_LIMIT <= JERRY_CONTEXT (jmem_heap_limit))
   {
+    if (JERRY_CONTEXT (jmem_heap_limit) <= HEAP_LIMIT_SIZE) break;
     JERRY_CONTEXT (jmem_heap_limit) -= CONFIG_MEM_HEAP_DESIRED_LIMIT;
   }
 
