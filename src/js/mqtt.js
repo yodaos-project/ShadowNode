@@ -51,9 +51,9 @@ function MqttClient(endpoint, options) {
 
   // handle `options.will.payload` to be a Buffer
   if (this._options.will && this._options.will.payload) {
-    var willMessage = this._options.will.payload
+    var willMessage = this._options.will.payload;
     if (!Buffer.isBuffer(willMessage)) {
-      this._options.will.payload = new Buffer(willMessage || '')
+      this._options.will.payload = new Buffer(willMessage || '');
     }
   }
   this._isSocketConnected = false;
