@@ -22,6 +22,11 @@ var assert = require('assert');
 assert.equal(2, 2);
 ```
 
+### require.cache
+* {object} Module map to be loaded.
+
+Modules are cached in this object when they are required. By deleting a key value from this object, the next require will reload the module.
+
 **Loading a module**
 
 If a native module named `id` exists, load it and return.

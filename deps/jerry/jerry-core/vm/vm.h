@@ -117,6 +117,7 @@ typedef enum
   VM_OC_PUSH_NUMBER_POS_BYTE,    /**< push number between 1 and 256 */
   VM_OC_PUSH_NUMBER_NEG_BYTE,    /**< push number between -1 and -256 */
   VM_OC_PUSH_OBJECT,             /**< push object */
+  VM_OC_PUSH_NAMED_FUNC_EXPR,    /**< push named function expression */
   VM_OC_SET_PROPERTY,            /**< set property */
 #ifndef CONFIG_DISABLE_ES2015_OBJECT_INITIALIZER
   VM_OC_SET_COMPUTED_PROPERTY,   /**< set computed property */
@@ -341,7 +342,7 @@ typedef enum
 ecma_value_t vm_run_global (const ecma_compiled_code_t *bytecode_p);
 ecma_value_t vm_run_eval (ecma_compiled_code_t *bytecode_data_p, uint32_t parse_opts);
 
-ecma_value_t vm_run (const ecma_extended_object_t *func_obj_p, const ecma_compiled_code_t *bytecode_header_p, ecma_value_t this_binding_value,
+ecma_value_t vm_run (const ecma_compiled_code_t *bytecode_header_p, ecma_value_t this_binding_value,
                      ecma_object_t *lex_env_p, uint32_t parse_opts, const ecma_value_t *arg_list_p,
                      ecma_length_t arg_list_len);
 

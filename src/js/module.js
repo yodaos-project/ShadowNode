@@ -164,6 +164,10 @@ iotjs_module_t._resolveFilepath = function(id, root, ext_index) {
 
 
 iotjs_module_t.resolveModPath = function(id, parent) {
+  if (process.builtin_modules[id]) {
+    return id;
+  }
+
   if (parent != null && id === parent.id) {
     return false;
   }
@@ -218,19 +222,19 @@ iotjs_module_t.normalizePath = function(path) {
 
 
 iotjs_module_t.load = function(id, parent) {
-  if (process.builtin_modules[id]) {
-    iotjs_module_t.curr = id;
-    return Native.require(id);
-  }
-  var module = new iotjs_module_t(id, parent);
-  var modPath = iotjs_module_t.resolveModPath(module.id, module.parent);
-
+  var modPath = iotjs_module_t.resolveModPath(id, parent);
   var cachedModule = iotjs_module_t.cache[modPath];
   if (cachedModule) {
     iotjs_module_t.curr = modPath;
     return cachedModule.exports;
   }
 
+  if (process.builtin_modules[id]) {
+    iotjs_module_t.curr = id;
+    return Native.require(id);
+  }
+
+  var module = new iotjs_module_t(id, parent);
   if (!modPath) {
     throw new Error('Module not found: ' + id);
   }
@@ -265,9 +269,9 @@ iotjs_module_t.load = function(id, parent) {
     var consume = Math.floor(Date.now() - startedAt);
     console.log(`load "${relPath}" ${consume}ms`);
   }
+
   return module.exports;
 };
-
 
 function _makeRequireFunction(mod) {
   var Module = mod.constructor;
@@ -296,7 +300,6 @@ function _makeRequireFunction(mod) {
 
   return require;
 }
-
 
 iotjs_module_t.prototype.compile = function(snapshot) {
   var __filename = this.filename;
