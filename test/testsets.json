@@ -81,6 +81,7 @@
     },
     { "name": "test_mqtt_client.js" },
     { "name": "test_mqtt_sub_pub.js" },
+    { "name": "test_mqtt_will_opts.js" },
     { "name": "test_net_1.js" },
     { "name": "test_net_2.js" },
     { "name": "test_net_3.js", "skip": ["linux", "nuttx"], "reason": "[linux]: flaky on Travis, [nuttx]: requires too many socket descriptors and too large buffers" },
