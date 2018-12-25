@@ -32,7 +32,7 @@ void iotjs_mqtt_destroy(iotjs_mqtt_t* mqtt) {
   IOTJS_VALIDATED_STRUCT_DESTRUCTOR(iotjs_mqtt_t, mqtt);
 
 #define IOTJS_MQTT_RELEASE_OPTION(name)                 \
-  if (_this->options_.name.lenstring.len > 0) {         \
+  if (_this->options_.name.lenstring.data != NULL) {    \
     IOTJS_RELEASE(_this->options_.name.lenstring.data); \
   }
   IOTJS_MQTT_RELEASE_OPTION(username);
@@ -124,18 +124,11 @@ JS_FUNCTION(MqttConstructor) {
     // handle the `willOpts.message` that accepts a Buffer.
     do {
       iotjs_bufferwrap_t* buffer = iotjs_bufferwrap_from_jbuffer(message);
-      int size = (int)iotjs_bufferwrap_length(buffer);
-      int bufsize = 0;
-      unsigned char* buf = NULL;
-      iotjs_mqtt_alloc_buf(&buf, size, &bufsize);
-      if (buf == NULL || bufsize <= 0) {
-        ret = JS_CREATE_ERROR(COMMON, "mqtt payload buf create error");
-        break;
-      }
-      char* buf_str = (char*)iotjs_bufferwrap_buffer(buffer);
+      size_t buf_len = iotjs_bufferwrap_length(buffer);
+      char* buf_str = strndup((char*)iotjs_bufferwrap_buffer(buffer), buf_len);
       MQTTString message_str = MQTTString_initializer;
       message_str.lenstring.data = buf_str;
-      message_str.lenstring.len = (int)bufsize;
+      message_str.lenstring.len = (int)buf_len;
       willOpts.message = message_str;
       // set will opts to will.
       options.will = willOpts;
