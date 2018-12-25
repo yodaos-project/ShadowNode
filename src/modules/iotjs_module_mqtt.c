@@ -140,7 +140,7 @@ JS_FUNCTION(MqttConstructor) {
       // set will opts to will.
       options.will = willOpts;
       options.willFlag = 1;
-    } while (false);
+    } while (0);
 
     jerry_release_value(topicName);
     jerry_release_value(message);
@@ -157,7 +157,7 @@ JS_FUNCTION(MqttConstructor) {
   jerry_release_value(will);
 #undef MQTT_OPTION_ASSIGN_FROM
 
-  return jerry_create_undefined();
+  return ret;
 }
 
 JS_FUNCTION(MqttReadPacket) {
