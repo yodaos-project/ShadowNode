@@ -39,6 +39,7 @@ function MqttClient(endpoint, options) {
     username: null,
     password: null,
     clientId: 'mqttjs_' + Math.random().toString(16).substr(2, 8),
+    will: null,
     keepalive: 60 * 1000,
     reconnectPeriod: 5000,
     connectTimeout: 30 * 1000,
@@ -47,6 +48,14 @@ function MqttClient(endpoint, options) {
     protocolVersion: 4,
     pingReqTimeout: 10 * 1000,
   }, options);
+
+  // handle `options.will.payload` to be a Buffer
+  if (this._options.will && this._options.will.payload) {
+    var willMessage = this._options.will.payload
+    if (!Buffer.isBuffer(willMessage)) {
+      this._options.will.payload = new Buffer(willMessage || '')
+    }
+  }
   this._isSocketConnected = false;
   this._isConnected = false;
   this._reconnecting = false;

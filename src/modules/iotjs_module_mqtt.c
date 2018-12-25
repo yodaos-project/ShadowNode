@@ -46,10 +46,28 @@ void iotjs_mqtt_destroy(iotjs_mqtt_t* mqtt) {
   IOTJS_RELEASE(mqtt);
 }
 
+static void iotjs_mqtt_alloc_buf(unsigned char** buf, int expected_size,
+                                 int* alloc_size) {
+  static int buf_size = 128 * 1024;
+  static unsigned char* buf_ = NULL;
+  if (buf_ == NULL) {
+    buf_ = malloc((size_t)buf_size * sizeof(unsigned char));
+    if (buf_ == NULL) {
+      return;
+    }
+  }
+  if (expected_size > buf_size) {
+    return;
+  }
+  *buf = buf_;
+  *alloc_size = buf_size;
+}
+
 JS_FUNCTION(MqttConstructor) {
   DJS_CHECK_THIS();
 
   const jerry_value_t self = JS_GET_THIS();
+  jerry_value_t ret = jerry_create_undefined();
   iotjs_mqtt_t* mqtt = iotjs_mqtt_create(self);
   IOTJS_VALIDATED_STRUCT_METHOD(iotjs_mqtt_t, mqtt);
 
@@ -102,9 +120,27 @@ JS_FUNCTION(MqttConstructor) {
     willOpts.qos = iotjs_jval_as_number(qos);
 
     MQTT_OPTION_ASSIGN_FROM(willOpts, topicName);
-    MQTT_OPTION_ASSIGN_FROM(willOpts, message);
-    options.will = willOpts;
-    options.willFlag = 1;
+
+    // handle the `willOpts.message` that accepts a Buffer.
+    do {
+      iotjs_bufferwrap_t* buffer = iotjs_bufferwrap_from_jbuffer(message);
+      int size = (int)iotjs_bufferwrap_length(buffer);
+      int bufsize = 0;
+      unsigned char* buf = NULL;
+      iotjs_mqtt_alloc_buf(&buf, size, &bufsize);
+      if (buf == NULL || bufsize <= 0) {
+        ret = JS_CREATE_ERROR(COMMON, "mqtt payload buf create error");
+        break;
+      }
+      char* buf_str = (char*)iotjs_bufferwrap_buffer(buffer);
+      MQTTString message_str = MQTTString_initializer;
+      message_str.lenstring.data = buf_str;
+      message_str.lenstring.len = (int)bufsize;
+      willOpts.message = message_str;
+      // set will opts to will.
+      options.will = willOpts;
+      options.willFlag = 1;
+    } while (false);
 
     jerry_release_value(topicName);
     jerry_release_value(message);
@@ -122,23 +158,6 @@ JS_FUNCTION(MqttConstructor) {
 #undef MQTT_OPTION_ASSIGN_FROM
 
   return jerry_create_undefined();
-}
-
-static void iotjs_mqtt_alloc_buf(unsigned char** buf, int expected_size,
-                                 int* alloc_size) {
-  static int buf_size = 128 * 1024;
-  static unsigned char* buf_ = NULL;
-  if (buf_ == NULL) {
-    buf_ = malloc((size_t)buf_size * sizeof(unsigned char));
-    if (buf_ == NULL) {
-      return;
-    }
-  }
-  if (expected_size > buf_size) {
-    return;
-  }
-  *buf = buf_;
-  *alloc_size = buf_size;
 }
 
 JS_FUNCTION(MqttReadPacket) {
