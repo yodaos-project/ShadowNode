@@ -72,17 +72,17 @@ JS_FUNCTION(MqttConstructor) {
   options.keepAliveInterval = (int)iotjs_jval_as_number(keepalive);
   options.cleansession = 1;
 
-#define MQTT_OPTION_ASSIGN_FROM(owner, name)                                  \
-  do {                                                                        \
-    if (jerry_value_is_string(name)) {                                        \
-      iotjs_string_t str = iotjs_jval_as_string(name);                        \
-      size_t size = iotjs_string_size(&str);                                  \
-      MQTTString mqttstr = MQTTString_initializer;                            \
-      mqttstr.lenstring.data = strndup((char*)iotjs_string_data(&str), size); \
-      mqttstr.lenstring.len = (int)size;                                      \
-      owner.name = mqttstr;                                                   \
-      iotjs_string_destroy(&str);                                             \
-    }                                                                         \
+#define MQTT_OPTION_ASSIGN_FROM(owner, name)                           \
+  do {                                                                 \
+    if (jerry_value_is_string(name)) {                                 \
+      iotjs_string_t str = iotjs_jval_as_string(name);                 \
+      size_t size = iotjs_string_size(&str);                           \
+      MQTTString mqttstr = MQTTString_initializer;                     \
+      mqttstr.lenstring.data = strdup((char*)iotjs_string_data(&str)); \
+      mqttstr.lenstring.len = (int)size;                               \
+      owner.name = mqttstr;                                            \
+      iotjs_string_destroy(&str);                                      \
+    }                                                                  \
   } while (0)
 
   MQTT_OPTION_ASSIGN_FROM(options, username);
