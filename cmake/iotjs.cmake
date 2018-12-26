@@ -375,6 +375,7 @@ endif()
 # Print out some configs
 message("IoT.js configured with:")
 message(STATUS "BUILD_LIB_ONLY           ${BUILD_LIB_ONLY}")
+message(STATUS "BUILD_STATIC             ${BUILD_STATIC}")
 message(STATUS "CMAKE_BUILD_TYPE         ${CMAKE_BUILD_TYPE}")
 message(STATUS "CMAKE_C_FLAGS            ${CMAKE_C_FLAGS}")
 message(STATUS "CMAKE_TOOLCHAIN_FILE     ${CMAKE_TOOLCHAIN_FILE}")
@@ -418,7 +419,12 @@ set(IOTJS_PUBLIC_HEADERS
 
 # Configure the libiotjs
 set(TARGET_LIB_IOTJS libiotjs)
-add_library(${TARGET_LIB_IOTJS} SHARED ${LIB_IOTJS_SRC})
+if(BUILD_STATIC)
+  add_library(${TARGET_LIB_IOTJS} STATIC ${LIB_IOTJS_SRC})
+else()
+  add_library(${TARGET_LIB_IOTJS} SHARED ${LIB_IOTJS_SRC})
+endif(BUILD_STATIC)
+
 add_dependencies(${TARGET_LIB_IOTJS}
   ${JERRY_LIBS}
   ${TUV_LIBS}
@@ -472,10 +478,16 @@ if(NOT BUILD_LIB_ONLY)
   )
   target_include_directories(${TARGET_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
   target_link_libraries(${TARGET_IOTJS} ${TARGET_LIB_IOTJS})
-  install(TARGETS ${TARGET_IOTJS} ${TARGET_LIB_IOTJS}
+  install(TARGETS ${TARGET_IOTJS}
           RUNTIME DESTINATION "${INSTALL_PREFIX}/bin"
           LIBRARY DESTINATION "${INSTALL_PREFIX}/lib"
           PUBLIC_HEADER DESTINATION "${INSTALL_PREFIX}/include/shadow-node")
+  if(NOT BUILD_STATIC)
+    install(TARGETS ${TARGET_LIB_IOTJS}
+            RUNTIME DESTINATION "${INSTALL_PREFIX}/bin"
+            LIBRARY DESTINATION "${INSTALL_PREFIX}/lib"
+            PUBLIC_HEADER DESTINATION "${INSTALL_PREFIX}/include/shadow-node")
+  endif(NOT BUILD_STATIC)
 else()
   install(TARGETS ${TARGET_LIB_IOTJS} DESTINATION ${LIB_INSTALL_DIR})
 endif()
