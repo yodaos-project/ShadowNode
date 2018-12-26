@@ -97,7 +97,7 @@ def init_options():
         help='Clean build directory before build (default: %(default)s)')
 
     parser.add_argument('--static', action='store_true', default=False,
-        help='Build static linked shadow-node executable (default: %(default)s)')
+        help='Build static linked executable (default: %(default)s)')
 
     parser.add_argument('--config', default=path.BUILD_CONFIG_PATH,
         help='Specify the config file (default: %(default)s)',
