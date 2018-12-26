@@ -138,6 +138,11 @@ def init_options():
     parser.add_argument('--link-flag',
         action='append', default=[],
         help='Specify additional linker flags (can be used multiple times)')
+    parser.add_argument('--whole-archive',
+        default=None,
+        action='store_true',
+        dest='whole_archive',
+        help='link whole library into executable')
 
     parser.add_argument('--external-include-dir',
         action='append', default=[],
@@ -291,6 +296,9 @@ def build_cmake_args(options):
 
     # link flags
     link_flags = options.link_flag
+
+    if options.whole_archive:
+        cmake_args.append("-DLINK_WHOLE_ARCHIVE=ON")
 
     if options.jerry_lto:
         link_flags.append('-flto')

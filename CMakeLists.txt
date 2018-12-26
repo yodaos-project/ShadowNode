@@ -129,6 +129,16 @@ else()
   message(WARNING "Unknown target os: ${TARGET_OS}.")
 endif()
 
+if("${LINK_WHOLE_ARCHIVE}" STREQUAL "ON")
+  if("${TARGET_OS}" STREQUAL "darwin")
+    iotjs_add_link_flags(-Wl,-all_load)
+  elseif("${TARGET_OS}" STREQUAL "linux")
+    iotjs_add_link_flags(-Wl,--whole-archive)
+  else()
+    message(FATAL_ERROR "do not support whole archive on ${TARGET_OS} ")
+  endif()
+endif()
+
 # Add external options
 if(DEFINED EXTERNAL_COMPILE_FLAGS)
   iotjs_add_compile_flags(${EXTERNAL_COMPILE_FLAGS})
