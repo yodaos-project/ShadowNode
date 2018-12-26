@@ -93,7 +93,7 @@ ecma_builtin_number_dispatch_construct (const ecma_value_t *arguments_list_p, /*
 } /* ecma_builtin_number_dispatch_construct */
 
 /**
- * The Number object's 'isSafeInteger' routine
+ * The Number object's 'isInteger' routine
  *
  * See also:
  *          ECMA-262, 20.1.2.3
