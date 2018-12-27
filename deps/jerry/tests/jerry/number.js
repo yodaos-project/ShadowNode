@@ -19,6 +19,7 @@ function assertNotThrow(pred) {
 }
 
 assert(0xbf == 191);
+assert(0Xbf == 191);
 assert(0xbf - 10 == 181);
 assertThrow('0xbl');
 assertNotThrow('0xbf;');
