@@ -21,6 +21,17 @@
 #include "jmem.h"
 #include "jrt-bit-fields.h"
 #include "jrt-libc-includes.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include "time.h"
+#include <unistd.h>
+#include "sys/time.h"
+#include <sys/mman.h>
+
 
 #define JMEM_ALLOCATOR_INTERNAL
 #include "jmem-allocator-internal.h"
@@ -152,19 +163,24 @@ jmem_heap_init (void)
 #endif /* !JERRY_CPOINTER_32_BIT */
 
 #ifndef JERRY_SYSTEM_ALLOCATOR
+  void* area = mmap(NULL, 524280, PROT_READ | PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+  firstPosition = (jmem_heap_free_t *)&area[0];
+  printf("position of first %d\n", &area[0]);
+  JERRY_HEAP_CONTEXT(area) = &area[8];
+//  printf("position of area %d\n", &area[8]);
   JERRY_ASSERT ((uintptr_t) JERRY_HEAP_CONTEXT (area) % JMEM_ALIGNMENT == 0);
 
-  JERRY_CONTEXT (jmem_heap_limit) = CONFIG_MEM_HEAP_DESIRED_LIMIT;
+  JERRY_CONTEXT (jmem_heap_limit) = HEAP_LIMIT_SIZE;
 
   jmem_heap_free_t *const region_p = (jmem_heap_free_t *) JERRY_HEAP_CONTEXT (area);
 
   region_p->size = JMEM_HEAP_AREA_SIZE;
   region_p->next_offset = JMEM_HEAP_END_OF_LIST;
 
-  JERRY_HEAP_CONTEXT (first).size = 0;
-  JERRY_HEAP_CONTEXT (first).next_offset = JMEM_HEAP_GET_OFFSET_FROM_ADDR (region_p);
+  firstPosition->size = 0;
+  firstPosition->next_offset = JMEM_HEAP_GET_OFFSET_FROM_ADDR (region_p);
 
-  JERRY_CONTEXT (jmem_heap_list_skip_p) = &JERRY_HEAP_CONTEXT (first);
+  JERRY_CONTEXT (jmem_heap_list_skip_p) = firstPosition;
 
   VALGRIND_NOACCESS_SPACE (JERRY_HEAP_CONTEXT (area), JMEM_HEAP_AREA_SIZE);
 
@@ -180,7 +196,7 @@ jmem_heap_finalize (void)
 {
   JERRY_ASSERT (JERRY_CONTEXT (jmem_heap_allocated_size) == 0);
 #ifndef JERRY_SYSTEM_ALLOCATOR
-  VALGRIND_NOACCESS_SPACE (&JERRY_HEAP_CONTEXT (first), JMEM_HEAP_SIZE);
+  VALGRIND_NOACCESS_SPACE (&firstPosition, JMEM_HEAP_SIZE);
 #endif /* !JERRY_SYSTEM_ALLOCATOR */
 } /* jmem_heap_finalize */
 
@@ -201,13 +217,13 @@ jmem_heap_alloc_block_internal (const size_t size)
   const size_t required_size = ((size + JMEM_ALIGNMENT - 1) / JMEM_ALIGNMENT) * JMEM_ALIGNMENT;
   jmem_heap_free_t *data_space_p = NULL;
 
-  VALGRIND_DEFINED_SPACE (&JERRY_HEAP_CONTEXT (first), sizeof (jmem_heap_free_t));
+  VALGRIND_DEFINED_SPACE (&firstPosition, sizeof (jmem_heap_free_t));
 
   /* Fast path for 8 byte chunks, first region is guaranteed to be sufficient. */
   if (required_size == JMEM_ALIGNMENT
-      && likely (JERRY_HEAP_CONTEXT (first).next_offset != JMEM_HEAP_END_OF_LIST))
+      && likely (firstPosition->next_offset != JMEM_HEAP_END_OF_LIST))
   {
-    data_space_p = JMEM_HEAP_GET_ADDR_FROM_OFFSET (JERRY_HEAP_CONTEXT (first).next_offset);
+    data_space_p = JMEM_HEAP_GET_ADDR_FROM_OFFSET (firstPosition->next_offset);
     JERRY_ASSERT (jmem_is_heap_pointer (data_space_p));
 
     VALGRIND_DEFINED_SPACE (data_space_p, sizeof (jmem_heap_free_t));
@@ -216,35 +232,35 @@ jmem_heap_alloc_block_internal (const size_t size)
 
     if (data_space_p->size == JMEM_ALIGNMENT)
     {
-      JERRY_HEAP_CONTEXT (first).next_offset = data_space_p->next_offset;
+      firstPosition->next_offset = data_space_p->next_offset;
     }
     else
     {
       JERRY_ASSERT (data_space_p->size > JMEM_ALIGNMENT);
 
       jmem_heap_free_t *remaining_p;
-      remaining_p = JMEM_HEAP_GET_ADDR_FROM_OFFSET (JERRY_HEAP_CONTEXT (first).next_offset) + 1;
+      remaining_p = JMEM_HEAP_GET_ADDR_FROM_OFFSET (firstPosition->next_offset) + 1;
 
       VALGRIND_DEFINED_SPACE (remaining_p, sizeof (jmem_heap_free_t));
       remaining_p->size = data_space_p->size - JMEM_ALIGNMENT;
       remaining_p->next_offset = data_space_p->next_offset;
       VALGRIND_NOACCESS_SPACE (remaining_p, sizeof (jmem_heap_free_t));
 
-      JERRY_HEAP_CONTEXT (first).next_offset = JMEM_HEAP_GET_OFFSET_FROM_ADDR (remaining_p);
+      firstPosition->next_offset = JMEM_HEAP_GET_OFFSET_FROM_ADDR (remaining_p);
     }
 
     VALGRIND_UNDEFINED_SPACE (data_space_p, sizeof (jmem_heap_free_t));
 
     if (unlikely (data_space_p == JERRY_CONTEXT (jmem_heap_list_skip_p)))
     {
-      JERRY_CONTEXT (jmem_heap_list_skip_p) = JMEM_HEAP_GET_ADDR_FROM_OFFSET (JERRY_HEAP_CONTEXT (first).next_offset);
+      JERRY_CONTEXT (jmem_heap_list_skip_p) = JMEM_HEAP_GET_ADDR_FROM_OFFSET (firstPosition->next_offset);
     }
   }
   /* Slow path for larger regions. */
   else
   {
-    uint32_t current_offset = JERRY_HEAP_CONTEXT (first).next_offset;
-    jmem_heap_free_t *prev_p = &JERRY_HEAP_CONTEXT (first);
+    uint32_t current_offset = firstPosition->next_offset;
+    jmem_heap_free_t *prev_p = firstPosition;
 
     while (current_offset != JMEM_HEAP_END_OF_LIST)
     {
@@ -307,7 +323,7 @@ jmem_heap_alloc_block_internal (const size_t size)
     JERRY_CONTEXT (jmem_heap_limit) += CONFIG_MEM_HEAP_DESIRED_LIMIT;
   }
 
-  VALGRIND_NOACCESS_SPACE (&JERRY_HEAP_CONTEXT (first), sizeof (jmem_heap_free_t));
+  VALGRIND_NOACCESS_SPACE (&firstPosition, sizeof (jmem_heap_free_t));
 
   if (unlikely (!data_space_p))
   {
@@ -445,7 +461,7 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
   jmem_heap_free_t *prev_p;
   jmem_heap_free_t *next_p;
 
-  VALGRIND_DEFINED_SPACE (&JERRY_HEAP_CONTEXT (first), sizeof (jmem_heap_free_t));
+  VALGRIND_DEFINED_SPACE (firstPosition, sizeof (jmem_heap_free_t));
 
   if (block_p > JERRY_CONTEXT (jmem_heap_list_skip_p))
   {
@@ -454,7 +470,7 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
   }
   else
   {
-    prev_p = &JERRY_HEAP_CONTEXT (first);
+    prev_p = firstPosition;
     JMEM_HEAP_STAT_NONSKIP ();
   }
 
@@ -521,10 +537,11 @@ jmem_heap_free_block (void *ptr, /**< pointer to beginning of data space of the 
 
   while (JERRY_CONTEXT (jmem_heap_allocated_size) + CONFIG_MEM_HEAP_DESIRED_LIMIT <= JERRY_CONTEXT (jmem_heap_limit))
   {
+    if (JERRY_CONTEXT (jmem_heap_limit) <= HEAP_LIMIT_SIZE) break;
     JERRY_CONTEXT (jmem_heap_limit) -= CONFIG_MEM_HEAP_DESIRED_LIMIT;
   }
 
-  VALGRIND_NOACCESS_SPACE (&JERRY_HEAP_CONTEXT (first), sizeof (jmem_heap_free_t));
+  VALGRIND_NOACCESS_SPACE (&firstPosition, sizeof (jmem_heap_free_t));
   JERRY_ASSERT (JERRY_CONTEXT (jmem_heap_limit) >= JERRY_CONTEXT (jmem_heap_allocated_size));
   JMEM_HEAP_STAT_FREE (size);
 #else /* JERRY_SYSTEM_ALLOCATOR */

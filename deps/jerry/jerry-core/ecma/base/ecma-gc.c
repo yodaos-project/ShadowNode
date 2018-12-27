@@ -30,6 +30,9 @@
 #include "re-compiler.h"
 #include "vm-defines.h"
 #include "vm-stack.h"
+#include "time.h"
+#include <unistd.h>
+#include "sys/time.h"
 
 #ifndef CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN
 #include "ecma-typedarray-object.h"
@@ -887,6 +890,10 @@ void
 ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
 {
   JERRY_CONTEXT (ecma_gc_new_objects) = 0;
+  clock_t start =clock();
+  jmem_heap_stats_t statsBefore;
+  memset(&statsBefore, 0, sizeof(jmem_heap_stats_t));
+  jmem_heap_get_stats(&statsBefore);
 
   ecma_object_t *white_gray_objects_p = JERRY_CONTEXT (ecma_gc_objects_p);
   ecma_object_t *black_objects_p = NULL;
@@ -1027,6 +1034,37 @@ ecma_gc_run (jmem_free_unused_memory_severity_t severity) /**< gc severity */
   }
 
   JERRY_CONTEXT (ecma_gc_objects_p) = black_objects_p;
+  jmem_heap_stats_t statsAfter;
+  memset(&statsAfter, 0, sizeof(jmem_heap_stats_t));
+  jmem_heap_get_stats(&statsAfter);
+  time_t t;
+  struct tm * lt;
+  time (&t);
+  lt = localtime (&t);
+  clock_t end = clock();
+  struct timeval tv;
+  gettimeofday(&tv,NULL);
+  size_t allocatedByte = statsBefore.allocated_bytes - statsAfter.allocated_bytes;
+  jerry_port_log(JERRY_LOG_LEVEL_ERROR, "\nGC:"
+           "  Pid = %d;"
+		   "  Time = %d:%d:%d:%ld;"
+		   "  GC spend time = %.0lf;"
+		   "  Allocated = %zu;"
+                   "  GC allocated = %zu;\n",
+		   getpid(),
+		   lt->tm_hour,
+		   lt->tm_min,
+		   lt->tm_sec,
+		   tv.tv_usec / 1000,
+		   (double)(end - start) / CLOCKS_PER_SEC * 10000000,
+		   statsBefore.allocated_bytes,
+		   allocatedByte);
+// if((statsBefore.allocated_bytes - allocatedByte <= 20000) && (statsAfter.allocated_bytes < 400000)) {
+//   JERRY_CONTEXT (jmem_heap_limit) += CONFIG_MEM_HEAP_DESIRED_LIMIT ;
+//   notCutdownHeapLimit = true;
+// } else {
+//   notCutdownHeapLimit = false;
+// }
 
 #ifndef CONFIG_DISABLE_REGEXP_BUILTIN
   /* Free RegExp bytecodes stored in cache */

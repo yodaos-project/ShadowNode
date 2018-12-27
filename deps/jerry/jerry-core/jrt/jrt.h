@@ -15,7 +15,7 @@
 
 #ifndef JRT_H
 #define JRT_H
-
+#define _GNU_SOURCE 1
 #if !defined (_XOPEN_SOURCE) || _XOPEN_SOURCE < 500
 #undef _XOPEN_SOURCE
 /* Required macro for sleep functions (nanosleep or usleep) */
