@@ -911,9 +911,10 @@ lexer_parse_number (parser_context_t *context_p) /**< context */
              && lit_char_is_binary_digit (source_p[0]));
 
       if (source_p < source_end_p
-         && !lit_char_is_binary_digit (source_p[0]))
+         && source_p[0] >= LIT_CHAR_2
+         && source_p[0] <= LIT_CHAR_9)
       {
-        parser_raise_error (context_p, PARSER_ERR_INVALID_BINARY_DIGIT);
+        parser_raise_error (context_p, PARSER_ERR_INVALID_NUMBER);
       }
     }
     else if (source_p[1] == LIT_CHAR_UPPERCASE_O ||
