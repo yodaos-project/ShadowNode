@@ -295,7 +295,7 @@ function _makeRequireFunction(mod) {
     return path;
   }
   require.resolve = _resolve;
-  require.main = mainModule;
+  require.main = mod;
   require.cache = Module.cache;
 
   return require;
