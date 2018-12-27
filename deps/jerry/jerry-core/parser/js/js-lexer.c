@@ -892,6 +892,30 @@ lexer_parse_number (parser_context_t *context_p) /**< context */
       while (source_p < source_end_p
              && lit_char_is_hex_digit (source_p[0]));
     }
+    else if (LEXER_TO_ASCII_LOWERCASE (source_p[1]) == LIT_CHAR_LOWERCASE_B)
+    {
+      context_p->token.extra_value = LEXER_NUMBER_BINARY;
+      source_p += 2;
+
+      if(source_p >= source_end_p
+        || !lit_char_is_binary_digit (source_p[0]))
+      {
+        parser_raise_error (context_p, PARSER_ERR_INVALID_BINARY_DIGIT);
+      }
+
+      do
+      {
+        source_p++;
+      }
+      while (source_p < source_end_p
+             && lit_char_is_binary_digit (source_p[0]));
+
+      if (source_p < source_end_p
+         && !lit_char_is_binary_digit (source_p[0]))
+      {
+        parser_raise_error (context_p, PARSER_ERR_INVALID_BINARY_DIGIT);
+      }
+    }
     else if (source_p[1] == LIT_CHAR_UPPERCASE_O ||
              source_p[1] == LIT_CHAR_LOWERCASE_O ||
              (source_p[1] >= LIT_CHAR_0 && source_p[1] <= LIT_CHAR_7))
@@ -1756,7 +1780,25 @@ lexer_construct_number_object (parser_context_t *context_p, /**< context */
   uint32_t literal_index = 0;
   prop_length_t length = context_p->token.lit_location.length;
 
-  if (context_p->token.extra_value != LEXER_NUMBER_OCTAL)
+  if(context_p->token.extra_value == LEXER_NUMBER_BINARY)
+  {
+    const uint8_t *src_p = context_p->token.lit_location.char_p;
+    const uint8_t *src_end_p = src_p + length - 1;
+
+    if(LEXER_TO_ASCII_LOWERCASE (src_p[1]) == LIT_CHAR_LOWERCASE_B)
+    {
+      src_p++;
+    }
+
+    num = 0;
+    do
+    {
+      src_p++;
+      num = num * 2 + (ecma_number_t) (*src_p - LIT_CHAR_0);
+    }
+    while (src_p < src_end_p);
+  }
+  else if (context_p->token.extra_value != LEXER_NUMBER_OCTAL)
   {
     num = ecma_utf8_string_to_number (context_p->token.lit_location.char_p,
                                       length);
