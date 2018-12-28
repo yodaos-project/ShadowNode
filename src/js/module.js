@@ -252,6 +252,7 @@ iotjs_module_t.load = function(id, parent, isMain) {
 
   if (isMain) {
     mainModule = module;
+    module.id = '.';
   }
 
   var ext = modPath.substr(modPath.lastIndexOf('.') + 1);
@@ -344,8 +345,7 @@ iotjs_module_t.runMain = function() {
     var fn = process.debuggerSourceCompile();
     fn.call();
   } else {
-    var filename = process.argv[1];
-    iotjs_module_t.load(filename, null, true);
+    iotjs_module_t.load(process.argv[1], null, true);
   }
   while (process._onNextTick());
 };
