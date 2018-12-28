@@ -1781,7 +1781,7 @@ lexer_construct_number_object (parser_context_t *context_p, /**< context */
   uint32_t literal_index = 0;
   prop_length_t length = context_p->token.lit_location.length;
 
-  if(context_p->token.extra_value == LEXER_NUMBER_BINARY)
+  if (context_p->token.extra_value == LEXER_NUMBER_BINARY)
   {
     const uint8_t *src_p = context_p->token.lit_location.char_p;
     const uint8_t *src_end_p = src_p + length - 1;
