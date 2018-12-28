@@ -1780,26 +1780,9 @@ lexer_construct_number_object (parser_context_t *context_p, /**< context */
   ecma_number_t num;
   uint32_t literal_index = 0;
   prop_length_t length = context_p->token.lit_location.length;
+  uint8_t extra_value = context_p->token.extra_value;
 
-  if(context_p->token.extra_value == LEXER_NUMBER_BINARY)
-  {
-    const uint8_t *src_p = context_p->token.lit_location.char_p;
-    const uint8_t *src_end_p = src_p + length - 1;
-
-    if(LEXER_TO_ASCII_LOWERCASE (src_p[1]) == LIT_CHAR_LOWERCASE_B)
-    {
-      src_p++;
-    }
-
-    num = 0;
-    do
-    {
-      src_p++;
-      num = num * 2 + (ecma_number_t) (*src_p - LIT_CHAR_0);
-    }
-    while (src_p < src_end_p);
-  }
-  else if (context_p->token.extra_value != LEXER_NUMBER_OCTAL)
+  if (extra_value != LEXER_NUMBER_OCTAL && extra_value != LEXER_NUMBER_BINARY)
   {
     num = ecma_utf8_string_to_number (context_p->token.lit_location.char_p,
                                       length);
@@ -1808,9 +1791,10 @@ lexer_construct_number_object (parser_context_t *context_p, /**< context */
   {
     const uint8_t *src_p = context_p->token.lit_location.char_p;
     const uint8_t *src_end_p = src_p + length - 1;
+    const uint8_t value = extra_value == LEXER_NUMBER_BINARY ? 2 : 8;
 
-    if (src_p[1] == LIT_CHAR_UPPERCASE_O ||
-        src_p[1] == LIT_CHAR_LOWERCASE_O)
+    if (LEXER_TO_ASCII_LOWERCASE (src_p[1]) == LIT_CHAR_LOWERCASE_B || 
+        LEXER_TO_ASCII_LOWERCASE (src_p[1]) == LIT_CHAR_LOWERCASE_O)
     {
       src_p++;
     }
@@ -1819,7 +1803,7 @@ lexer_construct_number_object (parser_context_t *context_p, /**< context */
     do
     {
       src_p++;
-      num = num * 8 + (ecma_number_t) (*src_p - LIT_CHAR_0);
+      num = num * value + (ecma_number_t) (*src_p - LIT_CHAR_0);
     }
     while (src_p < src_end_p);
   }
