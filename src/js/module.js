@@ -221,7 +221,7 @@ iotjs_module_t.normalizePath = function(path) {
 };
 
 
-iotjs_module_t.load = function(id, parent) {
+iotjs_module_t.load = function(id, parent, isMain) {
   var modPath = iotjs_module_t.resolveModPath(id, parent);
   var cachedModule = iotjs_module_t.cache[modPath];
   if (cachedModule) {
@@ -249,6 +249,10 @@ iotjs_module_t.load = function(id, parent) {
   module.dirs = [modPath.substring(0, modPath.lastIndexOf('/') + 1)];
   iotjs_module_t.cache[modPath] = module;
   iotjs_module_t.curr = modPath;
+
+  if (isMain) {
+    mainModule = module;
+  }
 
   var ext = modPath.substr(modPath.lastIndexOf('.') + 1);
   if (ext === 'jsc') {
@@ -295,7 +299,7 @@ function _makeRequireFunction(mod) {
     return path;
   }
   require.resolve = _resolve;
-  require.main = mod;
+  require.main = mainModule;
   require.cache = Module.cache;
 
   return require;
@@ -340,8 +344,8 @@ iotjs_module_t.runMain = function() {
     var fn = process.debuggerSourceCompile();
     fn.call();
   } else {
-    var filename = mainModule.filename = process.argv[1];
-    mainModule.exports = iotjs_module_t.load(filename, null);
+    var filename = process.argv[1];
+    iotjs_module_t.load(filename, null, true);
   }
   while (process._onNextTick());
 };
