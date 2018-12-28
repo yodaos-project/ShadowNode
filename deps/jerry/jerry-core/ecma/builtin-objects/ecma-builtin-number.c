@@ -137,7 +137,7 @@ ecma_builtin_number_object_is_safe_integer (ecma_value_t this_arg, /**< this arg
 {
     JERRY_UNUSED (this_arg);
     ecma_value_t is_integer = ecma_builtin_number_object_is_integer (this_arg, arg);
-    if (!ecma_op_to_boolean (is_integer)) 
+    if (!ecma_op_to_boolean (is_integer))
     {
         return ECMA_VALUE_FALSE;
     }
@@ -194,7 +194,7 @@ ecma_builtin_number_object_is_nan (ecma_value_t this_arg, /**< this argument */
         return ECMA_VALUE_FALSE;
     }
 
-    ecma_value_t ret_value = ECMA_VALUE_FALSE;
+    ecma_value_t ret_value = ECMA_VALUE_EMPTY;
     ECMA_OP_TO_NUMBER_TRY_CATCH (arg_num, arg, ret_value) ;
 
     bool is_nan = ecma_number_is_nan (arg_num);
