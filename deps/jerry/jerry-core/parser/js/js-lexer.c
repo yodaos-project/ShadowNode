@@ -1786,7 +1786,7 @@ lexer_construct_number_object (parser_context_t *context_p, /**< context */
     const uint8_t *src_p = context_p->token.lit_location.char_p;
     const uint8_t *src_end_p = src_p + length - 1;
 
-    if(LEXER_TO_ASCII_LOWERCASE (src_p[1]) == LIT_CHAR_LOWERCASE_B)
+    if (LEXER_TO_ASCII_LOWERCASE (src_p[1]) == LIT_CHAR_LOWERCASE_B)
     {
       src_p++;
     }
