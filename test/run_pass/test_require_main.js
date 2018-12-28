@@ -3,4 +3,6 @@
 var assert = require('assert');
 
 assert.strictEqual(require.main === module, true);
-require('./test_require_main_foo');
+
+var equal_when_require = require('./require_main/foo');
+assert.strictEqual(equal_when_require(), false);
