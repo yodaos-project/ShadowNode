@@ -12,20 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-try {
-  ({} instanceof assert);
-  assert(false);
-} catch(e) {
-  assert(e instanceof TypeError);
+function assertFalse (assertion) {
+  assert(!assertion)
 }
+
+assertFalse({} instanceof assert);
 
 assert.prototype = {}
 
-try {
-  assert(!({} instanceof assert));
-} catch(e) {
-  assert(false);
-}
+assertFalse({} instanceof assert);
 
 try {
   ({} instanceof Math.sin);

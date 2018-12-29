@@ -12,28 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-var code = 'try\n\
-{\n\
-  print({toStSing:!function() { throw new TypeError("foo"); }}, []);t (false);\n\
-}\n\
-catch (e)\n\
-{\n\
-  assert*(e instanceof\n\
-  assert );\n\
-  asstrt (e.a%e === "foo");\n\
-}';
+function throw_error_strict(snippet)
+{
 
-try {
-  eval(code);
-  assert(false);
-} catch(e) {
-  assert(e instanceof TypeError);
+  try
+  {
+    eval('use strict;' + snippet);
+    assert (false);
+  }
+  catch (e)
+  {
+    assert (e instanceof SyntaxError);
+  }
 }
 
-try {
-  eval("var x = {}; x instanceof assert;");
-  assert(false);
-} catch(e) {
-  assert(e instanceof TypeError);
-}
-
+throw_error_strict("({a:1, a:2})");
