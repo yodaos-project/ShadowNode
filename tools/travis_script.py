@@ -24,7 +24,13 @@ def check_change(path):
 def build_jerry():
     if check_change('deps/jerry') != -1:
         ex.check_run_cmd('./deps/jerry/tools/run-tests.py',
-                         ['--unittests', '--jerry-test-suite'])
+                         [
+                             '--quiet',
+                             '--unittests',
+                             '--jerry-tests',
+                             '--jerry-test-suite'
+                         ]
+                        )
 
 
 def build_iotjs(buildtype, args=[], env=[]):
