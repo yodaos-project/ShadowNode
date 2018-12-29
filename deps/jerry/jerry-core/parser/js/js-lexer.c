@@ -1782,7 +1782,8 @@ lexer_construct_number_object (parser_context_t *context_p, /**< context */
   prop_length_t length = context_p->token.lit_location.length;
   uint8_t extra_value = context_p->token.extra_value;
 
-  if (extra_value != LEXER_NUMBER_OCTAL && extra_value != LEXER_NUMBER_BINARY)
+  if (extra_value != LEXER_NUMBER_OCTAL && 
+      extra_value != LEXER_NUMBER_BINARY)
   {
     num = ecma_utf8_string_to_number (context_p->token.lit_location.char_p,
                                       length);
