@@ -892,6 +892,31 @@ lexer_parse_number (parser_context_t *context_p) /**< context */
       while (source_p < source_end_p
              && lit_char_is_hex_digit (source_p[0]));
     }
+    else if (LEXER_TO_ASCII_LOWERCASE (source_p[1]) == LIT_CHAR_LOWERCASE_B)
+    {
+      context_p->token.extra_value = LEXER_NUMBER_BINARY;
+      source_p += 2;
+
+      if(source_p >= source_end_p
+        || !lit_char_is_binary_digit (source_p[0]))
+      {
+        parser_raise_error (context_p, PARSER_ERR_INVALID_BINARY_DIGIT);
+      }
+
+      do
+      {
+        source_p++;
+      }
+      while (source_p < source_end_p
+             && lit_char_is_binary_digit (source_p[0]));
+
+      if (source_p < source_end_p
+         && source_p[0] >= LIT_CHAR_2
+         && source_p[0] <= LIT_CHAR_9)
+      {
+        parser_raise_error (context_p, PARSER_ERR_INVALID_NUMBER);
+      }
+    }
     else if (source_p[1] == LIT_CHAR_UPPERCASE_O ||
              source_p[1] == LIT_CHAR_LOWERCASE_O ||
              (source_p[1] >= LIT_CHAR_0 && source_p[1] <= LIT_CHAR_7))
@@ -1755,8 +1780,10 @@ lexer_construct_number_object (parser_context_t *context_p, /**< context */
   ecma_number_t num;
   uint32_t literal_index = 0;
   prop_length_t length = context_p->token.lit_location.length;
+  uint8_t extra_value = context_p->token.extra_value;
 
-  if (context_p->token.extra_value != LEXER_NUMBER_OCTAL)
+  if (extra_value != LEXER_NUMBER_BINARY &&
+      extra_value != LEXER_NUMBER_OCTAL)
   {
     num = ecma_utf8_string_to_number (context_p->token.lit_location.char_p,
                                       length);
@@ -1765,9 +1792,10 @@ lexer_construct_number_object (parser_context_t *context_p, /**< context */
   {
     const uint8_t *src_p = context_p->token.lit_location.char_p;
     const uint8_t *src_end_p = src_p + length - 1;
+    const uint8_t literal_value = extra_value == LEXER_NUMBER_BINARY ? 2 : 8;
 
-    if (src_p[1] == LIT_CHAR_UPPERCASE_O ||
-        src_p[1] == LIT_CHAR_LOWERCASE_O)
+    if (LEXER_TO_ASCII_LOWERCASE (src_p[1]) == LIT_CHAR_LOWERCASE_B || 
+        LEXER_TO_ASCII_LOWERCASE (src_p[1]) == LIT_CHAR_LOWERCASE_O)
     {
       src_p++;
     }
@@ -1776,7 +1804,7 @@ lexer_construct_number_object (parser_context_t *context_p, /**< context */
     do
     {
       src_p++;
-      num = num * 8 + (ecma_number_t) (*src_p - LIT_CHAR_0);
+      num = num * literal_value + (ecma_number_t) (*src_p - LIT_CHAR_0);
     }
     while (src_p < src_end_p);
   }

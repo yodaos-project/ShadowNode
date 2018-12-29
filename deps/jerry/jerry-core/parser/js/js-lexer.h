@@ -264,6 +264,7 @@ typedef enum
  */
 typedef enum
 {
+  LEXER_NUMBER_BINARY,                      /**< binary number */
   LEXER_NUMBER_DECIMAL,                     /**< decimal number */
   LEXER_NUMBER_HEXADECIMAL,                 /**< hexadecimal number */
   LEXER_NUMBER_OCTAL,                       /**< octal number */
