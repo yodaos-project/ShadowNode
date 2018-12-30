@@ -13,15 +13,17 @@
  * limitations under the License.
  */
 
+'use strict';
+
 var fs = require('fs');
 
 function Logger(path) {
   this.text_colors = {
-    red: '\033[1;31m',
-    yellow: '\033[1;33m',
-    green: '\033[1;32m',
-    blue: '\033[1;34m',
-    empty: '\033[0m',
+    red: '\u001b[1;31m',
+    yellow: '\u001b[1;33m',
+    green: '\u001b[1;32m',
+    blue: '\u001b[1;34m',
+    empty: '\u001b[0m',
   };
   this.status = {
     pass: 'pass',
@@ -42,13 +44,13 @@ Logger.prototype.message = function(msg, status) {
     var newData = data + msg + '\n';
     fs.writeFileSync(this.path, new Buffer(newData));
   }
-  if (status == this.status.pass) {
+  if (status === this.status.pass) {
     console.log(this.text_colors.green + msg + this.text_colors.empty);
-  } else if (status == this.status.skip) {
+  } else if (status === this.status.skip) {
     console.log(this.text_colors.yellow + msg + this.text_colors.empty);
-  } else if (status == this.status.fail || status == this.status.timeout) {
+  } else if (status === this.status.fail || status === this.status.timeout) {
     console.log(this.text_colors.red + msg + this.text_colors.empty);
-  } else if (status == this.status.summary) {
+  } else if (status === this.status.summary) {
     console.log(this.text_colors.blue + msg + this.text_colors.empty);
   } else {
     console.log(msg);
