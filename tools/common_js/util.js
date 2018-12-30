@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+'use strict';
+
 function absolutePath(path) {
   // FIXME: On NuttX side, when dealing with file, path should be absolute.
   // So workaround this problem, test driver converts relative path
