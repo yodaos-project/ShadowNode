@@ -13,15 +13,19 @@
  * limitations under the License.
  */
 
+'use strict';
+
 /* Just for the testrunner to get runtime information about the build. */
 var builtins = process.builtin_modules;
 
-if (process.env.IOTJS_ENV.indexOf('experimental') > -1)
+var stability;
+if (process.env.IOTJS_ENV.indexOf('experimental') > -1) {
   stability = 'experimental';
-else
+} else {
   stability = 'stable';
+}
 
-result = {
+var result = {
   'builtins': builtins,
   'stability': stability
 };

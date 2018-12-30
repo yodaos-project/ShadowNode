@@ -1,3 +1,5 @@
+'use strict';
+
 var detect = require('es-feature-detection');
 var syntax = detect.syntax();
 var builtins = detect.builtins();
@@ -13,7 +15,7 @@ function _report(obj, space) {
     if (name === '__all')
       return;
     var support = obj[name];
-    var prefix = '\033';
+    var prefix = '\u001b';
 
     if (support && support.__all !== undefined) {
       return _report(support, space + space);
@@ -33,4 +35,3 @@ report(syntax, 'es2015');
 report(syntax, 'es2016');
 report(builtins, 'es2015');
 report(builtins, 'es2016');
-

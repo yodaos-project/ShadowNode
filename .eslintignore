@@ -1,7 +1,6 @@
 /build/**
 /deps/**
-/tools/**
-/node_modules/**
+**/node_modules/**
 /src/js/ble*
 
 test/*

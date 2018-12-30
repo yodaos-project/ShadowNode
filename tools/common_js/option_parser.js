@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+'use strict';
+
 var util = require('util');
 
 function Option(arg, value, default_value, help) {
@@ -42,8 +44,9 @@ OptionParser.prototype.addOption = function(arg, value, default_value, help) {
 OptionParser.prototype.parse = function() {
   var options = {};
 
+  var option;
   for (var idx in this.options) {
-    var option = this.options[idx];
+    option = this.options[idx];
     var default_value = option.default_value;
     if (default_value !== '') {
       options[option.arg] = default_value;
@@ -51,10 +54,10 @@ OptionParser.prototype.parse = function() {
   }
 
   for (var aIdx = 2; aIdx < process.argv.length; aIdx++) {
-    var option = process.argv[aIdx];
+    option = process.argv[aIdx];
     var arg_val = option.split('=');
 
-    if (arg_val.length != 2 || !arg_val[0] || !arg_val[1]) {
+    if (arg_val.length !== 2 || !arg_val[0] || !arg_val[1]) {
       return null;
     }
 
@@ -68,7 +71,7 @@ OptionParser.prototype.parse = function() {
     }
 
     for (var oIdx in this.options) {
-      if (arg == this.options[oIdx].arg) {
+      if (arg === this.options[oIdx].arg) {
         options[arg] = val;
         found = true;
         break;
