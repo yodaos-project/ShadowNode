@@ -122,6 +122,7 @@
     { "name": "test_process_unhandled_rejection.js" },
     { "name": "test_pwm_async.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_pwm_sync.js", "skip": ["all"], "reason": "need to setup test environment" },
+    { "name": "test_require_main.js" },
     { "name": "test_require_resolve.js" },
     { "name": "test_shebang.js" },
     { "name": "test_signal_simple.js" },
