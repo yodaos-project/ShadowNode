@@ -10,7 +10,9 @@ BUILDTYPES = ['debug', 'release']
 
 def check_change(path):
     '''Check if current pull request depends on path,
-    return -1 if not depends, else if depends.'''
+    return `False` if not depends, else if depends.'''
+    if os.getenv('TRAVIS_PULL_REQUEST') == 'false':
+        return True
     travis_branch = os.getenv('TRAVIS_BRANCH')
     commit_diff = ex.run_cmd_output('git',
                                     [
@@ -18,11 +20,11 @@ def check_change(path):
                                         '--name-only',
                                         'HEAD..origin/' + travis_branch],
                                     True)
-    return commit_diff.find(path)
+    return commit_diff.find(path) != -1
 
 
 def build_jerry():
-    if check_change('deps/jerry') != -1:
+    if check_change('deps/jerry'):
         ex.check_run_cmd('./deps/jerry/tools/run-tests.py',
                          [
                              '--quiet',
