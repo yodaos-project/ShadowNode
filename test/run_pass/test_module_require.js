@@ -50,3 +50,11 @@ assert.throws(function() {
 assert.throws(function() {
   var test4 = require('tmp');
 }, Error);
+
+// Load empty module.
+assert.deepStrictEqual(require(dir + 'empty_module'), {});
+
+// Load not exist module.
+assert.throws(function() {
+  require('not_exist_module');
+}, Error);
