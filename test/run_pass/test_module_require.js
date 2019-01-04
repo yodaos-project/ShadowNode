@@ -53,3 +53,8 @@ assert.throws(function() {
 
 // Load empty module.
 assert.deepStrictEqual(require(dir + 'empty_module'), {});
+
+// Load not exist module.
+assert.throws(function() {
+  require('not_exist_module');
+}, Error);
