@@ -146,7 +146,7 @@ JS_FUNCTION(Compile) {
 
   size_t size = 0;
   char* source = iotjs__file_read(filename, &size);
-  if (source == NULL || size == 0) {
+  if (source == NULL) {
     iotjs_string_destroy(&path);
     return JS_CREATE_ERROR(COMMON, "Could not load the source.");
   }
