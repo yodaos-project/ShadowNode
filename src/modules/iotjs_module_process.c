@@ -146,8 +146,11 @@ JS_FUNCTION(Compile) {
 
   size_t size = 0;
   char* source = iotjs__file_read(filename, &size);
-
   jerry_value_t jres = WrapEval(filename, strlen(filename), source, size);
+  if (source == NULL || size == 0) {
+    return jres;
+  }
+
   iotjs_string_destroy(&path);
   iotjs_buffer_release(source);
   return jres;
