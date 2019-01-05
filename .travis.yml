@@ -14,6 +14,8 @@ cache:
   - node_modules/
   - $HOME/.nvm/
 
+git:
+  depth: false
 
 addons:
   hosts:
@@ -24,6 +26,7 @@ before_install:
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tools/brew-install-deps.sh; fi
 
 install:
+- git fetch origin $TRAVIS_BRANCH
 - nvm install 10.8.0
 - nvm use 10.8.0
 - travis_retry yarn
@@ -34,6 +37,12 @@ script:
 # start http & https service
 - sudo $(which node) tools/http_server.js --port 80 &
 - sudo $(which node) tools/http_server.js --ssl --port 443 &
+# start websocket & mqtt service for testsets
+- yarn install --cwd test/deps
+- node test/deps/websocket-server.js --port 8080 &
+- node test/deps/websocket-server.js --ssl --port 8088 &
+- node test/deps/mqtt-server.js --port 9080 &
+- node test/deps/mqtt-server.js --ssl --port 9088 &
 # start dbus service
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export $(dbus-launch); fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start dbus; fi
@@ -45,7 +54,7 @@ fast_finish: true
 
 .deploy_job_template: &deploy_job_template
   script:
-  - tools/build.py --buildtype release --clean --install --install-prefix $(pwd)/build/usr
+  - tools/build.py --buildtype release --clean --static --install --install-prefix $(pwd)/build/usr
   - tar -czf shadow-node-${TRAVIS_TAG}-$(uname)-$(uname -m).tar.gz -C build ./usr
   deploy:
     provider: releases

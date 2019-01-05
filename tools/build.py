@@ -96,6 +96,9 @@ def init_options():
     parser.add_argument('--clean', action='store_true', default=False,
         help='Clean build directory before build (default: %(default)s)')
 
+    parser.add_argument('--static', action='store_true', default=False,
+        help='Build static linked executable (default: %(default)s)')
+
     parser.add_argument('--config', default=path.BUILD_CONFIG_PATH,
         help='Specify the config file (default: %(default)s)',
         dest='config_path')
@@ -345,6 +348,7 @@ def build_iotjs(options):
         '-DENABLE_LTO=%s' % get_on_off(options.jerry_lto), # --jerry-lto
         '-DENABLE_SNAPSHOT=%s' % get_on_off(not options.no_snapshot),
         '-DBUILD_LIB_ONLY=%s' % get_on_off(options.buildlib), # --buildlib
+        '-DBUILD_STATIC=%s' % get_on_off(options.static),
         '-DINSTALL_PREFIX=%s' % options.install_prefix,
         # --jerry-memstat
         '-DFEATURE_MEM_STATS=%s' % get_on_off(options.jerry_memstat),

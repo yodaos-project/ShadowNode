@@ -62,5 +62,7 @@ function expectsError(fn, exact) {
 
 module.exports = {
   mustCall: mustCall,
-  expectsError: expectsError
+  expectsError: expectsError,
+  // don't use port in a parallelized test
+  PORT: process.env.NODE_COMMON_PORT || 12306
 };

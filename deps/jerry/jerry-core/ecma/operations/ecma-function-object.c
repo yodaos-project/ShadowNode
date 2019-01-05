@@ -121,6 +121,8 @@ ecma_object_t *
 ecma_op_create_function_object (ecma_object_t *scope_p, /**< function's scope */
                                 const ecma_compiled_code_t *bytecode_data_p) /**< byte-code array */
 {
+  JERRY_ASSERT (ecma_is_lexical_environment (scope_p));
+
   /* 1., 4., 13. */
   ecma_object_t *prototype_obj_p = ecma_builtin_get (ECMA_BUILTIN_ID_FUNCTION_PROTOTYPE);
 
@@ -724,8 +726,7 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
 #endif /* !CONFIG_DISABLE_ES2015_CLASS */
       }
 
-      ecma_value_t ret_value = vm_run (ext_func_p,
-                                       bytecode_data_p,
+      ecma_value_t ret_value = vm_run (bytecode_data_p,
                                        this_binding,
                                        local_env_p,
                                        ECMA_PARSE_NO_OPTS,
@@ -756,7 +757,7 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
         JERRY_CONTEXT (error_value) = ecma_clear_error_reference (ret_value, true);
         return ECMA_VALUE_ERROR;
       }
- #ifdef JERRY_DEBUGGER
+#ifdef JERRY_DEBUGGER
       JERRY_DEBUGGER_CLEAR_FLAGS (JERRY_DEBUGGER_VM_EXCEPTION_THROWN);
 #endif /* JERRY_DEBUGGER */
       return ret_value;
@@ -784,8 +785,7 @@ ecma_op_function_call (ecma_object_t *func_obj_p, /**< Function object */
         JERRY_ASSERT (!(bytecode_data_p->status_flags & CBC_CODE_FLAGS_ARGUMENTS_NEEDED));
       }
 
-      ecma_value_t ret_value = vm_run (NULL,
-                                       bytecode_data_p,
+      ecma_value_t ret_value = vm_run (bytecode_data_p,
                                        arrow_func_p->this_binding,
                                        local_env_p,
                                        ECMA_PARSE_NO_OPTS,

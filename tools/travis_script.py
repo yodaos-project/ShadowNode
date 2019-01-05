@@ -16,7 +16,7 @@ def check_change(path):
                                     [
                                         'diff',
                                         '--name-only',
-                                        'HEAD..' + travis_branch],
+                                        'HEAD..origin/' + travis_branch],
                                     True)
     return commit_diff.find(path)
 
