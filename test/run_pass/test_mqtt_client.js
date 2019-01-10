@@ -10,6 +10,7 @@ function test(testHost) {
     reconnectPeriod: -1
   });
   assert.equal(client.reconnecting, false);
+  assert.equal(client._options.keepalive, 60); // default is 60 in seconds
   // FIXME
   // testHost may not be able to connect, so don't use mustCall here
   client.once('connect', function() {
