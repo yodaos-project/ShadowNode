@@ -40,7 +40,7 @@ function MqttClient(endpoint, options) {
     password: null,
     clientId: 'mqttjs_' + Math.random().toString(16).substr(2, 8),
     will: null,
-    keepalive: 60 * 1000,
+    keepalive: 60,
     reconnectPeriod: 5000,
     connectTimeout: 30 * 1000,
     resubscribe: true,
@@ -224,6 +224,10 @@ MqttClient.prototype._write = function(buffer, callback) {
  */
 MqttClient.prototype._keepAlive = function() {
   var self = this;
+  if (self._options.keepalive === 0) {
+    // set to 0 to disable
+    return;
+  }
   self._keepAliveTimer = setTimeout(function() {
     try {
       var buf = self._handle._getPingReq();
@@ -236,7 +240,7 @@ MqttClient.prototype._keepAlive = function() {
     self._keepAliveTimeout = setTimeout(function() {
       self.disconnect(new Error('keepalive timeout'));
     }, self._options.pingReqTimeout);
-  }, self._options.keepalive);
+  }, self._options.keepalive * 1000);
 };
 
 MqttClient.prototype._onKeepAlive = function() {
