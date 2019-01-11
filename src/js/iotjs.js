@@ -175,16 +175,16 @@
       enumerable: false,
       get: function() {
         if (this.__stack__ === undefined) {
-          this.__stack__ = `${this.name || 'Error'}: ${this.message}\n` +
-            makeStackTrace(this.__frames__ || []);
+          Object.defineProperty(this, '__stack__', {
+            configurable: true,
+            writable: true,
+            enumerable: false,
+            value: `${this.name || 'Error'}: ${this.message}\n` +
+              makeStackTrace(this.__frames__ || [])
+          });
         }
         return this.__stack__;
       },
-    },
-    __stack__: {
-      configurable: true,
-      writable: true,
-      enumerable: false,
     },
   };
   Object.defineProperties(Error.prototype, stackPropertiesDescriptor);
