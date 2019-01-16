@@ -47,12 +47,8 @@ For each directory in search paths above:
   - If `id/package.json` contains **main** property, load the file named **main** property.
   - If `id/package.json` exists, but neither the **main** property nor the file named **main** property exist, load `index.js`.
 
-### require.resolve(request)
-* `request` {string} Module name to be queried.
-
-Get the module absolute path about `request` module but not load it.
-
 ### require.main
 * accessing the main module
 
 When a file is run directly, `require.main` is set to its module. That means that it is possible to determine whether a file has been run directly by testing `require.main === module`. For a file foo.js, this will be true if run via cmd directly, but false if run by `require('./foo')`, because `module` object is set to the `foo` module but `require.main` is still your entry file module. So you can get the entry point of the current application from checking `require.main.filename` anywhere.
+
