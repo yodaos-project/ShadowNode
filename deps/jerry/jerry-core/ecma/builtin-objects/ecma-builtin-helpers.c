@@ -294,7 +294,9 @@ uint32_t ecma_builtin_helper_array_length_normalize (ecma_number_t length) /**< 
  *         - The Array.prototype.indexOf routine.
  *         - The String.prototype.slice routine.
  *         - The TypedArray.prototype.slice routine.
- *         - - Uint8Array
+ *         - - Uint8Array.prototype.slice routine.
+ *         - - Uint16Array.prototype.slice routine.
+ *         - - Uint32Array.prototype.slice routine.
  *
  * @return uint32_t - the normalized value of the index
  */

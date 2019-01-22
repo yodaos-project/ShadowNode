@@ -31,7 +31,7 @@ NUMBER_VALUE (LIT_MAGIC_STRING_BYTES_PER_ELEMENT_U,
               2,
               ECMA_PROPERTY_FIXED)
 
-DUMMY_ROUTINE
+ROUTINE (LIT_MAGIC_STRING_SLICE, ecma_builtin_uint16array_prototype_object_slice, 2, 2)
 
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
 

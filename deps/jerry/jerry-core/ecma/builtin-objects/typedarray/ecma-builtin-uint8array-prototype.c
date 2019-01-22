@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "ecma-builtins.h"
+
 #ifndef CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN
 
 #define ECMA_BUILTINS_INTERNAL
