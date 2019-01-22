@@ -13,22 +13,6 @@
  * limitations under the License.
  */
 
-#include "ecma-alloc.h"
-#include "ecma-array-object.h"
-#include "ecma-builtin-helpers.h"
-#include "ecma-builtins.h"
-#include "ecma-comparison.h"
-#include "ecma-conversion.h"
-#include "ecma-exceptions.h"
-#include "ecma-function-object.h"
-#include "ecma-gc.h"
-#include "ecma-globals.h"
-#include "ecma-helpers.h"
-#include "ecma-objects.h"
-#include "ecma-string-object.h"
-#include "ecma-try-catch-macro.h"
-#include "jrt.h"
-
 #ifndef CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN
 
 #define ECMA_BUILTINS_INTERNAL
@@ -49,24 +33,18 @@
  */
 
 /**
- * @}
- * @}
- * @}
- */
-
-/**
  * The Uint8Array.prototype object's 'slice' routine
  *
  * See also:
- *          ECMA-262 v5, 15.4.4.10
+ *          ECMA-262 v6, 22.2.3.23
  *
  * @return ecma value
  *         Returned value must be freed with ecma_free_value.
  */
 static ecma_value_t
 ecma_builtin_uint8array_prototype_object_slice (ecma_value_t this_arg, /**< 'this' argument */
-                                           ecma_value_t arg1, /**< start */
-                                           ecma_value_t arg2) /**< end */
+                                                ecma_value_t arg1, /**< start */
+                                                ecma_value_t arg2) /**< end */
 {
   ecma_value_t ret_value = ECMA_VALUE_EMPTY;
 
