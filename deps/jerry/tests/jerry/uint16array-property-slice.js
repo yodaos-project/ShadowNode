@@ -9,6 +9,10 @@ var u16arr3 = u16array.slice(-2);
 var u16arr4 = u16array.slice(Infinity, NaN);
 var u16arr5 = u16array.slice(undefined, -3);
 
+function assert(ok) {
+  if (!ok) console.log('error');
+}
+
 assert (null_u16array.toString() === '[object Uint16Array]');
 
 assert (u16arr1.length === 4);

@@ -14,6 +14,10 @@
  */
 
 #include "ecma-builtins.h"
+#include "ecma-array-object.h"
+#include "ecma-builtin-helpers.h"
+#include "ecma-try-catch-macro.h"
+#include "jrt.h"
 
 #ifndef CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN
 
