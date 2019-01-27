@@ -41,6 +41,10 @@ var mainModule = {
   filename: '',
 };
 
+var importMaps = {
+  // Store the prioritized module(id) to path map.
+};
+
 var cwd;
 try {
   cwd = process.cwd();
@@ -58,6 +62,15 @@ if (process.env.NODE_PATH) {
 }
 if (process.env.HOME) {
   moduledirs.push(`${process.env.HOME}/node_modules/`);
+}
+
+if (process.env.NODE_IMPORT_MAPS) {
+  importMaps = Object.assign(importMaps, readJSON(process.env.NODE_IMPORT_MAPS))
+}
+
+function readJSON(filename) {
+  var source = process.readSource(filename);
+  return JSON.parse(source);
 }
 
 function tryPath(modulePath, ext) {
@@ -162,6 +175,11 @@ iotjs_module_t.resolveModPath = function(id, parent) {
     return false;
   }
 
+  var importedPath = importMaps[id];
+  if (typeof importedPath === 'string') {
+    return importedPath;
+  }
+
   var filepath = false;
   if (id[0] === '/') {
     filepath = iotjs_module_t._resolveFilepath(id, false);
@@ -249,8 +267,7 @@ iotjs_module_t.load = function(id, parent, isMain) {
   if (ext === 'jsc') {
     module.compile(true, loadstat);
   } else if (ext === 'json') {
-    var source = process.readSource(modPath);
-    module.exports = JSON.parse(source);
+    module.exports = readJSON(modPath);
   } else if (ext === 'node') {
     var native = process.openNativeModule(module.filename);
     module.exports = native;
@@ -305,8 +322,7 @@ iotjs_module_t.prototype.compile = function(snapshot, loadstat) {
   if (loadstat) {
     var consumeOnCompile = compiledAt - startedAt;
     var consumeOnInitialize = Date.now() - compiledAt;
-    console.log(` compile takes ${consumeOnCompile}ms, \
-      and initializer takes ${consumeOnInitialize}`);
+    console.log(`compile takes ${consumeOnCompile}ms, and initializer takes ${consumeOnInitialize}`);
   }
 };
 
