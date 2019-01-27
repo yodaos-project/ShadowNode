@@ -65,7 +65,6 @@ function tryPath(modulePath, ext) {
          iotjs_module_t.tryPath(modulePath);
 }
 
-
 iotjs_module_t.tryPath = function(path) {
   try {
     debug(`try load path ${path}`);
@@ -77,7 +76,6 @@ iotjs_module_t.tryPath = function(path) {
 
   return false;
 };
-
 
 iotjs_module_t.resolveDirectories = function(id, parent) {
   var dirs = [];
@@ -101,7 +99,6 @@ iotjs_module_t.resolveDirectories = function(id, parent) {
   }
   return dirs;
 };
-
 
 iotjs_module_t.resolveFilepath = function(id, directories) {
   for (var i = 0; i < directories.length; i++) {
@@ -271,7 +268,12 @@ iotjs_module_t.load = function(id, parent, isMain) {
   return module.exports;
 };
 
-iotjs_module_t.prototype.compile = function(snapshot) {
+iotjs_module_t.prototype.compile = function(snapshot, loadstat) {
+  var startedAt, compiledAt;
+  if (loadstat) {
+    startedAt = Date.now();
+  }
+
   var __filename = this.filename;
   var __dirname = path.dirname(__filename);
   var fn;
@@ -281,6 +283,10 @@ iotjs_module_t.prototype.compile = function(snapshot) {
     fn = process.compileSnapshot(__filename);
     if (typeof fn !== 'function')
       throw new TypeError('Invalid snapshot file.');
+  }
+
+  if (loadstat) {
+    compiledAt = Date.now();
   }
 
   var _require = this.require.bind(this);
@@ -295,6 +301,13 @@ iotjs_module_t.prototype.compile = function(snapshot) {
     __filename,               // __filename
     __dirname                 // __dirname
   ]);
+
+  if (loadstat) {
+    var consumeOnCompile = compiledAt - startedAt;
+    var consumeOnInitialize = Date.now() - compiledAt;
+    console.log(` compile takes ${consumeOnCompile}ms, \
+      and initializer takes ${consumeOnInitialize}`);
+  }
 };
 
 // FIXME(Yorkie): dont use it
