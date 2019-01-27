@@ -63,13 +63,12 @@ if (process.env.NODE_PATH) {
 if (process.env.HOME) {
   moduledirs.push(`${process.env.HOME}/node_modules/`);
 }
-
 if (process.env.NODE_IMPORT_MAPS) {
-  importMaps = Object.assign(importMaps, readJSON(process.env.NODE_IMPORT_MAPS + '.json'))
+  console.log(process.env.NODE_IMPORT_MAPS + '.json');
+  importMaps = readJSON(process.env.NODE_IMPORT_MAPS + '.json')
 }
 
 function readJSON(filename) {
-  console.log(filename);
   var source = process.readSource(filename);
   return JSON.parse(source);
 }
