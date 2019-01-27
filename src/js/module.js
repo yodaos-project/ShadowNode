@@ -65,10 +65,11 @@ if (process.env.HOME) {
 }
 
 if (process.env.NODE_IMPORT_MAPS) {
-  importMaps = Object.assign(importMaps, readJSON(process.env.NODE_IMPORT_MAPS))
+  importMaps = Object.assign(importMaps, readJSON(process.env.NODE_IMPORT_MAPS + '.json'))
 }
 
 function readJSON(filename) {
+  console.log(filename);
   var source = process.readSource(filename);
   return JSON.parse(source);
 }
@@ -265,7 +266,7 @@ iotjs_module_t.load = function(id, parent, isMain) {
 
   var ext = modPath.substr(modPath.lastIndexOf('.') + 1);
   if (ext === 'jsc') {
-    module.compile(true, loadstat);
+    module.compile(true, stat);
   } else if (ext === 'json') {
     module.exports = readJSON(modPath);
   } else if (ext === 'node') {
@@ -273,7 +274,7 @@ iotjs_module_t.load = function(id, parent, isMain) {
     module.exports = native;
   } else {
     /** Treat any other file as js file */
-    module.compile(false, loadstat);
+    module.compile(false, stat);
   }
 
   if (stat) {
