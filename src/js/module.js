@@ -247,7 +247,7 @@ iotjs_module_t.load = function(id, parent, isMain) {
 
   var ext = modPath.substr(modPath.lastIndexOf('.') + 1);
   if (ext === 'jsc') {
-    module.compile(true);
+    module.compile(true, loadstat);
   } else if (ext === 'json') {
     var source = process.readSource(modPath);
     module.exports = JSON.parse(source);
@@ -256,7 +256,7 @@ iotjs_module_t.load = function(id, parent, isMain) {
     module.exports = native;
   } else {
     /** Treat any other file as js file */
-    module.compile();
+    module.compile(false, loadstat);
   }
 
   if (stat) {
