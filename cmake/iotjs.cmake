@@ -412,6 +412,8 @@ set(IOTJS_PUBLIC_HEADERS
   "include/iotjs.h"
   "include/node_api.h"
   "include/node_api_types.h"
+  "include/js_native_api.h"
+  "include/js_native_api_types.h"
   ${IOTJS_HEADERS}
   ${JERRY_HEADERS}
   ${LIBUV_HEADERS}
