@@ -175,7 +175,8 @@ def check_tidy(src_dir, options=None):
                  'node_modules',
                  'coverage',
                  'samples',
-                 'addons-napi'
+                 'node-api',
+                 'js-native-api'
                  ]
     skip_files = ['check_signed_off.sh', '__init__.py',
                   'iotjs_js.c', 'iotjs_js.h', 'iotjs_string_ext.inl.h',
@@ -192,7 +193,9 @@ def check_tidy(src_dir, options=None):
                   'test_ble_setservices.js',
                   '.eslintrc.js',
                   'include/node_api.h',
-                  'include/node_api_types.h'
+                  'include/node_api_types.h',
+                  'include/js_native_api.h',
+                  'include/js_native_api_types.h'
                   ]
 
     style = StyleChecker()
