@@ -428,25 +428,13 @@ def build_iotjs(options):
         run_make(options, options.build_root)
 
 
-def build_napi_test_module(options):
-    node_gyp = fs.join(path.PROJECT_ROOT,
-                       'node_modules',
-                       '.bin',
-                       'node-gyp')
-    print_progress('Build NAPI test module with %s' % node_gyp)
-
-    project_root = fs.join(path.PROJECT_ROOT, 'test', 'napi')
-    ex.check_run_cmd(node_gyp, ['configure'], cwd=project_root)
-    ex.check_run_cmd(node_gyp, ['build'], cwd=project_root)
-
-
-def build_addons_napi_gyp_modules():
+def build_gyp_modules(dir):
     node_gyp = fs.join(path.PROJECT_ROOT,
                        'node_modules',
                        '.bin',
                        'node-gyp')
     print_progress('Build N-API test addons with %s' % node_gyp)
-    dirs = glob.glob('test/addons-napi/*')
+    dirs = glob.glob(dir)
     dirs = [dir_name for dir_name in dirs if os.path.isdir(dir_name)]
     dirs = [dir_name for dir_name in dirs if os.path.isfile(
         os.path.join(dir_name, 'binding.gyp'))]
@@ -506,8 +494,9 @@ if __name__ == '__main__':
     # Run tests.
     if options.run_test:
         print_progress('Build test dependencies')
-        build_napi_test_module(options)
-        build_addons_napi_gyp_modules()
+        build_gyp_modules('test/napi')
+        build_gyp_modules('test/js-native-api/*')
+        build_gyp_modules('test/node-api/*')
 
         print_progress('Run tests')
         if options.buildlib:

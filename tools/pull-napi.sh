@@ -56,7 +56,10 @@ tar -C "$work_dir" -xzf "$arvhice_path"
 files_to_pull="\
 src/node_api.h;include/node_api.h \
 src/node_api_types.h;include/node_api_types.h \
-test/addons-napi;test/addons-napi"
+src/js_native_api.h;include/js_native_api.h \
+src/js_native_api_types.h;include/js_native_api_types.h \
+test/node-api;test/node-api \
+test/js-native-api;test/js-native-api"
 for file in $files_to_pull; do
   file_arr=(${file//;/ })
   src="${file_arr[0]}"
@@ -68,32 +71,42 @@ for file in $files_to_pull; do
 done
 
 # Prepend a git hash to N-API headers
-for file in node_api.h node_api_types.h; do
+header_files="\
+node_api.h \
+node_api_types.h \
+js_native_api.h \
+js_native_api_types.h"
+for file in ; do
   command $sed_command -i \
     "1s/^/\
 \/\/ Pulled from nodejs\/node#$tag_sha $tag using tools\/pull-napi.sh\n\n/" \
     "include/$file"
 done
 
-# Add a description to N-API tests
-echo "Pulled from nodejs/node#$tag_sha $tag using tools/pull-napi.sh" \
-  > test/addons-napi/README.md
-
 # Alter N-API tests removing Node specific functions
-for file in test/addons-napi/**/*.js; do
-  [ -f "$file" ] && echo "$file"
+test_dirs="\
+test/node-api \
+test/js-native-api"
+for test_dir in $test_dirs; do
+  # Add a description to N-API tests
+  echo "Pulled from nodejs/node#$tag_sha $tag using tools/pull-napi.sh" \
+    > $test_dir/README.md
 
-  declare -a exps=(
-    # `const ` => `var `
-    "s/const /var /"
-    # `let ` => `var `
-    "s/let /var /"
-    # `${common.buildType}` => `Release`
-    's/\$\{common\.buildType\}/Release/'
-    # `./build/Release/binding` => `./build/Release/binding.node`
-    "s/(\.\/build\/Release\/\w+)/\1.node/"
-  )
-  for exp in "${exps[@]}"; do
-    command $sed_command -i -r "$exp" "$file"
+  for file in $test_dir/**/*.js; do
+    [ -f "$file" ] && echo "$file"
+
+    declare -a exps=(
+      # `const ` => `var `
+      "s/const /var /"
+      # `let ` => `var `
+      "s/let /var /"
+      # `${common.buildType}` => `Release`
+      's/\$\{common\.buildType\}/Release/'
+      # `./build/Release/binding` => `./build/Release/binding.node`
+      "s/(\.\/build\/Release\/\w+)/\1.node/"
+    )
+    for exp in "${exps[@]}"; do
+      command $sed_command -i -r "$exp" "$file"
+    done
   done
 done
