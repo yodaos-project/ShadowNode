@@ -17,6 +17,7 @@ cmake_minimum_required(VERSION 2.8)
 include(${CMAKE_CURRENT_LIST_DIR}/JSONParser.cmake)
 
 set(IOTJS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
+set(IOTJS_MAIN ${IOTJS_SOURCE_DIR}/iotjs_main.c)
 
 # Platform configuration
 # Look for files under src/platform/<system>/
@@ -338,6 +339,7 @@ endif()
 
 # Collect all sources into LIB_IOTJS_SRC
 file(GLOB LIB_IOTJS_SRC ${IOTJS_SOURCE_DIR}/*.c)
+list(REMOVE_ITEM LIB_IOTJS_SRC ${IOTJS_MAIN})
 list(APPEND LIB_IOTJS_SRC
   ${IOTJS_SOURCE_DIR}/iotjs_js.c
   ${IOTJS_SOURCE_DIR}/iotjs_js.h
@@ -471,23 +473,40 @@ if(NOT BUILD_LIB_ONLY)
   message(STATUS "BINARY_INSTALL_DIR      ${INSTALL_PREFIX}/bin")
   message(STATUS "LIBRARY_INSTALL_DIR     ${INSTALL_PREFIX}/lib")
 
-  add_executable(${TARGET_IOTJS} ${ROOT_DIR}/src/platform/linux/iotjs_linux.c)
+  add_executable(${TARGET_IOTJS} ${IOTJS_MAIN})
   set_target_properties(${TARGET_IOTJS} PROPERTIES
     LINK_FLAGS "${IOTJS_LINKER_FLAGS}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   )
   target_include_directories(${TARGET_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
   target_link_libraries(${TARGET_IOTJS} ${TARGET_LIB_IOTJS})
-  install(TARGETS ${TARGET_IOTJS}
-          RUNTIME DESTINATION "${INSTALL_PREFIX}/bin"
-          LIBRARY DESTINATION "${INSTALL_PREFIX}/lib"
-          PUBLIC_HEADER DESTINATION "${INSTALL_PREFIX}/include/shadow-node")
-  if(NOT BUILD_STATIC)
+
+  if(BUILD_STATIC)
+    if (WIN32)
+      set_target_properties(${TARGET_IOTJS} PROPERTIES
+                            LINK_FLAGS "/WHOLEARCHIVE")
+    elseif (APPLE)
+      set_target_properties(${TARGET_IOTJS} PROPERTIES
+                            LINK_FLAGS "-Wl,-all_load")
+    else ()
+      get_target_property(TARGET_LIB_IOTJS_LOCATION
+        ${TARGET_LIB_IOTJS} LOCATION)
+      set_target_properties(${TARGET_IOTJS} PROPERTIES
+                            LINK_FLAGS "\
+                            -Wl,--whole-archive ${TARGET_LIB_IOTJS_LOCATION} \
+                            -Wl,--no-whole-archive")
+    endif ()
+
+    install(TARGETS ${TARGET_IOTJS}
+            RUNTIME DESTINATION "${INSTALL_PREFIX}/bin"
+            LIBRARY DESTINATION "${INSTALL_PREFIX}/lib"
+            PUBLIC_HEADER DESTINATION "${INSTALL_PREFIX}/include/shadow-node")
+  else()
     install(TARGETS ${TARGET_LIB_IOTJS}
             RUNTIME DESTINATION "${INSTALL_PREFIX}/bin"
             LIBRARY DESTINATION "${INSTALL_PREFIX}/lib"
             PUBLIC_HEADER DESTINATION "${INSTALL_PREFIX}/include/shadow-node")
-  endif(NOT BUILD_STATIC)
+  endif()
 else()
   install(TARGETS ${TARGET_LIB_IOTJS} DESTINATION ${LIB_INSTALL_DIR})
 endif()
