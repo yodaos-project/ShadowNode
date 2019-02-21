@@ -14,6 +14,11 @@
 
 cmake_minimum_required(VERSION 2.8)
 
+cmake_policy(PUSH)
+if(POLICY CMP0054)
+  cmake_policy(SET CMP0054 NEW)
+endif()
+
 include(${CMAKE_CURRENT_LIST_DIR}/JSONParser.cmake)
 
 set(IOTJS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
@@ -510,3 +515,5 @@ if(NOT BUILD_LIB_ONLY)
 else()
   install(TARGETS ${TARGET_LIB_IOTJS} DESTINATION ${LIB_INSTALL_DIR})
 endif()
+
+cmake_policy(POP)

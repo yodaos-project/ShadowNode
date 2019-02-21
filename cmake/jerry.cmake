@@ -14,6 +14,11 @@
 
 cmake_minimum_required(VERSION 2.8)
 
+cmake_policy(PUSH)
+if(POLICY CMP0054)
+  cmake_policy(SET CMP0054 NEW)
+endif()
+
 # Host jerry for snapshot generation
 set(DEPS_HOST_JERRY deps/jerry-host)
 ExternalProject_Add(hostjerry
@@ -77,7 +82,7 @@ if("${TARGET_OS}" MATCHES "TIZENRT|NUTTX")
     -DEXTERNAL_LIBC_INTERFACE=${EXTERNAL_LIBC_INTERFACE}
     -DEXTERNAL_CMAKE_SYSTEM_PROCESSOR=${EXTERNAL_CMAKE_SYSTEM_PROCESSOR}
   )
-elseif("${TARGET_OS}" MATCHES "LINUX|TIZEN|DARWIN")
+elseif(TARGET_OS MATCHES "LINUX|TIZEN|DARWIN|ANDROID")
   list(APPEND JERRY_LIBS m)
   list(APPEND DEPS_LIB_JERRY_ARGS
     -DJERRY_LIBC=OFF
@@ -186,3 +191,5 @@ endif()
 set(JERRY_INCLUDE_DIR
   ${DEPS_LIB_JERRY}/jerry-core/include
   ${DEPS_LIB_JERRY}/jerry-ext/include)
+
+cmake_policy(POP)

@@ -13,6 +13,10 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(PUSH)
+if(POLICY CMP0054)
+  cmake_policy(SET CMP0054 NEW)
+endif()
 
 # Configure external libtuv
 set(DEPS_TUV deps/libtuv)
@@ -20,6 +24,7 @@ set(DEPS_TUV_SRC ${ROOT_DIR}/${DEPS_TUV})
 
 set(DEPS_TUV_TOOLCHAIN
   ${DEPS_TUV_SRC}/cmake/config/config_${PLATFORM_DESCRIPTOR}.cmake)
+set(DEPS_TUV_TOOLCHAIN "/Users/qile222/Projects/android-ndk-r16b/build/cmake/android.toolchain.cmake")
 message(STATUS "libtuv toolchain file: ${DEPS_TUV_TOOLCHAIN}")
 ExternalProject_Add(libtuv
   PREFIX ${DEPS_TUV}
@@ -51,3 +56,5 @@ set(TUV_LIBS tuv)
 if("${TARGET_OS}" STREQUAL "LINUX")
   list(APPEND TUV_LIBS pthread)
 endif()
+
+cmake_policy(POP)

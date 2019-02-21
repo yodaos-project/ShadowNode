@@ -14,7 +14,7 @@
  */
 
 #include "iotjs_def.h"
-#include <execinfo.h>
+// #include <execinfo.h>
 #include "internal/node_api_internal.h"
 
 #ifndef NAPI_FATAL_BACKTRACE_LEN
@@ -210,12 +210,12 @@ napi_status napi_get_last_error_info(napi_env env,
 void napi_fatal_error(const char* location, size_t location_len,
                       const char* message, size_t message_len) {
   printf("FATAL ERROR: %s %s\n", location, message);
-  void* bt[NAPI_FATAL_BACKTRACE_LEN];
-  int size = backtrace(bt, NAPI_FATAL_BACKTRACE_LEN);
-  char** bt_sym_strs = backtrace_symbols(bt, size);
-  for (int idx = 0; idx < size; ++idx) {
-    fprintf(stderr, "%s\n", bt_sym_strs[idx]);
-  }
-  free(bt_sym_strs);
+  // void* bt[NAPI_FATAL_BACKTRACE_LEN];
+  // int size = backtrace(bt, NAPI_FATAL_BACKTRACE_LEN);
+  // char** bt_sym_strs = backtrace_symbols(bt, size);
+  // for (int idx = 0; idx < size; ++idx) {
+  //   fprintf(stderr, "%s\n", bt_sym_strs[idx]);
+  // }
+  // free(bt_sym_strs);
   abort();
 }

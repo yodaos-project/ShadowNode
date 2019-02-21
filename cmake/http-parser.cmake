@@ -13,6 +13,10 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(PUSH)
+if(POLICY CMP0054)
+  cmake_policy(SET CMP0054 NEW)
+endif()
 
 if("${TARGET_OS}" MATCHES "NUTTX|TIZENRT")
   set(HTTPPARSER_NUTTX_ARG -DNUTTX_HOME=${TARGET_SYSTEMROOT})
@@ -43,3 +47,5 @@ set_property(DIRECTORY APPEND PROPERTY
   ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/lib/libhttpparser.a)
 
 set(HTTPPARSER_INCLUDE_DIR ${DEPS_HTTPPARSER_SRC})
+
+cmake_policy(POP)

@@ -5,7 +5,6 @@
         "assert",
         "crypto",
         "child_process",
-        "dbus",
         "debug",
         "dns",
         "dgram",
@@ -27,8 +26,7 @@
         "punycode",
         "querystring",
         "url",
-        "websocket",
-        "zlib"
+        "websocket"
       ]
     },
     "iotjs_core_modules": {
@@ -169,12 +167,6 @@
     "crypto_hash": {
       "native_files": ["modules/iotjs_module_crypto_hash.c"],
       "init": "InitCryptoHash"
-    },
-    "dbus": {
-      "native_files": ["modules/iotjs_module_dbus.c"],
-      "init": "InitDBus",
-      "js_file": "js/dbus.js",
-      "require": ["fs", "sax"]
     },
     "debug": {
       "js_file": "js/debug.js"
@@ -462,11 +454,6 @@
       "js_file": "js/websocket.js",
       "native_files": ["modules/iotjs_module_websocket.c"],
       "init": "InitWebSocket"
-    },
-    "zlib": {
-      "js_file": "js/zlib.js",
-      "native_files": ["modules/iotjs_module_zlib.c"],
-      "init": "InitZlib"
     }
   }
 }
