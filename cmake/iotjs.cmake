@@ -37,7 +37,7 @@ endif()
 
 # Module configuration - listup all possible native C modules
 function(getListOfVars prefix pattern varResult)
-    set(moduleNames)
+    set(moduleNames "")
     get_cmake_property(vars VARIABLES)
     string(REPLACE "." "\\." prefix ${prefix})
     foreach(var ${vars})

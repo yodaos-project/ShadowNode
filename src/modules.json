@@ -5,7 +5,6 @@
         "assert",
         "crypto",
         "child_process",
-        "dbus",
         "debug",
         "dns",
         "dgram",
@@ -18,7 +17,6 @@
         "path",
         "profiler",
         "promise",
-        "sax",
         "signal",
         "string_decoder",
         "stream",
@@ -26,9 +24,7 @@
         "tty",
         "punycode",
         "querystring",
-        "url",
-        "websocket",
-        "zlib"
+        "url"
       ]
     },
     "iotjs_core_modules": {
