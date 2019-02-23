@@ -491,7 +491,8 @@ if(NOT BUILD_LIB_ONLY)
     else ()
       set_target_properties(${TARGET_IOTJS} PROPERTIES
                             LINK_FLAGS "\
-                            -Wl,--whole-archive ${CMAKE_BINARY_DIR}/lib/libiotjs.a \
+                            -Wl,--whole-archive \
+                            ${CMAKE_BINARY_DIR}/lib/libiotjs.a \
                             -Wl,--no-whole-archive")
     endif ()
 

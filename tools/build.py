@@ -116,7 +116,8 @@ def init_options():
         help='Specify the target architecture: '
              '%(choices)s (default: %(default)s)')
     parser.add_argument('--target-os',
-        choices=['linux', 'darwin', 'osx', 'linux-android', 'nuttx', 'tizen', 'tizenrt'],
+        choices=['linux', 'darwin', 'osx', 'linux-android',
+                 'nuttx', 'tizen', 'tizenrt'],
         default=platform.os(),
         help='Specify the target os: %(choices)s (default: %(default)s)')
 
