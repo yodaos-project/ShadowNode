@@ -10,7 +10,6 @@
         "dgram",
         "http",
         "https",
-        "mqtt",
         "net",
         "internal_process_next_tick",
         "os",
