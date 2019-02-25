@@ -116,7 +116,8 @@ def init_options():
         help='Specify the target architecture: '
              '%(choices)s (default: %(default)s)')
     parser.add_argument('--target-os',
-        choices=['linux', 'darwin', 'osx', 'nuttx', 'tizen', 'tizenrt'],
+        choices=['linux', 'darwin', 'osx', 'linux-android',
+                 'nuttx', 'tizen', 'tizenrt'],
         default=platform.os(),
         help='Specify the target os: %(choices)s (default: %(default)s)')
 
@@ -130,6 +131,8 @@ def init_options():
     parser.add_argument('--sysroot', action='store',
         help='The location of the development tree root directory (sysroot).'
         'Must be compatible with used toolchain.')
+    parser.add_argument('--cmake-toolchain-file', action='store',
+        help='external toolchain file')
 
     parser.add_argument('--cmake-param',
         action='append', default=[],
@@ -267,7 +270,8 @@ def adjust_options(options):
 
 
     cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', '%s.cmake')
-    options.cmake_toolchain_file = cmake_path % options.target_tuple
+    if options.cmake_toolchain_file is None:
+        options.cmake_toolchain_file = cmake_path % options.target_tuple
 
     # Specify the file of JerryScript profile.
     options.jerry_profile = fs.join(path.JERRY_PROFILE_ROOT,

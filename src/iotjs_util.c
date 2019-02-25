@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__linux__) || defined(__APPLE__)
+#if (defined(__linux__) && !defined(__ANDROID__)) || defined(__APPLE__)
 #include <execinfo.h>
 #endif
 
@@ -95,7 +95,7 @@ void iotjs_buffer_release(char* buffer) {
 }
 
 void print_stacktrace() {
-#if (defined(__linux__) || defined(__APPLE__))
+#if (defined(__linux__) && !defined(__ANDROID__)) || defined(__APPLE__)
   void* bt[IOTJS_BACKTRACE_LEN];
   int size = backtrace(bt, IOTJS_BACKTRACE_LEN);
   char** bt_sym_strs = backtrace_symbols(bt, size);
@@ -103,7 +103,7 @@ void print_stacktrace() {
     fprintf(stderr, "%s\n", bt_sym_strs[idx]);
   }
   free(bt_sym_strs);
-#endif // (defined(__linux__) || defined(__APPLE__))
+#endif // (defined(__linux__) && !defined(__ANDROID__)) || defined(__APPLE__))
 }
 
 void force_terminate() {
