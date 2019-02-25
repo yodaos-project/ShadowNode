@@ -37,7 +37,7 @@ endif()
 
 # Module configuration - listup all possible native C modules
 function(getListOfVars prefix pattern varResult)
-    set(moduleNames)
+    set(moduleNames "")
     get_cmake_property(vars VARIABLES)
     string(REPLACE "." "\\." prefix ${prefix})
     foreach(var ${vars})
@@ -489,11 +489,10 @@ if(NOT BUILD_LIB_ONLY)
       set_target_properties(${TARGET_IOTJS} PROPERTIES
                             LINK_FLAGS "-Wl,-all_load")
     else ()
-      get_target_property(TARGET_LIB_IOTJS_LOCATION
-        ${TARGET_LIB_IOTJS} LOCATION)
       set_target_properties(${TARGET_IOTJS} PROPERTIES
                             LINK_FLAGS "\
-                            -Wl,--whole-archive ${TARGET_LIB_IOTJS_LOCATION} \
+                            -Wl,--whole-archive \
+                            ${CMAKE_BINARY_DIR}/lib/libiotjs.a \
                             -Wl,--no-whole-archive")
     endif ()
 
