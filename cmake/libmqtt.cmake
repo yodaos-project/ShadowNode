@@ -16,7 +16,6 @@ cmake_minimum_required(VERSION 2.8)
 
 set(DEPS_MQTT deps/libmqtt)
 set(DEPS_MQTT_SRC ${ROOT_DIR}/${DEPS_MQTT})
-set(DEPS_MQTT_BUILD_DIR ${CMAKE_BINARY_DIR}/${DEPS_MQTT})
 
 ExternalProject_Add(libmqtt
   PREFIX ${DEPS_MQTT}
@@ -36,7 +35,9 @@ ExternalProject_Add(libmqtt
 add_library(libmqtt_packet STATIC IMPORTED)
 add_dependencies(libmqtt_packet mqtt_packet)
 set_property(TARGET libmqtt_packet PROPERTY
-  IMPORTED_LOCATION ${ARCHIVE_DIR}/libmqtt_packet.a)
+  IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/lib/libmqtt_packet.a)
+set_property(DIRECTORY APPEND PROPERTY
+  ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/lib/libmqtt_packet.a)
 
 set(MQTT_LIBS libmqtt_packet)
-set(MQTT_INCLUDE_DIR ${DEPS_MQTT})
+set(MQTT_INCLUDE_DIR ${DEPS_MQTT_SRC})

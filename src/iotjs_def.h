@@ -58,7 +58,9 @@ extern void force_terminate();
 #endif
 
 
-#if defined(__linux__)
+#if defined(__ANDROID__)
+#define TARGET_OS "android"
+#elif defined(__linux__)
 #define TARGET_OS "linux"
 #elif defined(__NUTTX__)
 #define TARGET_OS "nuttx"
