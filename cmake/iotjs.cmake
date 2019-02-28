@@ -497,7 +497,7 @@ if(NOT BUILD_LIB_ONLY)
             LIBRARY DESTINATION "${INSTALL_PREFIX}/lib"
             PUBLIC_HEADER DESTINATION "${INSTALL_PREFIX}/include/shadow-node")
   else()
-    install(TARGETS ${TARGET_LIB_IOTJS}
+    install(TARGETS ${TARGET_IOTJS} ${TARGET_LIB_IOTJS}
             RUNTIME DESTINATION "${INSTALL_PREFIX}/bin"
             LIBRARY DESTINATION "${INSTALL_PREFIX}/lib"
             PUBLIC_HEADER DESTINATION "${INSTALL_PREFIX}/include/shadow-node")
