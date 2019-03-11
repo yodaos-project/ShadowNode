@@ -667,6 +667,9 @@ ecma_gc_free_object (ecma_object_t *object_p) /**< object to free */
           break;
         }
 
+#ifndef CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN
+        case LIT_MAGIC_STRING_SYMBOL_UL:
+#endif /* !CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
         case LIT_MAGIC_STRING_STRING_UL:
         case LIT_MAGIC_STRING_NUMBER_UL:
         {

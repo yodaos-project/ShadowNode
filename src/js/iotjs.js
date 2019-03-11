@@ -204,11 +204,6 @@
     Object.defineProperties(throwable, descriptor);
   };
 
-  // Symbol
-  global.Symbol = function(description) {
-    return description;
-  };
-
   // Proxy
   (function(scope) {
     if (scope.Proxy) {
