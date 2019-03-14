@@ -92,6 +92,7 @@ ecma_op_create_symbol_object (const ecma_value_t value) /**< symbol value */
   ecma_object_t *object_p = ecma_create_object (prototype_obj_p,
                                                 sizeof (ecma_extended_object_t),
                                                 ECMA_OBJECT_TYPE_CLASS);
+  ecma_deref_object (prototype_obj_p);
 
   ecma_extended_object_t *ext_object_p = (ecma_extended_object_t *) object_p;
   ext_object_p->u.class_prop.class_id = LIT_MAGIC_STRING_SYMBOL_UL;
