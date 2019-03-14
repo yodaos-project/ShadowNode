@@ -488,7 +488,7 @@ BUILTIN (ECMA_BUILTIN_ID_SYMBOL_PROTOTYPE,
          ECMA_BUILTIN_ID_OBJECT_PROTOTYPE,
          true,
          symbol_prototype,
-         LIT_MAGIC_STRING_SYMBOL)
+         LIT_MAGIC_STRING_SYMBOL_UL)
 
 /* The Symbol routine (ECMA-262 v6, 19.4.2.1) */
 BUILTIN_ROUTINE (ECMA_BUILTIN_ID_SYMBOL,
@@ -496,7 +496,7 @@ BUILTIN_ROUTINE (ECMA_BUILTIN_ID_SYMBOL,
                  ECMA_BUILTIN_ID_FUNCTION_PROTOTYPE,
                  true,
                  symbol,
-                 LIT_MAGIC_STRING_SYMBOL)
+                 LIT_MAGIC_STRING_SYMBOL_UL)
 
 #endif /* !CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
 
