@@ -1,6 +1,6 @@
 'use strict';
 
-// var _randomBytes = native.randomBytes;
+var Writable = require('stream').Writable;
 var _randomBytesSync = native.randomBytesSync;
 var _Hash = require('crypto_hash').Hash;
 
@@ -60,4 +60,99 @@ exports.randomBytes = function(size, callback) {
     callback(null, buf);
   }
   return buf;
+};
+
+
+// Sign & Verify
+var _Sign = require('crypto_sign').Sign;
+var _Verify = require('crypto_verify').Verify;
+
+function Sign(algorithm, options) {
+  if (!(this instanceof Sign))
+    return new Sign(algorithm, options);
+  if (typeof algorithm !== 'string') {
+    throw new TypeError('algorithm must one string type');
+  }
+
+  if (!Hash._hashes[algorithm]) {
+    throw new Error('Unknown hash algorithm ' + algorithm);
+  }
+
+  this._sign_handle = new _Sign(Hash._hashes[algorithm]);
+  Writable.call(this, options);
+}
+
+Sign.prototype.update = function(buf, inputEncoding) {
+  if (typeof buf !== 'string' && !Buffer.isBuffer(buf)) {
+    throw new TypeError(
+      'Expect buffer or string on first argument of update.');
+  }
+
+  if (typeof buf === 'string') {
+    buf = Buffer.from(buf, inputEncoding);
+  }
+
+  this._sign_handle.update(buf);
+  return this;
+};
+
+Sign.prototype.sign = function(privateKey, encoding) {
+  if (typeof privateKey !== 'string' && !Buffer.isBuffer(privateKey)) {
+    throw new TypeError(
+      'Expect buffer or string on first argument of update.');
+  }
+
+  if (typeof privateKey === 'string') {
+    privateKey = Buffer.from(privateKey);
+  }
+
+  var buf = this._sign_handle.sign(privateKey);
+  if (typeof encoding === 'string') {
+    return buf.toString(encoding);
+  }
+  return buf;
+};
+
+exports.createSign = function(algorithm, options) {
+  return new Sign(algorithm, options);
+};
+
+
+function Verify(algorithm, options) {
+  if (!(this instanceof Verify))
+    return new Verify(algorithm, options);
+  if (typeof algorithm !== 'string') {
+    throw new TypeError('algorithm must be a string value');
+  }
+
+  if (!Hash._hashes[algorithm]) {
+    throw new Error('Unknown hash algorithm ' + algorithm);
+  }
+
+  this._verify_handler = new _Verify(Hash._hashes[algorithm]);
+
+  Writable.call(this, options);
+}
+
+Verify.prototype.update = function(buf, inputEncoding) {
+  if (typeof buf !== 'string' && !Buffer.isBuffer(buf)) {
+    throw new TypeError(
+      'Expect buffer or string on first argument of update.');
+  }
+
+  if (typeof buf === 'string') {
+    buf = Buffer.from(buf, inputEncoding);
+  }
+
+  this._verify_handle.update(buf);
+  return this;
+};
+
+Verify.prototype.verify = function(object, signature, signatureEncoding) {
+
+  return true;
+};
+
+exports.createVerify = function(algorithm, options) {
+  return new Verify(algorithm, options);
 };
