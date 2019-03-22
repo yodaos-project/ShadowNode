@@ -1,5 +1,6 @@
 'use strict';
 
+var assert = require('assert');
 var crypto = require('crypto');
 
 var private_key = `-----BEGIN RSA PRIVATE KEY-----
@@ -20,4 +21,5 @@ Et3qDMnjDAs05lGT72QeN90/mPAcASf5eTTYGahv21cb6IBxM+AnwAPpqAAsHhYR
 
 var sign = crypto.createSign('sha256');
 sign.update('000000');
-console.log(sign.sign(private_key, 'hex'));
+
+assert(sign.sign(private_key, 'hex'));

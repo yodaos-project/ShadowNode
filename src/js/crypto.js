@@ -78,7 +78,7 @@ function Sign(algorithm, options) {
     throw new Error('Unknown hash algorithm ' + algorithm);
   }
 
-  this._sign_handle = new _Sign(Hash._hashes[algorithm]);
+  this._signHandle = new _Sign(Hash._hashes[algorithm]);
   Writable.call(this, options);
 }
 
@@ -92,7 +92,7 @@ Sign.prototype.update = function(buf, inputEncoding) {
     buf = Buffer.from(buf, inputEncoding);
   }
 
-  this._sign_handle.update(buf);
+  this._signHandle.update(buf);
   return this;
 };
 
@@ -106,7 +106,7 @@ Sign.prototype.sign = function(privateKey, encoding) {
     privateKey = Buffer.from(privateKey);
   }
 
-  var buf = this._sign_handle.sign(privateKey);
+  var buf = this._signHandle.sign(privateKey);
   if (typeof encoding === 'string') {
     return buf.toString(encoding);
   }
