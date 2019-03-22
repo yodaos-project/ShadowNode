@@ -471,12 +471,13 @@ parser_parse_class_literal (parser_context_t *context_p) /**< context */
         parser_raise_error (context_p, PARSER_ERR_LITERAL_LIMIT_REACHED);
       }
 
+      uint16_t result_index = context_p->literal_count;
       lexer_literal_t *literal_p = (lexer_literal_t *) parser_list_append (context_p, &context_p->literal_pool);
       literal_p->type = LEXER_UNUSED_LITERAL;
       literal_p->status_flags = 0;
       literal_p->u.bytecode_p = parser_parse_function (context_p, constructor_status_flags);
       literal_p->type = LEXER_FUNCTION_LITERAL;
-      parser_emit_cbc_literal (context_p, PARSER_TO_EXT_OPCODE (CBC_EXT_SET_CLASS_LITERAL), context_p->literal_count);
+      parser_emit_cbc_literal (context_p, PARSER_TO_EXT_OPCODE (CBC_EXT_SET_CLASS_LITERAL), result_index);
       context_p->literal_count++;
       continue;
     }
