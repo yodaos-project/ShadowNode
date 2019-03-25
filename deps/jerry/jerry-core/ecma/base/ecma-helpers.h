@@ -137,6 +137,18 @@ typedef enum
  */
 #define ECMA_BOOL_TO_BITFIELD(x) ((x) ? 1 : 0)
 
+#ifndef CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN
+/**
+ * JERRY_ASSERT compatible macro for checking whether the given ecma-value is symbol
+ */
+#define ECMA_ASSERT_VALUE_IS_SYMBOL(value) (ecma_is_value_symbol ((value)))
+#else /* CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
+/**
+ * JERRY_ASSERT compatible macro for checking whether the given ecma-value is symbol
+ */
+#define ECMA_ASSERT_VALUE_IS_SYMBOL(value) (false)
+#endif /* !CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
+
 /* ecma-helpers-value.c */
 bool ecma_is_value_direct (ecma_value_t value) __attr_const___;
 bool ecma_is_value_simple (ecma_value_t value) __attr_const___;
@@ -154,6 +166,10 @@ bool ecma_are_values_integer_numbers (ecma_value_t first_value, ecma_value_t sec
 bool ecma_is_value_float_number (ecma_value_t value) __attr_const___;
 bool ecma_is_value_number (ecma_value_t value) __attr_const___;
 bool ecma_is_value_string (ecma_value_t value) __attr_const___;
+#ifndef CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN
+bool ecma_is_value_symbol (ecma_value_t value) __attr_const___;
+#endif /* !CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
+bool ecma_is_value_prop_name (ecma_value_t value) __attr_const___;
 bool ecma_is_value_direct_string (ecma_value_t value) __attr_const___;
 bool ecma_is_value_object (ecma_value_t value) __attr_const___;
 bool ecma_is_value_error_reference (ecma_value_t value) __attr_const___;
@@ -168,6 +184,10 @@ ecma_value_t ecma_make_number_value (ecma_number_t ecma_number);
 ecma_value_t ecma_make_int32_value (int32_t int32_number);
 ecma_value_t ecma_make_uint32_value (uint32_t uint32_number);
 ecma_value_t ecma_make_string_value (const ecma_string_t *ecma_string_p) __attr_pure___;
+#ifndef CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN
+ecma_value_t ecma_make_symbol_value (const ecma_string_t *ecma_symbol_p) __attr_pure___;
+#endif /* !CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
+ecma_value_t ecma_make_prop_name_value (const ecma_string_t *ecma_prop_name_p) __attr_pure___;
 ecma_value_t ecma_make_magic_string_value (lit_magic_string_id_t id) __attr_pure___;
 ecma_value_t ecma_make_object_value (const ecma_object_t *object_p) __attr_pure___;
 ecma_value_t ecma_make_error_reference_value (const ecma_error_reference_t *error_ref_p) __attr_pure___;
@@ -176,6 +196,10 @@ ecma_integer_value_t ecma_get_integer_from_value (ecma_value_t value) __attr_con
 ecma_number_t ecma_get_float_from_value (ecma_value_t value) __attr_pure___;
 ecma_number_t ecma_get_number_from_value (ecma_value_t value) __attr_pure___;
 ecma_string_t *ecma_get_string_from_value (ecma_value_t value) __attr_pure___;
+#ifndef CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN
+ecma_string_t *ecma_get_symbol_from_value (ecma_value_t value) __attr_pure___;
+#endif /* !CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
+ecma_string_t *ecma_get_prop_name_from_value (ecma_value_t value) __attr_pure___;
 ecma_object_t *ecma_get_object_from_value (ecma_value_t value) __attr_pure___;
 ecma_error_reference_t *ecma_get_error_reference_from_value (ecma_value_t value) __attr_pure___;
 ecma_collection_chunk_t *ecma_get_collection_chunk_from_value (ecma_value_t value) __attr_pure___;
@@ -192,6 +216,10 @@ void ecma_free_value_if_not_object (ecma_value_t value);
 lit_magic_string_id_t ecma_get_typeof_lit_id (ecma_value_t value);
 
 /* ecma-helpers-string.c */
+#ifndef CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN
+ecma_string_t *ecma_new_symbol_from_descriptor_string (ecma_value_t string_desc);
+bool ecma_prop_name_is_symbol (ecma_string_t *string_p);
+#endif /* !CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
 ecma_string_t *ecma_new_ecma_string_from_utf8 (const lit_utf8_byte_t *string_p, lit_utf8_size_t string_size);
 ecma_string_t *ecma_new_ecma_string_from_utf8_converted_to_cesu8 (const lit_utf8_byte_t *string_p,
                                                                   lit_utf8_size_t string_size);
