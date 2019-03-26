@@ -45,11 +45,11 @@ main (void)
   jerry_value_t symbol_desc_2 = jerry_create_string (STRING_FOO);
 
   jerry_value_t symbol_1 = jerry_create_symbol (symbol_desc_1);
-  TEST_ASSERT (!jerry_value_is_error (symbol_1));
+  TEST_ASSERT (!jerry_value_has_error_flag (symbol_1));
   TEST_ASSERT (jerry_value_is_symbol (symbol_1));
 
   jerry_value_t symbol_2 = jerry_create_symbol (symbol_desc_2);
-  TEST_ASSERT (!jerry_value_is_error (symbol_2));
+  TEST_ASSERT (!jerry_value_has_error_flag (symbol_2));
   TEST_ASSERT (jerry_value_is_symbol (symbol_2));
 
   /* The descriptor strings are no longer needed */
@@ -141,16 +141,17 @@ main (void)
   jerry_value_t empty_symbol_desc = jerry_create_string ((const jerry_char_t *) "");
 
   jerry_value_t empty_symbol = jerry_create_symbol (empty_symbol_desc);
-  TEST_ASSERT (!jerry_value_is_error (empty_symbol));
+  TEST_ASSERT (!jerry_value_has_error_flag (empty_symbol));
   TEST_ASSERT (jerry_value_is_symbol (empty_symbol));
 
   jerry_release_value (empty_symbol_desc);
 
   jerry_value_t symbol_symbol = jerry_create_symbol (empty_symbol);
   TEST_ASSERT (!jerry_value_is_symbol (symbol_symbol));
-  TEST_ASSERT (jerry_value_is_error (symbol_symbol));
+  TEST_ASSERT (jerry_value_has_error_flag (symbol_symbol));
 
-  jerry_value_t error_obj = jerry_get_value_from_error (symbol_symbol, true);
+  jerry_value_t error_obj = jerry_get_value_without_error_flag (symbol_symbol);
+  jerry_release_value (symbol_symbol);
 
   TEST_ASSERT (jerry_get_error_type (error_obj) == JERRY_ERROR_TYPE);
 
@@ -161,7 +162,7 @@ main (void)
   jerry_value_t bar_symbol_desc = jerry_create_string (STRING_BAR);
 
   jerry_value_t bar_symbol = jerry_create_symbol (bar_symbol_desc);
-  TEST_ASSERT (!jerry_value_is_error (bar_symbol));
+  TEST_ASSERT (!jerry_value_has_error_flag (bar_symbol));
   TEST_ASSERT (jerry_value_is_symbol (bar_symbol));
 
   jerry_release_value (bar_symbol_desc);
@@ -182,9 +183,10 @@ main (void)
   /* Test symbol to string operation with non-symbol argument */
   jerry_value_t null_value = jerry_create_null ();
   jerry_value_t to_string_value = jerry_get_symbol_descriptive_string (null_value);
-  TEST_ASSERT (jerry_value_is_error (to_string_value));
+  TEST_ASSERT (jerry_value_has_error_flag (to_string_value));
 
-  error_obj = jerry_get_value_from_error (to_string_value, true);
+  error_obj = jerry_get_value_without_error_flag (to_string_value);
+  jerry_release_value (to_string_value);
 
   TEST_ASSERT (jerry_get_error_type (error_obj) == JERRY_ERROR_TYPE);
 
