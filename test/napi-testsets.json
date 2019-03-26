@@ -47,9 +47,9 @@
     { "name": "test_properties/test.js", "skip": ["all"], "reason": "napi_create_symbol not implemented" },
     { "name": "test_reference/test.js", "skip": ["all"], "reason": "TODO: reference" },
     { "name": "test_string/test.js", "skip": ["all"], "reason": "latin1/utf16 not implemented" },
-    { "name": "test_symbol/test1.js", "skip": ["all"], "reason": "symbol not implemented" },
-    { "name": "test_symbol/test2.js", "skip": ["all"], "reason": "symbol not implemented" },
-    { "name": "test_symbol/test3.js", "skip": ["all"], "reason": "symbol not implemented" },
+    { "name": "test_symbol/test1.js", "skip": false },
+    { "name": "test_symbol/test2.js", "skip": false },
+    { "name": "test_symbol/test3.js", "skip": false },
     { "name": "test_threadsafe_function/test.js", "skip": ["all"], "reason": "thread function not implemented" },
     { "name": "test_typedarray/test.js", "skip": ["all"], "reason": "typedarray not implemented" },
     { "name": "test_uv_loop/test.js", "skip": ["all"], "reason": "uv api not implemented" }
