@@ -67,92 +67,96 @@ exports.randomBytes = function(size, callback) {
 var _Sign = require('crypto_sign').Sign;
 var _Verify = require('crypto_verify').Verify;
 
-function Sign(algorithm, options) {
-  if (!(this instanceof Sign))
-    return new Sign(algorithm, options);
-  if (typeof algorithm !== 'string') {
-    throw new TypeError('algorithm must one string type');
+class Sign extends Writable {
+  constructor(algorithm, options) {
+    super(options);
+    if (!(this instanceof Sign))
+      return new Sign(algorithm, options);
+    if (typeof algorithm !== 'string') {
+      throw new TypeError('algorithm must one string type');
+    }
+
+    if (!Hash._hashes[algorithm]) {
+      throw new Error('Unknown hash algorithm ' + algorithm);
+    }
+
+    this._signHandle = new _Sign(Hash._hashes[algorithm]);
+    Writable.call(this, options);
   }
 
-  if (!Hash._hashes[algorithm]) {
-    throw new Error('Unknown hash algorithm ' + algorithm);
+  update(buf, inputEncoding) {
+    if (typeof buf !== 'string' && !Buffer.isBuffer(buf)) {
+      throw new TypeError(
+        'Expect buffer or string on first argument of update.');
+    }
+
+    if (typeof buf === 'string') {
+      buf = Buffer.from(buf, inputEncoding);
+    }
+
+    this._signHandle.update(buf);
+    return this;
   }
 
-  this._signHandle = new _Sign(Hash._hashes[algorithm]);
-  Writable.call(this, options);
+  sign(privateKey, encoding) {
+    if (typeof privateKey !== 'string' && !Buffer.isBuffer(privateKey)) {
+      throw new TypeError(
+        'Expect buffer or string on first argument of update.');
+    }
+
+    if (typeof privateKey === 'string') {
+      privateKey = Buffer.from(privateKey);
+    }
+
+    var buf = this._signHandle.sign(privateKey);
+    if (typeof encoding === 'string') {
+      return buf.toString(encoding);
+    }
+    return buf;
+  }
 }
 
-Sign.prototype.update = function(buf, inputEncoding) {
-  if (typeof buf !== 'string' && !Buffer.isBuffer(buf)) {
-    throw new TypeError(
-      'Expect buffer or string on first argument of update.');
+class Verify extends Writable {
+  constructor(algorithm, options) {
+    super(options);
+
+    if (!(this instanceof Verify))
+      return new Verify(algorithm, options);
+    if (typeof algorithm !== 'string') {
+      throw new TypeError('algorithm must be a string value');
+    }
+
+    if (!Hash._hashes[algorithm]) {
+      throw new Error('Unknown hash algorithm ' + algorithm);
+    }
+
+    this._verify_handler = new _Verify(Hash._hashes[algorithm]);
   }
 
-  if (typeof buf === 'string') {
-    buf = Buffer.from(buf, inputEncoding);
+  update(buf, inputEncoding) {
+    if (typeof buf !== 'string' && !Buffer.isBuffer(buf)) {
+      throw new TypeError(
+        'Expect buffer or string on first argument of update.');
+    }
+
+    if (typeof buf === 'string') {
+      buf = Buffer.from(buf, inputEncoding);
+    }
+
+    this._verify_handle.update(buf);
+    return this;
   }
 
-  this._signHandle.update(buf);
-  return this;
-};
-
-Sign.prototype.sign = function(privateKey, encoding) {
-  if (typeof privateKey !== 'string' && !Buffer.isBuffer(privateKey)) {
-    throw new TypeError(
-      'Expect buffer or string on first argument of update.');
+  verify(object, signature, signatureEncoding) {
+    return true;
   }
-
-  if (typeof privateKey === 'string') {
-    privateKey = Buffer.from(privateKey);
-  }
-
-  var buf = this._signHandle.sign(privateKey);
-  if (typeof encoding === 'string') {
-    return buf.toString(encoding);
-  }
-  return buf;
-};
+}
 
 exports.createSign = function(algorithm, options) {
   return new Sign(algorithm, options);
 };
 
-
-function Verify(algorithm, options) {
-  if (!(this instanceof Verify))
-    return new Verify(algorithm, options);
-  if (typeof algorithm !== 'string') {
-    throw new TypeError('algorithm must be a string value');
-  }
-
-  if (!Hash._hashes[algorithm]) {
-    throw new Error('Unknown hash algorithm ' + algorithm);
-  }
-
-  this._verify_handler = new _Verify(Hash._hashes[algorithm]);
-
-  Writable.call(this, options);
-}
-
-Verify.prototype.update = function(buf, inputEncoding) {
-  if (typeof buf !== 'string' && !Buffer.isBuffer(buf)) {
-    throw new TypeError(
-      'Expect buffer or string on first argument of update.');
-  }
-
-  if (typeof buf === 'string') {
-    buf = Buffer.from(buf, inputEncoding);
-  }
-
-  this._verify_handle.update(buf);
-  return this;
-};
-
-Verify.prototype.verify = function(object, signature, signatureEncoding) {
-
-  return true;
-};
-
 exports.createVerify = function(algorithm, options) {
-  return new Verify(algorithm, options);
+  new Verify(algorithm, options);
+  throw new Error('Implement later!');
 };
