@@ -37,6 +37,7 @@
 #include "ecma-objects.h"
 #include "ecma-objects-general.h"
 #include "ecma-promise-object.h"
+#include "ecma-symbol-object.h"
 #include "ecma-typedarray-object.h"
 #include "jcontext.h"
 #include "jerryscript.h"
@@ -785,6 +786,25 @@ jerry_value_is_string (const jerry_value_t value) /**< api value */
 } /* jerry_value_is_string */
 
 /**
+ * Check if the specified value is symbol.
+ *
+ * @return true  - if the specified value is symbol,
+ *         false - otherwise
+ */
+bool
+jerry_value_is_symbol (const jerry_value_t value) /**< api value */
+{
+  jerry_assert_api_available ();
+
+#ifndef CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN
+  return ecma_is_value_symbol (value);
+#else /* CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
+  JERRY_UNUSED (value);
+  return false;
+#endif /* !CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
+} /* jerry_value_is_symbol */
+
+/**
  * Check if the specified value is undefined.
  *
  * @return true  - if the specified value is undefined,
@@ -861,6 +881,12 @@ jerry_value_get_type (const jerry_value_t value) /**< input value to check */
     {
       return JERRY_TYPE_STRING;
     }
+#ifndef CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN
+    case LIT_MAGIC_STRING_SYMBOL:
+    {
+      return JERRY_TYPE_SYMBOL;
+    }
+#endif /* !CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
     case LIT_MAGIC_STRING_FUNCTION:
     {
       return JERRY_TYPE_FUNCTION;
@@ -923,6 +949,9 @@ bool jerry_is_feature_enabled (const jerry_feature_t feature)
 #ifdef JERRY_VM_EXEC_STOP
           || feature == JERRY_FEATURE_VM_EXEC_STOP
 #endif /* JERRY_VM_EXEC_STOP */
+#ifndef CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN
+          || feature == JERRY_FEATURE_SYMBOL
+#endif /* !CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
           );
 } /* jerry_is_feature_enabled */
 
@@ -1608,6 +1637,33 @@ jerry_get_utf8_string_size (const jerry_value_t value)
 } /* jerry_get_utf8_string_size */
 
 /**
+ * Create symbol from an api value
+ *
+ * Note:
+ *      The given argument is converted to string. This operation can throw an error.
+ *      returned value must be freed with jerry_release_value when it is no longer needed.
+ *
+ * @return value of the created symbol, if success
+ *         thrown error, otherwise
+ */
+jerry_value_t
+jerry_create_symbol (const jerry_value_t value) /**< api value */
+{
+  jerry_assert_api_available ();
+
+  if (ecma_is_value_error_reference (value))
+  {
+    return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG (wrong_args_msg_p)));
+  }
+
+#ifndef CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN
+  return jerry_return (ecma_op_create_symbol (&value, 1));
+#else /* CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
+  return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG ("Symbol is not supported.")));
+#endif /* !CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
+} /* jerry_create_symbol */
+
+/**
  * Get length of Jerry string
  *
  * Note:
@@ -1823,13 +1879,13 @@ jerry_has_property (const jerry_value_t obj_val, /**< object value */
   jerry_value_t prop_name_value = jerry_get_arg_value (prop_name_val);
 
   if (!ecma_is_value_object (obj_value)
-      || !ecma_is_value_string (prop_name_value))
+      || !ecma_is_value_prop_name (prop_name_value))
   {
     return ecma_make_boolean_value (false);
   }
 
   bool has_property = ecma_op_object_has_property (ecma_get_object_from_value (obj_value),
-                                                   ecma_get_string_from_value (prop_name_value));
+                                                   ecma_get_prop_name_from_value (prop_name_value));
 
   return ecma_make_boolean_value (has_property);
 } /* jerry_has_property */
@@ -1874,13 +1930,13 @@ jerry_has_own_property (const jerry_value_t obj_val, /**< object value */
   jerry_value_t prop_name_value = jerry_get_arg_value (prop_name_val);
 
   if (!ecma_is_value_object (obj_value)
-      || !ecma_is_value_string (prop_name_value))
+      || !ecma_is_value_prop_name (prop_name_value))
   {
     return ecma_make_boolean_value (false);
   }
 
   bool has_property = ecma_op_object_has_own_property (ecma_get_object_from_value (obj_value),
-                                                       ecma_get_string_from_value (prop_name_value));
+                                                       ecma_get_prop_name_from_value (prop_name_value));
 
   return ecma_make_boolean_value (has_property);
 } /* jerry_has_own_property */
@@ -1927,13 +1983,13 @@ jerry_delete_property (const jerry_value_t obj_val, /**< object value */
   jerry_value_t prop_name_value = jerry_get_arg_value (prop_name_val);
 
   if (!ecma_is_value_object (obj_value)
-      || !ecma_is_value_string (prop_name_value))
+      || !ecma_is_value_prop_name (prop_name_value))
   {
     return false;
   }
 
   ecma_value_t ret_value = ecma_op_object_delete (ecma_get_object_from_value (obj_value),
-                                                  ecma_get_string_from_value (prop_name_value),
+                                                  ecma_get_prop_name_from_value (prop_name_value),
                                                   false);
   return ecma_is_value_true (ret_value);
 } /* jerry_delete_property */
@@ -1985,13 +2041,13 @@ jerry_get_property (const jerry_value_t obj_val, /**< object value */
   jerry_value_t prop_name_value = jerry_get_arg_value (prop_name_val);
 
   if (!ecma_is_value_object (obj_value)
-      || !ecma_is_value_string (prop_name_value))
+      || !ecma_is_value_prop_name (prop_name_value))
   {
     return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG (wrong_args_msg_p)));
   }
 
   jerry_value_t ret_value = ecma_op_object_get (ecma_get_object_from_value (obj_value),
-                                                ecma_get_string_from_value (prop_name_value));
+                                                ecma_get_prop_name_from_value (prop_name_value));
   return jerry_return (ret_value);
 } /* jerry_get_property */
 
@@ -2045,13 +2101,13 @@ jerry_set_property (const jerry_value_t obj_val, /**< object value */
 
   if (ecma_is_value_error_reference (value_to_set)
       || !ecma_is_value_object (obj_value)
-      || !ecma_is_value_string (prop_name_value))
+      || !ecma_is_value_prop_name (prop_name_value))
   {
     return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG (wrong_args_msg_p)));
   }
 
   return jerry_return (ecma_op_object_put (ecma_get_object_from_value (obj_value),
-                                           ecma_get_string_from_value (prop_name_value),
+                                           ecma_get_prop_name_from_value (prop_name_value),
                                            value_to_set,
                                            true));
 } /* jerry_set_property */
@@ -2130,7 +2186,7 @@ jerry_define_own_property (const jerry_value_t obj_val, /**< object value */
   jerry_value_t prop_name_value = jerry_get_arg_value (prop_name_val);
 
   if (!ecma_is_value_object (obj_value)
-      || !ecma_is_value_string (prop_name_value))
+      || !ecma_is_value_prop_name (prop_name_value))
   {
     return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG (wrong_args_msg_p)));
   }
@@ -2210,7 +2266,7 @@ jerry_define_own_property (const jerry_value_t obj_val, /**< object value */
   }
 
   return ecma_op_object_define_own_property (ecma_get_object_from_value (obj_value),
-                                             ecma_get_string_from_value (prop_name_value),
+                                             ecma_get_prop_name_from_value (prop_name_value),
                                              &prop_desc,
                                              true);
 } /* jerry_define_own_property */
@@ -2232,7 +2288,7 @@ jerry_get_own_property_descriptor (const jerry_value_t  obj_val, /**< object val
   jerry_value_t prop_name_value = jerry_get_arg_value (prop_name_val);
 
   if (!ecma_is_value_object (obj_value)
-      || !ecma_is_value_string (prop_name_value))
+      || !ecma_is_value_prop_name (prop_name_value))
   {
     return false;
   }
@@ -2240,7 +2296,7 @@ jerry_get_own_property_descriptor (const jerry_value_t  obj_val, /**< object val
   ecma_property_descriptor_t prop_desc;
 
   if (!ecma_op_object_get_own_property_descriptor (ecma_get_object_from_value (obj_value),
-                                                   ecma_get_string_from_value (prop_name_value),
+                                                   ecma_get_prop_name_from_value (prop_name_value),
                                                    &prop_desc))
   {
     return false;
@@ -2683,6 +2739,35 @@ jerry_resolve_or_reject_promise (jerry_value_t promise, /**< the promise value *
   return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG ("Promise not supported.")));
 #endif /* !CONFIG_DISABLE_ES2015_PROMISE_BUILTIN */
 } /* jerry_resolve_or_reject_promise */
+
+/**
+ * Call the SymbolDescriptiveString ecma builtin operation on the symbol value.
+ *
+ * Note:
+ *      returned value must be freed with jerry_release_value, when it is no longer needed.
+ *
+ * @return string value containing the symbol's descriptive string - if success
+ *         thrown error - otherwise
+ */
+jerry_value_t
+jerry_get_symbol_descriptive_string (const jerry_value_t symbol) /**< symbol value */
+{
+  jerry_assert_api_available ();
+
+#ifndef CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN
+  if (!ecma_is_value_symbol (symbol))
+  {
+    return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG (wrong_args_msg_p)));
+  }
+
+  /* Note: This operation cannot throw an error */
+  return ecma_get_symbol_descriptive_string (symbol);
+#else /* CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
+  JERRY_UNUSED (symbol);
+
+  return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG ("Symbol is not supported.")));
+#endif /* !CONFIG_DISABLE_ES2015_SYMBOL_BUILTIN */
+} /** jerry_get_symbol_descriptive_string */
 
 /**
  * Validate UTF-8 string

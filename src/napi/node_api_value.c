@@ -250,6 +250,14 @@ napi_status napi_create_string_utf8(napi_env env, const char* str,
   NAPI_RETURN(napi_ok);
 }
 
+napi_status napi_create_symbol(napi_env env, napi_value description,
+                               napi_value* result) {
+  NAPI_TRY_ENV(env);
+  JERRYX_CREATE(jval, jerry_create_symbol(AS_JERRY_VALUE(description)));
+  NAPI_ASSIGN(result, AS_NAPI_VALUE(jval));
+  NAPI_RETURN(napi_ok);
+}
+
 napi_status napi_get_array_length(napi_env env, napi_value value,
                                   uint32_t* result) {
   NAPI_TRY_ENV(env);
