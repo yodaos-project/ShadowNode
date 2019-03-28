@@ -1090,29 +1090,18 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
 
           JERRY_ASSERT ((opcode_data >> VM_OC_NON_STATIC_SHIFT) <= 0x1);
 
-          result = right_value;
+          ecma_string_t *prop_name_p = ecma_op_to_prop_name (right_value);
 
-          if (unlikely (!ecma_is_value_string (right_value)))
+          if (unlikely (prop_name_p == NULL))
           {
-            result = ecma_op_to_string (right_value);
-
-            if (ECMA_IS_VALUE_ERROR (result))
-            {
-              goto error;
-            }
+            result = ECMA_VALUE_ERROR;
+            goto error;
           }
-
-          ecma_string_t *prop_name_p = ecma_get_string_from_value (result);
 
 #ifndef CONFIG_DISABLE_ES2015_CLASS
           if (unlikely (ecma_compare_ecma_string_to_magic_id (prop_name_p, LIT_MAGIC_STRING_PROTOTYPE))
               && !(opcode_data & VM_OC_NON_STATIC_FLAG))
           {
-            if (!ecma_is_value_string (right_value))
-            {
-              ecma_deref_ecma_string (prop_name_p);
-            }
-
             result = ecma_raise_type_error (ECMA_ERR_MSG ("prototype property of a class is non-configurable"));
             goto error;
           }
@@ -1148,10 +1137,7 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
 
           ecma_named_data_property_assign_value (object_p, prop_value_p, left_value);
 
-          if (!ecma_is_value_string (right_value))
-          {
-            ecma_deref_ecma_string (prop_name_p);
-          }
+          ecma_deref_ecma_string (prop_name_p);
 
           goto free_both_values;
         }
@@ -1160,28 +1146,18 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
         {
           JERRY_ASSERT ((opcode_data >> VM_OC_NON_STATIC_SHIFT) <= 0x1);
 
-          result = left_value;
+          ecma_string_t *prop_name_p = ecma_op_to_prop_name (left_value);
 
-          if (unlikely (!ecma_is_value_string (left_value)))
+          if (unlikely (prop_name_p == NULL))
           {
-            result = ecma_op_to_string (left_value);
-
-            if (ECMA_IS_VALUE_ERROR (result))
-            {
-              goto error;
-            }
+            result = ECMA_VALUE_ERROR;
+            goto error;
           }
-
-          ecma_string_t *prop_name_p = ecma_get_string_from_value (result);
 
 #ifndef CONFIG_DISABLE_ES2015_CLASS
           if (unlikely (ecma_compare_ecma_string_to_magic_id (prop_name_p, LIT_MAGIC_STRING_PROTOTYPE))
               && !(opcode_data & VM_OC_NON_STATIC_FLAG))
           {
-            if (!ecma_is_value_string (left_value))
-            {
-              ecma_deref_ecma_string (prop_name_p);
-            }
 
             result = ecma_raise_type_error (ECMA_ERR_MSG ("prototype property of a class is non-configurable"));
             goto error;
@@ -1197,10 +1173,7 @@ vm_loop (vm_frame_ctx_t *frame_ctx_p) /**< frame context */
                                prop_name_p,
                                right_value);
 
-          if (!ecma_is_value_string (left_value))
-          {
-            ecma_deref_ecma_string (prop_name_p);
-          }
+          ecma_deref_ecma_string (prop_name_p);
 
           goto free_both_values;
         }

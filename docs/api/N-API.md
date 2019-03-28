@@ -12,7 +12,6 @@ Use [node-gyp](https://github.com/nodejs/node-gyp) whenever possible, since N-AP
 
 ##### Object Creation Functions
 - napi_create_external_buffer
-- napi_create_symbol
 - napi_create_dataview
 
 ##### Functions to convert from C types to N-API

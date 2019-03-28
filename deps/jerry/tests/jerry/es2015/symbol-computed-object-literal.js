@@ -13,24 +13,26 @@
  * limitations under the License.
  */
 
-try {
-  Symbol.prototype.toString.call ('NonSymbolValue');
-  assert (false);
-} catch (e) {
-  assert (e instanceof TypeError);
+var symbolFoo = Symbol ('foo');
+var symbolBar = Symbol ('bar');
+
+var obj = {
+  _a : 5,
+  get [symbolFoo]() {
+    return this._a;
+  },
+  set [symbolFoo](a) {
+    this._a = a;
+  },
+  [symbolBar] : 10
 }
 
-try {
-  Symbol.prototype.toString.call ({});
-  assert (false);
-} catch (e) {
-  assert (e instanceof TypeError);
-}
+/* Test accessor properties */
+assert (obj[symbolFoo] === 5);
+obj[symbolFoo] = 6;
+assert (obj[symbolFoo] === 6);
 
-var foo = Symbol ('foo');
-assert (foo.toString () === "Symbol(foo)");
-assert (String (foo) === "Symbol(foo)");
-
-var fooObj = Object (foo);
-assert (fooObj.toString () === "Symbol(foo)");
-assert (String (fooObj) === "Symbol(foo)");
+/* Test nameddata properties */
+assert (obj[symbolBar] === 10);
+obj[symbolBar] = 20;
+assert (obj[symbolBar] === 20);
