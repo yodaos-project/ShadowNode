@@ -104,14 +104,13 @@ function resolve(self, newValue) {
       newValue &&
       (typeof newValue === 'object' || typeof newValue === 'function')
     ) {
-      var then = newValue.then;
       if (newValue instanceof Promise) {
         self._state = STATE_NEXT;
         self._value = newValue;
         finale(self);
         return;
-      } else if (typeof then === 'function') {
-        doResolve(then, self);
+      } else if (typeof newValue.then === 'function') {
+        doResolve(newValue.then.bind(newValue), self);
         return;
       }
     }
