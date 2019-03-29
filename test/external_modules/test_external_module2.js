@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
+'use strict';
+
 var assert = require('assert');
 var mymodule = require('mymodule2');
 
-assert.equal(mymodule.message, 'Hello world!');
+assert.strictEqual(mymodule.message, 'Hello world!');

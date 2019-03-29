@@ -10,7 +10,7 @@ var opts = {
 };
 
 function connect(endpoint, opts) {
-  return new Promise(function (resolve, reject) {
+  return new Promise(function(resolve, reject) {
     var client = mqtt.connect(endpoint, opts);
     client.once('connect', function() {
       resolve(client);
@@ -33,8 +33,8 @@ Promise.all([
     }, 500);
   }));
   babeee.on('message', common.mustCall(function(channel, message) {
-    assert.equal(channel, 'u/love');
-    assert.equal(message + '', 'endless');
+    assert.strictEqual(channel, 'u/love');
+    assert.strictEqual(message + '', 'endless');
     console.log('babeee receives the message from yorkie');
 
     babeee.disconnect();

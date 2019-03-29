@@ -14,6 +14,7 @@
  */
 
 /* This test is based on Raspberry Pi with GY-30 Sensor. */
+'use strict';
 
 var assert = require('assert');
 var pin = require('tools/systemio_common').pin;
@@ -36,7 +37,8 @@ var wire = i2c.open(configuration, function(err) {
 
     wire.read(2, function(err, res) {
       checkError(err);
-      assert.equal(res.length, 2, 'I2C read failed.(length is not equal)');
+      assert.strictEqual(res.length, 2,
+                         'I2C read failed.(length is not equal)');
       console.log('read result: ' + res[0] + ', ' + res[1]);
       wire.close();
       console.log('test ok');

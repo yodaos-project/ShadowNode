@@ -33,6 +33,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+'use strict';
 
 var ble = require('ble');
 
@@ -41,7 +42,7 @@ var BlenoCharacteristic = ble.Characteristic;
 
 var util = require('util');
 
-var EchoCharacteristic = function() {
+var EchoCharacteristic = () => {
   BlenoCharacteristic.call(this, {
     uuid: 'ec0e',
     properties: ['read', 'write', 'notify'],
@@ -55,15 +56,18 @@ var EchoCharacteristic = function() {
 util.inherits(EchoCharacteristic, BlenoCharacteristic);
 
 EchoCharacteristic.prototype.onReadRequest = function(offset, callback) {
-  console.log('EchoCharacteristic - onReadRequest: value = ' + this._value.toString('hex'));
+  console.log('EchoCharacteristic - onReadRequest: value = ' +
+    this._value.toString('hex'));
 
   callback(this.RESULT_SUCCESS, this._value);
 };
 
-EchoCharacteristic.prototype.onWriteRequest = function(data, offset, withoutResponse, callback) {
+EchoCharacteristic.prototype.onWriteRequest =
+function(data, offset, withoutResponse, callback) {
   this._value = data;
 
-  console.log('EchoCharacteristic - onWriteRequest: value = ' + this._value.toString('hex'));
+  console.log('EchoCharacteristic - onWriteRequest: value = ' +
+    this._value.toString('hex'));
 
   if (this._updateValueCallback) {
     console.log('EchoCharacteristic - onWriteRequest: notifying');
@@ -74,7 +78,8 @@ EchoCharacteristic.prototype.onWriteRequest = function(data, offset, withoutResp
   callback(this.RESULT_SUCCESS);
 };
 
-EchoCharacteristic.prototype.onSubscribe = function(maxValueSize, updateValueCallback) {
+EchoCharacteristic.prototype.onSubscribe =
+function(maxValueSize, updateValueCallback) {
   console.log('EchoCharacteristic - onSubscribe');
 
   this._updateValueCallback = updateValueCallback;
@@ -99,7 +104,8 @@ ble.on('stateChange', function(state) {
 });
 
 ble.on('advertisingStart', function(error) {
-  console.log('on -> advertisingStart: ' + (error ? 'error ' + error : 'success'));
+  console.log('on -> advertisingStart: ' +
+    (error ? 'error ' + error : 'success'));
 
   if (!error) {
     ble.setServices([

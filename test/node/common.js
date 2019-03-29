@@ -40,6 +40,9 @@ var fs = require('fs');
 var assert = require('assert');
 var stream = require('stream');
 var util = require('util');
+var path = require('path');
+var os = require('os');
+var child_process = require('child_process');
 
 var __dirname = process.cwd();
 
@@ -66,7 +69,7 @@ exports.rootDir = exports.isWindows ? 'c:\\' : '/';
 
 var dirsep = exports.isWindows ? '\\' : '/';
 
-exports.fixturesDir = __dirname + dirsep + 'fixtures';
+exports.fixturesDir = path.join(__dirname, dirsep, 'fixtures');
 exports.tmpDirName = 'tmp';
 
 function rimrafSync(p) {
@@ -126,7 +129,6 @@ if (process.env.TEST_THREAD_ID) {
 }
 exports.tmpDir = testRoot + dirsep + exports.tmpDirName;
 
-var opensslCli = null;
 var inFreeBSDJail = null;
 var localhostIPv4 = null;
 
@@ -322,30 +324,30 @@ if (global.gc) {
 }
 
 if (global.DTRACE_HTTP_SERVER_RESPONSE) {
-  knownGlobals.push(DTRACE_HTTP_SERVER_RESPONSE);
-  knownGlobals.push(DTRACE_HTTP_SERVER_REQUEST);
-  knownGlobals.push(DTRACE_HTTP_CLIENT_RESPONSE);
-  knownGlobals.push(DTRACE_HTTP_CLIENT_REQUEST);
-  knownGlobals.push(DTRACE_NET_STREAM_END);
-  knownGlobals.push(DTRACE_NET_SERVER_CONNECTION);
+  knownGlobals.push(global.DTRACE_HTTP_SERVER_RESPONSE);
+  knownGlobals.push(global.DTRACE_HTTP_SERVER_REQUEST);
+  knownGlobals.push(global.DTRACE_HTTP_CLIENT_RESPONSE);
+  knownGlobals.push(global.DTRACE_HTTP_CLIENT_REQUEST);
+  knownGlobals.push(global.DTRACE_NET_STREAM_END);
+  knownGlobals.push(global.DTRACE_NET_SERVER_CONNECTION);
 }
 
 if (global.COUNTER_NET_SERVER_CONNECTION) {
-  knownGlobals.push(COUNTER_NET_SERVER_CONNECTION);
-  knownGlobals.push(COUNTER_NET_SERVER_CONNECTION_CLOSE);
-  knownGlobals.push(COUNTER_HTTP_SERVER_REQUEST);
-  knownGlobals.push(COUNTER_HTTP_SERVER_RESPONSE);
-  knownGlobals.push(COUNTER_HTTP_CLIENT_REQUEST);
-  knownGlobals.push(COUNTER_HTTP_CLIENT_RESPONSE);
+  knownGlobals.push(global.COUNTER_NET_SERVER_CONNECTION);
+  knownGlobals.push(global.COUNTER_NET_SERVER_CONNECTION_CLOSE);
+  knownGlobals.push(global.COUNTER_HTTP_SERVER_REQUEST);
+  knownGlobals.push(global.COUNTER_HTTP_SERVER_RESPONSE);
+  knownGlobals.push(global.COUNTER_HTTP_CLIENT_REQUEST);
+  knownGlobals.push(global.COUNTER_HTTP_CLIENT_RESPONSE);
 }
 
 if (global.LTTNG_HTTP_SERVER_RESPONSE) {
-  knownGlobals.push(LTTNG_HTTP_SERVER_RESPONSE);
-  knownGlobals.push(LTTNG_HTTP_SERVER_REQUEST);
-  knownGlobals.push(LTTNG_HTTP_CLIENT_RESPONSE);
-  knownGlobals.push(LTTNG_HTTP_CLIENT_REQUEST);
-  knownGlobals.push(LTTNG_NET_STREAM_END);
-  knownGlobals.push(LTTNG_NET_SERVER_CONNECTION);
+  knownGlobals.push(global.LTTNG_HTTP_SERVER_RESPONSE);
+  knownGlobals.push(global.LTTNG_HTTP_SERVER_REQUEST);
+  knownGlobals.push(global.LTTNG_HTTP_CLIENT_RESPONSE);
+  knownGlobals.push(global.LTTNG_HTTP_CLIENT_REQUEST);
+  knownGlobals.push(global.LTTNG_NET_STREAM_END);
+  knownGlobals.push(global.LTTNG_NET_SERVER_CONNECTION);
 }
 
 if (global.ArrayBuffer) {
@@ -380,7 +382,7 @@ function leakedGlobals() {
   var leaked = [];
 
   for (var val in global) {
-    if (knownGlobals.indexOf(global[val]) == -1)
+    if (knownGlobals.indexOf(global[val]) === -1)
       leaked.push(val);
   }
 
@@ -555,5 +557,5 @@ exports.expectWarning = function(name, expected) {
 // IoT.js extensions
 
 assert.ok = function(value, message) {
-  assert.equal(!!value, true, message);
+  assert.strictEqual(!!value, true, message);
 };

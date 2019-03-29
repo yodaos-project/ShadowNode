@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -34,7 +34,7 @@ fs.open(fileName, flags, mode, function(err, fd) {
       if (err) {
         throw err;
       } else {
-        assert.equal(buffer.toString(), expectedContents);
+        assert.strictEqual(buffer.toString(), expectedContents);
       }
     });
   }
@@ -63,7 +63,7 @@ fs.open(fileName, flags, function(err, fd) {
       if (err) {
         throw err;
       }
-      assert.equal(buffer.toString(), expectedContents);
+      assert.strictEqual(buffer.toString(), expectedContents);
       fs.closeSync(fd);
     });
   });

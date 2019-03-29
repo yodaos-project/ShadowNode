@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -25,10 +26,10 @@ var flags = 'r';
 try {
   var buffer = new Buffer(64);
   var fd = fs.openSync(fileName, flags);
-  var bytes1 = fs.readSync(fd, buffer, 0, 7, null);
-  var bytes2 = fs.readSync(fd, buffer, 7, 7, null);
+  fs.readSync(fd, buffer, 0, 7, null);
+  fs.readSync(fd, buffer, 7, 7, null);
 
-  assert.equal(buffer.toString(), expectedContents);
+  assert.strictEqual(buffer.toString(), expectedContents);
   fs.closeSync(fd);
 } catch (err) {
   throw err;

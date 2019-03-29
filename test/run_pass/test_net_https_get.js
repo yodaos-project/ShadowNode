@@ -13,27 +13,28 @@
  * limitations under the License.
  */
 
+'use strict';
 
 var assert = require('assert');
 var https = require('https');
 
 var isRequest1Finished = false;
 // 1. GET req
-options = {
+var options = {
   method: 'GET',
   host: 'httpbin.org',
   path: '/user-agent',
   headers: { 'user-agent': 'iotjs' }
 };
 
-var getResponseHandler = function(res) {
+var getResponseHandler = (res) => {
   var res_body = '';
 
-  assert.equal(200, res.statusCode);
+  assert.strictEqual(200, res.statusCode);
 
-  var endHandler = function() {
+  var endHandler = () => {
     var response = JSON.parse(res_body);
-    assert.equal('iotjs', response['user-agent']);
+    assert.strictEqual('iotjs', response['user-agent']);
     isRequest1Finished = true;
   };
   res.on('end', endHandler);
@@ -56,14 +57,14 @@ var finalOptions = {
 };
 var isRequest2Finished = false;
 
-var finalResponseHandler = function(res) {
+var finalResponseHandler = (res) => {
   var res_body = '';
 
-  assert.equal(200, res.statusCode);
+  assert.strictEqual(200, res.statusCode);
 
-  var endHandler = function() {
+  var endHandler = () => {
     var response = JSON.parse(res_body);
-    assert.equal(testMsg, response.data);
+    assert.strictEqual(testMsg, response.data);
     isRequest2Finished = true;
   };
   res.on('end', endHandler);
@@ -79,7 +80,7 @@ finalReq.end();
 
 process.on('exit', function() {
   console.log(isRequest1Finished, isRequest2Finished);
-  assert.equal(isRequest1Finished, true);
-  assert.equal(isRequest2Finished, true);
+  assert.strictEqual(isRequest1Finished, true);
+  assert.strictEqual(isRequest2Finished, true);
   console.log('test is done!');
 });

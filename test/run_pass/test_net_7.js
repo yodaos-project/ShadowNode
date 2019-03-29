@@ -12,21 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var net = require('net');
 var assert = require('assert');
-var timers = require('timers');
 
 var port = 22707;
 
 var count = 40;
 var connectionCount = 0;
-
+var maxConnection;
 if (process.platform === 'linux' || process.platform === 'darwin') {
-  var maxConnection = 40;
+  maxConnection = 40;
 } else if (process.platform === 'nuttx' || process.platform === 'tizenrt') {
-  var maxConnection = 5;
+  maxConnection = 5;
 } else {
   assert.fail();
 }
@@ -53,7 +52,7 @@ function serverListen() {
       socket.end(msg);
       cnt++;
 
-      if (cnt == count) {
+      if (cnt === count) {
         server.close();
         isClose = true;
       }
@@ -67,7 +66,6 @@ function connectServer(i) {
   connectionCount++;
 
   var socket = new net.Socket();
-  var msg = '';
 
   socket.connect(port, 'localhost');
   socket.on('connect', function() {
@@ -101,7 +99,7 @@ var interval = setInterval(function() {
 }, 500);
 
 process.on('exit', function(code) {
-  assert.equal(code, 0);
+  assert.strictEqual(code, 0);
   for (var i = 0; i < count; ++i) {
     if (!check[i]) {
       assert.fail();

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -30,13 +31,13 @@ items = fs.readdirSync(path);
 items.sort();
 for (i = 0; i < items.length; i++)
   res += items[i] + '\n';
-assert.equal(res, ans);
+assert.strictEqual(res, ans);
 
 res = '';
 fs.readdir(path, function(err, items) {
-  assert.equal(err, null);
+  assert.strictEqual(err, null);
   items.sort();
   for (i = 0; i < items.length; i++)
     res += items[i] + '\n';
-  assert.equal(res, ans);
+  assert.strictEqual(res, ans);
 });

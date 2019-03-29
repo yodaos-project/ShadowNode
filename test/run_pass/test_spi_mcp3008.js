@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var Spi = require('spi');
@@ -41,8 +42,8 @@ var spi0 = spi.open(configuration, function() {
   var loopCnt = 10;
   var loop = setInterval(function() {
     spi0.transfer(tx, rx, function(err) {
-      assert.equal(err, null);
-      assert.equal(rx.length, 3);
+      assert.strictEqual(err, null);
+      assert.strictEqual(rx.length, 3);
 
       var value = ((rx[1] & 0x03) << 8) + rx[2];
       console.log(value);

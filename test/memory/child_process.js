@@ -50,7 +50,7 @@ var cycle = process.argv[3] || 0;
 function summary() {
   clearTimeout(profilingHandle);
   console.log(`\nMemory Summary(${matrix.samples} samples):`);
-  console.log(` Duration ${duration/1000}s`);
+  console.log(` Duration ${duration / 1000}s`);
   console.log(` Rss(From): ${matrix.startRss}`);
   console.log(` Rss(End): ${matrix.endRss}`);
   console.log(` Heap(From): ${matrix.startHeap}`);
@@ -58,10 +58,14 @@ function summary() {
   console.log(` Detects ${matrix.endRss - matrix.startRss} bytes in total`);
   console.log(` Detects ${matrix.endHeap - matrix.startHeap} bytes in vm heap`);
   console.log('====================================================');
-  console.log(` Increasing Count  : ${matrix.increasingCount} / ${matrix.samples}`);
-  console.log(` Decreasing Count  : ${matrix.decreasingCount} / ${matrix.samples}`);
-  console.log(` Increasing Rate   : ${parseInt((matrix.increasingCount / matrix.samples) * 100)}%`);
-  console.log(` Decreasing Rate   : ${parseInt((matrix.decreasingCount / matrix.samples) * 100)}%`);
+  console.log(
+    ` Increasing Count  : ${matrix.increasingCount} / ${matrix.samples}`);
+  console.log(
+    ` Decreasing Count  : ${matrix.decreasingCount} / ${matrix.samples}`);
+  console.log(` Increasing Rate   : ${
+    parseInt((matrix.increasingCount / matrix.samples) * 100)}%`);
+  console.log(` Decreasing Rate   : ${
+    parseInt((matrix.decreasingCount / matrix.samples) * 100)}%`);
   setTimeout(process.exit, 500);
 }
 

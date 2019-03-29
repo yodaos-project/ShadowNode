@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var assert = require('assert');
 
-assert.notEqual(1, 1);
+assert.notStrictEqual(1, 1);

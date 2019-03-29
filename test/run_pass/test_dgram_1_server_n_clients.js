@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var dgram = require('dgram');
@@ -53,8 +54,8 @@ function sendAndRecieve(i) {
 
   client.on('message', function(data, rinfo) {
     console.log('client got data : ' + data);
-    assert.equal(port, rinfo.port);
-    assert.equal(data, i.toString());
+    assert.strictEqual(port, rinfo.port);
+    assert.strictEqual(data.toString(), i.toString());
     client.close();
   });
 }
@@ -64,11 +65,11 @@ for (var i = 0; i < sockcount; i++) {
 }
 
 process.on('exit', function(code) {
-  assert.equal(msg.length, sockcount);
+  assert.strictEqual(msg.length, sockcount);
   for (var i = 0; i < sockcount; i++) {
     if (msg.indexOf(i.toString()) === -1) {
       assert.fail();
     }
   }
-  assert.equal(code, 0);
+  assert.strictEqual(code, 0);
 });

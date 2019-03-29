@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+'use strict';
 
 var assert = require('assert');
 var http = require('http');
@@ -43,6 +44,6 @@ var getReq = http.request(options);
 getReq.on('error', function() {});
 
 process.on('exit', function(code) {
-  assert.equal(timeouted, true);
-  assert.equal(code, 0);
+  assert.strictEqual(timeouted, true);
+  assert.strictEqual(code, 0);
 });

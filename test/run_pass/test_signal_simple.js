@@ -7,8 +7,8 @@ var signals = require('constants').os.signals;
 function testSignal(type) {
   process.once(type, common.mustCall(function(signal) {
     console.log(signal);
-    assert.equal(signal, type);
-  }))
+    assert.strictEqual(signal, type);
+  }));
   process.kill(signals[type]);
 }
 

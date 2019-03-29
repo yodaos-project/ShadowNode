@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -20,14 +21,14 @@ var fileName = '';
 
 assert.throws(
   function() {
-    var stats1 = fs.statSync(fileName);
+    fs.statSync(fileName);
   },
   Error
 );
 
 assert.throws(
   function() {
-    var open1 = fs.openSync(fileName, 'r');
+    fs.openSync(fileName, 'r');
   },
   Error
 );

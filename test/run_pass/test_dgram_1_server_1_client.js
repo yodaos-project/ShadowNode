@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var dgram = require('dgram');
@@ -30,10 +31,10 @@ server.on('message', function(data, rinfo) {
   console.log('client address : ' + rinfo.address);
   console.log('client port : ' + rinfo.port);
   console.log('client family : ' + rinfo.family);
-  assert.equal(data, msg);
+  assert.strictEqual(data.toString(), msg);
   server.send(msg, rinfo.port, 'localhost', function(err, len) {
-    assert.equal(err, null);
-    assert.equal(len, msg.length);
+    assert.strictEqual(err, null);
+    assert.strictEqual(len, msg.length);
     server.close();
   });
 });
@@ -47,8 +48,8 @@ server.bind(port);
 var client = dgram.createSocket('udp4');
 
 client.send(msg, port, 'localhost', function(err, len) {
-  assert.equal(err, null);
-  assert.equal(len, msg.length);
+  assert.strictEqual(err, null);
+  assert.strictEqual(len, msg.length);
 });
 
 client.on('error', function(err) {
@@ -61,11 +62,11 @@ client.on('message', function(data, rinfo) {
   console.log('server address : ' + rinfo.address);
   console.log('server port : ' + rinfo.port);
   console.log('server family : ' + rinfo.family);
-  assert.equal(port, rinfo.port);
-  assert.equal(data, msg);
+  assert.strictEqual(port, rinfo.port);
+  assert.strictEqual(data.toString(), msg);
   client.close();
 });
 
 process.on('exit', function(code) {
-  assert.equal(code, 0);
+  assert.strictEqual(code, 0);
 });

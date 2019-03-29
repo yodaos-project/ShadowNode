@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -29,7 +30,7 @@ function unlink(path) {
     fs.rmdirSync(path);
   } catch (e) {
   }
-  assert.equal(fs.existsSync(path), false);
+  assert.strictEqual(fs.existsSync(path), false);
 }
 
 {
@@ -42,28 +43,28 @@ function unlink(path) {
   unlink(root);
 
   fs.mkdir(root, function(err) {
-    assert.equal(err, null);
-    assert.equal(fs.existsSync(root), true);
-    assert.equal(fs.mkdirSync(sub1), undefined);
-    assert.equal(fs.mkdirSync(sub2), undefined);
-    assert.equal(fs.existsSync(sub1), true);
-    assert.equal(fs.existsSync(sub2), true);
+    assert.strictEqual(err, null);
+    assert.strictEqual(fs.existsSync(root), true);
+    assert.strictEqual(fs.mkdirSync(sub1), undefined);
+    assert.strictEqual(fs.mkdirSync(sub2), undefined);
+    assert.strictEqual(fs.existsSync(sub1), true);
+    assert.strictEqual(fs.existsSync(sub2), true);
 
     unlink(sub1);
     unlink(sub2);
 
     fs.rmdir(root, function() {
-      assert.equal(fs.existsSync(root), false);
+      assert.strictEqual(fs.existsSync(root), false);
     });
 
     var root2 = testRoot + '/test_dir2';
 
     fs.mkdir(root2, 777, function(err) {
-      assert.equal(err, null);
-      assert.equal(fs.existsSync(root2), true);
+      assert.strictEqual(err, null);
+      assert.strictEqual(fs.existsSync(root2), true);
 
       fs.rmdir(root2, function() {
-        assert.equal(fs.existsSync(root2), false);
+        assert.strictEqual(fs.existsSync(root2), false);
       });
 
       // Run read-only directory test only on linux
@@ -71,20 +72,20 @@ function unlink(path) {
       if (process.platform === 'linux') {
         // Try to create a folder in a read-only directory.
         fs.mkdir(root, '0444', function(err) {
-          assert.equal(fs.existsSync(root), true);
+          assert.strictEqual(fs.existsSync(root), true);
 
           var dirname = root + '/permission_test';
           try {
             fs.mkdirSync(dirname);
             assert.ok(false);
           } catch (e) {
-            assert.equal(e instanceof Error, true);
-            assert.equal(e instanceof assert.AssertionError, false);
+            assert.strictEqual(e instanceof Error, true);
+            assert.strictEqual(e instanceof assert.AssertionError, false);
           }
 
-          assert.equal(fs.existsSync(dirname), false);
+          assert.strictEqual(fs.existsSync(dirname), false);
           fs.rmdir(root, function() {
-            assert.equal(fs.existsSync(root), false);
+            assert.strictEqual(fs.existsSync(root), false);
           });
         });
       }

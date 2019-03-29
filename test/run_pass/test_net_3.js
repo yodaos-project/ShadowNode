@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var net = require('net');
 var assert = require('assert');
@@ -26,11 +26,11 @@ server.listen({ port: port });
 
 server.on('connection', function(socket) {
   var i = 0;
-  var writing = function() {
+  var writing = () => {
     var ok;
     do {
       ok = socket.write('' + (i % 10));
-      if (++i == limit) {
+      if (++i === limit) {
         socket.end();
         ok = false;
       }
@@ -81,9 +81,9 @@ socket4.on('end', function() {
 
 
 process.on('exit', function(code) {
-  assert.equal(msg1.length, limit);
-  assert.equal(msg2.length, limit);
-  assert.equal(msg3.length, limit);
-  assert.equal(msg4.length, limit);
+  assert.strictEqual(msg1.length, limit);
+  assert.strictEqual(msg2.length, limit);
+  assert.strictEqual(msg3.length, limit);
+  assert.strictEqual(msg4.length, limit);
   assert(connectListenerCheck);
 });

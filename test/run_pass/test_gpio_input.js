@@ -12,19 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var assert = require('assert');
 var Gpio = require('gpio');
 var gpio = new Gpio();
 
-var ledGpio = null,
-  switchGpio = null;
+var ledGpio = null;
+var switchGpio = null;
 var ledPin, switchPin, ledMode;
 
-var SWITCH_ON = false,
-  LED_ON = true,
-  LED_OFF = false;
+var SWITCH_ON = false;
+var LED_ON = true;
+var LED_OFF = false;
 
 var loopCnt = 0;
 
@@ -63,7 +63,7 @@ var loop = setInterval(function() {
     return;
   }
 
-  if ((++loopCnt) == 10) {
+  if ((++loopCnt) === 10) {
     clearInterval(loop);
     ledGpio.closeSync();
     switchGpio.closeSync();

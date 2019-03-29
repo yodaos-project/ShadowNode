@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 /*
   @STDOUT=Pass
@@ -28,18 +29,18 @@ if (process.platform === 'tizenrt') {
 }
 
 fs.readFile(file1, function(err, buf1) {
-  assert.equal(err, null);
+  assert.strictEqual(err, null);
   fs.writeFile(file2, buf1, function(err) {
-    assert.equal(err, null);
+    assert.strictEqual(err, null);
     fs.exists(file2, function(exists) {
-      assert.equal(exists, true);
+      assert.strictEqual(exists, true);
       fs.readFile(file1, function(err, buf2) {
-        assert.equal(err, null);
-        assert.equal(buf1.toString(), buf2.toString());
+        assert.strictEqual(err, null);
+        assert.strictEqual(buf1.toString(), buf2.toString());
         fs.unlink(file2, function(err) {
-          assert.equal(err, null);
+          assert.strictEqual(err, null);
           fs.exists(file2, function(exists) {
-            assert.equal(exists, false);
+            assert.strictEqual(exists, false);
             console.log('Pass');
           });
         });

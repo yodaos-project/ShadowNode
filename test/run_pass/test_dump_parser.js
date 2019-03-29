@@ -8,17 +8,17 @@ try {
 } catch (err) {
   var stack = err.stack;
   console.log(stack);
-  assert.equal(stack.split('\n').length, 4);
+  assert.strictEqual(stack.split('\n').length, 4);
 }
 
-var mod2 = require('./dump/module2')
+var mod2 = require('./dump/module2');
 
 function testRepeatThrow() {
   try {
     mod2();
   } catch (err) {
     var stack = err.stack;
-    assert.equal(stack.split('\n').length, 5);
+    assert.strictEqual(stack.split('\n').length, 5);
   }
 }
 

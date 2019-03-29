@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 
@@ -24,5 +25,5 @@ process.nextTick(function() {
 sequence = '1';
 
 process.on('exit', function() {
-  assert.equal(sequence, '12');
+  assert.strictEqual(sequence, '12');
 });

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -30,8 +31,8 @@ fs.open(testfile, flags, function(err, fd) {
     if (err) {
       throw err;
     }
-    assert.equal(stat.isFile(), true);
-    assert.equal(stat.isDirectory(), false);
+    assert.strictEqual(stat.isFile(), true);
+    assert.strictEqual(stat.isDirectory(), false);
 
     fs.close(fd, function(err) {
       if (err) {
@@ -51,8 +52,8 @@ fs.open(testdir, flags, function(err, fd) {
     if (err) {
       throw err;
     }
-    assert.equal(stat.isFile(), false);
-    assert.equal(stat.isDirectory(), true);
+    assert.strictEqual(stat.isFile(), false);
+    assert.strictEqual(stat.isDirectory(), true);
 
     fs.close(fd, function(err) {
       if (err) {

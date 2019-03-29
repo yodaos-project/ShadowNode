@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var fs = require('fs');
@@ -21,7 +22,7 @@ var filePath = process.cwd() + '/resources';
 try {
   process.readSource(filePath);
 } catch (e) {
-  assert.equal(fs.existsSync(filePath), true);
-  assert.equal(e.name, 'Error');
-  assert.equal(e.message, 'ReadSource error, not a regular file');
+  assert.strictEqual(fs.existsSync(filePath), true);
+  assert.strictEqual(e.name, 'Error');
+  assert.strictEqual(e.message, 'ReadSource error, not a regular file');
 }

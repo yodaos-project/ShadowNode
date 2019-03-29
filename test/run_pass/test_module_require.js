@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 
@@ -19,36 +20,36 @@ var dir = process.cwd() + '/run_pass/require1/';
 
 // Load a JS file.
 var x = require(dir + 'require_add');
-assert.equal(x.add(1, 4), 5);
+assert.strictEqual(x.add(1, 4), 5);
 
 // Load a package.
 var pkg1 = require(dir + 'test_pkg');
-assert.equal(pkg1.add(22, 44), 66);
-assert.equal(pkg1.multi(22, 44), 968);
-assert.equal(pkg1.add2(22, 44), 66);
+assert.strictEqual(pkg1.add(22, 44), 66);
+assert.strictEqual(pkg1.multi(22, 44), 968);
+assert.strictEqual(pkg1.add2(22, 44), 66);
 
 var pkg2 = require(dir + 'test_index');
-assert.equal(pkg2.add(22, 44), 66);
-assert.equal(pkg2.multi(22, 44), 968);
-assert.equal(pkg2.add2(22, 44), 66);
+assert.strictEqual(pkg2.add(22, 44), 66);
+assert.strictEqual(pkg2.multi(22, 44), 968);
+assert.strictEqual(pkg2.add2(22, 44), 66);
 
 var pkg3 = require(dir + 'test_index2');
-assert.equal(pkg3.add(22, 44), 66);
-assert.equal(pkg3.multi(22, 44), 968);
-assert.equal(pkg3.add2(22, 44), 66);
+assert.strictEqual(pkg3.add(22, 44), 66);
+assert.strictEqual(pkg3.multi(22, 44), 968);
+assert.strictEqual(pkg3.add2(22, 44), 66);
 
 // Load invalid modules.
 assert.throws(function() {
-  var test3 = require(dir + 'babel-template');
+  require(dir + 'babel-template');
 }, Error);
 
 // Load arbitrary file.
 assert.throws(function() {
-  var test4 = require(dir + 'arbitrary_file.txt');
+  require(dir + 'arbitrary_file.txt');
 }, SyntaxError);
 
 assert.throws(function() {
-  var test4 = require('tmp');
+  require('tmp');
 }, Error);
 
 // Load empty module.

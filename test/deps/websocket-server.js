@@ -16,10 +16,10 @@ var agent;
 var options;
 if (process.argv.indexOf('--ssl') > -1) {
   agent = https;
-  options ={
+  options = {
     key: fs.readFileSync(keyPath),
     cert: fs.readFileSync(certPath)
-  }
+  };
 } else {
   agent = http;
 }
@@ -37,10 +37,10 @@ var wsServer = new WebSocketServer({
   autoAcceptConnections: false
 });
 
-wsServer.on('request', function (request) {
+wsServer.on('request', function(request) {
   var connection = request.accept('echo', request.origin);
   console.log((new Date()) + ' Connection accepted.');
-  connection.on('message', function (message) {
+  connection.on('message', function(message) {
     if (message.type === 'utf8') {
       console.log('UTF8 Message of ' + message.utf8Data.length + ' bytes');
       connection.sendUTF(message.utf8Data);
@@ -49,7 +49,7 @@ wsServer.on('request', function (request) {
       connection.sendBytes(message.binaryData);
     }
   });
-  connection.on('close', function (reasonCode, description) {
+  connection.on('close', function(reasonCode, description) {
     console.log(' Peer ' + connection.remoteAddress + ' disconnected.');
   });
 });

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var Spi = require('spi');
@@ -32,16 +33,16 @@ if (process.platform === 'linux') {
 
 
 // ------ Test API existance
-assert.equal(typeof Spi, 'function',
-             'spi module does not export construction function');
+assert.strictEqual(typeof Spi, 'function',
+                   'spi module does not export construction function');
 assert.ok(spi.MODE,
-              'spi module does not provide \'MODE\' property');
+          'spi module does not provide \'MODE\' property');
 assert.ok(spi.CHIPSELECT,
-              'spi module does not provide \'CHIPSELECT\' property');
+          'spi module does not provide \'CHIPSELECT\' property');
 assert.ok(spi.BITORDER,
-              'spi module does not provide \'BITORDER\' property');
-assert.equal(typeof spi.open, 'function',
-             'spi does not provide \'open\' function');
+          'spi module does not provide \'BITORDER\' property');
+assert.strictEqual(typeof spi.open, 'function',
+                   'spi does not provide \'open\' function');
 
 
 // ------ Test basic API functions
@@ -52,14 +53,14 @@ var rx = new Buffer(data.length);
 var spi1 = spi.open(configuration, function(err) {
   assert.ok(err === null, 'spi.open failed: ' + err);
 
-  assert.equal(typeof spi1.transfer, 'function',
-               'spibus does not provide \'transfer\' function');
-  assert.equal(typeof spi1.transferSync, 'function',
-               'spibus does not provide \'transferSync\' function');
-  assert.equal(typeof spi1.close, 'function',
-               'spibus does not provide \'close\' function');
-  assert.equal(typeof spi1.closeSync, 'function',
-               'spibus does not provide \'closeSync\' function');
+  assert.strictEqual(typeof spi1.transfer, 'function',
+                     'spibus does not provide \'transfer\' function');
+  assert.strictEqual(typeof spi1.transferSync, 'function',
+                     'spibus does not provide \'transferSync\' function');
+  assert.strictEqual(typeof spi1.close, 'function',
+                     'spibus does not provide \'close\' function');
+  assert.strictEqual(typeof spi1.closeSync, 'function',
+                     'spibus does not provide \'closeSync\' function');
 
   spi1.transfer(tx, rx, function(err) {
     assert.ok(err === null, 'spibus.transfer failed: ' + err);
