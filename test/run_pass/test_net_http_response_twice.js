@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var http = require('http');
@@ -54,7 +55,7 @@ server.listen(3085, function() {
     });
 
     response.on('end', function() {
-      assert.equal(body, buffer);
+      assert.strictEqual(body, buffer);
       server.close();
     });
   });

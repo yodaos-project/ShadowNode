@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+'use strict';
+
 exports.multi = function(a, b) {
   return a * b;
 };

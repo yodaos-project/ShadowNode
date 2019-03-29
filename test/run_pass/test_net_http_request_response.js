@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var http = require('http');
-var net = require('net');
 var port = require('../common').PORT;
 
 // Messages for further requests.
@@ -37,7 +37,7 @@ var server1 = http.createServer(function(request, response) {
   });
 
   request.on('end', function() {
-    assert.equal(str, message);
+    assert.strictEqual(str, message);
     response.end();
   });
 });
@@ -53,6 +53,7 @@ var request1 = http.request(options, function(response) {
   });
 
   response.on('end', function() {
+    str;
     isRequest1Finished = true;
     server1.close();
   });
@@ -77,7 +78,7 @@ request2.end(message, function() {
 // Call the request2 end again to test the finish state.
 request2.end(message, function() {
   // This clabback should never be called.
-  assert.equal(isRequest2Finished, false);
+  assert.strictEqual(isRequest2Finished, false);
 });
 
 
@@ -90,7 +91,7 @@ var server3 = http.createServer(function(request, response) {
 
   request.on('end', function() {
     // Check if we got the proper message.
-    assert.equal(str, message);
+    assert.strictEqual(str, message);
     response.end();
   });
 });
@@ -107,6 +108,7 @@ var request3 = http.request(options, function(response) {
   });
 
   response.on('end', function() {
+    str;
     isRequest3Finished = true;
     server3.close();
   });
@@ -130,7 +132,7 @@ var request4 = http.request({
 }, function(response) {
   response.on('end', function() {
     isRequest4Finished = true;
-    assert.equal(response.statusCode, 200);
+    assert.strictEqual(response.statusCode, 200);
     server4.close();
   });
 });
@@ -146,6 +148,7 @@ var server5 = http.createServer(function(request, response) {
   });
 
   request.on('end', function() {
+    str;
     response.writeHead(200, 'OK', { 'Connection': 'close1' });
     // Wrote the same head twice.
     response.writeHead(200, 'OK', { 'Connection': 'close2' });
@@ -162,8 +165,8 @@ var isRequest5Finished = false;
 var request5 = http.request(options, function(response) {
   response.on('end', function() {
     isRequest5Finished = true;
-    assert.equal(response.headers.connection, 'close2');
-    assert.equal(response.headers.head, 'Value');
+    assert.strictEqual(response.headers.connection, 'close2');
+    assert.strictEqual(response.headers.head, 'Value');
     server5.close();
   });
 });
@@ -189,7 +192,7 @@ readRequest.end();
 readRequest.on('response', function(incomingMessage) {
   incomingMessage.on('readable', function() {
     var inc = incomingMessage.read();
-    assert.equal(inc instanceof Buffer, true);
+    assert.strictEqual(inc instanceof Buffer, true);
     assert.ok(inc.toString('utf8').length > 0);
   });
 });
@@ -204,7 +207,7 @@ var server7 = http.createServer(function(request, response) {
 }).listen(++port);
 
 var isRequest7Finished = false;
-var readRequest = http.request({
+readRequest = http.request({
   host: 'localhost',
   port: port,
   path: '/',
@@ -212,8 +215,8 @@ var readRequest = http.request({
 });
 readRequest.end('foobar');
 readRequest.on('response', function(incomingMessage) {
-  assert.equal(incomingMessage.statusCode, 200);
-  assert(readRequest._header)
+  assert.strictEqual(incomingMessage.statusCode, 200);
+  assert(readRequest._header);
   assert(readRequest._header.match('Content-Length: 6'));
   isRequest7Finished = true;
 });
@@ -237,8 +240,8 @@ var request8 = http.request({
 request8.setHeader('Content-Length', 6);
 request8.end('foobar');
 request8.on('response', function(incomingMessage) {
-  assert.equal(incomingMessage.statusCode, 200);
-  assert.equal(request8.getHeader('content-length'), 6);
+  assert.strictEqual(incomingMessage.statusCode, 200);
+  assert.strictEqual(request8.getHeader('content-length'), 6);
   isRequest8Finished = true;
 });
 
@@ -261,19 +264,19 @@ var request9 = http.request({
 request9.setHeader('Transfer-Encoding', 'chunked');
 request9.end('foobar');
 request9.on('response', function(incomingMessage) {
-  assert.equal(incomingMessage.statusCode, 200);
-  assert.equal(request9.getHeader('content-length'), undefined);
+  assert.strictEqual(incomingMessage.statusCode, 200);
+  assert.strictEqual(request9.getHeader('content-length'), undefined);
   isRequest9Finished = true;
 });
 
 
 process.on('exit', function() {
-  assert.equal(isRequest1Finished, true);
-  assert.equal(isRequest2Finished, true);
-  assert.equal(isRequest3Finished, true);
-  assert.equal(isRequest4Finished, true);
-  assert.equal(isRequest5Finished, true);
-  assert.equal(isRequest7Finished, true);
-  assert.equal(isRequest8Finished, true);
-  assert.equal(isRequest9Finished, true);
+  assert.strictEqual(isRequest1Finished, true);
+  assert.strictEqual(isRequest2Finished, true);
+  assert.strictEqual(isRequest3Finished, true);
+  assert.strictEqual(isRequest4Finished, true);
+  assert.strictEqual(isRequest5Finished, true);
+  assert.strictEqual(isRequest7Finished, true);
+  assert.strictEqual(isRequest8Finished, true);
+  assert.strictEqual(isRequest9Finished, true);
 });

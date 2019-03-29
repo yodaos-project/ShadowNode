@@ -17,20 +17,20 @@ myiface.addMethod('test', {
 myiface.update();
 
 function test(str) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     bus.callMethod(
       'org.myservice',
       '/org/myobject',
       'test.dbus.myservice.testSendUtf8', 'test', 's', [str], (err, res) => {
-      try {
-        assert.equal(err, null);
-        assert.equal(res, str);
-        return resolve(true);
-      } catch (err) {
-        return reject(err);
-      }
-    });
-  })
+        try {
+          assert.strictEqual(err, null);
+          assert.strictEqual(res, str);
+          return resolve(true);
+        } catch (err) {
+          return reject(err);
+        }
+      });
+  });
 }
 
 Promise.all([

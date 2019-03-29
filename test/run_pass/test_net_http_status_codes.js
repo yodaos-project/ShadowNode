@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var http = require('http');
@@ -44,10 +45,10 @@ var server = http.createServer(function(request, response) {
 requestOnQueue(queue.shift());
 
 function requestOnQueue(code) {
-  var request = http.request(options, function(res) {
+  http.request(options, function(res) {
     responses.push(res.statusCode);
 
-    if (responses.length == codes.length) {
+    if (responses.length === codes.length) {
       // Done with downloads.
       for (var j = 0; j < codes.length; j++) {
         assert(responses.indexOf(parseInt(codes[j])) > -1);

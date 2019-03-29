@@ -33,6 +33,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+'use strict';
 
 var noble = require('../..');
 
@@ -53,7 +54,6 @@ noble.on('stateChange', function(state) {
   }
 });
 
-var echoService = null;
 var echoCharacteristic = null;
 
 noble.on('discover', function(peripheral) {
@@ -94,7 +94,7 @@ noble.on('discover', function(peripheral) {
             //
             console.log('found characteristic:', characteristic.uuid);
 
-            if (echoCharacteristicUuid == characteristic.uuid) {
+            if (echoCharacteristicUuid === characteristic.uuid) {
               echoCharacteristic = characteristic;
             }
           });

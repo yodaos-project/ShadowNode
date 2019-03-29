@@ -35,40 +35,40 @@ bus.callMethod(
   'org.myservice',
   '/org/myobject',
   'test.dbus.myservice.Interface1', 'test', '', [], (err, res) => {
-  assert.equal(err, null);
-  assert.equal(res, 'simple call');
-  plan += 1;
-});
+    assert.strictEqual(err, null);
+    assert.strictEqual(res, 'simple call');
+    plan += 1;
+  });
 
 bus.callMethod(
   'org.myservice',
   '/org/myobject',
-  'test.dbus.myservice.Interface1', 'testWithArgs', 's', ['foobar'], (err, res) => {
-  assert.equal(err, null);
-  assert.equal(res, 'foobar!!!');
-  plan += 1;
-});
+  'test.dbus.myservice.Interface1',
+  'testWithArgs', 's', ['foobar'], (err, res) => {
+    assert.strictEqual(err, null);
+    assert.strictEqual(res, 'foobar!!!');
+    plan += 1;
+  });
 
 bus.callMethod(
   'org.myservice',
   '/org/myobject',
   'test.dbus.myservice.Interface1', 'testNumber', 's', [], (err, res) => {
-  assert.equal(err, null);
-  assert.equal(res, 9999);
-  plan += 1;
-});
+    assert.strictEqual(err, null);
+    assert.strictEqual(res, 9999);
+    plan += 1;
+  });
 
 bus.callMethod(
   'org.myservice',
   '/org/myobject',
   'test.dbus.myservice.Interface1', 'testDouble', 's', [], (err, res) => {
-  assert.equal(err, null);
-  assert.equal(res, 0.1);
-  plan += 1;
-});
+    assert.strictEqual(err, null);
+    assert.strictEqual(res, 0.1);
+    plan += 1;
+  });
 
 setTimeout(function() {
-  assert.equal(plan, 4);
+  assert.strictEqual(plan, 4);
   bus.destroy();
 }, 500);
-

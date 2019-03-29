@@ -2,7 +2,7 @@
 
 var common = require('../common');
 var assert = require('assert');
-var binding = require(`./build/Release/napi_make_callback_recurse.node`);
+var binding = require('./build/Release/napi_make_callback_recurse.node');
 var makeCallback = binding.makeCallback;
 
 // Make sure that using MakeCallback allows the error to propagate.
@@ -61,7 +61,7 @@ assert.throws(function() {
 
   setImmediate(common.mustCall(function() {
     for (var i = 0; i < results.length; i++) {
-      console.log(results)
+      console.log(results);
       assert.strictEqual(results[i], i,
                          `verifyExecutionOrder(${arg}) results: ${results}`);
     }

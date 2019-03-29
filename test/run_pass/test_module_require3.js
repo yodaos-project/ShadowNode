@@ -22,9 +22,9 @@ var path = require('path');
   var relativePath = '../run_pass/require3/foo.js';
   var absolutePath = path.join(__dirname, relativePath);
   require(absolutePath);
-  var cached = require.cache['fs'];
+  var cached = require.cache.fs;
   assert.strictEqual(require('fs'), cached.exports);
 
-  require.cache['fs'] = null;
+  require.cache.fs = null;
   assert.notStrictEqual(require('fs'), cached.exports);
 })();

@@ -12,13 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var dgram = require('dgram');
 var MODE = process.argv[2] || 'echo';
 var SERVER = 'server';
 var CLIENT = 'client';
-var ECHO = 'echo';
 
 if (MODE !== 'server' && MODE !== 'client' && MODE !== 'echo') {
   console.log(
@@ -38,7 +38,7 @@ if (MODE !== CLIENT) { // for server and echo
   server.on('message', function(data, rinfo) {
     console.log('server got data : ' + data);
     recv_count++;
-    if (recv_count == 1) {
+    if (recv_count === 1) {
       server.dropMembership(multicast_address);
     }
   });
@@ -66,7 +66,7 @@ if (MODE !== SERVER) { // for client and echo
 
     console.log('client send data : ' + msg);
     client.send(msg, port, multicast_address);
-    if (send_count == 3) {
+    if (send_count === 3) {
       clearInterval(timer);
     }
   }, interval);
@@ -77,12 +77,12 @@ if (MODE !== SERVER) { // for client and echo
 }
 
 process.on('exit', function(code) {
-  assert.equal(code, 0);
+  assert.strictEqual(code, 0);
 
   if (MODE !== CLIENT) {
-    assert.equal(recv_count, 1);
+    assert.strictEqual(recv_count, 1);
   }
   if (MODE !== SERVER) {
-    assert.equal(send_count, 3);
+    assert.strictEqual(send_count, 3);
   }
 });

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -28,13 +29,14 @@ if (process.platform === 'tizenrt') {
   fs.closeSync(fs.openSync(file1, 'w'));
 }
 
-assert.equal(fs.existsSync(file1), true,
-             'Test prerequisites: checking existance of ' + file1);
+assert.strictEqual(fs.existsSync(file1), true,
+                   'Test prerequisites: checking existance of ' + file1);
 
 fs.renameSync(file1, file2);
-assert.equal(fs.existsSync(file1), false, 'Source file exist after renaming');
-assert.equal(fs.existsSync(file2), true,
-             'Destination file not exist after renaming');
+assert.strictEqual(fs.existsSync(file1), false,
+                   'Source file exist after renaming');
+assert.strictEqual(fs.existsSync(file2), true,
+                   'Destination file not exist after renaming');
 fs.renameSync(file2, file1);
 
 // Cleanup after test

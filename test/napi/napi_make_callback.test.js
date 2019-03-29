@@ -2,7 +2,7 @@
 
 var common = require('../common');
 var assert = require('assert');
-var binding = require(`./build/Release/napi_make_callback.node`);
+var binding = require('./build/Release/napi_make_callback.node');
 var makeCallback = binding.makeCallback;
 
 function myMultiArgFunc(arg1, arg2, arg3) {

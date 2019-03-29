@@ -1,6 +1,7 @@
 'use strict';
 
-var child = require('child_process').fork(__dirname + '/child.js', {
+var path = require('path');
+var child = require('child_process').fork(path.join(__dirname, '/child.js'), {
   env: {
     isSubprocess: 'true',
   },
@@ -9,4 +10,3 @@ var child = require('child_process').fork(__dirname + '/child.js', {
 child.on('message', (data) => {
   // console.log(data.toString());
 });
-

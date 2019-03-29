@@ -2,7 +2,7 @@
 
 var assert = require('assert');
 var foobar = require('foobar');
-assert.equal(foobar, 'foobar');
+assert.strictEqual(foobar, 'foobar');
 
 var test = require('foobar/test');
-assert.equal(test, 'test');
+assert.strictEqual(test, 'test');

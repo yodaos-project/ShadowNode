@@ -1,3 +1,5 @@
+'use strict';
+
 var assert = require('assert');
 var http = require('http');
 var common = require('../common');
@@ -9,7 +11,7 @@ req.socket.on('finish', common.mustCall(() => {
   process.nextTick(() => {
     var destroyed = req.socket._socketState.destroyed;
     console.log(`socket is destroyed ${host}:`, destroyed);
-    assert.equal(destroyed, true);
+    assert.strictEqual(destroyed, true);
   });
 }));
 

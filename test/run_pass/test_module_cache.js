@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var path = require('path');
@@ -24,10 +25,10 @@ var moduleCache = require(dir + 'module_cache.js');
 moduleCache.i = 100;
 
 moduleCache = require(dir + 'module_cache.js');
-assert.equal(moduleCache.i, 100);
+assert.strictEqual(moduleCache.i, 100);
 
 moduleCache = require(dirDoubleDot + 'module_cache.js');
-assert.equal(moduleCache.i, 100);
+assert.strictEqual(moduleCache.i, 100);
 
 moduleCache = require(dirDot + 'module_cache.js');
-assert.equal(moduleCache.i, 100);
+assert.strictEqual(moduleCache.i, 100);

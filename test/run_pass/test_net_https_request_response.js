@@ -12,11 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
-var http = require('http');
 var https = require('https');
-var net = require('net');
 
 // Messages for further requests.
 var message = 'Hello IoT.js';
@@ -41,7 +40,7 @@ var request1 = https.request(options, function(response) {
 
   response.on('end', function() {
     var response = JSON.parse(str);
-    assert.equal(message, response.data);
+    assert.strictEqual(message, response.data);
     isRequest1Finished = true;
   });
 });
@@ -59,7 +58,7 @@ var request2 = https.request(options, function(response) {
 
   response.on('end', function() {
     var response = JSON.parse(str);
-    assert.equal(message, response.data);
+    assert.strictEqual(message, response.data);
   });
 });
 
@@ -70,7 +69,7 @@ request2.end(message, function() {
 // Call the request2 end again to test the finish state.
 request2.end(message, function() {
   // This clabback should never be called.
-  assert.equal(isRequest2Finished, false);
+  assert.strictEqual(isRequest2Finished, false);
 });
 
 
@@ -85,7 +84,7 @@ var request3 = https.request(options, function(response) {
 
   response.on('end', function() {
     var response = JSON.parse(str);
-    assert.equal(message, response.data);
+    assert.strictEqual(message, response.data);
     isRequest3Finished = true;
   });
 });
@@ -103,7 +102,7 @@ var readRequest = https.request({
 readRequest.on('response', function(incomingMessage) {
   incomingMessage.on('readable', function() {
     var inc = incomingMessage.read();
-    assert.equal(inc instanceof Buffer, true);
+    assert.strictEqual(inc instanceof Buffer, true);
     assert(inc.toString('utf8').length > 0);
     isRequest4Finished = true;
   });
@@ -112,8 +111,8 @@ readRequest.end();
 
 
 process.on('exit', function() {
-  assert.equal(isRequest1Finished, true);
-  assert.equal(isRequest2Finished, true);
-  assert.equal(isRequest3Finished, true);
-  assert.equal(isRequest4Finished, true);
+  assert.strictEqual(isRequest1Finished, true);
+  assert.strictEqual(isRequest2Finished, true);
+  assert.strictEqual(isRequest3Finished, true);
+  assert.strictEqual(isRequest4Finished, true);
 });

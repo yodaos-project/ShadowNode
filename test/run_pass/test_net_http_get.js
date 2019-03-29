@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var assert = require('assert');
 var http = require('http');
@@ -21,20 +21,19 @@ var http = require('http');
 var server = http.createServer(function(req, res) {
 
   var body = '';
-  var url = req.url;
 
   req.on('data', function(chunk) {
     body += chunk;
   });
 
-  var endHandler = function() {
+  var endHandler = () => {
 
     res.writeHead(200, { 'Connection': 'close',
                          'Content-Length': body.length
     });
     res.write(body);
     res.end(function() {
-      if (body == 'close server') server.close();
+      if (body === 'close server') server.close();
     });
   };
 
@@ -46,19 +45,19 @@ server.listen(3005, 5);
 
 
 // 1. GET req
-options = {
+var options = {
   method: 'GET',
   port: 3005
 };
 
-var getResponseHandler = function(res) {
+var getResponseHandler = (res) => {
   var res_body = '';
 
-  assert.equal(200, res.statusCode);
+  assert.strictEqual(200, res.statusCode);
 
-  var endHandler = function() {
+  var endHandler = () => {
     // GET msg, no received body
-    assert.equal('', res_body);
+    assert.strictEqual('', res_body);
   };
   res.on('end', endHandler);
 
@@ -78,13 +77,13 @@ var finalOptions = {
   headers: { 'Content-Length': finalMsg.length }
 };
 
-var finalResponseHandler = function(res) {
+var finalResponseHandler = (res) => {
   var res_body = '';
 
-  assert.equal(200, res.statusCode);
+  assert.strictEqual(200, res.statusCode);
 
-  var endHandler = function() {
-    assert.equal(finalMsg, res_body);
+  var endHandler = () => {
+    assert.strictEqual(finalMsg, res_body);
   };
   res.on('end', endHandler);
 

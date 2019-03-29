@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var dgram = require('dgram');
@@ -20,10 +21,10 @@ var port = 41237;
 var broadcast_address = '255.255.255.255';
 var interval = 100;
 
-var msg_count = 0,
-  msg_count2 = 0,
-  msg_count3 = 0,
-  send_count = 0;
+var msg_count = 0;
+var msg_count2 = 0;
+var msg_count3 = 0;
+var send_count = 0;
 
 var msg = 'Hello IoT.js';
 var socket = dgram.createSocket({ type: 'udp4', reuseAddr: true });
@@ -48,7 +49,7 @@ socket3.on('error', function(err) {
 socket.on('message', function(data, rinfo) {
   console.log('socket got data : ' + data);
   msg_count++;
-  if (msg_count == 3) {
+  if (msg_count === 3) {
     socket.close();
   }
 });
@@ -56,7 +57,7 @@ socket.on('message', function(data, rinfo) {
 socket2.on('message', function(data, rinfo) {
   console.log('socket2 got data : ' + data);
   msg_count2++;
-  if (msg_count2 == 3) {
+  if (msg_count2 === 3) {
     socket2.close();
   }
 });
@@ -64,7 +65,7 @@ socket2.on('message', function(data, rinfo) {
 socket3.on('message', function(data, rinfo) {
   console.log('socket3 got data : ' + data);
   msg_count3++;
-  if (msg_count3 == 3) {
+  if (msg_count3 === 3) {
     socket3.close();
   }
 });
@@ -74,7 +75,7 @@ socket.bind(port, function() {
   var timer = setInterval(function() {
     send_count++;
     socket.send(msg, port, broadcast_address);
-    if (send_count == 3) {
+    if (send_count === 3) {
       clearInterval(timer);
     }
   }, interval);
@@ -85,9 +86,9 @@ socket2.bind(port);
 socket3.bind(port);
 
 process.on('exit', function(code) {
-  assert.equal(code, 0);
-  assert.equal(msg_count, 3);
-  assert.equal(msg_count2, 3);
-  assert.equal(msg_count3, 3);
-  assert.equal(send_count, 3);
+  assert.strictEqual(code, 0);
+  assert.strictEqual(msg_count, 3);
+  assert.strictEqual(msg_count2, 3);
+  assert.strictEqual(msg_count3, 3);
+  assert.strictEqual(send_count, 3);
 });

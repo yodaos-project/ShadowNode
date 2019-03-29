@@ -12,14 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 
+/* eslint-disable no-restricted-syntax,no-restricted-properties,
+                  no-self-compare */
+assert.ok(1 === 1);
 
-assert.ok(1 == 1);
-
-assert.equal(1, 1);
-assert.notEqual(1, 2);
+assert.strictEqual(1, 1);
+assert.notStrictEqual(1, 2);
 
 assert.strictEqual(0, 0);
 assert.throws(function() {
@@ -29,7 +31,7 @@ assert.throws(function() {
 assert.deepStrictEqual({
   a: 1
 }, {
- a: 1
+  a: 1
 });
 assert.deepStrictEqual([1, 2, 3], [1, 2, 3]);
 assert.throws(function() {
@@ -75,7 +77,7 @@ assert.notStrictEqual(0, false);
 
 assert.throws(
   function() {
-    assert.equal(1, 2);
+    assert.strictEqual(1, 2);
   },
   assert.AssertionError
 );
@@ -89,7 +91,7 @@ assert.throws(
 
 assert.doesNotThrow(
   function() {
-    assert.ok(1 == 1);
+    assert.ok(1 === 1);
   }
 );
 
@@ -116,7 +118,7 @@ assert.throws(() => {
 
 assert.throws(() => {
   throw new Error('foobar');
-}, err => {
+}, (err) => {
   assert(err instanceof Error);
   assert.strictEqual(err.message, 'foobar');
   return true;
@@ -125,30 +127,30 @@ assert.throws(() => {
 try {
   assert.ok(false, 'assert test');
 } catch (e) {
-  assert.equal(e.name, 'AssertionError');
-  assert.equal(e.actual, false);
-  assert.equal(e.expected, true);
-  assert.equal(e.operator, '==');
-  assert.equal(e.message, 'assert test');
+  assert.strictEqual(e.name, 'AssertionError');
+  assert.strictEqual(e.actual, false);
+  assert.strictEqual(e.expected, true);
+  assert.strictEqual(e.operator, '==');
+  assert.strictEqual(e.message, 'assert test');
 }
 
 try {
   assert.equal(1, 2, 'assert.equal test');
 } catch (e) {
-  assert.equal(e.name, 'AssertionError');
-  assert.equal(e.actual, 1);
-  assert.equal(e.expected, 2);
-  assert.equal(e.operator, '==');
-  assert.equal(e.message, 'assert.equal test');
+  assert.strictEqual(e.name, 'AssertionError');
+  assert.strictEqual(e.actual, 1);
+  assert.strictEqual(e.expected, 2);
+  assert.strictEqual(e.operator, '==');
+  assert.strictEqual(e.message, 'assert.equal test');
 }
 
 
 try {
   assert.fail('actual', 'expected', 'message', 'operator');
 } catch (e) {
-  assert.equal(e.name, 'AssertionError');
-  assert.equal(e.actual, 'actual');
-  assert.equal(e.expected, 'expected');
-  assert.equal(e.operator, 'operator');
-  assert.equal(e.message, 'message');
+  assert.strictEqual(e.name, 'AssertionError');
+  assert.strictEqual(e.actual, 'actual');
+  assert.strictEqual(e.expected, 'expected');
+  assert.strictEqual(e.operator, 'operator');
+  assert.strictEqual(e.message, 'message');
 }

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -57,4 +57,4 @@ var result =
   'And looſe the name of Action. Soft you now,\n' +
   'The faire Ophelia? Nimph, in thy Orizons\n' +
   'Be all my ſinnes remembred.';
-assert.equal(data, result);
+assert.strictEqual(data.toString(), result);

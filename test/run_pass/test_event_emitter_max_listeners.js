@@ -11,10 +11,10 @@ var throwsObjs = [NaN, -1, 'and even this'];
 var obj;
 for (var i = 0; i < throwsObjs.length; i++) {
   obj = throwsObjs[i];
-  
+
   common.expectsError(
     function() {
-      events.setMaxListeners(obj)
+      events.setMaxListeners(obj);
     },
     'maxListeners must be a non-negative number value'
   );

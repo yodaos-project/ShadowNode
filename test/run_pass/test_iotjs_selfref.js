@@ -1,3 +1,5 @@
+'use strict';
+/* eslint-disable func-style,func-name-matching */
 var assert = require('assert');
 
 var foo = function bar() {
@@ -8,10 +10,10 @@ foo();
 
 var globalfunc;
 
-function foo(func) {
+function foobar(func) {
   globalfunc = func;
 }
 
-foo(function bar() {
+foobar(function bar() {
   assert(globalfunc === bar);
 });

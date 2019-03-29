@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var Adc = require('adc');
 var assert = require('assert');
@@ -73,8 +73,8 @@ function syncTestst() {
       assert.fail();
     }
 
-    var loopCnt = 5,
-      value = -1;
+    var loopCnt = 5;
+    var value = -1;
 
     console.log('test2 start(read sync test)');
     var test2Loop = setInterval(function() {

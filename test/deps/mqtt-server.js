@@ -20,13 +20,13 @@ if (process.argv.indexOf('--ssl') > -1) {
       keyPath: keyPath,
       certPath: certPath,
     },
-  }
+  };
 } else {
   options = {
     interfaces: [
       { type: 'mqtt', port: port },
     ],
-  }
+  };
 }
 
 var server = new mosca.Server(options);
