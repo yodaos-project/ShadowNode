@@ -3,9 +3,8 @@
 var assert = require('assert');
 var dbus = require('dbus');
 
-assert.equal(dbus.Define(String), 's');
-assert.equal(dbus.Define(Number), 'd');
-assert.equal(dbus.Define(Boolean), 'b');
-assert.equal(dbus.Define(Array), 'av');
-assert.equal(dbus.Define(Object), 'a{sv}');
-
+assert.strictEqual(dbus.Define(String), 's');
+assert.strictEqual(dbus.Define(Number), 'd');
+assert.strictEqual(dbus.Define(Boolean), 'b');
+assert.strictEqual(dbus.Define(Array), 'av');
+assert.strictEqual(dbus.Define(Object), 'a{sv}');

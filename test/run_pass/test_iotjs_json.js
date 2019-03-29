@@ -12,9 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
+
 var assert = require('assert');
 
-var jsonObj = {foo : 'http://www.slash.escape'};
+var jsonObj = { foo: 'http://www.slash.escape' };
 var jsonString = '{\"foo\":\"http:\\/\\/www.slash.escape\"}';
 var jsonStringify = JSON.stringify(jsonObj);
 

@@ -1,7 +1,7 @@
 'use strict';
 
 var assert = require('assert');
-assert.equal(/(\/)?iotjs$/.test(process.title), true);
+assert.strictEqual(/(\/)?iotjs$/.test(process.title), true);
 
 process.title = 'foobar';
-assert.equal(process.title, 'foobar');
+assert.strictEqual(process.title, 'foobar');

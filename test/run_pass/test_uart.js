@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+'use strict';
+
 var assert = require('assert');
 var Uart = require('uart');
 
@@ -35,7 +37,7 @@ writeTest();
 
 function writeTest() {
   var serial = uart.open(configuration, function(err) {
-    assert.equal(err, null);
+    assert.strictEqual(err, null);
     console.log('open done');
 
     serial.writeSync('Hello IoT.js.\n\r');
@@ -50,7 +52,7 @@ function writeReadTest() {
   var write = 0;
 
   var serial = uart.open(configuration, function(err) {
-    assert.equal(err, null);
+    assert.strictEqual(err, null);
     console.log('open done');
 
     serial.on('data', function(data) {
@@ -64,7 +66,7 @@ function writeReadTest() {
     });
 
     serial.write('Hello there?\n\r', function(err) {
-      assert.equal(err, null);
+      assert.strictEqual(err, null);
       console.log('write done');
       write = 1;
 

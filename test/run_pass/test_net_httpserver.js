@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var Server = require('http_server').Server;
@@ -30,24 +31,22 @@ var socketEvent = 0;
 var server = http.createServer(function(req, res) {
 
   var body = '';
-  var url = req.url;
 
   req.on('data', function(chunk) {
     body += chunk;
   });
 
-  var endHandler = function() {
-
+  function endHandler() {
     res.writeHead(200, { 'Connection': 'close',
                          'Content-Length': body.length
     });
     res.write(body);
     res.end(function() {
-      if (body == 'close server') {
+      if (body === 'close server') {
         server.close();
       }
     });
-  };
+  }
 
   req.on('end', endHandler);
 
@@ -82,20 +81,20 @@ var options = {
 };
 
 
-var postResponseHandler = function(res) {
+function postResponseHandler(res) {
   var res_body = '';
 
-  assert.equal(200, res.statusCode);
-  var endHandler = function() {
-    assert.equal(msg, res_body);
+  assert.strictEqual(200, res.statusCode);
+  function endHandler() {
+    assert.strictEqual(msg, res_body);
     responseCheck += '1';
-  };
+  }
   res.on('end', endHandler);
 
   res.on('data', function(chunk) {
     res_body += chunk.toString();
   });
-};
+}
 
 var req = http.request(options, postResponseHandler);
 req.on('response', function() {
@@ -114,14 +113,14 @@ options = {
   port: 3001
 };
 
-var getResponseHandler = function(res) {
+var getResponseHandler = (res) => {
   var res_body = '';
 
-  assert.equal(200, res.statusCode);
+  assert.strictEqual(200, res.statusCode);
 
-  var endHandler = function() {
+  var endHandler = () => {
     // GET msg, no received body
-    assert.equal('', res_body);
+    assert.strictEqual('', res_body);
     responseCheck += '2';
   };
   res.on('end', endHandler);
@@ -150,13 +149,13 @@ var finalOptions = {
   headers: { 'Content-Length': finalMsg.length }
 };
 
-var finalResponseHandler = function(res) {
+var finalResponseHandler = (res) => {
   var res_body = '';
 
-  assert.equal(200, res.statusCode);
+  assert.strictEqual(200, res.statusCode);
 
-  var endHandler = function() {
-    assert.equal(finalMsg, res_body);
+  var endHandler = () => {
+    assert.strictEqual(finalMsg, res_body);
     responseCheck += '3';
   };
   res.on('end', endHandler);
@@ -183,12 +182,12 @@ var server2 = http.createServer();
 var server3 = Server(function(request, response) {});
 
 process.on('exit', function() {
-  assert.equal(responseCheck.length, 3);
-  assert.equal(connectionEvent, 3);
-  assert.equal(serverCloseEvent, 1);
-  assert.equal(requestEvent, 3);
-  assert.equal(responseEvent, 3);
-  assert.equal(socketEvent, 3);
-  assert.equal(server2 instanceof Server, true);
-  assert.equal(server3 instanceof Server, true);
+  assert.strictEqual(responseCheck.length, 3);
+  assert.strictEqual(connectionEvent, 3);
+  assert.strictEqual(serverCloseEvent, 1);
+  assert.strictEqual(requestEvent, 3);
+  assert.strictEqual(responseEvent, 3);
+  assert.strictEqual(socketEvent, 3);
+  assert.strictEqual(server2 instanceof Server, true);
+  assert.strictEqual(server3 instanceof Server, true);
 });

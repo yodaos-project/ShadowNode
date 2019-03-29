@@ -1,3 +1,5 @@
+'use strict';
+
 var assert = require('assert');
 
 function namedFunction() {
@@ -10,4 +12,3 @@ assert(frames.length <= 11);
 
 // Expect top frame to be address of namedFunction
 assert(frames[0] !== 0);
-

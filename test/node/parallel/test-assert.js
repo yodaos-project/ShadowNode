@@ -36,6 +36,7 @@
 
 'use strict';
 require('../common');
+/* eslint-disable no-restricted-syntax */
 
 var assert = require('assert');
 var a = require('assert');

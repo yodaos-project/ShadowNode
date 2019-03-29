@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var net = require('net');
 var assert = require('assert');
@@ -53,5 +53,5 @@ socket.on('connect', function() {
 });
 
 process.on('exit', function(code) {
-  assert.equal(code, 0);
+  assert.strictEqual(code, 0);
 });

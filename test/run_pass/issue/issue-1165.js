@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
+
 var assert = require('assert');
 var s1 = Buffer('737263', 'hex').toString();
 var s2 = new Buffer('737263', 'hex').toString();

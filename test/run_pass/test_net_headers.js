@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var assert = require('assert');
 var http = require('http');
@@ -22,12 +22,14 @@ var checkReqFinish = false;
 // Server just ends after sending with some headers.
 
 var server = http.createServer(function(req, res) {
+  var body = '';
 
   req.on('data', function(chunk) {
     body += chunk;
   });
 
-  var endHandler = function() {
+  var endHandler = () => {
+    body;
     // this should return.
     res.removeHeader('h1');
 
@@ -35,7 +37,7 @@ var server = http.createServer(function(req, res) {
     res.setHeader('h2', 'h2');
     res.setHeader('h3', 'h3');
     res.removeHeader('h2');
-    if (res.getHeader('h3') == 'h3') {
+    if (res.getHeader('h3') === 'h3') {
       res.setHeader('h3', 'h3prime'); // h3 value should be overwrited
     }
     // final res.headers = { 'h1' : 'h1', 'h3': 'h3prime' }
@@ -72,16 +74,17 @@ var options = {
 };
 
 
-var postResponseHandler = function(res) {
+var postResponseHandler = (res) => {
   var res_body = '';
 
-  assert.equal(200, res.statusCode);
-  assert.equal(res.headers.h1, 'h1');
-  assert.equal(res.headers.h2, undefined);
-  assert.equal(res.headers.h3, 'h3prime');
-  assert.equal(res.headers['content-length'], 0);
+  assert.strictEqual(200, res.statusCode);
+  assert.strictEqual(res.headers.h1, 'h1');
+  assert.strictEqual(res.headers.h2, undefined);
+  assert.strictEqual(res.headers.h3, 'h3prime');
+  assert.strictEqual(res.headers['content-length'], '0');
 
-  var endHandler = function() {
+  var endHandler = () => {
+    res_body;
     checkReqFinish = true;
   };
   res.on('end', endHandler);
@@ -95,5 +98,5 @@ var req = http.request(options, postResponseHandler);
 req.end();
 
 process.on('exit', function() {
-  assert.equal(checkReqFinish, true);
+  assert.strictEqual(checkReqFinish, true);
 });

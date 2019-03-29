@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var assert = require('assert');
 var https = require('https');
 
-options = {
+var options = {
   method: 'GET',
   host: 'httpbin.org',
   path: '/delay/10'
@@ -34,5 +34,5 @@ getReq.setTimeout(5000, function() {
 });
 
 process.on('exit', function(code) {
-  assert.equal(timeouted, true);
+  assert.strictEqual(timeouted, true);
 });

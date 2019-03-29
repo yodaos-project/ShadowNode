@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var assert = require('assert');
 
@@ -24,13 +24,14 @@ process.on('uncaughtException', function(err) {
 
 process.on('exit', function() {
   process.removeAllListeners('uncaughtException');
-  assert.equal(trace, 'AB');
+  assert.strictEqual(trace, 'AB');
 });
 
 setTimeout(function() {
   trace += 'B';
 }, 500);
 
+/* eslint-disable-next-line no-undef */
 nonexistentFunc();
 
 trace += 'C';

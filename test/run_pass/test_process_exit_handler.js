@@ -1,5 +1,5 @@
 'use strict';
 
 process.on('exit', function() {
-  process.exit(0)
+  process.exit(0);
 });

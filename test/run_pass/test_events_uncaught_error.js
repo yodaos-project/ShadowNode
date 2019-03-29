@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var assert = require('assert');
 var EventEmitter = require('events').EventEmitter;
@@ -22,13 +22,13 @@ var uncaught_error = false;
 
 process.on('uncaughtException', function(err) {
   var pass = /Uncaught \'error\' event/.test(err.message);
-  assert.equal(pass, true, 'Error type does not match');
+  assert.strictEqual(pass, true, 'Error type does not match');
   uncaught_error = true;
 });
 
 process.on('exit', function(code) {
   process.removeAllListeners('uncaughtException');
-  assert.equal(code, 0, 'Non-zero exit status code:' + code);
+  assert.strictEqual(code, 0, 'Non-zero exit status code:' + code);
   assert(uncaught_error, 'Expected uncaughtException was not executed');
 });
 

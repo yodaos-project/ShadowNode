@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var Buffer = require('buffer');
 var assert = require('assert');
 
-assert.equal(Buffer('').readUInt16LE(10, true), 0);
+assert.strictEqual(Buffer('').readUInt16LE(10, true), 0);

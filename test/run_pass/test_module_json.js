@@ -12,13 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var json = require('../resources/test.json');
 
-assert.equal(json.name, 'IoT.js');
-assert.equal(json.author, 'Samsung Electronics Co., Ltd.');
-assert.equal(json.license, 'Apache-2.0');
-assert.equal(json.number, 123);
-assert.equal(Array.isArray(json.array), true);
-assert.equal(json.array.toString(), [1, 2, 3, 4].toString());
+assert.strictEqual(json.name, 'IoT.js');
+assert.strictEqual(json.author, 'Samsung Electronics Co., Ltd.');
+assert.strictEqual(json.license, 'Apache-2.0');
+assert.strictEqual(json.number, 123);
+assert.strictEqual(Array.isArray(json.array), true);
+assert.strictEqual(json.array.toString(), [1, 2, 3, 4].toString());

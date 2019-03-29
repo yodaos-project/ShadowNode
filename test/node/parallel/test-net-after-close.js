@@ -49,14 +49,12 @@ server.listen(0, common.mustCall(function() {
   c.on('close', common.mustCall(function() {
     console.error('connection closed');
     assert.strictEqual(c._handle, null);
-    assert.doesNotThrow(function() {
-      c.setKeepAlive();
-      c.pause();
-      c.resume();
-      c.address();
-      c.remoteAddress;
-      c.remotePort;
-    });
+    c.setKeepAlive();
+    c.pause();
+    c.resume();
+    c.address();
+    c.remoteAddress;
+    c.remotePort;
     server.close();
   }));
 }));

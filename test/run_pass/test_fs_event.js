@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -42,10 +42,10 @@ var result = 'TEST File Read & Write\n';
 var data;
 
 function onOpenForWrite(err, fd) {
-  assert.equal(err, null, 'Failed to open for write file:' + err);
+  assert.strictEqual(err, null, 'Failed to open for write file:' + err);
 
-  fs.write(fd, data, 0, data.length, function(err, written, buffer) {
-    assert.equal(err, null, 'Failed to write file:' + err);
+  fs.write(fd, data, 0, data.length, function(err, written) {
+    assert.strictEqual(err, null, 'Failed to write file:' + err);
     fs.closeSync(fd);
 
     var fdr = fs.openSync(dstFilePath, 'r');
@@ -55,19 +55,19 @@ function onOpenForWrite(err, fd) {
 
     cleanup();
 
-    assert.equal(buffer.toString(), result,
-                 'Read/write content does not match');
+    assert.strictEqual(buffer.toString(), result,
+                       'Read/write content does not match');
   });
 }
 
 function onRead(err, bytesRead, buffer) {
-  assert.equal(err, null, 'Failed to read file:' + err);
+  assert.strictEqual(err, null, 'Failed to read file:' + err);
   data = new Buffer(buffer.toString());
   fs.open(dstFilePath, 'w', onOpenForWrite);
 }
 
 function onOpenForRead(err, fd) {
-  assert.equal(err, null, 'Failed to open for read file:' + err);
+  assert.strictEqual(err, null, 'Failed to open for read file:' + err);
   var buffer = new Buffer(128);
   fs.read(fd, buffer, 0, buffer.length, 0, onRead);
 }

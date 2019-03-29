@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -35,7 +36,7 @@ function loadfi(files, idx) {
 
   readfile(fileName)
     .then(function(value) {
-      assert.equal(value, 'Content of ' + files[idx] + '\n');
+      assert.strictEqual(value, 'Content of ' + files[idx] + '\n');
       idx++;
       loadfi(files, idx);
     }).catch(function(e) {

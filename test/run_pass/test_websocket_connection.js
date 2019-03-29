@@ -12,10 +12,10 @@ function test(connUrl) {
   console.log(`connect ${connUrl}`);
   var websocket = new WebSocket({});
 
-  websocket.on('connect', common.mustCall(conn => {
+  websocket.on('connect', common.mustCall((conn) => {
     console.log(`${connUrl} connected`);
 
-    conn.on('message', common.mustCall(inMessage => {
+    conn.on('message', common.mustCall((inMessage) => {
       assert.strictEqual(message, inMessage.utf8Data);
       conn.close();
     }));

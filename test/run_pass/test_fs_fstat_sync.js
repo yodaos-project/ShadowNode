@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -26,8 +27,8 @@ try {
   var fd = fs.openSync(testfile, flags);
   var stat = fs.fstatSync(fd);
 
-  assert.equal(stat.isFile(), true);
-  assert.equal(stat.isDirectory(), false);
+  assert.strictEqual(stat.isFile(), true);
+  assert.strictEqual(stat.isDirectory(), false);
   fs.closeSync(fd);
 } catch (err) {
   throw err;
@@ -36,11 +37,11 @@ try {
 
 // fstatSync - directory
 try {
-  var fd = fs.openSync(testdir, flags);
-  var stat = fs.fstatSync(fd);
+  fd = fs.openSync(testdir, flags);
+  stat = fs.fstatSync(fd);
 
-  assert.equal(stat.isFile(), false);
-  assert.equal(stat.isDirectory(), true);
+  assert.strictEqual(stat.isFile(), false);
+  assert.strictEqual(stat.isDirectory(), true);
   fs.closeSync(fd);
 } catch (err) {
   throw err;

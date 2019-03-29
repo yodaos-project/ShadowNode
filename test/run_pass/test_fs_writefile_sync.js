@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 /*
   @STDOUT=Pass
@@ -32,16 +33,16 @@ if (process.platform === 'tizenrt') {
 
 fs.writeFileSync(file, buff1);
 buff2 = fs.readFileSync(file);
-assert.equal(buff2.equals(buff1), true);
+assert.strictEqual(buff2.equals(buff1), true);
 
 fs.writeFileSync(file, str);
 buff2 = fs.readFileSync(file);
-assert.equal(str.valueOf(), buff2.toString('utf8'));
+assert.strictEqual(str.valueOf(), buff2.toString('utf8'));
 
 
 fs.writeFileSync(file, num);
 buff2 = fs.readFileSync(file);
-assert.equal(num, parseInt(buff2.toString('utf8'), 10));
+assert.strictEqual(num, parseInt(buff2.toString('utf8'), 10));
 
 console.log('Pass');
 

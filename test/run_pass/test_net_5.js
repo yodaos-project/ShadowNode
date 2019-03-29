@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var net = require('net');
 var assert = require('assert');
@@ -29,7 +29,7 @@ server.listen(port, 5);
 
 server.on('connection', function(socket) {
   socket.setTimeout(timeout, function() {
-    assert.equal(msg, 'Hello IoT.js');
+    assert.strictEqual(msg.toString(), 'Hello IoT.js');
     socket.end();
   });
   socket.on('data', function(data) {
@@ -56,5 +56,5 @@ socket.on('connect', function() {
 });
 
 process.on('exit', function(code) {
-  assert.equal(code, 0);
+  assert.strictEqual(code, 0);
 });

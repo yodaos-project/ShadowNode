@@ -12,13 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var ble = require('ble');
 
 ble.on('stateChange', function(state) {
   console.log('onStateChange: ' + state);
 
-  if (state == 'poweredOn') {
+  if (state === 'poweredOn') {
     ble.startAdvertising('iotjs', ['180F'], function(err) {
       if (err) console.log(err);
       else {

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -29,7 +30,7 @@ fs.writeFileSync(file2, buf1);
 
 /* Does file2 exists ? */
 var result = fs.existsSync(file2);
-assert.equal(result, true);
+assert.strictEqual(result, true);
 
 /* Is file2 equal to file1 */
 var buf2 = fs.readFileSync(file2);
@@ -40,4 +41,4 @@ fs.unlinkSync(file2);
 
 /* Is file2 removed? */
 result = fs.existsSync(file2);
-assert.equal(result, false);
+assert.strictEqual(result, false);

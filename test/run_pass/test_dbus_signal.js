@@ -27,13 +27,13 @@ bus.getUniqueServiceName(SERVICE_NAME, (err, id) => {
   bus.on(`${id}:${OBJECT_PATH}:${INTERFACE_1}`, (value) => {
     if (value.name === 'beep') {
       plan -= 1;
-      assert.equal(value.args.length, 1);
-      assert.equal(value.args[0], 'foobar');
+      assert.strictEqual(value.args.length, 1);
+      assert.strictEqual(value.args[0], 'foobar');
     } else if (value.name === 'mua') {
       plan -= 1;
-      assert.equal(value.args.length, 2);
-      assert.equal(value.args[0], 'mew~');
-      assert.equal(value.args[1], 'mew~');
+      assert.strictEqual(value.args.length, 2);
+      assert.strictEqual(value.args[0], 'mew~');
+      assert.strictEqual(value.args[1], 'mew~');
     }
   });
   myiface.emit('beep', ['foobar']);
@@ -41,6 +41,6 @@ bus.getUniqueServiceName(SERVICE_NAME, (err, id) => {
 });
 
 setTimeout(() => {
-  assert.equal(plan, 0);
+  assert.strictEqual(plan, 0);
   bus.destroy();
 }, 500);

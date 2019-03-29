@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var assert = require('assert');
 var https = require('https');
@@ -34,12 +34,12 @@ var options = {
   }
 };
 
-var getResponseHandler = function(res) {
+var getResponseHandler = (res) => {
   var res_body = '';
 
-  assert.equal(200, res.statusCode);
+  assert.strictEqual(200, res.statusCode);
 
-  var endHandler = function() {
+  var endHandler = () => {
     var response = JSON.parse(res_body);
     assert.ok(response.data, 'Recieved incorrect response from server');
     isRequest1Finished = true;
@@ -56,5 +56,5 @@ req.write(data);
 req.end();
 
 process.on('exit', function() {
-  assert.equal(isRequest1Finished, true);
+  assert.strictEqual(isRequest1Finished, true);
 });

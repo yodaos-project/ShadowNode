@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var assert = require('assert');
 var invocation_count = 0;
 var callback_count = 13;
 
-var callback = function() {
-  if (++invocation_count == callback_count) {
+var callback = () => {
+  if (++invocation_count === callback_count) {
     assert.fail('pass'); // All the callbacks were called
   }
 };
