@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -20,7 +20,7 @@ var assert = require('assert');
 var filePath = process.cwd() + '/resources/tobeornottobe.txt';
 
 fs.readFile(filePath, function(err, data) {
-  assert.equal(err, null);
+  assert(err == null);
   var result =
   'To be, or not to be, that is the Question:\n' +
   'Whether ’tis Nobler in the mind to ſuffer\n' +
@@ -57,5 +57,5 @@ fs.readFile(filePath, function(err, data) {
   'And looſe the name of Action. Soft you now,\n' +
   'The faire Ophelia? Nimph, in thy Orizons\n' +
   'Be all my ſinnes remembred.';
-  assert.equal(data, result);
+  assert.strictEqual(data.toString(), result);
 });

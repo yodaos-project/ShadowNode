@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+'use strict';
+
 var assert = require('assert');
 
 var pin = {};

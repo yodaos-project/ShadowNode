@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 
@@ -29,7 +30,7 @@ process.on('exit', function() {
   trace += 'C';
   process.removeAllListeners('uncaughtException');
   console.log(trace);
-  assert.equal(trace, 'ABABC');
+  assert.strictEqual(trace, 'ABABC');
 });
 
 

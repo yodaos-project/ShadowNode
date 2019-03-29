@@ -20,14 +20,17 @@ myiface.addMethod('test2', {
 myiface.update();
 
 var bus = dbus.getBus();
-bus.getInterface('org.myservice', '/org/myobject', 'test.dbus.myservice.Interface1', (err, iface) => {
-  assert.equal(typeof iface.test, 'function');
-  iface.test((err, result) => {
-    assert.equal(result, 'result');
-    iface.test2('foobar', (err, result) => {
-      assert.equal(result, 'foobar>!');
-      // quit
-      bus.destroy();
+bus.getInterface(
+  'org.myservice',
+  '/org/myobject',
+  'test.dbus.myservice.Interface1', (err, iface) => {
+    assert.strictEqual(typeof iface.test, 'function');
+    iface.test((err, result) => {
+      assert.strictEqual(result, 'result');
+      iface.test2('foobar', (err, result) => {
+        assert.strictEqual(result, 'foobar>!');
+        // quit
+        bus.destroy();
+      });
     });
   });
-});

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var Duplex = require('stream').Duplex;
@@ -26,7 +27,7 @@ var msg1 = 'message 1';
 var msg2 = 'message 2';
 
 duplex._write = function(chunk, encoding, callback) {
-  assert.equal(chunk == msg1, true);
+  assert.strictEqual(chunk.toString(), msg1);
   duplex.push(msg2);
   duplex.end();
 };
@@ -34,5 +35,5 @@ duplex._readyToWrite();
 duplex.write(msg1);
 
 process.on('exit', function() {
-  assert.equal(duplex.read() == msg2, true);
+  assert.strictEqual(duplex.read().toString(), msg2);
 });

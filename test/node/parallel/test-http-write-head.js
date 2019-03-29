@@ -69,10 +69,7 @@ var s = http.createServer(common.mustCall(function(req, res) {
 
   res.writeHead(200, { Test: '2' });
 
-  // assert.throws(function () {
-  assert.doesNotThrow(function() {
-    res.writeHead(100, {});
-  });
+  res.writeHead(100, {});
 
   res.end();
 }));

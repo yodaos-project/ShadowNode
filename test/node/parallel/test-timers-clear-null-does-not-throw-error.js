@@ -36,19 +36,18 @@
 
 'use strict';
 require('../common');
-var assert = require('assert');
 
 // This test makes sure clearing timers with
 // 'null' or no input does not throw error
 
-assert.doesNotThrow(function() { clearInterval(null); });
+clearInterval(null);
 
-assert.doesNotThrow(function() { clearInterval(); });
+clearInterval();
 
-assert.doesNotThrow(function() { clearTimeout(null); });
+clearTimeout(null);
 
-assert.doesNotThrow(function() { clearTimeout(); });
+clearTimeout();
 
-// assert.doesNotThrow(function() { clearImmediate(null) });
+/* clearImmediate(null); */
 
-// assert.doesNotThrow(function() { clearImmediate() });
+/* clearImmediate(); */

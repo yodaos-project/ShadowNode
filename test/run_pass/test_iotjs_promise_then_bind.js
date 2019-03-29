@@ -1,9 +1,11 @@
+'use strict';
+
 var assert = require('assert');
 
 class TestObj {
   constructor() {}
   then() {
-    assert (this === obj)
+    assert(this === obj);
   }
 }
 

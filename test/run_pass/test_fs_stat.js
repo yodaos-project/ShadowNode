@@ -12,20 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
 
 
 var stats1 = fs.statSync(process.cwd() + '/run_pass/test_fs_stat.js');
-assert.equal(stats1.isFile(), true);
-assert.equal(stats1.isDirectory(), false);
+assert.strictEqual(stats1.isFile(), true);
+assert.strictEqual(stats1.isDirectory(), false);
 
 fs.stat(process.cwd() + '/run_pass/test_fs_stat.js', function(err, stats) {
   if (!err) {
-    assert.equal(stats.isFile(), true);
-    assert.equal(stats.isDirectory(), false);
+    assert.strictEqual(stats.isFile(), true);
+    assert.strictEqual(stats.isDirectory(), false);
   } else {
     throw err;
   }
@@ -33,13 +33,13 @@ fs.stat(process.cwd() + '/run_pass/test_fs_stat.js', function(err, stats) {
 
 
 var stats2 = fs.statSync(process.cwd() + '/resources');
-assert.equal(stats2.isDirectory(), true);
-assert.equal(stats2.isFile(), false);
+assert.strictEqual(stats2.isDirectory(), true);
+assert.strictEqual(stats2.isFile(), false);
 
 fs.stat(process.cwd() + '/resources', function(err, stats) {
   if (!err) {
-    assert.equal(stats.isDirectory(), true);
-    assert.equal(stats.isFile(), false);
+    assert.strictEqual(stats.isDirectory(), true);
+    assert.strictEqual(stats.isFile(), false);
   } else {
     throw err;
   }
@@ -47,9 +47,9 @@ fs.stat(process.cwd() + '/resources', function(err, stats) {
 
 // fs.statSync throws an exception for a non-existing file.
 try {
-  var stats3 = fs.statSync(process.cwd() + '/non_existing.js');
+  fs.statSync(process.cwd() + '/non_existing.js');
   assert.ok(false);
 } catch (e) {
-  assert.equal(e instanceof Error, true);
-  assert.equal(e instanceof assert.AssertionError, false);
+  assert.strictEqual(e instanceof Error, true);
+  assert.strictEqual(e instanceof assert.AssertionError, false);
 }

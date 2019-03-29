@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 var dgram = require('dgram');
@@ -41,5 +42,5 @@ setTimeout(function() {
 }, 1000);
 
 process.on('exit', function(code) {
-  assert.equal(code, 0);
+  assert.strictEqual(code, 0);
 });

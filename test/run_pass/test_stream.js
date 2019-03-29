@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var Readable = require('stream').Readable;
 var assert = require('assert');
@@ -39,48 +39,48 @@ readable1.on('end', function() {
 readable1.pause();
 readable1.push('abcde');
 readable1.push('12345');
-assert.equal(d, '');
-assert.equal(e, '');
+assert.strictEqual(d, '');
+assert.strictEqual(e, '');
 
 readable1.resume();
-assert.equal(d, 'abcde12345');
-assert.equal(e, '');
+assert.strictEqual(d, 'abcde12345');
+assert.strictEqual(e, '');
 
 readable1.push('a');
 readable1.push('1');
 readable1.push('b');
 readable1.push('2');
-assert.equal(d, 'abcde12345a1b2');
-assert.equal(e, '');
+assert.strictEqual(d, 'abcde12345a1b2');
+assert.strictEqual(e, '');
 
-assert.equal(readable1.isPaused(), false);
+assert.strictEqual(readable1.isPaused(), false);
 readable1.pause();
-assert.equal(d, 'abcde12345a1b2');
-assert.equal(e, '');
-assert.equal(readable1.isPaused(), true);
+assert.strictEqual(d, 'abcde12345a1b2');
+assert.strictEqual(e, '');
+assert.strictEqual(readable1.isPaused(), true);
 
 // Pause the readable again. This should do nothing.
 readable1.pause();
-assert.equal(readable1.isPaused(), true);
+assert.strictEqual(readable1.isPaused(), true);
 
 readable1.push('c');
 readable1.push('3');
 readable1.push('d');
 readable1.push('4');
-assert.equal(d, 'abcde12345a1b2');
-assert.equal(e, '');
+assert.strictEqual(d, 'abcde12345a1b2');
+assert.strictEqual(e, '');
 
 readable1.resume();
-assert.equal(d, 'abcde12345a1b2c3d4');
-assert.equal(e, '');
+assert.strictEqual(d, 'abcde12345a1b2c3d4');
+assert.strictEqual(e, '');
 
 readable1.push(null);
-assert.equal(d, 'abcde12345a1b2c3d4');
-assert.equal(e, 'e');
+assert.strictEqual(d, 'abcde12345a1b2c3d4');
+assert.strictEqual(e, 'e');
 
 readable1.push('push after eof');
-assert.equal(d, 'abcde12345a1b2c3d4');
-assert.equal(e, 'e.');
+assert.strictEqual(d, 'abcde12345a1b2c3d4');
+assert.strictEqual(e, 'e.');
 
 
 // Create a readable stream without the new keyword.
@@ -116,11 +116,11 @@ assert.throws(function() {
 }, TypeError);
 
 // Read with irregular parameters from an empty stream.
-assert.equal(readable2.read(-2), null);
-assert.equal(readable2.read(0), null);
+assert.strictEqual(readable2.read(-2), null);
+assert.strictEqual(readable2.read(0), null);
 
 readable2.push('qwerty');
-assert.equal(readable2.read(6), 'qwerty');
+assert.strictEqual(readable2.read(6).toString(), 'qwerty');
 
 var readable3 = new Readable();
 var readable3End = false;
@@ -128,8 +128,8 @@ var paused = false;
 var str = 'test';
 
 readable3.on('data', function(data) {
-  assert.equal(paused, true);
-  assert.equal(data, str);
+  assert.strictEqual(paused, true);
+  assert.strictEqual(data.toString(), str);
 });
 
 readable3.on('end', function() {
@@ -154,6 +154,6 @@ assert.throws(function() {
 
 
 process.on('exit', function() {
-  assert.equal(readable2 instanceof Readable, true);
-  assert.equal(readable3End, true);
+  assert.strictEqual(readable2 instanceof Readable, true);
+  assert.strictEqual(readable3End, true);
 });

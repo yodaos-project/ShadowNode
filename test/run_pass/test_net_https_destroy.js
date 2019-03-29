@@ -1,4 +1,5 @@
-var assert = require('assert')
+'use strict';
+var assert = require('assert');
 var https = require('https');
 var common = require('../common');
 

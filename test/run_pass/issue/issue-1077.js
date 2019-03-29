@@ -12,12 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 
 try {
-  var m = require('issue-1077');
+  require('issue-1077');
 } catch (e) {
   assert(e.name === 'Error');
-  assert(e.message == 'Module not found: issue-1077');
+  assert(e.message === 'Module not found: issue-1077');
 }

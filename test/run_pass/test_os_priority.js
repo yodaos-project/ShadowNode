@@ -5,8 +5,8 @@ var constants = require('constants');
 var os = require('os');
 
 function testPriority(val) {
-  assert.equal(os.setPriority(val), undefined);
-  assert.equal(os.getPriority(), val);
+  assert.strictEqual(os.setPriority(val), undefined);
+  assert.strictEqual(os.getPriority(), val);
 }
 
 function testPriorityOutOfRange(val) {
@@ -15,7 +15,7 @@ function testPriorityOutOfRange(val) {
       os.setPriority(val);
     },
     RangeError
-  )
+  );
 }
 
 testPriority(1);
@@ -37,7 +37,7 @@ var priority = os.getPriority();
 console.log('set priority', priority);
 
 if (thrown) {
-  assert.equal(priority, 3);
+  assert.strictEqual(priority, 3);
 } else {
-  assert.equal(priority, -10);
+  assert.strictEqual(priority, -10);
 }

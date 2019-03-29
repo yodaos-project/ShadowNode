@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var assert = require('assert');
 var http = require('http');
@@ -31,7 +31,7 @@ var server = http.createServer(function(req, res) {
 
 server.listen(options.port, function() {
   var req = http.request(options, function(res) {
-    var destroyer = function() {
+    var destroyer = () => {
       timeouted = true;
       req.socket.destroy();
       server.close();
@@ -47,7 +47,7 @@ server.listen(options.port, function() {
     server.close();
   });
 
-  var before = function() {
+  var before = () => {
     /* this handler must not be called  */
   };
   req.setTimeout(1000, before);
@@ -58,5 +58,5 @@ server.listen(options.port, function() {
 
 
 process.on('exit', function(code) {
-  assert.equal(timeouted, true);
+  assert.strictEqual(timeouted, true);
 });

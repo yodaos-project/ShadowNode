@@ -1,11 +1,12 @@
+'use strict';
 var assert = require('assert');
 var crypto = require('crypto');
 
 var r1 = crypto.randomBytes(10);
-assert.equal(r1 instanceof Buffer, true);
-assert.equal(r1.length, 10);
-assert.equal(r1.toString('base64').length, 16);
-assert.equal(r1.toString('hex').length, 20);
+assert.strictEqual(r1 instanceof Buffer, true);
+assert.strictEqual(r1.length, 10);
+assert.strictEqual(r1.toString('base64').length, 16);
+assert.strictEqual(r1.toString('hex').length, 20);
 
 (function randomTest(len) {
   var map = {};

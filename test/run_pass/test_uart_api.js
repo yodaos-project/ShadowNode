@@ -13,12 +13,14 @@
  * limitations under the License.
  */
 
+'use strict';
+
 var assert = require('assert');
 var Uart = require('uart');
 var uart = new Uart();
 
 // ------ Test API existence
-assert.equal(typeof Uart, 'function',
-             'uart module does not export construction function');
-assert.equal(typeof uart.open, 'function',
-             'uart does not provide \'open\' function');
+assert.strictEqual(typeof Uart, 'function',
+                   'uart module does not export construction function');
+assert.strictEqual(typeof uart.open, 'function',
+                   'uart does not provide \'open\' function');

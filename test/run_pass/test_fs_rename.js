@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 /*
  @STDOUT=Pass
@@ -32,16 +33,17 @@ if (process.platform === 'tizenrt') {
   fs.closeSync(fs.openSync(file1, 'w'));
 }
 
-assert.equal(fs.existsSync(file1), true,
-             'Test prerequisites: checking existance of ' + file1);
+assert.strictEqual(fs.existsSync(file1), true,
+                   'Test prerequisites: checking existance of ' + file1);
 
 fs.rename(file1, file2, function(err) {
-  assert.equal(err, null, 'Rename error:' + err);
-  assert.equal(fs.existsSync(file1), false, 'Source file exist after renaming');
-  assert.equal(fs.existsSync(file2), true,
-               'Destination file not exist after renaming');
+  assert.strictEqual(err, null, 'Rename error:' + err);
+  assert.strictEqual(fs.existsSync(file1), false,
+                     'Source file exist after renaming');
+  assert.strictEqual(fs.existsSync(file2), true,
+                     'Destination file not exist after renaming');
   fs.rename(file2, file1, function(err) {
-    assert.equal(err, null, 'Renaming back error: ' + err);
+    assert.strictEqual(err, null, 'Renaming back error: ' + err);
 
     // Cleanup after test
     if (process.platform === 'tizenrt') {

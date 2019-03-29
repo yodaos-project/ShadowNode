@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var assert = require('assert');
 var util = require('util');
@@ -22,26 +22,26 @@ var timerFired = false;
 var shouldnotFired = false;
 
 setTimeout(function(a, b, c) {
-  assert.equal(arguments.length, 3);
-  assert.equal(arguments[0], 1);
-  assert.equal(arguments[1], 2);
-  assert.equal(arguments[2], 3);
-  assert.equal(a, 1);
-  assert.equal(b, 2);
-  assert.equal(c, 3);
+  assert.strictEqual(arguments.length, 3);
+  assert.strictEqual(arguments[0], 1);
+  assert.strictEqual(arguments[1], 2);
+  assert.strictEqual(arguments[2], 3);
+  assert.strictEqual(a, 1);
+  assert.strictEqual(b, 2);
+  assert.strictEqual(c, 3);
   timerFired = true;
 }, 100, 1, 2, 3);
 
 
 var i = 0;
 setInterval(function(list) {
-  assert.equal(arguments.length, 1);
+  assert.strictEqual(arguments.length, 1);
   assert(util.isArray(list));
-  assert.equal(list.length, 5);
+  assert.strictEqual(list.length, 5);
   if (i >= list.length) {
     clearInterval(this);
   } else {
-    assert.equal(list[i], i * i);
+    assert.strictEqual(list[i], i * i);
     i++;
   }
 }, 100, [0, 1, 4, 9, 16]);
@@ -54,8 +54,8 @@ clearTimeout(t);
 
 
 process.on('exit', function(code) {
-  assert.equal(code, 0);
+  assert.strictEqual(code, 0);
   assert(timerFired);
-  assert.equal(i, 5);
-  assert.equal(shouldnotFired, false);
+  assert.strictEqual(i, 5);
+  assert.strictEqual(shouldnotFired, false);
 });

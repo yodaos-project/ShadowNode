@@ -1,7 +1,8 @@
+'use strict';
 var http = require('http');
 var https = require('https');
 var assert = require('assert');
-var common = require('../common')
+var common = require('../common');
 
 function getHandle(url) {
   if (/^http:\/\//.test(url)) {
@@ -18,11 +19,11 @@ test('http://example.com/');
 test('https://example.com/');
 // unreachable tunnels, manually abort them
 var req1 = test('http://127.0.0.2');
-setTimeout(function () {
+setTimeout(function() {
   req1.abort();
 }, 1000);
 var req2 = test('https://127.0.0.2');
-setTimeout(function () {
+setTimeout(function() {
   req2.abort();
 }, 1000);
 
@@ -37,7 +38,8 @@ function test(url) {
       isAborted = true;
       req.abort();
       process.nextTick(function() {
-        assert.strictEqual(eventTriggered, true, `${url} should trigger event abort`);
+        assert.strictEqual(eventTriggered, true,
+                           `${url} should trigger event abort`);
       });
       chunks.push(chunk);
     });

@@ -8,16 +8,16 @@ function equalData(msg) {
   if (typeof msg === 'object') {
     console.log('stringify msg');
     msg = JSON.stringify(msg);
-    // assert.equal(msg.length, JSON.stringify(data).length); 
+    // assert.strictEqual(msg.length, JSON.stringify(data).length);
   } else {
     console.log('string msg');
   }
-  assert.equal(msg.length, dataStr.length);
+  assert.strictEqual(msg.length, dataStr.length);
 }
 
 var obj = null;
 if (process.send) {
-  obj = process
+  obj = process;
 } else {
   var fork = require('child_process').fork;
   obj = fork(module.filename, [], {});

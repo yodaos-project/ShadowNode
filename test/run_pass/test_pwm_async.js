@@ -12,18 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
-var assert = require('assert');
+
 var Pwm = require('pwm');
 var pin = require('tools/systemio_common').pin;
 var checkError = require('tools/systemio_common').checkError;
 
 var pwm = new Pwm();
 
-var dutyCycles = [0.25, 0.5, 0.75],
-  frequencies = [1, 10, 30],
-  periodInit = false,
-  dutyCycleInit = false;
+var dutyCycles = [0.25, 0.5, 0.75];
+var frequencies = [1, 10, 30];
+var periodInit = false;
+var dutyCycleInit = false;
 
 var configuration = {
   period: 0.001,  // 1kHz

@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var assert = require('assert');
 var Gpio = require('gpio');
 var gpio = new Gpio();
 
-var LED_ON = true,
-  LED_OFF = false;
+var LED_ON = true;
+var LED_OFF = false;
 var pin, mode;
 var gpio20;
 
@@ -45,36 +45,36 @@ gpio20 = gpio.open({
 }, test2);
 
 function test1() {
-  assert.notEqual(gpio.DIRECTION.IN, undefined);
-  assert.notEqual(gpio.DIRECTION.OUT, undefined);
-  assert.notEqual(gpio.MODE.NONE, undefined);
+  assert.notStrictEqual(gpio.DIRECTION.IN, undefined);
+  assert.notStrictEqual(gpio.DIRECTION.OUT, undefined);
+  assert.notStrictEqual(gpio.MODE.NONE, undefined);
   if (process.platform === 'nuttx') {
-    assert.notEqual(gpio.MODE.PULLUP, undefined);
-    assert.notEqual(gpio.MODE.PULLDOWN, undefined);
-    assert.notEqual(gpio.MODE.FLOAT, undefined);
-    assert.notEqual(gpio.MODE.PUSHPULL, undefined);
-    assert.notEqual(gpio.MODE.OPENDRAIN, undefined);
+    assert.notStrictEqual(gpio.MODE.PULLUP, undefined);
+    assert.notStrictEqual(gpio.MODE.PULLDOWN, undefined);
+    assert.notStrictEqual(gpio.MODE.FLOAT, undefined);
+    assert.notStrictEqual(gpio.MODE.PUSHPULL, undefined);
+    assert.notStrictEqual(gpio.MODE.OPENDRAIN, undefined);
   }
 }
 
 // turn on LED for 3000ms
 function test2(err) {
-  assert.equal(err, null);
+  assert.strictEqual(err, null);
 
   gpio20.write(LED_ON, function(writeErr) {
-    assert.equal(writeErr, null);
+    assert.strictEqual(writeErr, null);
     console.log('gpio write');
 
     gpio20.read(function(readErr, value) {
-      assert.equal(readErr, null);
+      assert.strictEqual(readErr, null);
       console.log('gpio read:', value);
-      assert.equal(LED_ON, value);
+      assert.strictEqual(LED_ON, value);
 
       setTimeout(function() {
         gpio20.writeSync(LED_OFF);
         var value = gpio20.readSync();
         console.log('gpio read:', value);
-        assert.equal(LED_OFF, value);
+        assert.strictEqual(LED_OFF, value);
         gpio20.close();
         console.log('finish test');
       }, 3000);

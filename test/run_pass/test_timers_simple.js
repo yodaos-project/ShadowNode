@@ -12,17 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+'use strict';
 
 var assert = require('assert');
-
 
 var timerACnt = 0;
 var timerBCnt = 0;
 var timerCCnt = 0;
 var timerSequence = '';
 
-var timerA = setTimeout(function() {
+setTimeout(function() {
   timerSequence += 'A';
   timerACnt++;
 }, 1000);
@@ -44,9 +43,9 @@ var timerC = setInterval(function() {
 }, 0);
 
 process.on('exit', function(code) {
-  assert.equal(code, 0);
-  assert.equal(timerACnt, 1);
-  assert.equal(timerBCnt, 6);
-  assert.equal(timerCCnt, 11);
-  assert.equal(timerSequence.length, 18);
+  assert.strictEqual(code, 0);
+  assert.strictEqual(timerACnt, 1);
+  assert.strictEqual(timerBCnt, 6);
+  assert.strictEqual(timerCCnt, 11);
+  assert.strictEqual(timerSequence.length, 18);
 });

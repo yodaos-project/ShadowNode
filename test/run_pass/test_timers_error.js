@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+'use strict';
+/* eslint-disable no-restricted-syntax */
 
 var assert = require('assert');
 
@@ -124,7 +126,7 @@ assert.throws(function() {
 }, Error);
 
 assert.throws(function() {
-  clearInterval([interval, 1000]);
+  clearInterval(['interval', 1000]);
 }, Error);
 
 assert.throws(function() {

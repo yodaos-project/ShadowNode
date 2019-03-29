@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
+
 var assert = require('assert');
 var http = require('http');
 var net = require('net');
@@ -40,5 +42,5 @@ request.end();
 
 process.on('exit', function() {
   // The error is a Parse Error.
-  assert.equal(errors, 1);
+  assert.strictEqual(errors, 1);
 });

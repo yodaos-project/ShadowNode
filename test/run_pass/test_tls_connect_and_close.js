@@ -1,3 +1,5 @@
+'use strict';
+
 var assert = require('assert');
 var tls = require('tls');
 
@@ -24,7 +26,7 @@ socket.on('error', function(err) {
 });
 
 process.on('exit', function() {
-  assert.equal(closed, true);
-  assert.equal(finished, true);
-  assert.equal(thrown.code, 'ECONNRESET');
+  assert.strictEqual(closed, true);
+  assert.strictEqual(finished, true);
+  assert.strictEqual(thrown.code, 'ECONNRESET');
 });

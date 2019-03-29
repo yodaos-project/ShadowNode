@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var assert = require('assert');
 
@@ -42,39 +43,39 @@ function test1() {
 }
 
 function test2() {
-  process.nextTick(function () {
+  process.nextTick(function() {
     trace2 += '1';
   });
-  process.nextTick(function () {
+  process.nextTick(function() {
     trace2 += '2';
-  })
-  setImmediate(function () {
+  });
+  setImmediate(function() {
     trace2 += '3';
-    process.nextTick(function () {
+    process.nextTick(function() {
       trace2 += '5';
     });
   });
-  setImmediate(function () {
+  setImmediate(function() {
     trace2 += '4';
   });
 }
 
 function test3() {
-  process.nextTick(function () {
+  process.nextTick(function() {
     trace3 += '1';
   });
-  process.nextTick(function () {
+  process.nextTick(function() {
     trace3 += '2';
-  })
+  });
   setTimeout(function() {
     trace3 += '3';
     // FIXME
     // when the timer is triggered,
     // the js callback is called by iotjs_make_callback and therefore
     // the nextTick callbacks is called
-    process.nextTick(function () {
+    process.nextTick(function() {
       trace3 += '4';
-    })
+    });
   }, 0);
   setTimeout(function() {
     trace3 += '5';
@@ -82,46 +83,46 @@ function test3() {
 }
 
 function test4() {
-  process.nextTick(function(){
+  process.nextTick(function() {
     trace4 += '3';
   });
 
-  new Promise(function(resolve){
+  new Promise(function(resolve) {
     trace4 += '1';
     resolve();
     trace4 += '2';
-  }).then(function(){
+  }).then(function() {
     trace4 += '4';
   });
 
-  process.nextTick(function(){
+  process.nextTick(function() {
     trace4 += '5';
   });
 }
 
 function test5() {
-  setTimeout(function(){
-    trace5 += '5'
-  },0);
+  setTimeout(function() {
+    trace5 += '5';
+  }, 0);
 
-  new Promise(function(resolve,reject){
+  new Promise(function(resolve, reject) {
     trace5 += '1';
     resolve();
-  }).then(function(){
+  }).then(function() {
     trace5 += '2';
-  }).then(function(){
+  }).then(function() {
     trace5 += '4';
   });
 
-  process.nextTick(function(){
+  process.nextTick(function() {
     trace5 += '3';
   });
 }
 
 function test6() {
   process.nextTick(function() {
-    trace6 += arguments[0] + arguments[1] + arguments[2]
-      + arguments[3] + arguments[4];
+    trace6 += arguments[0] + arguments[1] + arguments[2] +
+      arguments[3] + arguments[4];
   }, '1', '2', '3', '4', '5');
 }
 
@@ -129,7 +130,7 @@ function test7() {
   process.nextTick(function() {
     assert.ok(arguments[0] === undefined);
     assert.ok(arguments[1] === undefined);
-  })
+  });
 }
 
 function test8() {
@@ -164,11 +165,11 @@ test8();
 test9();
 
 process.on('exit', function(code) {
-  assert.equal(code, 0);
-  assert.equal(trace1, '12345');
-  assert.equal(trace2, '12345');
-  assert.equal(trace3, '12345');
-  assert.equal(trace4, '12345');
-  assert.equal(trace5, '12345');
-  assert.equal(trace6, '12345');
+  assert.strictEqual(code, 0);
+  assert.strictEqual(trace1, '12345');
+  assert.strictEqual(trace2, '12345');
+  assert.strictEqual(trace3, '12345');
+  assert.strictEqual(trace4, '12345');
+  assert.strictEqual(trace5, '12345');
+  assert.strictEqual(trace6, '12345');
 });

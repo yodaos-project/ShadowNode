@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -19,52 +20,48 @@ var assert = require('assert');
 {
   var filePath = process.cwd() + '/resources/tobeornottobe.txt';
   fs.exists(filePath, function(exists) {
-    assert.equal(exists, true, 'File should exist: ' + filePath);
+    assert.strictEqual(exists, true, 'File should exist: ' + filePath);
   });
 }
 
 {
-  var filePath = '';
+  filePath = '';
+  // Checking fs.exists('') without callback does not throw exception
+  fs.exists(filePath, function(exists) {
+    assert.strictEqual(exists, false, 'File with empty name should not exist');
+  });
 
-  assert.doesNotThrow(function() {
-    fs.exists(filePath, function(exists) {
-      assert.equal(exists, false, 'File with empty name should not exist');
-    });
-  }, 'Checking fs.exists(\'\') without callback does not throw exception');
-
-  assert.doesNotThrow(function() {
-    fs.exists(filePath);
-  }, 'Checking fs.exists(\'\') without callback does not throw exception');
+  // Checking fs.exists('') without callback does not throw exception
+  fs.exists(filePath);
 }
 
 {
-  var filePath = process.cwd() + '/resources/tobeornottobe.txt';
+  filePath = process.cwd() + '/resources/tobeornottobe.txt';
 
-  assert.doesNotThrow(function() {
-    fs.exists(filePath);
-  }, 'Checking fs.exists() for existing file does not throw exception');
+  // Checking fs.exists() for existing file does not throw exception
+  fs.exists(filePath);
 }
 
 {
-  var filePath = process.cwd() + '/resources/empty.txt';
+  filePath = process.cwd() + '/resources/empty.txt';
 
   fs.exists(filePath, function(exists) {
-    assert.equal(exists, false, 'File should not exist' + filePath);
+    assert.strictEqual(exists, false, 'File should not exist' + filePath);
   });
 }
 
 {
-  var filePath = '';
+  filePath = '';
 
   fs.exists(filePath, function(exists) {
-    assert.equal(exists, false, 'File with empty name should not exist');
+    assert.strictEqual(exists, false, 'File with empty name should not exist');
   });
 }
 
 {
-  var filePath = ' ';
+  filePath = ' ';
 
   fs.exists(filePath, function(exists) {
-    assert.equal(exists, false, 'File name with single whitespace check');
+    assert.strictEqual(exists, false, 'File name with single whitespace check');
   });
 }

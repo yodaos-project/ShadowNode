@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var dns = require('dns');
 var assert = require('assert');
@@ -23,42 +24,42 @@ var options = {
 
 function isIPv4(ip) {
   var IPv4Regex = new RegExp(
-    '^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$'
+    '^([0-9]{1,3}\\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$'
   );
 
   return IPv4Regex.test(ip);
 }
 
 dns.lookup('localhost', 4, function(err, ip, family) {
-  assert.equal(err, null);
-  assert.equal(isIPv4(ip), true);
-  assert.equal(ip, '127.0.0.1');
+  assert.strictEqual(err, null);
+  assert.strictEqual(isIPv4(ip), true);
+  assert.strictEqual(ip, '127.0.0.1');
   assert.strictEqual(family, 4);
 });
 
 // Test with IPv4 option.
 dns.lookup('localhost', 4, function(err, ip, family) {
-  assert.equal(err, null);
-  assert.equal(isIPv4(ip), true);
-  assert.equal(ip, '127.0.0.1');
+  assert.strictEqual(err, null);
+  assert.strictEqual(isIPv4(ip), true);
+  assert.strictEqual(ip, '127.0.0.1');
   assert.strictEqual(family, 4);
 });
 
 // Test without explicit options parameter.
 dns.lookup('localhost', function(err, ip, family) {
-  assert.equal(err, null);
-  assert.equal(isIPv4(ip), true);
-  assert.equal(ip, '127.0.0.1');
+  assert.strictEqual(err, null);
+  assert.strictEqual(isIPv4(ip), true);
+  assert.strictEqual(ip, '127.0.0.1');
 });
 
 // Test with invalid hostname.
 dns.lookup('invalid', 4, function(err, ip, family) {
-  assert.notEqual(err, null);
+  assert.notStrictEqual(err, null);
 });
 
 // Test with empty hostname.
 dns.lookup('', 4, function(err, ip, family) {
-  assert.notEqual(err, null);
+  assert.notStrictEqual(err, null);
 });
 
 // Test with non string hostname.

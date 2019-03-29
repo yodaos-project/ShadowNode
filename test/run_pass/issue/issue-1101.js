@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var UART = require('uart');
 var uart = new UART();
@@ -32,7 +33,7 @@ var res = uart.open({
       }
     });
     var c = 0;
-    var p = function() {
+    var p = () => {
       c++;
       console.log('this should still run');
       if (c < 10) {

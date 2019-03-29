@@ -12,7 +12,7 @@ var willOpts = {
 };
 
 function connect(endpoint, opts) {
-  return new Promise(function (resolve, reject) {
+  return new Promise(function(resolve, reject) {
     var client = mqtt.connect(endpoint, opts);
     client.once('connect', function() {
       resolve(client);
@@ -23,7 +23,7 @@ function connect(endpoint, opts) {
 Promise.all([
   connect(bridge, {
     reconnectPeriod: -1,
-    will: willOpts,
+    will: Object.assign({}, willOpts),
   }),
   connect(bridge, {
     reconnectPeriod: -1,
@@ -35,8 +35,8 @@ Promise.all([
     yorkie._socket.end();
   }));
   babeee.on('message', common.mustCall(function(channel, message) {
-    assert.equal(channel, willOpts.topic);
-    assert.equal(message + '', willOpts.payload);
+    assert.strictEqual(channel, willOpts.topic);
+    assert.strictEqual(message + '', willOpts.payload);
     babeee.disconnect();
   }));
 });

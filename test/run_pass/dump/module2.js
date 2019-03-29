@@ -6,4 +6,4 @@ function throwError2() {
 
 module.exports = function main2() {
   throwError2();
-}
+};

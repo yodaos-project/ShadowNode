@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
 var fs = require('fs');
 var assert = require('assert');
@@ -20,26 +21,26 @@ var assert = require('assert');
   var filePath = process.cwd() + '/resources/tobeornottobe.txt';
 
   var result = fs.existsSync(filePath);
-  assert.equal(result, true, 'File should exist: ' + filePath);
+  assert.strictEqual(result, true, 'File should exist: ' + filePath);
 }
 
 {
-  var filePath = process.cwd() + '/resources/empty.txt';
+  filePath = process.cwd() + '/resources/empty.txt';
 
-  var result = fs.existsSync(filePath);
-  assert.equal(result, false, 'File should not exist: ' + filePath);
+  result = fs.existsSync(filePath);
+  assert.strictEqual(result, false, 'File should not exist: ' + filePath);
 }
 
 {
-  var filePath = '';
+  filePath = '';
 
-  var result = fs.existsSync(filePath);
-  assert.equal(result, false, 'File with empty should not exist');
+  result = fs.existsSync(filePath);
+  assert.strictEqual(result, false, 'File with empty should not exist');
 }
 
 {
-  var filePath = ' ';
+  filePath = ' ';
 
-  var result = fs.existsSync(filePath);
-  assert.equal(result, false, 'File name with single whitespace check');
+  result = fs.existsSync(filePath);
+  assert.strictEqual(result, false, 'File name with single whitespace check');
 }
