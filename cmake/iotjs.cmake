@@ -489,11 +489,12 @@ if(NOT BUILD_LIB_ONLY)
       set_target_properties(${TARGET_IOTJS} PROPERTIES
                             LINK_FLAGS "-Wl,-all_load")
     else ()
+      set(GENERIC_LINK_FLAGS_LIST "-Wl,--whole-archive"
+                                  "${CMAKE_BINARY_DIR}/lib/libiotjs.a"
+                                  "-Wl,--no-whole-archive")
+      string(REPLACE ";" " " GENERIC_LINK_FLAGS "${GENERIC_LINK_FLAGS_LIST}")
       set_target_properties(${TARGET_IOTJS} PROPERTIES
-                            LINK_FLAGS "\
-                            -Wl,--whole-archive \
-                            ${CMAKE_BINARY_DIR}/lib/libiotjs.a \
-                            -Wl,--no-whole-archive")
+                            LINK_FLAGS "${GENERIC_LINK_FLAGS}")
     endif ()
 
     install(TARGETS ${TARGET_IOTJS}
