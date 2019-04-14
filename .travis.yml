@@ -59,12 +59,12 @@ fast_finish: true
   deploy:
     provider: releases
     api_key:
-      secure: wVdyP2Idczya/s6G/gwkJsF/v8QeYdBCC6AxdcyAHNKUZsxaRsM15+eji2sYfA9eZj6dSv4wsRQXGYp0nvuC5b0JBpnTH8wFyURq7DJh4xOb3D3LQsULBWgHVBjwWF3tOJ1jxKralxs8E2A9H9lsT8ee0RCKeX+gGtOUKiU9rOdCezfoPUJjErMGlgYVCSJWg9HQlXiPxyFqDNbY+Z642zKJrWwcBT9Ao3422UJO6zBAVg9xI6PJV8e0+owxY1iHarKycih+MxSTFXHIIq6p9O9ZmZHNXw9Xt34W1m2c/riDnhB1WmhKo74KDIBQJEano6oHCQ4fDahRwiUczTwG3dx5hb6gfEI5SJv7fSmoBh4s9sdozAZ6bnV0NiWhftxUTAgJcoH6L/Sw0tFckb2faYR5CKnRF32VjoAICR4ZBPOiZT9Yq+RLnD+64d2gJG7z4txzRptPiJ3XRx7QQ4LLDERCTcvgfhMxcYaNUyicGy/o+oxDQBws6Mb0eQWibmB8cidJarz3gm+pmwr4RvXZFz0HvkMn0fV0VFqVj7l8oOgHEkosSFUifsI0bhFqF3ibmFr7MJqCnVItaciJuLKtk4buMiQkkAIXql50DLRRiKcxgC3IMs7u8vDP8rtjncZYfybc7g4VHSuMQyGW+xig+8aSJ7SXf3AaVnGxcnfgsFE=
+      secure: fq+ko/mApKwBbHVunN+pSEmCIiQ+x1IPn1Y5KLE1lG1yuGPFXxqQCB/qEzlqZHS3eb6I0sI09U+fd1f8cE+7hSwai52nf+OiMDD0oPLAok8L2D1pnEgAUcugHpx+Asixyp6BRgg1pfQ0wKhd5K526pi3ddvGBifgx4Dxr0P4C0pb6H51Z9aNIue88UV62HYdzM3GWu4X87oZlzqV7y4qUbUScRicfC4KNEh4XLZTzzqpnfgnyrSWEjPZ4riMHEy2Pz+rcP6/zLOh4f4s/BYnc6r7kIfOs65+OTjbW1O1yDyKzb+20djOXiJRigYzIlu7QOUsPIpGTBqPuRigAaSPYzWj8kcjZ37ITLGc95vKGu7ueau3IAaCYFz8CNE9J899robigfCrSYXy8Mv1uk1SWmJDOLBF9GA/DN8utf5nwu+nNHMWOR1p+YLTc4XyAe5w/vX+jhmt/pBou8wfhDNl3f5p8jPUcR481CM27nQH6/1Q1Covy0xZ+M0bgIXgc21tXtvrmHIbi9wv9Lj9Wcq5a64aBQAQpJqAj2O8Z9uN32exVjTLPdWC521l8EfwgojGZG7jdRBk/WWu0DWzji6RkRSheRf5GDNXPXdmJn7rLSyJYJhkihGymINAnywQA1R+2zAbXw7k2uX5EkmLJBCF/JyMKQqI7W0Y1iCjo74353s=
     file_glob: true
     skip_cleanup: true
     file: "./shadow-node-*.tar.gz"
     on:
-      repo: Rokid/ShadowNode
+      repo: yodaos-project/ShadowNode
       tags: true
 
 jobs:
