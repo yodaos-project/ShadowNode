@@ -14,9 +14,11 @@
  */
 
 #include "iotjs_def.h"
-#if (defined(__linux__) && !defined(__ANDROID__)) || defined(__APPLE__)
+#if (defined(__linux__) && defined(__GLIBC__) && !defined(__ANDROID__)) || \
+    defined(__APPLE__)
 #include <execinfo.h>
-#endif // (defined(__linux__) && !defined(__ANDROID__)) || defined(__APPLE__))
+#endif // (defined(__linux__) && defined(__GLIBC__) && !defined(__ANDROID__)) ||
+       // defined(__APPLE__))
 #include "internal/node_api_internal.h"
 
 #ifndef NAPI_FATAL_BACKTRACE_LEN
@@ -212,7 +214,8 @@ napi_status napi_get_last_error_info(napi_env env,
 void napi_fatal_error(const char* location, size_t location_len,
                       const char* message, size_t message_len) {
   printf("FATAL ERROR: %s %s\n", location, message);
-#if (defined(__linux__) && !defined(__ANDROID__)) || defined(__APPLE__)
+#if (defined(__linux__) && defined(__GLIBC__) && !defined(__ANDROID__)) || \
+    defined(__APPLE__)
   void* bt[NAPI_FATAL_BACKTRACE_LEN];
   int size = backtrace(bt, NAPI_FATAL_BACKTRACE_LEN);
   char** bt_sym_strs = backtrace_symbols(bt, size);
@@ -220,6 +223,7 @@ void napi_fatal_error(const char* location, size_t location_len,
     fprintf(stderr, "%s\n", bt_sym_strs[idx]);
   }
   free(bt_sym_strs);
-#endif // (defined(__linux__) && !defined(__ANDROID__)) || defined(__APPLE__))
+#endif // (defined(__linux__) && defined(__GLIBC__) && !defined(__ANDROID__)) ||
+       // defined(__APPLE__))
   abort();
 }
