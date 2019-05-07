@@ -497,7 +497,7 @@ if(NOT BUILD_LIB_ONLY)
                             LINK_FLAGS "${GENERIC_LINK_FLAGS}")
     endif ()
 
-    install(TARGETS ${TARGET_IOTJS}
+    install(TARGETS ${TARGET_IOTJS} ${TARGET_LIB_IOTJS}
             RUNTIME DESTINATION "${INSTALL_PREFIX}/bin"
             LIBRARY DESTINATION "${INSTALL_PREFIX}/lib"
             PUBLIC_HEADER DESTINATION "${INSTALL_PREFIX}/include/shadow-node")
