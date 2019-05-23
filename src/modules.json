@@ -300,7 +300,9 @@
     },
     "path": {
       "js_file": "js/path.js",
-      "require": ["util"]
+      "require": ["util"],
+      "native_files": ["modules/iotjs_module_path.c"],
+      "init": "InitPath"
     },
     "profiler": {
       "native_files": ["modules/iotjs_module_profiler.c"],
