@@ -942,6 +942,7 @@ main (void)
   res = jerry_get_object_keys (global_obj_val);
   TEST_ASSERT (!jerry_value_has_error_flag (res));
   TEST_ASSERT (jerry_value_is_array (res));
+  TEST_ASSERT (jerry_get_array_length (res) == 16);
   jerry_release_value (res);
 
   /* Test: jerry_value_to_primitive */
