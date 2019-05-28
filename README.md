@@ -2,16 +2,14 @@
 
 The Node.js runtime in shadow, enables N-API and vast Node.js packages on edge devices.
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/6f931ad604184a409622825d8aacdf9f)](https://app.codacy.com/app/legendecas/ShadowNode?utm_source=github.com&utm_medium=referral&utm_content=Rokid/ShadowNode&utm_campaign=badger)
-[![Build Status](https://travis-ci.org/Rokid/ShadowNode.svg?branch=master)](https://travis-ci.org/Rokid/ShadowNode)
+[![Build Status](https://travis-ci.org/yodaos-project/ShadowNode.svg?branch=master)](https://travis-ci.org/yodaos-project/ShadowNode)
 [![License](https://img.shields.io/badge/licence-Apache%202.0-brightgreen.svg?style=flat)](LICENSE)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FRokid%2Fshadow-node.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FRokid%2Fshadow-node?ref=badge_shield)
 
 The project is another runtime for your [Node.js][] packages, while ShadowNode is designed to be used on memory limited devices. It's inspired and forked from the awesome project [Samsung/iotjs][].
 
 ## Quick Start
 
-To get started with ShadowNode, you could download prebuilt binaries on [Release Page](https://github.com/Rokid/ShadowNode/releases) for following targets:
+To get started with ShadowNode, you could download prebuilt binaries on [Release Page](https://github.com/yodaos-project/ShadowNode/releases) for following targets:
 
 - Linux x64
 - macOS x64
@@ -27,7 +25,7 @@ To get started with ShadowNode, you could download prebuilt binaries on [Release
 
 ##### Fetch source code
 ```sh
-$ git clone https://github.com/Rokid/ShadowNode.git
+$ git clone https://github.com/yodaos-project/ShadowNode.git
 $ cd ShadowNode
 ```
 
@@ -102,7 +100,7 @@ start hacking with JavaScript:
 [ShadowNode][] is Open Source software under the [Apache 2.0 license][].
 Complete license and copyright information can be found within the code.
 
-[ShadowNode]: https://github.com/Rokid/ShadowNode
+[ShadowNode]: https://github.com/yodaos-project/ShadowNode
 [Node.js]: https://github.com/nodejs/node
 [Iot.js]: https://github.com/Samsung/iotjs
 [Samsung/iotjs]: https://github.com/Samsung/iotjs
