@@ -1,7 +1,6 @@
 stages:
 - test
-- name: deploy
-  if: tag IS present
+- deploy
 
 language: c
 os: linux
@@ -54,7 +53,7 @@ fast_finish: true
 
 .deploy_job_template: &deploy_job_template
   script:
-  - tools/build.py --buildtype release --clean --static --install --install-prefix $(pwd)/build/usr
+  - tools/build.py --buildtype release --clean --static --napi --install --install-prefix $(pwd)/build/usr
   - tar -czf shadow-node-${TRAVIS_TAG}-$(uname)-$(uname -m).tar.gz -C build ./usr
   deploy:
     provider: releases
