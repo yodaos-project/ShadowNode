@@ -70,6 +70,14 @@ typedef struct {
   uv_sem_t semsync;
 } task_entry_t;
 
+/* This macro cleans up the main loop. This is used to avoid valgrind
+ * warnings about memory being "leaked" by the main event loop.
+ */
+#define MAKE_VALGRIND_HAPPY()                           \
+  do {                                                  \
+    close_loop(uv_default_loop());                      \
+    TUV_ASSERT(0 == uv_loop_close(uv_default_loop()));  \
+  } while (0)
 
 #define TEST_IMPL(name)                                                       \
   int run_test_##name(void);                                                  \
@@ -117,6 +125,17 @@ typedef struct {
     fflush(stderr);                                       \
     ABORT();                                              \
   } while (0)
+
+/* Fully close a loop */
+static void close_walk_cb(uv_handle_t* handle, void* arg) {
+  if (!uv_is_closing(handle))
+    uv_close(handle, NULL);
+}
+
+static void close_loop(uv_loop_t* loop) {
+  uv_walk(loop, close_walk_cb, NULL);
+  uv_run(loop, UV_RUN_DEFAULT);
+}
 
 /* Reserved test exit codes. */
 enum test_status {
