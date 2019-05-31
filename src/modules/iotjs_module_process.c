@@ -375,9 +375,15 @@ JS_FUNCTION(DoExit) {
 }
 
 JS_FUNCTION(Kill) {
-  DJS_CHECK_ARGS(1, number);
-  int signal = JS_GET_ARG(0, number);
-  kill(getpid(), signal);
+  DJS_CHECK_ARGS(2, number, number);
+  int pid = JS_GET_ARG(0, number);
+  int signal = JS_GET_ARG(1, number);
+  int ret = uv_kill(pid, signal);
+  if (ret != 0) {
+    jerry_value_t err = iotjs_create_uv_exception(ret, "kill");
+    jerry_value_set_error_flag(&err);
+    return err;
+  }
   return jerry_create_undefined();
 }
 
