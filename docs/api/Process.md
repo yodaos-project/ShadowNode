@@ -147,6 +147,48 @@ doSomeWork()
 process.exitCode = 1;
 ```
 
+### process.kill(pid[, signal])
+* `pid` {number}
+* `signal` {number|string} The signal to send, either as a string or number. **Default**: 'SIGTERM'.
+
+The `process.kill()` method sends the `signal` to the process identified by `pid`.
+
+Signal names are strings such as `'SIGINT'` or `'SIGHUP'`. See [Signal Events] and [kill(2)] for more information.
+
+This method will throw an error if the target `pid` does not exist. As a special case, a signal of `0` can be used to test for the existence of a process. Windows platforms will throw an error if the `pid` is used to kill a process group.
+
+Even though the name of this function is `process.kill()`, it is really just a signal sender, like the `kill` system call. The signal sent may do something other than kill the target process.
+
+```js
+process.on('SIGHUP', () => {
+  console.log('Got SIGHUP signal.');
+});
+
+setTimeout(() => {
+  console.log('Exiting.');
+  process.exit(0);
+}, 100);
+
+process.kill(process.pid, 'SIGHUP');
+```
+
+### process.memoryUsage()
+
+Returns: {Object}
+* `rss` {integer} the amount of space occupied in the main memory device
+* `heapTotal` {integer} heap total size
+* `heapUsed` {integer} currently allocated bytes
+* `peakHeapTotal` {integer} peak allocated bytes
+* `external` {undefined} **this field is not implement yet**
+
+The process.memoryUsage() method returns an object describing the memory usage of the shadow-node process measured in bytes.**This feature is disabled by default, You can enable it by compilation option `jerry-memstat`**
+
+**Example**
+
+```js
+process.memoryUsage()
+```
+
 ### process.nextTick(callback, [...args])
 * `callback` {Function}
 * `...args` {any} Additional arguments to pass when invoking the callback
@@ -321,20 +363,3 @@ process.on('SIGTERM', handle);
 
 At the [sigaction(2)](http://man7.org/linux/man-pages/man2/sigaction.2.html), the `sigaction` doesn't support `SIGKILL` and
 `SIGSTOP`, therefore they are not supported at ShadowNode.
-
-### process.memoryUsage()
-
-Returns: {Object}
-* `rss` {integer} the amount of space occupied in the main memory device
-* `heapTotal` {integer} heap total size
-* `heapUsed` {integer} currently allocated bytes
-* `peakHeapTotal` {integer} peak allocated bytes
-* `external` {undefined} **this field is not implement yet**
-
-The process.memoryUsage() method returns an object describing the memory usage of the shadow-node process measured in bytes.**This feature is disabled by default, You can enable it by compilation option `jerry-memstat`**
-
-**Example**
-
-```js
-process.memoryUsage()
-```

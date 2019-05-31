@@ -49,6 +49,7 @@
   };
 
   var module = Module.require('module');
+  var constants = Module.require('constants');
 
   function makeStackTrace(frames) {
     return frames
@@ -497,6 +498,15 @@
     } finally {
       process.doExit(process.exitCode || 0);
     }
+  };
+
+  var _kill = process.kill;
+  process.kill = function kill(pid, signal) {
+    if (typeof signal === 'string') {
+      signal = constants.os.signals[signal];
+    }
+    signal = signal == null ? constants.os.signals.SIGTERM : signal;
+    _kill(pid, signal);
   };
 
   (function setupSignalHandlers() {
