@@ -9,7 +9,7 @@ function testSignal(type) {
     console.log(signal);
     assert.strictEqual(signal, type);
   }));
-  process.kill(signals[type]);
+  process.kill(process.pid, signals[type]);
 }
 
 testSignal('SIGHUP');
