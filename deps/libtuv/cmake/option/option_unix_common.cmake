@@ -81,5 +81,11 @@ set(TEST_UNITFILES
       "${TEST_ROOT}/test_async.c"
       )
 
+if(TUV_TEST_FORK)
+      add_compile_definitions(TUV_TEST_FORK)
+      set(TEST_UNITFILES "${TEST_UNITFILES}"
+            "${TEST_ROOT}/test_fork.c")
+endif()
+
 # configuration values
 set(CONFIG_FILESYSTEM 1)

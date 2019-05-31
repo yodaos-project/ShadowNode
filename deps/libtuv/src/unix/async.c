@@ -255,6 +255,15 @@ int uv__async_start(uv_loop_t* loop, struct uv__async* wa, uv__async_cb cb) {
 }
 
 
+int uv__async_fork(uv_loop_t* loop) {
+  // TODO: pick libuv commit
+  // libuv/libuv#5fc8aecd81dbb31e76bd80834bb73b0e9b1e5c4c
+  uv__async_stop(loop, &loop->async_watcher);
+
+  return uv__async_start(loop, &loop->async_watcher, uv__async_event);
+}
+
+
 void uv__async_stop(uv_loop_t* loop, struct uv__async* wa) {
   if (wa->io_watcher.fd == -1)
     return;
