@@ -4,7 +4,7 @@
 ShadowNode is one of the Node.js runtimes in shadow, support for most [Node.js API](https://nodejs.org/en/docs/) such as `Event`, `Module` and `N-API`. We plan to support the most of packages in NPM for Node.js in the future. If you are interested in joining it, we will welcome it very much.
 
 ## Getting and Building
-Firstly, you can only build it in Linux and MaxOS now.
+Firstly, you can only build it in Linux and MacOS now.
 1. Install the following prerequisites, as necessary:
   - The tools needed to build ShadowNode from scratch:
     - Standard C development headers
