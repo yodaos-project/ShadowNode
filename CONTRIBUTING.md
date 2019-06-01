@@ -12,6 +12,7 @@ Firstly, you can only build it in Linux and MaxOS now.
     - CMake 3.1+
     - Node.js and NPM
     - DBus(Ubuntu is Builted-in)
+
 Note that at least 4GB of RAM is required to build from source and run tests.
 
 2. Get the ShadowNode code:
