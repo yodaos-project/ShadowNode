@@ -276,9 +276,8 @@ MqttClient.prototype.disconnect = function(err) {
   this._socket.end();
 };
 
-function qosEqual0(qos) {
-  if (!qos || Number.isNaN(qos)) return false;
-  return qos === 0;
+function getQoS(qos) {
+  return Number.isNaN(qos) ? 0 : (qos >= 0 && qos <= 2 ? qos : 0);
 }
 
 MqttClient.prototype._nextMsgId = function() {
@@ -302,10 +301,11 @@ MqttClient.prototype.publish = function(topic, payload, options, callback) {
   if (!Buffer.isBuffer(payload)) {
     payload = new Buffer(payload);
   }
+  var qos = getQoS(options && options.qos);
   try {
     var buf = this._handle._getPublish(topic, {
-      id: qosEqual0(options && options.qos) ? 0 : this._nextMsgId(),
-      qos: (options && options.qos) || 0,
+      id: qos === 0 ? 0 : this._nextMsgId(),
+      qos: qos,
       dup: (options && options.dup) || false,
       retain: (options && options.retain) || false,
       payload: payload,
@@ -332,9 +332,10 @@ MqttClient.prototype.subscribe = function(topic, options, callback) {
     callback = callback || noop;
   }
   try {
+    var qos = getQoS(options && options.qos);
     var buf = this._handle._getSubscribe(topic, {
-      id: qosEqual0(options.qos) ? 0 : this._nextMsgId(),
-      qos: (options && options.qos) || 0,
+      id: qos === 0 ? 0 : this._nextMsgId(),
+      qos: qos,
     });
     this._write(buf, callback);
   } catch (err) {
