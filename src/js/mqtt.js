@@ -274,6 +274,11 @@ MqttClient.prototype.disconnect = function(err) {
   this._socket.end();
 };
 
+function qosEqual0(qos) {
+  if (!qos || Number.isNaN(qos)) return false;
+  return qos === 0;
+}
+
 /**
  * @method publish
  * @param {String} topic
@@ -283,12 +288,16 @@ MqttClient.prototype.disconnect = function(err) {
  */
 MqttClient.prototype.publish = function(topic, payload, options, callback) {
   callback = callback || noop;
+  if (typeof options === 'function') {
+    callback = options;
+  }
+
   if (!Buffer.isBuffer(payload)) {
     payload = new Buffer(payload);
   }
   try {
     var buf = this._handle._getPublish(topic, {
-      id: ++this._msgId,
+      id: qosEqual0(options && options.qos) ? 0 : ++this._msgId,
       qos: (options && options.qos) || 0,
       dup: (options && options.dup) || false,
       retain: (options && options.retain) || false,
@@ -317,7 +326,7 @@ MqttClient.prototype.subscribe = function(topic, options, callback) {
   }
   try {
     var buf = this._handle._getSubscribe(topic, {
-      id: ++this._msgId,
+      id: qosEqual0(options.qos) ? 0 : ++this._msgId,
       qos: (options && options.qos) || 0,
     });
     this._write(buf, callback);
