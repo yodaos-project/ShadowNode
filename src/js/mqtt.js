@@ -288,7 +288,7 @@ MqttClient.prototype.publish = function(topic, payload, options, callback) {
   }
   try {
     var buf = this._handle._getPublish(topic, {
-      id: this._msgId++,
+      id: ++this._msgId,
       qos: (options && options.qos) || 0,
       dup: (options && options.dup) || false,
       retain: (options && options.retain) || false,
@@ -317,7 +317,7 @@ MqttClient.prototype.subscribe = function(topic, options, callback) {
   }
   try {
     var buf = this._handle._getSubscribe(topic, {
-      id: this._msgId++,
+      id: ++this._msgId,
       qos: (options && options.qos) || 0,
     });
     this._write(buf, callback);
@@ -340,7 +340,7 @@ MqttClient.prototype.unsubscribe = function(topic, callback) {
   // TODO don't use try catch
   try {
     buf = this._handle._getUnsubscribe(topic, {
-      id: this._msgId++,
+      id: ++this._msgId,
     });
   } catch (err) {
     callback(err);
