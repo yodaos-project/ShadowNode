@@ -22,6 +22,8 @@ var MQTT_PINGRESP = 13;
 var MQTT_DISCONNECT = 14;
 /* eslint-enable */
 
+var MAX_MSG_ID = 65535;
+
 function noop() {}
 
 /**
@@ -279,6 +281,14 @@ function qosEqual0(qos) {
   return qos === 0;
 }
 
+MqttClient.prototype._nextMsgId = function() {
+  if (this._msgId > MAX_MSG_ID) {
+    this._msgId = 1;
+  }
+
+  return this._msgId++;
+}
+
 /**
  * @method publish
  * @param {String} topic
@@ -294,7 +304,7 @@ MqttClient.prototype.publish = function(topic, payload, options, callback) {
   }
   try {
     var buf = this._handle._getPublish(topic, {
-      id: qosEqual0(options && options.qos) ? 0 : this._msgId++,
+      id: qosEqual0(options && options.qos) ? 0 : this._nextMsgId(),
       qos: (options && options.qos) || 0,
       dup: (options && options.dup) || false,
       retain: (options && options.retain) || false,
@@ -323,7 +333,7 @@ MqttClient.prototype.subscribe = function(topic, options, callback) {
   }
   try {
     var buf = this._handle._getSubscribe(topic, {
-      id: qosEqual0(options.qos) ? 0 : this._msgId++,
+      id: qosEqual0(options.qos) ? 0 : this._nextMsgId(),
       qos: (options && options.qos) || 0,
     });
     this._write(buf, callback);
@@ -346,7 +356,7 @@ MqttClient.prototype.unsubscribe = function(topic, callback) {
   // TODO don't use try catch
   try {
     buf = this._handle._getUnsubscribe(topic, {
-      id: this._msgId++,
+      id: this._nextMsgId(),
     });
   } catch (err) {
     callback(err);
