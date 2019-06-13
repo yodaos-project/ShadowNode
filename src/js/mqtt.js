@@ -61,7 +61,7 @@ function MqttClient(endpoint, options) {
   this._reconnecting = false;
   this._reconnectingTimer = null;
   this._lastConnectTime = 0;
-  this._msgId = 0;
+  this._msgId = 1;
   this._keepAliveTimer = null;
   this._keepAliveTimeout = null;
   this._handle = new native.MqttHandle(this._options);
@@ -288,16 +288,13 @@ function qosEqual0(qos) {
  */
 MqttClient.prototype.publish = function(topic, payload, options, callback) {
   callback = callback || noop;
-  if (typeof options === 'function') {
-    callback = options;
-  }
 
   if (!Buffer.isBuffer(payload)) {
     payload = new Buffer(payload);
   }
   try {
     var buf = this._handle._getPublish(topic, {
-      id: qosEqual0(options && options.qos) ? 0 : ++this._msgId,
+      id: qosEqual0(options && options.qos) ? 0 : this._msgId++,
       qos: (options && options.qos) || 0,
       dup: (options && options.dup) || false,
       retain: (options && options.retain) || false,
@@ -326,7 +323,7 @@ MqttClient.prototype.subscribe = function(topic, options, callback) {
   }
   try {
     var buf = this._handle._getSubscribe(topic, {
-      id: qosEqual0(options.qos) ? 0 : ++this._msgId,
+      id: qosEqual0(options.qos) ? 0 : this._msgId++,
       qos: (options && options.qos) || 0,
     });
     this._write(buf, callback);
@@ -349,7 +346,7 @@ MqttClient.prototype.unsubscribe = function(topic, callback) {
   // TODO don't use try catch
   try {
     buf = this._handle._getUnsubscribe(topic, {
-      id: ++this._msgId,
+      id: this._msgId++,
     });
   } catch (err) {
     callback(err);
