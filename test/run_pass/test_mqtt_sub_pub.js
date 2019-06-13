@@ -28,9 +28,7 @@ Promise.all([
   babeee.subscribe('u/love', common.mustCall(function() {
     console.log('babeee subscribed u/love');
     setTimeout(function() {
-      yorkie.publish('u/love', 'endless', common.mustCall(function() {
-        console.log('yorkie published u/love');
-      }));
+      yorkie.publish('u/love', 'endless');
       console.log('yorkie sent endless love');
     }, 500);
   }));
