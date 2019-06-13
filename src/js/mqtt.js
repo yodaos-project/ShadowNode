@@ -277,10 +277,10 @@ MqttClient.prototype.disconnect = function(err) {
 };
 
 MqttClient.prototype._getQoS = function(qos) {
-  return Number.isNaN(qos) ? 0 : (qos >= 0 && qos <= 2 ? qos : 0);
+  return  qos >= 0 && qos <= 2 ? qos : 0;
 }
 
-MqttClient.prototype.getNewPacketId = function() {
+MqttClient.prototype._getNewPacketId = function() {
   if (this._packetId > MAX_MSG_ID) {
     this._packetId = 1;
   }
@@ -304,7 +304,7 @@ MqttClient.prototype.publish = function(topic, payload, options, callback) {
   var qos = this._getQoS(options && options.qos);
   try {
     var buf = this._handle._getPublish(topic, {
-      id: qos === 0 ? 0 : this.getNewPacketId(),
+      id: qos === 0 ? 0 : this._getNewPacketId(),
       qos: qos,
       dup: (options && options.dup) || false,
       retain: (options && options.retain) || false,
@@ -334,7 +334,7 @@ MqttClient.prototype.subscribe = function(topic, options, callback) {
   try {
     var qos = this._getQoS(options && options.qos);
     var buf = this._handle._getSubscribe(topic, {
-      id: qos === 0 ? 0 : this.getNewPacketId(),
+      id: this._getNewPacketId(),
       qos: qos,
     });
     this._write(buf, callback);
@@ -357,7 +357,7 @@ MqttClient.prototype.unsubscribe = function(topic, callback) {
   // TODO don't use try catch
   try {
     buf = this._handle._getUnsubscribe(topic, {
-      id: this.getNewPacketId(),
+      id: this._getNewPacketId(),
     });
   } catch (err) {
     callback(err);
