@@ -71,6 +71,8 @@
     },
     { "name": "test_module_require3.js"},
     { "name": "test_mqtt_client.js" },
+    { "name": "test_mqtt_packetid.js" },
+    { "name": "test_mqtt_qos.js" },
     { "name": "test_mqtt_sub_pub.js" },
     { "name": "test_mqtt_will_opts.js" },
     { "name": "test_net_1.js" },
