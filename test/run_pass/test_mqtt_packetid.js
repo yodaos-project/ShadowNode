@@ -18,12 +18,12 @@ function connect(endpoint, opts) {
 }
 
 connect(bridge, opts).then((babeee) => {
-  babeee.subscribe('u/love1', (err) => {
-    assert.strictEqual(babeee.getLastPacketId(), 2)
-    babeee.subscribe('u/love2', (err) => {
-      assert.strictEqual(babeee.getLastPacketId(), 3)
-      babeee.subscribe('u/love3', (err) => {
-        assert.strictEqual(babeee.getLastPacketId(), 4)
+  babeee.subscribe('u/love4', (err) => {
+    assert.strictEqual(babeee.getLastPacketId(), 2);
+    babeee.subscribe('u/love5', (err) => {
+      assert.strictEqual(babeee.getLastPacketId(), 3);
+      babeee.subscribe('u/love6', (err) => {
+        assert.strictEqual(babeee.getLastPacketId(), 4);
       });
     });
   });
