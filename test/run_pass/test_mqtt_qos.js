@@ -30,7 +30,7 @@ connect(bridge, opts).then((babeee) => {
         qos: 5
       }, (err) => {
         assert.strictEqual(babeee._getQoS(0), 0);
-        babeee.disconnect()
+        babeee.disconnect();
       });
     });
   });
