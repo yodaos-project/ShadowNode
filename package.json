@@ -8,9 +8,7 @@
     "test-jerry": "deps/jerry/tools/run-tests.py --unittests --jerry-test-suite",
     "test-iotjs": "tools/build.py --run-test --no-check-valgrind",
     "build": "tools/build.py",
-    "rebuild": "tools/build.py --clean",
-    "myrebuild": "tools/build.py --clean --external-include-dir /usr/local/Cellar/dbus/1.12.10/include/dbus-1.0 --external-include-dir /usr/local/lib/dbus-1.0/include",
-    "myrebuild_linux": "tools/build.py --clean --external-include-dir /root/depends/dbus --external-include-dir /usr/lib/dbus-1.0/include"
+    "rebuild": "tools/build.py --clean"
   },
   "author": "Yazhong Liu <yazhong.liu@rokid.com>",
   "license": "Apache-2.0",
