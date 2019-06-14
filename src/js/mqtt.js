@@ -277,8 +277,8 @@ MqttClient.prototype.disconnect = function(err) {
 };
 
 MqttClient.prototype._getQoS = function(qos) {
-  return  qos >= 0 && qos <= 2 ? qos : 0;
-}
+  return qos >= 0 && qos <= 2 ? qos : 0;
+};
 
 MqttClient.prototype._getNewPacketId = function() {
   if (this._packetId > MAX_MSG_ID) {
@@ -286,7 +286,7 @@ MqttClient.prototype._getNewPacketId = function() {
   }
 
   return this._packetId++;
-}
+};
 
 /**
  * @method publish
@@ -331,6 +331,7 @@ MqttClient.prototype.subscribe = function(topic, options, callback) {
   } else {
     callback = callback || noop;
   }
+  var qos = this._getQoS(options && options.qos);
   try {
     var buf = this._handle._getSubscribe(topic, {
       id: this._getNewPacketId(),
