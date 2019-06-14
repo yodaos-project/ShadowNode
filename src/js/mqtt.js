@@ -22,7 +22,7 @@ var MQTT_PINGRESP = 13;
 var MQTT_DISCONNECT = 14;
 /* eslint-enable */
 
-var MAX_MSG_ID = 0xffff;
+var MAX_PACKET_ID = 0xffff;
 
 function noop() {}
 
@@ -281,7 +281,7 @@ MqttClient.prototype._getQoS = function(qos) {
 };
 
 MqttClient.prototype._getNewPacketId = function() {
-  if (this._packetId > MAX_MSG_ID) {
+  if (this._packetId > MAX_PACKET_ID) {
     this._packetId = 1;
   }
 
@@ -387,9 +387,9 @@ MqttClient.prototype.reconnect = function() {
 };
 
 /**
- * @method getLastMessageId
+ * @method getLastPacketId
  */
-MqttClient.prototype.getLastMessageId = function() {
+MqttClient.prototype.getLastPacketId = function() {
   return this._packetId;
 };
 
