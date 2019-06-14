@@ -388,7 +388,7 @@ MqttClient.prototype.reconnect = function() {
 
 function _getLastPacketId() {
   return this._packetId;
-};
+}
 
 /**
  * @method getLastPacketId
@@ -399,8 +399,9 @@ MqttClient.prototype.getLastPacketId = _getLastPacketId;
  * @deprecated
  * @method getLastMessageId
  */
-MqttClient.prototype.getLastMessageId = util.deprecate(_getLastPacketId, 
-  'getLastMessageId is deprecated, please use `getLastPacketId` instead.');
+MqttClient.prototype.getLastMessageId =
+util.deprecate(_getLastPacketId, 'getLastMessageId ' +
+               'is deprecated, please use `getLastPacketId` instead.');
 
 function connect(endpoint, options) {
   var client = new MqttClient(endpoint, options);
