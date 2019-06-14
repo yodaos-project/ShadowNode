@@ -386,12 +386,20 @@ MqttClient.prototype.reconnect = function() {
   }
 };
 
+function _getLastPacketId() {
+  return this._packetId;
+};
+
 /**
  * @method getLastPacketId
  */
-MqttClient.prototype.getLastPacketId = function() {
-  return this._packetId;
-};
+MqttClient.prototype.getLastPacketId = _getLastPacketId;
+
+/**
+ * for Backward-compatibility
+ * @method getLastMessageId
+ */
+MqttClient.prototype.getLastMessageId = _getLastPacketId;
 
 function connect(endpoint, options) {
   var client = new MqttClient(endpoint, options);
