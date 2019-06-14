@@ -399,7 +399,8 @@ MqttClient.prototype.getLastPacketId = _getLastPacketId;
  * for Backward-compatibility
  * @method getLastMessageId
  */
-MqttClient.prototype.getLastMessageId = _getLastPacketId;
+MqttClient.prototype.getLastMessageId = util.deprecate(_getLastPacketId, 
+  'getLastMessageId is deprecated, please remove this call.');
 
 function connect(endpoint, options) {
   var client = new MqttClient(endpoint, options);
