@@ -24,6 +24,7 @@ connect(bridge, opts).then((babeee) => {
       assert.strictEqual(babeee.getLastPacketId(), 3);
       babeee.subscribe('u/love6', (err) => {
         assert.strictEqual(babeee.getLastPacketId(), 4);
+        babeee.disconnect();
       });
     });
   });
