@@ -53,16 +53,18 @@
 
   function makeStackTrace(frames) {
     return frames
-
-      .map((info) => {
+      .reduce((accu, info) => {
         if (info === undefined) {
-          return '';
+          return accu;
         }
-        return '    ' +
+        var line = '    ' +
           // eslint-disable-next-line max-len
           `at ${info.name} (${info.source}${info.line ? ':' + info.line + ':' + info.column : ''})`;
-      })
-      .join('\n');
+        if (!accu) {
+          return line;
+        }
+        return `${accu}\n${line}`;
+      }, '');
   }
 
   process._onUncaughtException = _onUncaughtException;
