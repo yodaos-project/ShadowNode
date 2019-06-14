@@ -22,6 +22,8 @@ var MQTT_PINGRESP = 13;
 var MQTT_DISCONNECT = 14;
 /* eslint-enable */
 
+var MAX_PACKET_ID = 0xffff;
+
 function noop() {}
 
 /**
@@ -61,7 +63,7 @@ function MqttClient(endpoint, options) {
   this._reconnecting = false;
   this._reconnectingTimer = null;
   this._lastConnectTime = 0;
-  this._msgId = 0;
+  this._packetId = 1;
   this._keepAliveTimer = null;
   this._keepAliveTimeout = null;
   this._handle = new native.MqttHandle(this._options);
@@ -274,6 +276,18 @@ MqttClient.prototype.disconnect = function(err) {
   this._socket.end();
 };
 
+MqttClient.prototype._getQoS = function(qos) {
+  return qos >= 0 && qos <= 2 ? qos : 0;
+};
+
+MqttClient.prototype._getNewPacketId = function() {
+  if (this._packetId > MAX_PACKET_ID) {
+    this._packetId = 1;
+  }
+
+  return this._packetId++;
+};
+
 /**
  * @method publish
  * @param {String} topic
@@ -283,13 +297,15 @@ MqttClient.prototype.disconnect = function(err) {
  */
 MqttClient.prototype.publish = function(topic, payload, options, callback) {
   callback = callback || noop;
+
   if (!Buffer.isBuffer(payload)) {
     payload = new Buffer(payload);
   }
+  var qos = this._getQoS(options && options.qos);
   try {
     var buf = this._handle._getPublish(topic, {
-      id: this._msgId++,
-      qos: (options && options.qos) || 0,
+      id: qos === 0 ? 0 : this._getNewPacketId(),
+      qos: qos,
       dup: (options && options.dup) || false,
       retain: (options && options.retain) || false,
       payload: payload,
@@ -316,9 +332,10 @@ MqttClient.prototype.subscribe = function(topic, options, callback) {
     callback = callback || noop;
   }
   try {
+    var qos = this._getQoS(options && options.qos);
     var buf = this._handle._getSubscribe(topic, {
-      id: this._msgId++,
-      qos: (options && options.qos) || 0,
+      id: this._getNewPacketId(),
+      qos: qos,
     });
     this._write(buf, callback);
   } catch (err) {
@@ -340,7 +357,7 @@ MqttClient.prototype.unsubscribe = function(topic, callback) {
   // TODO don't use try catch
   try {
     buf = this._handle._getUnsubscribe(topic, {
-      id: this._msgId++,
+      id: this._getNewPacketId(),
     });
   } catch (err) {
     callback(err);
@@ -369,12 +386,22 @@ MqttClient.prototype.reconnect = function() {
   }
 };
 
+function _getLastPacketId() {
+  return this._packetId;
+}
+
 /**
+ * @method getLastPacketId
+ */
+MqttClient.prototype.getLastPacketId = _getLastPacketId;
+
+/**
+ * @deprecated
  * @method getLastMessageId
  */
-MqttClient.prototype.getLastMessageId = function() {
-  return this._msgId;
-};
+MqttClient.prototype.getLastMessageId =
+util.deprecate(_getLastPacketId, 'getLastMessageId ' +
+               'is deprecated, please use `getLastPacketId` instead.');
 
 function connect(endpoint, options) {
   var client = new MqttClient(endpoint, options);
