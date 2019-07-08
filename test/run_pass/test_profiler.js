@@ -5,6 +5,11 @@
  */
 var profiler = require('profiler');
 
+/* eslint-disable-next-line no-unused-vars */
+var obj = {
+  foo: 'bar',
+  [Symbol('foo')]: 'bar',
+};
 profiler.takeSnapshot('test.heapdump');
 
 profiler.startProfiling('test.cpuprof');
