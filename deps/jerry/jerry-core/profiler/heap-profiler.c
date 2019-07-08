@@ -19,6 +19,7 @@
 #include "ecma-helpers.h"
 #include "ecma-objects.h"
 #include "ecma-function-object.h"
+#include "ecma-symbol-object.h"
 #include "ecma-gc.h"
 
 #ifdef JERRY_HEAP_PROFILER
@@ -293,11 +294,21 @@ heapdump_edge (ecma_object_t *from_p,
   if(fp)
   {
     ecma_value_t from = ecma_make_object_value (from_p);
+    bool deref_edge_name_p = false;
+    if (ecma_prop_name_is_symbol (edge_name_p)) {
+      ecma_value_t name_value = ecma_make_symbol_value (edge_name_p);
+      ecma_value_t desc_value = ecma_get_symbol_descriptive_string (name_value);
+      edge_name_p = ecma_get_string_from_value (desc_value);
+      deref_edge_name_p = true;
+    }
     ecma_value_t name_value = ecma_make_string_value (edge_name_p);
     fprintf (fp, "{\"type\":\"edge\",\"edge_type\":%u,\"name\":%u,\"from\":%u,\"to\":%u},\n",
              edge_type, name_value, from, to);
     heapdump_value (fp, to);
     heapdump_string (fp, edge_name_p);
+    if (deref_edge_name_p) {
+      ecma_deref_ecma_string (edge_name_p);
+    }
   }
 }
 
