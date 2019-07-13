@@ -119,10 +119,6 @@ MqttClient.prototype._onConnectTimeout = function() {
  * @method _onconnect
  */
 MqttClient.prototype._onconnect = function() {
-  if (this._connectTimer) {
-    clearTimeout(this._connectTimer);
-    this._connectTimer = null;
-  }
   this._isSocketConnected = true;
   var buf;
   try {
@@ -170,6 +166,10 @@ MqttClient.prototype._ondata = function(chunk) {
   this.emit('packetreceive');
 
   if (res.type === MQTT_CONNACK) {
+    if (this._connectTimer) {
+      clearTimeout(this._connectTimer);
+      this._connectTimer = null;
+    }
     this._isConnected = true;
     if (this._reconnecting) {
       clearTimeout(this._reconnectingTimer);
@@ -292,6 +292,7 @@ MqttClient.prototype.disconnect = function(err) {
     this.emit('error', err);
   }
   this._socket.end();
+  this._socket = null;
 };
 
 MqttClient.prototype._getQoS = function(qos) {
