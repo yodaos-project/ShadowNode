@@ -67,6 +67,7 @@ function MqttClient(endpoint, options) {
   this._keepAliveTimer = null;
   this._keepAliveTimeout = null;
   this._handle = new native.MqttHandle(this._options);
+  this._connectTimer = null;
   Object.defineProperty(this, 'connected', {
     get: function() {
       return this._isConnected;
@@ -86,6 +87,10 @@ util.inherits(MqttClient, EventEmitter);
  * @method connect
  */
 MqttClient.prototype.connect = function() {
+  var timeout = this._options.connectTimeout;
+  if (timeout > 0) {
+    this._connectTimer = setTimeout(this._onConnectTimeout.bind(this), timeout);
+  }
   var tls;
   var opts = Object.assign({
     port: this._port,
@@ -105,10 +110,19 @@ MqttClient.prototype.connect = function() {
   return this;
 };
 
+MqttClient.prototype._onConnectTimeout = function() {
+  this.emit('error', new Error('connect timeout'));
+  this._ondisconnect();
+};
+
 /**
  * @method _onconnect
  */
 MqttClient.prototype._onconnect = function() {
+  if (this._connectTimer) {
+    clearTimeout(this._connectTimer);
+    this._connectTimer = null;
+  }
   this._isSocketConnected = true;
   var buf;
   try {
@@ -262,6 +276,10 @@ MqttClient.prototype.disconnect = function(err) {
     this.emit('error', err);
   }
   if (!this._isConnected) {
+    if (this._socket) {
+      // force close the socket even if not connected to avoid leak
+      this._socket.destroy();
+    }
     return;
   }
 
