@@ -279,6 +279,7 @@ MqttClient.prototype.disconnect = function(err) {
     if (this._socket) {
       // force close the socket even if not connected to avoid leak
       this._socket.destroy();
+      this._socket = null;
     }
     return;
   }
