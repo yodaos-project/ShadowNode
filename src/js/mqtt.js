@@ -133,7 +133,6 @@ MqttClient.prototype._onconnect = function() {
 
 MqttClient.prototype._onerror = function(err) {
   this.emit('error', err);
-  this._onclose();
 };
 
 MqttClient.prototype._onclose = function() {
