@@ -6,6 +6,8 @@ var common = require('../common');
 var errCount = 0;
 var closeCount = 0;
 
+// test connection refused
+
 var client = mqtt.connect(refusedHost, {
   connectTimeout: 1000,
   reconnectPeriod: -1
