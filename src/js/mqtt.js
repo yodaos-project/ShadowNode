@@ -67,6 +67,7 @@ function MqttClient(endpoint, options) {
   this._disconnected = false;
   this._handle = new native.MqttHandle(this._options);
   this._connectTimer = null;
+  this._disconnectCb = null;
   Object.defineProperty(this, 'connected', {
     get: function() {
       return this._isConnected;
@@ -153,6 +154,13 @@ MqttClient.prototype._onclose = function() {
     this.emit('offline');
   }
   this.emit('close');
+  if (this._disconnected) {
+    if (this._disconnectCb) {
+      var cb = this._disconnectCb;
+      this._disconnectCb = null;
+      cb();
+    }
+  }
 };
 
 MqttClient.prototype._ondata = function(chunk) {
@@ -300,9 +308,27 @@ MqttClient.prototype._closeConnection = function(err) {
   this._socket = null;
 };
 
-MqttClient.prototype.disconnect = function(err) {
+MqttClient.prototype.end = function(force, callback) {
+  // currently close it right way, ignore in-flight messages ack
+  if (typeof force === 'function') {
+    callback = force;
+  }
+  this.disconnect(callback);
+};
+
+MqttClient.prototype.disconnect = function(err, callback) {
   this._disconnected = true;
+  if (typeof err === 'function') {
+    callback = err;
+    err = undefined;
+  }
   this._closeConnection(err);
+  if (callback !== undefined) {
+    if (typeof callback !== 'function') {
+      throw new Error('callback is not a function');
+    }
+    this._disconnectCb = callback;
+  }
 };
 
 MqttClient.prototype._getQoS = function(qos) {

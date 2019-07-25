@@ -11,7 +11,7 @@ function test(cb) {
   });
   client.once('connect', common.mustCall(function() {
     console.log(`connection ${mqttHost} connected`);
-    client.disconnect(cb);
+    client.end(cb);
   }));
 
   client.once('offline', common.mustCall(function() {
@@ -34,5 +34,5 @@ function test(cb) {
 test();
 // with cb
 test(common.mustCall(function() {
-  console.log(`connection ${mqttHost} disconnected`);
+  console.log(`connection ${mqttHost} ended`);
 }));

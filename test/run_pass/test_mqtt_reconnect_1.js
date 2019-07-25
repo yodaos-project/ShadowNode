@@ -6,7 +6,7 @@ var common = require('../common');
 var RECONNECT_MAX_TIMES = 5;
 var reconnectTimes = 0;
 
-// reconnect 5 times
+// reconnect 5
 
 var timeoutClient = mqtt.connect(timeoutHost, {
   connectTimeout: 1000,
@@ -24,13 +24,15 @@ timeoutClient.on('close', common.mustCall(function() {
   assert.strictEqual(timeoutClient._keepAliveTimeout, null);
   assert.strictEqual(timeoutClient._isSocketConnected, false);
   assert.strictEqual(timeoutClient._isConnected, false);
-  assert.strictEqual(!!timeoutClient._reconnectTimer, true);
-  assert.strictEqual(timeoutClient._disconnected, false);
-  console.log(`connection ${timeoutHost} closed`);
+  // reconnect disabled after mqtt.disconnect()
+  assert.strictEqual(
+    !!timeoutClient._reconnectTimer, reconnectTimes !== RECONNECT_MAX_TIMES);
+  assert.strictEqual(
+    timeoutClient._disconnected, reconnectTimes === RECONNECT_MAX_TIMES);
 }));
 timeoutClient.on('reconnect', function() {
   assert(++reconnectTimes <= RECONNECT_MAX_TIMES, 'reconnect to many times');
-  console.log(`reconnecting ${timeoutHost}`);
+  console.log(`reconnecting ${timeoutHost}`, reconnectTimes);
   assert.strictEqual(!!timeoutClient._connectTimer, true);
   assert.strictEqual(timeoutClient._keepAliveTimer, null);
   assert.strictEqual(timeoutClient._keepAliveTimeout, null);
@@ -40,6 +42,5 @@ timeoutClient.on('reconnect', function() {
   assert.strictEqual(timeoutClient._disconnected, false);
   if (reconnectTimes === RECONNECT_MAX_TIMES) {
     timeoutClient.disconnect();
-    timeoutClient.removeAllListeners();
   }
 });
