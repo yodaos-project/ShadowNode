@@ -103,12 +103,9 @@ MqttClient.prototype.connect = function() {
   } else {
     this._socket = net.connect(opts, this._onconnect.bind(this));
   }
-  this.ondataListener = this._ondata.bind(this);
-  this.onerrorListener = this._onerror.bind(this);
-  this.oncloseListener = this._onclose.bind(this);
-  this._socket.on('data', this.ondataListener);
-  this._socket.once('error', this.onerrorListener);
-  this._socket.once('close', this.oncloseListener);
+  this._socket.on('data', this._ondata.bind(this));
+  this._socket.once('error', this._onerror.bind(this));
+  this._socket.once('close', this._onclose.bind(this));
   this._lastChunk = null;
   return this;
 };
