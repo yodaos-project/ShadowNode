@@ -55,6 +55,7 @@
     { "name": "test_uv_loop/test.js", "skip": ["all"], "reason": "uv api not implemented" }
   ],
   "napi": [
+    { "name": "napi_arguments_rectify_argc.test.js", "skip": false },
     { "name": "napi_arguments_return_this.test.js", "skip": false },
     { "name": "napi_arguments_return.test.js", "skip": false },
     { "name": "napi_arguments_throw.test.js", "skip": false },

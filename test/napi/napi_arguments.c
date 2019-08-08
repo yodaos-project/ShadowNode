@@ -26,10 +26,21 @@ static napi_value ReturnThis(napi_env env, napi_callback_info info) {
   return this;
 }
 
+static napi_value RectifyArgc(napi_env env, napi_callback_info info) {
+  size_t argc = 100;
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, NULL, NULL, NULL));
+
+  napi_value ret;
+  napi_create_int32(env, argc, &ret);
+
+  return ret;
+}
+
 static napi_value Init(napi_env env, napi_value exports) {
   SET_NAMED_METHOD(env, exports, "Throw", Throw);
   SET_NAMED_METHOD(env, exports, "Return", Return);
   SET_NAMED_METHOD(env, exports, "ReturnThis", ReturnThis);
+  SET_NAMED_METHOD(env, exports, "RectifyArgc", RectifyArgc);
 
   return exports;
 }

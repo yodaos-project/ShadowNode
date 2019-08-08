@@ -142,11 +142,13 @@ napi_status napi_get_cb_info(napi_env env, napi_callback_info cbinfo,
   iotjs_callback_info_t* callback_info = (iotjs_callback_info_t*)cbinfo;
 
   size_t _argc = argc == NULL ? 0 : *argc;
-  for (size_t i = 0; i < _argc; ++i) {
-    if (i < callback_info->argc) {
-      NAPI_ASSIGN(argv + i, AS_NAPI_VALUE(callback_info->argv[i]));
-    } else {
-      NAPI_ASSIGN(argv + i, AS_NAPI_VALUE(jerry_create_undefined()));
+  if (argv != NULL) {
+    for (size_t i = 0; i < _argc; ++i) {
+      if (i < callback_info->argc) {
+        NAPI_ASSIGN(argv + i, AS_NAPI_VALUE(callback_info->argv[i]));
+      } else {
+        NAPI_ASSIGN(argv + i, AS_NAPI_VALUE(jerry_create_undefined()));
+      }
     }
   }
   NAPI_ASSIGN(argc, callback_info->argc);
