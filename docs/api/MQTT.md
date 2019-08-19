@@ -17,7 +17,7 @@ client.on('connect', function () {
 client.on('message', function (topic, message) {
   // message is Buffer
   console.log(message.toString());
-  client.disconnect();
+  client.end();
 });
 ```
 
@@ -53,7 +53,7 @@ Emitted when a reconnect starts.
 
 ### Event `'offline'`
 
-Emitted when the client from online goes offline.
+Emitted when the client goes offline.
 
 ### Event `'error'`
 
@@ -113,6 +113,8 @@ Unsubscribe from a topic.
 
 ### client.disconnect([err, [, callback]])
 
+This method is *deprecated*.
+
 * `err` {Error} throw an error before disconnect. This parameter is optional.
 * `callback` {Function} will be called when the client is closed. This parameter is optional.
 
@@ -121,3 +123,5 @@ Disconnect the client right away The `client` can safety be unref after call thi
 ### client.reconnect()
 
 Disconnect current connection(if connected) and connect again using the same options as connect().
+
+For more detailed, please see [MQTT.js Readme](https://github.com/mqttjs/MQTT.js#client).
