@@ -111,6 +111,8 @@ Unsubscribe from a topic.
 * `force` {Boolean} passing it to true will close the client right away.
 * `callback` {Function} will be called when the client is closed. This parameter is optional.
 
+Close the client.
+
 ### client.disconnect([err, [, callback]])
 
 This method is *deprecated*.
