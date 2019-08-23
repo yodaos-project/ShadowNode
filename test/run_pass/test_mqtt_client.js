@@ -11,8 +11,6 @@ function test(testHost) {
   });
   assert.strictEqual(client.reconnecting, false);
   assert.strictEqual(client._options.keepalive, 60); // default is 60 in seconds
-  // FIXME
-  // testHost may not be able to connect, so don't use mustCall here
   client.once('connect', function() {
     assert.strictEqual(client.reconnecting, false);
     assert.strictEqual(client.connected, true);
@@ -24,8 +22,10 @@ function test(testHost) {
       assert.strictEqual(client._isSocketConnected, false);
     }));
     client.disconnect();
-    assert.strictEqual(client._keepAliveTimer, null);
-    assert.strictEqual(client._keepAliveTimeout, null);
+    client.once('close', common.mustCall(function() {
+      assert.strictEqual(client._keepAliveTimer, null);
+      assert.strictEqual(client._keepAliveTimeout, null);
+    }));
   });
   // the close event will be triggered whether testHost is connected or not
   client.once('close', common.mustCall(function() {

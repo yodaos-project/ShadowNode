@@ -1,9 +1,9 @@
 # MQTT
 
-This module is a native module for the `MQTT` protocol, which is compatible with 
+This module is a native module for the `MQTT` protocol, which is compatible with
 the [MQTT.js](https://github.com/mqttjs/MQTT.js).
 
-**Example**
+## Example
 
 ```js
 var mqtt = require('mqtt');
@@ -113,8 +113,17 @@ Unsubscribe from a topic.
 
 Close the client.
 
+### client.disconnect([err, [, callback]])
+
+This method is *deprecated*.
+
+* `err` {Error} throw an error before disconnect. This parameter is optional.
+* `callback` {Function} will be called when the client is closed. This parameter is optional.
+
+Disconnect the client right away The `client` can safety be unref after call this method.
+
 ### client.reconnect()
 
-Connect again using the same options as connect().
+Disconnect current connection(if connected) and connect again using the same options as connect().
 
 For more detailed, please see [MQTT.js Readme](https://github.com/mqttjs/MQTT.js#client).

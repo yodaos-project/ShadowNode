@@ -18,9 +18,15 @@ timeoutClient.once('connect', function() {
 });
 timeoutClient.once('error', common.mustCall(function(err) {
   assert.strictEqual(err.message, 'connect timeout');
-  timeoutClient.disconnect();
 }));
 timeoutClient.once('close', common.mustCall(function() {
+  assert.strictEqual(timeoutClient._connectTimer, null);
+  assert.strictEqual(timeoutClient._keepAliveTimer, null);
+  assert.strictEqual(timeoutClient._keepAliveTimeout, null);
+  assert.strictEqual(timeoutClient._reconnectTimer, null);
+  assert.strictEqual(timeoutClient._isSocketConnected, false);
+  assert.strictEqual(timeoutClient._isConnected, false);
+  assert.strictEqual(timeoutClient._disconnected, false);
   console.log(`connection ${timeoutHost} closed`);
 }));
 
@@ -30,9 +36,21 @@ var client = mqtt.connect(mqttHost, {
 });
 client.once('connect', common.mustCall(function() {
   assert.strictEqual(client._connectTimer, null);
+  assert.strictEqual(client._connectTimer, null);
+  assert.strictEqual(!!client._keepAliveTimer, true);
+  assert.strictEqual(client._reconnectTimer, null);
+  assert.strictEqual(client._isSocketConnected, true);
+  assert.strictEqual(client._isConnected, true);
+  assert.strictEqual(client._disconnected, false);
   client.disconnect();
 }));
-
 client.once('close', common.mustCall(function() {
   console.log(`connection ${mqttHost} closed`);
+  assert.strictEqual(client._connectTimer, null);
+  assert.strictEqual(client._keepAliveTimer, null);
+  assert.strictEqual(client._keepAliveTimeout, null);
+  assert.strictEqual(client._isSocketConnected, false);
+  assert.strictEqual(client._isConnected, false);
+  assert.strictEqual(client._reconnectTimer, null);
+  assert.strictEqual(client._disconnected, true);
 }));
