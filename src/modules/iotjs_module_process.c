@@ -362,15 +362,9 @@ JS_FUNCTION(Chdir) {
 
 
 JS_FUNCTION(DoExit) {
-  iotjs_environment_t* env = iotjs_environment_get();
-
-  if (!iotjs_environment_is_exiting(env)) {
-    DJS_CHECK_ARGS(1, number);
-    int exit_code = JS_GET_ARG(0, number);
-
-    iotjs_set_process_exitcode(exit_code);
-    iotjs_environment_go_state_exiting(env);
-  }
+  DJS_CHECK_ARGS(1, number);
+  int exit_code = JS_GET_ARG(0, number);
+  exit(exit_code);
   return jerry_create_undefined();
 }
 
