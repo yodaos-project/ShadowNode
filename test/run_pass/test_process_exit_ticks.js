@@ -17,4 +17,4 @@ process.nextTick(function() {
   assert.fail();
 });
 
-process.exit(233);
+process.exit(0);

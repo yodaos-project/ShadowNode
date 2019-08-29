@@ -11,4 +11,4 @@ fs.access(__filename, function(err) {
   assert.fail();
 });
 
-process.exit(233);
+process.exit(0);
