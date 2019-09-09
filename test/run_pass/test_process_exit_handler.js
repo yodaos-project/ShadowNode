@@ -7,8 +7,7 @@ var fn = (c) => {
 };
 
 process.on('exit', function(c) {
-  console.log(c)
-  process.exitCode = 123
+  process.exitCode = 123;
   fn(c);
 });
 
