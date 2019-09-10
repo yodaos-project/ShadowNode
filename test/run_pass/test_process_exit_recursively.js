@@ -8,6 +8,8 @@ var fn = (c) => {
 
 process.on('exit', function(c) {
   fn(c);
+  process.exit(0);
 });
 
-fn = common.mustCall(fn);
+// fn should be call only once
+fn = common.mustCall(fn, 1);
