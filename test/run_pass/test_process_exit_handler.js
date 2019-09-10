@@ -7,8 +7,8 @@ var fn = (c) => {
 };
 
 process.on('exit', function(c) {
-  process.exitCode = 123;
   fn(c);
 });
 
-fn = common.mustCall(fn);
+// fn should be call only once
+fn = common.mustCall(fn, 1);
