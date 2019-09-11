@@ -75,14 +75,15 @@ void iotjs_process_emit_exit(int code) {
 
   bool throws;
   jerry_value_t jres = iotjs_jhelper_call(jexit, process, &jargs, &throws);
+  // print error if there is an uncaught excpetion during 'exit' event
+  if (throws) {
+    iotjs_set_process_exitcode(2);
+    iotjs_uncaught_exception(jres);
+  }
 
   iotjs_jargs_destroy(&jargs);
   jerry_release_value(jres);
   jerry_release_value(jexit);
-
-  if (throws) {
-    iotjs_set_process_exitcode(2);
-  }
 }
 
 
