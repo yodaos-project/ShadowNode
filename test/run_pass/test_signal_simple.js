@@ -4,7 +4,13 @@ var common = require('../common');
 var assert = require('assert');
 var signals = require('constants').os.signals;
 
-function testSignal(type) {
+function testSignal(type, platform) {
+  if (arguments.length === 2 &&
+    platform !== process.platform) {
+    console.log(`skiped, test ${type} only on ` +
+                `${platform}, but ${process.platform}`);
+    return;
+  }
   process.once(type, common.mustCall(function(signal) {
     console.log(signal);
     assert.strictEqual(signal, type);
@@ -26,4 +32,5 @@ testSignal('SIGUSR2');
 testSignal('SIGPIPE');
 testSignal('SIGALRM');
 testSignal('SIGTERM');
-testSignal('SIGSTKFLT');
+testSignal('SIGCHLD');
+testSignal('SIGSTKFLT', 'linux');

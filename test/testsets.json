@@ -9,6 +9,7 @@
     { "name": "test_buffer.js" },
     { "name": "test_child_process_kill.js" },
     { "name": "test_console.js" },
+    { "name": "test_constants.js" },
     { "name": "test_crypto.js" },
     { "name": "test_crypto_hash.js" },
     { "name": "test_dbus_after_destroy.js" },
