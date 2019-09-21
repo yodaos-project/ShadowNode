@@ -128,6 +128,7 @@
     { "name": "test_pwm_async.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_pwm_sync.js", "skip": ["all"], "reason": "need to setup test environment" },
     { "name": "test_shebang.js" },
+    { "name": "test_signal_handler_fail.js" },
     { "name": "test_signal_simple.js" },
     { "name": "test_spi.js", "skip": ["linux"], "reason": "Differend env on Linux desktop/travis/rpi" },
     { "name": "test_spi_buffer.js", "skip": ["all"], "reason": "need to setup test environment" },
