@@ -522,10 +522,6 @@
       if (!isSignal(type) || signalWraps[type] !== undefined) {
         return;
       }
-      if (type === 'SIGKILL' || type === 'SIGSTOP') {
-        // see sigaction(2), SIGKILL/SIGSTOP are not supported, just skip it.
-        return;
-      }
       var Signal = Module.require('signal');
       var wrap = new Signal();
       wrap.onsignal = process.emit.bind(process, type, type);
