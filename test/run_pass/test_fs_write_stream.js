@@ -6,7 +6,7 @@ var assert = require('assert');
 var common = require('../common');
 
 var dstFilePath = path.join(__dirname, '../resources/test2.txt');
-var originalContents = fs.readFileSync(dstFilePath)
+var originalContents = fs.readFileSync(dstFilePath);
 var buff1 = Buffer.from('IoT');
 var buff2 = Buffer.from('.js');
 
