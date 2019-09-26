@@ -15,8 +15,9 @@
 'use strict';
 
 var Readable = require('stream').Readable;
+var Writable = require('stream').Writable;
 var assert = require('assert');
-
+var common = require('../common');
 
 var readable1 = new Readable();
 var d = '';
@@ -152,6 +153,14 @@ assert.throws(function() {
   readable4.push(null);
 }, Error);
 
+// writable
+var writable1 = new Writable();
+writable1._write = common.mustCall(function(data, encoding, cb) {
+  assert.strictEqual(`${data}`, 'foobar');
+  assert.strictEqual(typeof cb, 'function');
+});
+writable1._readyToWrite();
+writable1.write('foobar');
 
 process.on('exit', function() {
   assert.strictEqual(readable2 instanceof Readable, true);
