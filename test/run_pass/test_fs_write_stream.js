@@ -15,7 +15,7 @@ function nop() {}
 var stream = fs.createWriteStream(dstFilePath);
 stream.write(buff1, nop);
 stream.write(buff2, nop);
-stream.on('finish', common.mustCall(function onend() {
+stream.on('finish', common.mustCall(function onfinish() {
   var outputs = fs.readFileSync(dstFilePath, 'utf8');
   assert.strictEqual(outputs, 'IoT.js');
   fs.writeFileSync(dstFilePath, originalContents);
