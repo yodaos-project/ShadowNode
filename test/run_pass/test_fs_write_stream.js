@@ -10,11 +10,11 @@ var originalContents = fs.readFileSync(dstFilePath);
 var buff1 = Buffer.from('IoT');
 var buff2 = Buffer.from('.js');
 
-function nop() {}
+function noop() {}
 
 var stream = fs.createWriteStream(dstFilePath);
-stream.write(buff1, nop);
-stream.write(buff2, nop);
+stream.write(buff1, noop);
+stream.write(buff2, noop);
 stream.on('finish', common.mustCall(function onfinish() {
   var outputs = fs.readFileSync(dstFilePath, 'utf8');
   assert.strictEqual(outputs, 'IoT.js');
