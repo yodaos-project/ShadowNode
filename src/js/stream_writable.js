@@ -20,7 +20,7 @@ var util = require('util');
 var Stream = stream.Stream;
 var defaultHighWaterMark = 128;
 
-function nop() {}
+function noop() {}
 
 function WriteReq(chunk, encoding, callback) {
   this.chunk = chunk;
@@ -99,7 +99,7 @@ Writable.prototype.write = function(chunk, encoding, callback) {
   }
 
   if (typeof callback !== 'function')
-    callback = nop;
+    callback = noop;
 
   var state = this._writableState;
 
