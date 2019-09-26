@@ -840,7 +840,7 @@ WriteStream.prototype.open = function() {
 };
 
 
-WriteStream.prototype._write = function(data, encoding, cb) {
+WriteStream.prototype._write = function(data, encoding, cb, onwrite) {
   if (!(data instanceof Buffer)) {
     var err = new TypeError('ERR_INVALID_ARG_TYPE');
     return this.emit('error', err);
@@ -848,7 +848,7 @@ WriteStream.prototype._write = function(data, encoding, cb) {
 
   if (typeof this.fd !== 'number') {
     return this.once('open', function() {
-      this._write(data, encoding, cb);
+      this._write(data, encoding, cb, onwrite);
     });
   }
 
@@ -857,9 +857,16 @@ WriteStream.prototype._write = function(data, encoding, cb) {
       if (this.autoClose) {
         this._destroy();
       }
-      return cb(er);
+      process.nextTick(onwrite);
+      if (util.isFunction(cb)) {
+        process.nextTick(function() {
+          cb(er);
+        });
+      }
+      return;
     }
     this.bytesWritten += bytes;
+    onwrite();
     cb();
   }.bind(this));
 

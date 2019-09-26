@@ -44,6 +44,7 @@
     { "name": "test_fs_rename.js", "skip": ["nuttx"], "reason": "depends on the type of the memory (testrunner uses Read Only Memory)" },
     { "name": "test_fs_rename_sync.js", "skip": ["nuttx"], "reason": "depends on the type of the memory (testrunner uses Read Only Memory)" },
     { "name": "test_fs_stat.js" },
+    { "name": "test_fs_write_stream.js" },
     { "name": "test_fs_write.js", "skip": ["nuttx"], "reason": "not implemented for nuttx" },
     { "name": "test_fs_writefile.js", "skip": ["nuttx"], "reason": "depends on the type of the memory (testrunner uses Read Only Memory)" },
     { "name": "test_fs_writefile_sync.js", "skip": ["nuttx"], "reason": "depends on the type of the memory (testrunner uses Read Only Memory)" },
