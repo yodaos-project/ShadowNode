@@ -35,3 +35,21 @@ var expected = [
 ];
 
 assert.deepStrictEqual(actual, expected);
+
+// test for tmpdir
+process.env.TMPDIR = '/tmpdir';
+process.env.TMP = '/tmp';
+process.env.TEMP = '/temp';
+assert.strictEqual(os.tmpdir(), '/tmpdir');
+process.env.TMPDIR = '';
+assert.strictEqual(os.tmpdir(), '/tmp');
+process.env.TMP = '';
+assert.strictEqual(os.tmpdir(), '/temp');
+process.env.TEMP = '';
+assert.strictEqual(os.tmpdir(), '/tmp');
+process.env.TMPDIR = '/tmpdir/';
+assert.strictEqual(os.tmpdir(), '/tmpdir');
+process.env.TMPDIR = '/tmpdir\\';
+assert.strictEqual(os.tmpdir(), '/tmpdir\\');
+process.env.TMPDIR = '/';
+assert.strictEqual(os.tmpdir(), '/');

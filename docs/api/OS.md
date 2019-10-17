@@ -43,7 +43,7 @@ The properties available on the assigned network address object include:
 * `scopeid` {Number} The numeric IPv6 scope ID (only specified when family is IPv6)
 * `cidr` {String} The assigned IPv4 or IPv6 address with the routing prefix in CIDR notation. If the netmask is invalid, this property is set to null
 
-```js
+```
 {
   lo: [
     {
@@ -110,3 +110,9 @@ of the current process is used.
 
 The `priority` input must be an integer between `-20` (high priority) and `19`
 (low priority).
+
+## os.tmpdir()
+
+* Returns: {string}
+
+The `os.tmpdir()` method returns a string specifying the operating system's default directory for temporary files.

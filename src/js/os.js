@@ -88,3 +88,18 @@ Object.defineProperty(exports, 'EOL', {
     return '\n';
   }
 });
+
+function isStringEndsWith(str, search) {
+  var len = str.length;
+  return str.substring(len - search.length, len) === search;
+}
+
+exports.tmpdir = function tmpdir() {
+  var path = process.env.TMPDIR ||
+             process.env.TMP ||
+             process.env.TEMP || '/tmp';
+  if (path.length > 1 && isStringEndsWith(path, '/'))
+    path = path.slice(0, -1);
+
+  return path;
+};
