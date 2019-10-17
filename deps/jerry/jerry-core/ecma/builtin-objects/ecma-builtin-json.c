@@ -1174,7 +1174,7 @@ ecma_builtin_json_quote (ecma_string_t *string_p) /**< string that should be quo
   {
     lit_utf8_byte_t c = *str_p++;
 
-    if (c == LIT_CHAR_BACKSLASH || c == LIT_CHAR_SLASH || c == LIT_CHAR_DOUBLE_QUOTE)
+    if (c == LIT_CHAR_BACKSLASH || c == LIT_CHAR_DOUBLE_QUOTE)
     {
       n_bytes += 2;
     }
@@ -1221,7 +1221,7 @@ ecma_builtin_json_quote (ecma_string_t *string_p) /**< string that should be quo
   {
     lit_utf8_byte_t c = *str_p++;
 
-    if (c == LIT_CHAR_BACKSLASH || c == LIT_CHAR_SLASH ||c == LIT_CHAR_DOUBLE_QUOTE)
+    if (c == LIT_CHAR_BACKSLASH || c == LIT_CHAR_DOUBLE_QUOTE)
     {
       *buf++ = LIT_CHAR_BACKSLASH;
       *buf++ = c;

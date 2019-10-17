@@ -17,7 +17,7 @@
 var assert = require('assert');
 
 var jsonObj = { foo: 'http://www.slash.escape' };
-var jsonString = '{\"foo\":\"http:\\/\\/www.slash.escape\"}';
+var jsonString = '{\"foo\":\"http://www.slash.escape\"}';
 var jsonStringify = JSON.stringify(jsonObj);
 
 assert(jsonStringify === jsonString);
