@@ -34,6 +34,7 @@ ExternalProject_Add(http-parser
     -DOS=${TARGET_OS}
     ${HTTPPARSER_NUTTX_ARG}
     -DENABLE_MEMORY_CONSTRAINTS=ON
+    -DANDROID_ABI=${ANDROID_ABI}
 )
 add_library(libhttp-parser STATIC IMPORTED)
 add_dependencies(libhttp-parser http-parser)

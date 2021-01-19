@@ -31,6 +31,7 @@ ExternalProject_Add(mbedtls
     -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
     -DENABLE_PROGRAMS=OFF
     -DENABLE_TESTING=OFF
+    -DANDROID_ABI=${ANDROID_ABI}
 )
 
 # define external mbedtls target

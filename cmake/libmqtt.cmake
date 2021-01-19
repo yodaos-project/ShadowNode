@@ -30,6 +30,7 @@ ExternalProject_Add(libmqtt
     -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
     -DENABLE_PROGRAMS=OFF
     -DENABLE_TESTING=OFF
+    -DANDROID_ABI=${ANDROID_ABI}
 )
 
 add_library(libmqtt_packet STATIC IMPORTED)
