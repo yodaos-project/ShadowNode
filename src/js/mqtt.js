@@ -103,7 +103,8 @@ MqttClient.prototype.connect = function() {
   var self = this
   setTimeout(() => {
     if (!this._isConnected) {
-      this._onerror(new Error('Recieve server MQTT_CONNACK timeout'));
+      this.emit('timeout');
+      this._ondisconnect();
     }
   }, self._options.connectTimeout);
   return this;
