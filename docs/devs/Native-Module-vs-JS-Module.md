@@ -2,7 +2,7 @@
 
 This document provides a basic guide on when to write a builtin module in Javascript instead of C.
 
-## What are Native module and Javascipt module?
+## What are Native module and Javascript module?
 
 Native module is mainly aimed to get a direct access to low-level API of the operation system and is written in C code. While, Javascript module mainly exists as a bridge between native module and users. And, in some situations, it also includes handy functions and handles errors for API coverage.
 
