@@ -59,7 +59,7 @@ NDK_DIR=$HOME/Android/sdk/ndk-bundle # or change to your ndk directory
   --target-os=linux-android \
   --cmake-param=-DANDROID_NDK=$NDK_DIR \
   --cmake-param=-DANDROID_NATIVE_API_LEVEL=23 \
-  --cmake-param=-DANDROID_ABI=armeabi-v7a \
+  --cmake-param=-DANDROID_ABI=arm64-v8a \
   --cmake-param=-DANDROID_TOOLCHAIN=clang \
   --cmake-toolchain-file=$NDK_DIR/build/cmake/android.toolchain.cmake\
   --profile=./profiles/basic.profile

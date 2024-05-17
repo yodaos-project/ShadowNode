@@ -35,6 +35,7 @@ ExternalProject_Add(libtuv
     -DBUILDAPIEMULTESTER=NO
     -DTARGET_SYSTEMROOT=${TARGET_SYSTEMROOT}
     -DTARGET_BOARD=${TARGET_BOARD}
+    -DANDROID_ABI=${ANDROID_ABI}
 )
 add_library(tuv STATIC IMPORTED)
 add_dependencies(tuv libtuv)
